@@ -21,6 +21,7 @@ export type RootStackParamList = {
   Login: NavigatorScreenParams<RootTabParamList> | undefined;
   Forgot: NavigatorScreenParams<RootTabParamList> | undefined;
   UserProfile: NavigatorScreenParams<RootTabParamList> | undefined;
+  VerifyOTP: NavigatorScreenParams<RootTabParamList> | undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<

@@ -19,6 +19,7 @@ import TabTwoScreen from '../screens/TabTwoScreen';
 import GetStarted from "../screens/Landing/GetStarted";
 import Login from "../screens/Auth/Login";
 import Forgot from "../screens/Auth/Forgot";
+import VerifyOTP from "../screens/Auth/VerifyOTP";
 import UserProfile from "../screens/User/UserProfile";
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
@@ -44,6 +45,7 @@ function RootNavigator() {
     <Stack.Navigator initialRouteName="Root">
       <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+      <Stack.Screen name="VerifyOTP" component={VerifyOTP} options={{ headerShown: false }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
         <Stack.Screen name="Modal" component={ModalScreen} />

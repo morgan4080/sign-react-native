@@ -63,12 +63,17 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                 phoneNumber: value.phoneNumber,
                 pin: value.pin,
             }
-            try {
+
+            console.log("submitting data", payload)
+
+            navigation.navigate('VerifyOTP')
+
+            /*try {
                 const response = await dispatch(loginUser(payload))
                 // console.log(response)
             } catch (e: any) {
                 // console.log("login error", e)
-            }
+            }*/
         }
     };
 
@@ -118,13 +123,14 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
+                                        secureTextEntry={true}
                                         placeholder="Registered pin"
                                         keyboardType="numeric"
                                     />
                                 )}
                                 name="pin"
                             />
-                            {errors.phoneNumber && <Text style={styles.error}>This field is required</Text>}
+                            {errors.pin && <Text style={styles.error}>This field is required</Text>}
                         </View>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, marginTop: 40, position: 'relative' }}>
                             <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text style={styles.linkText}>I have a lenders code</Text></TouchableOpacity>

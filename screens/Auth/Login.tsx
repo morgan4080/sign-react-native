@@ -1,33 +1,44 @@
 import * as React from 'react';
-import { Text, View, StyleSheet, TouchableHighlight } from 'react-native';
+import {Text, View, StyleSheet, TouchableHighlight, TouchableOpacity, Image, ScrollView, TextInput} from 'react-native';
 import AppLoading from 'expo-app-loading';
-import t from 'tcomb-form-native';
+
+import Svg, { Path, Line, SvgProps } from "react-native-svg";
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
-import { useRef } from "react";
-import useColorScheme from "../../hooks/useColorScheme";
+import {useEffect, useRef} from "react";
 
-const Form = t.form.Form;
+import {NativeStackScreenProps} from "@react-navigation/native-stack";
+import { useForm, Controller } from "react-hook-form";
+import { loginUser, checkForJWT, authenticate } from "../../stores/auth/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { store } from "../../stores/store";
+// import types
+import { storeState, loginUserType } from "../../stores/auth/authSlice"
+import {Ionicons} from "@expo/vector-icons";
 
-const LoginForm = t.struct({
-    email: t.String,
-    password: t.String
-})
+type NavigationProps = NativeStackScreenProps<any>
 
-const options = {
-    fields: {
-        email: {
-            error: 'Use your organisations email address to login'
-        },
-        password: {
-            error: 'Provide a password to proceed',
-            password: true,
-            secureTextEntry: true
-        }
-    }
+type FormData = {
+    phoneNumber: string | undefined;
+    pin: string | undefined;
 }
 
-export default function Login() {
-    const colorScheme = useColorScheme();
+export default function Login({ navigation }: NavigationProps, svgProps: SvgProps) {
+    type AppDispatch = typeof store.dispatch;
+
+    const dispatch : AppDispatch = useDispatch();
+
+    useEffect(() => {
+        dispatch(checkForJWT())
+    }, []);
+
+    const { isJWT, isLoggedIn } = useSelector((state: { auth: storeState })=>state.auth);
+
+    if (isJWT && !isLoggedIn) {
+        dispatch(authenticate())
+    } else if (isLoggedIn) {
+        navigation.navigate('UserProfile')
+    }
+
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -37,28 +48,118 @@ export default function Login() {
         Poppins_300Light
     });
 
-    const theForm: any = useRef(null);
+    const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
+        defaultValues: {
+            phoneNumber: '',
+            pin: ''
+        }
+    })
 
-    const handleSubmit = (): void => {
-        const value = theForm.current.getValue();
+    const onSubmit = async (value: any): Promise<void> => {
         if (value) {
-            console.log(value);
+            // make redux action to login
+            // once logged in move to next page
+            const payload: loginUserType = {
+                phoneNumber: value.phoneNumber,
+                pin: value.pin,
+            }
+            try {
+                const response = await dispatch(loginUser(payload))
+                // console.log(response)
+            } catch (e: any) {
+                // console.log("login error", e)
+            }
         }
     };
 
-    if (fontsLoaded) {
+    if (!isJWT && fontsLoaded) {
         return (
-            <View style={styles.container}>
-                <Form
-                    ref={theForm}
-                    type={LoginForm}
-                    options={options}
-                />
+            <ScrollView contentContainerStyle={styles.container} >
+                <View>
+                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                        <Image
+                            style={styles.landingLogo}
+                            source={require('../../assets/images/Logo.png')}
+                        />
+                    </View>
+                    <View style={styles.container2}>
+                        <Text style={styles.titleText}>Enter registered phone number</Text>
+                        <Text style={styles.subTitleText}>We will send you a One Time Pin. use it to verify your phone number</Text>
+                        <View style={{ marginTop: 40, paddingHorizontal: 30 }}>
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: true,
+                                    maxLength: 12,
+                                }}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        style={styles.input}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                    />
+                                )}
+                                name="phoneNumber"
+                            />
+                            {errors.phoneNumber && <Text>This field is required</Text>}
 
-                <TouchableHighlight style={styles.button} onPress={() => handleSubmit()} underlayColor='#99d9f4'>
-                    <Text style={styles.buttonText}>Login</Text>
-                </TouchableHighlight>
-            </View>
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: true,
+                                    maxLength: 4,
+                                }}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        style={styles.input}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                    />
+                                )}
+                                name="pin"
+                            />
+                            {errors.phoneNumber && <Text>This field is required</Text>}
+                        </View>
+                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, marginTop: 40, position: 'relative' }}>
+                            <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text style={styles.linkText}>I have a lenders code</Text></TouchableOpacity>
+                            <Svg
+                                style={{ position: 'absolute', left: '60%' }}
+                                width={1}
+                                height={40}
+                                viewBox="0 0 1 40"
+                                {...svgProps}
+                            >
+                                <Line x1="0.5" y1="64" x2="0.5" stroke="#cccccc"/>
+                            </Svg>
+                            <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text style={styles.linkText}>I have an invitation</Text></TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+                <View style={styles.container3}>
+                    <Svg
+                        style={{ position: 'absolute', top: 0 }}
+                        width={429}
+                        height={29}
+                        viewBox="0 0 429 29"
+                        {...svgProps}
+                    >
+                        <Path d="M428.5 -9.53674e-06C428.5 -9.53674e-06 311.695 31.5121 221 28.0002C127 24.3603 0.5 -9.53674e-06 0.5 -9.53674e-06L190 -9.53674e-06L428.5 -9.53674e-06Z" fill="#F8F8FA" />
+                    </Svg>
+                    <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)}>
+                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+                            <Text style={styles.buttonText}>Get Verified</Text>
+                            <Ionicons
+                                name="arrow-forward-outline"
+                                size={25}
+                                color='#fff'
+                                style={{ marginLeft: 15 }}
+                            />
+                        </View>
+                    </TouchableHighlight>
+                </View>
+            </ScrollView>
         )
     }  else {
         return (
@@ -69,24 +170,74 @@ export default function Login() {
 
 const styles = StyleSheet.create({
     container: {
-        justifyContent: 'center',
-        marginTop: 50,
-        padding: 20,
-        backgroundColor: '#ffffff',
+        display: 'flex',
+        justifyContent: 'space-between',
+        height: '100%',
+        backgroundColor: '#F8F8FA'
+    },
+    container2: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        height: 'auto'
+    },
+    container3: {
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        height: 160,
+        backgroundColor: '#489AAB',
     },
     buttonText: {
         fontSize: 18,
         color: 'white',
-        alignSelf: 'center'
+        alignSelf: 'center',
+        fontFamily: 'Poppins_500Medium',
     },
     button: {
-        height: 36,
-        backgroundColor: '#48BBEC',
-        borderColor: '#48BBEC',
+        borderColor: '#ffffff',
         borderWidth: 1,
-        borderRadius: 8,
+        borderRadius: 50,
+        paddingVertical: 15,
+        paddingHorizontal: 25,
+        marginBottom: 35
+    },
+    titleText: {
+        fontSize: 20,
+        textAlign: 'center',
+        color: '#489AAB',
+        fontFamily: 'Poppins_600SemiBold',
+        paddingTop: 30,
         marginBottom: 10,
-        alignSelf: 'stretch',
-        justifyContent: 'center'
+    },
+    subTitleText: {
+        fontSize: 15,
+        marginHorizontal: 60,
+        textAlign: 'center',
+        color: '#8d8d8d',
+        fontFamily: 'Poppins_400Regular',
+        marginTop: 20,
+    },
+    linkText: {
+        fontSize: 15,
+        textDecorationLine: 'underline',
+        color: '#3D889A',
+        alignSelf: 'flex-start',
+        fontFamily: 'Poppins_400Regular',
+        marginBottom: 10,
+        marginTop: 10,
+    },
+    landingLogo: {
+        marginTop: 80,
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#cccccc',
+        borderRadius: 20,
+        height: 70,
+        marginBottom: 30,
+        paddingHorizontal: 20,
+        fontSize: 15
     }
 });

@@ -10,7 +10,6 @@ export async function getSecureKey(key: string) {
         alert("🔐 Here's your value 🔐 \n" + result);
         return result
     } else {
-        alert('No values stored under that key.');
         return false
     }
 }

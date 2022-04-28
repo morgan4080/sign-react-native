@@ -85,7 +85,7 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                     <View style={styles.container2}>
                         <Text style={styles.titleText}>Enter registered phone number</Text>
                         <Text style={styles.subTitleText}>We will send you a One Time Pin. use it to verify your phone number</Text>
-                        <View style={{ marginTop: 40, paddingHorizontal: 30 }}>
+                        <View style={{ paddingHorizontal: 30 }}>
                             <Controller
                                 control={control}
                                 rules={{
@@ -98,11 +98,13 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
+                                        placeholder="Phone no."
+                                        keyboardType="numeric"
                                     />
                                 )}
                                 name="phoneNumber"
                             />
-                            {errors.phoneNumber && <Text>This field is required</Text>}
+                            {errors.phoneNumber && <Text style={styles.error}>This field is required</Text>}
 
                             <Controller
                                 control={control}
@@ -116,11 +118,13 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
+                                        placeholder="Registered pin"
+                                        keyboardType="numeric"
                                     />
                                 )}
                                 name="pin"
                             />
-                            {errors.phoneNumber && <Text>This field is required</Text>}
+                            {errors.phoneNumber && <Text style={styles.error}>This field is required</Text>}
                         </View>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, marginTop: 40, position: 'relative' }}>
                             <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text style={styles.linkText}>I have a lenders code</Text></TouchableOpacity>
@@ -236,8 +240,15 @@ const styles = StyleSheet.create({
         borderColor: '#cccccc',
         borderRadius: 20,
         height: 70,
-        marginBottom: 30,
+        marginTop: 30,
         paddingHorizontal: 20,
         fontSize: 15
+    },
+    error: {
+        fontSize: 12,
+        color: '#f30000',
+        fontFamily: 'Poppins_400Regular',
+        paddingHorizontal: 10,
+        marginTop: 5
     }
 });

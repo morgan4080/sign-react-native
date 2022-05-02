@@ -8,7 +8,7 @@ import {useEffect, useRef} from "react";
 
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import { loginUser, checkForJWT, authenticate } from "../../stores/auth/authSlice";
+import {loginUser, checkForJWT, authenticate, logoutUser} from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 // import types
@@ -23,21 +23,20 @@ type FormData = {
 }
 
 export default function Login({ navigation }: NavigationProps, svgProps: SvgProps) {
+    const { isJWT, isLoggedIn, loading } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
 
+    // if user and otp phone no same take to profile
+
     useEffect(() => {
-        dispatch(checkForJWT())
+        dispatch(authenticate()).then(() => {
+            if (isLoggedIn) {
+                navigation.navigate('VerifyOTP')
+            }
+        })
     }, []);
-
-    const { isJWT, isLoggedIn } = useSelector((state: { auth: storeState })=>state.auth);
-
-    if (isJWT && !isLoggedIn) {
-        dispatch(authenticate())
-    } else if (isLoggedIn) {
-        navigation.navigate('UserProfile')
-    }
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -48,10 +47,15 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
         Poppins_300Light
     });
 
-    const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
+    const {
+        control,
+        handleSubmit,
+        setError,
+        formState: { errors }
+    } = useForm<FormData>({
         defaultValues: {
-            phoneNumber: '',
-            pin: ''
+            phoneNumber: '254720753971',
+            pin: '1234'
         }
     })
 
@@ -64,20 +68,21 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                 pin: value.pin,
             }
 
-            console.log("submitting data", payload)
-
-            navigation.navigate('VerifyOTP')
-
-            /*try {
-                const response = await dispatch(loginUser(payload))
-                // console.log(response)
-            } catch (e: any) {
-                // console.log("login error", e)
-            }*/
+            dispatch(loginUser(payload)).then((response: any) => {
+                if (isLoggedIn) {
+                    navigation.navigate('VerifyOTP')
+                }
+                if (response.error) {
+                    console.log("login user response", response)
+                    setError('phoneNumber', {type: 'custom', message: response.error.message})
+                    return
+                }
+            }).catch((e: any) => {
+                console.log("login error", e)
+            })
         }
     };
-
-    if (!isJWT && fontsLoaded) {
+    if (!isJWT && fontsLoaded && !loading) {
         return (
             <ScrollView contentContainerStyle={styles.container} >
                 <View>
@@ -103,13 +108,13 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
-                                        placeholder="Phone no."
+                                        placeholder="Phone no. i.e 254722000000"
                                         keyboardType="numeric"
                                     />
                                 )}
                                 name="phoneNumber"
                             />
-                            {errors.phoneNumber && <Text style={styles.error}>This field is required</Text>}
+                            {errors.phoneNumber && <Text style={styles.error}>{errors.phoneNumber?.message}</Text>}
 
                             <Controller
                                 control={control}
@@ -124,13 +129,13 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                                         onChangeText={onChange}
                                         value={value}
                                         secureTextEntry={true}
-                                        placeholder="Registered pin"
+                                        placeholder="Registered pin. max 4 characters"
                                         keyboardType="numeric"
                                     />
                                 )}
                                 name="pin"
                             />
-                            {errors.pin && <Text style={styles.error}>This field is required</Text>}
+                            {errors.pin && <Text style={styles.error}>Invalid entry</Text>}
                         </View>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, marginTop: 40, position: 'relative' }}>
                             <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text style={styles.linkText}>I have a lenders code</Text></TouchableOpacity>

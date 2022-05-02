@@ -1,9 +1,21 @@
 import * as React from 'react';
-import {Text, View, StyleSheet, TouchableHighlight, TouchableOpacity, Image, ScrollView, TextInput, Animated, Easing } from 'react-native';
+import {
+    Text,
+    View,
+    StyleSheet,
+    TouchableHighlight,
+    TouchableOpacity,
+    Image,
+    ScrollView,
+    TextInput,
+    Animated,
+    Easing,
+    Button
+} from 'react-native';
 import AppLoading from 'expo-app-loading';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import { loginUser, checkForJWT, authenticate } from "../../stores/auth/authSlice";
+import { sendOTP, authenticate, setLoading } from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
@@ -12,15 +24,16 @@ import {useEffect, useRef, useState} from "react";
 import { storeState, loginUserType } from "../../stores/auth/authSlice"
 import {Ionicons} from "@expo/vector-icons";
 import {UseFormWatch} from "react-hook-form/dist/types/form";
+import Colors from "../../constants/Colors";
 
 
 type NavigationProps = NativeStackScreenProps<any>
 
 type FormData = {
-    otpChar1: string | undefined;
-    otpChar2: string | undefined;
-    otpChar3: string | undefined;
-    otpChar4: string | undefined;
+    otpChar1?: string | undefined;
+    otpChar2?: string | undefined;
+    otpChar3?: string | undefined;
+    otpChar4?: string | undefined;
 }
 
 const RotateView = () => {
@@ -54,23 +67,26 @@ const RotateView = () => {
 
 export default function VerifyOTP({ navigation }: NavigationProps) {
 
-    const [loading, setLoading] = useState(false);
+    const { isLoggedIn, user, loading, otpSent } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(checkForJWT())
+        dispatch(authenticate()).then(() => {
+            if (user && !otpSent) {
+                dispatch(sendOTP(user.username))
+            }
+        })
     }, []);
 
-    const { isJWT, isLoggedIn } = useSelector((state: { auth: storeState })=>state.auth);
+    useEffect(() => {
+        if (!loading && !isLoggedIn) {
+            navigation.navigate('Login')
+        }
+    }, [isLoggedIn, loading, user, otpSent]);
 
-    if (isJWT && !isLoggedIn) {
-        dispatch(authenticate())
-    } else if (isLoggedIn) {
-        navigation.navigate('UserProfile')
-    }
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -85,52 +101,36 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 
     const onSubmit = async (value: any): Promise<void> => {
         console.log(value)
-        setLoading(true)
+        dispatch(setLoading(true))
     }
-
-    const getMissingData = (arr: any[]) => {
-        return arr.reduce((acc, obj) => {
-            let emptyKeys = []
-            for (const [key, value] of Object.entries(obj)) {
-                if (value === null || value === '') {
-                    emptyKeys.push(key)
-                    obj = {
-                        ...obj,
-                        emptyKeys: emptyKeys
-                    }
-                    acc.push(obj)
-                }
-            }
-            return acc
-        },[]);
-    };
-
+    let newValues: FormData
     useEffect(() => {
         const subscription = watch((value) => {
-            value = [value].reduce((acc, { otpChar1, otpChar2, otpChar3, otpChar4 }) => {
-                let v = {
-                    otpChar1: otpChar1 ?  otpChar1.slice(0, 1) : otpChar1,
-                    otpChar2: otpChar2 ?  otpChar2.slice(0, 1) : otpChar2,
-                    otpChar3: otpChar3 ?  otpChar3.slice(0, 1) : otpChar3,
-                    otpChar4: otpChar4 ?  otpChar4.slice(0, 1) : otpChar4,
+            newValues = [value].reduce((acc, { otpChar1, otpChar2, otpChar3, otpChar4 }) => {
+                return {
+                    otpChar1: otpChar1 ?  otpChar1.slice(0, 1) : undefined,
+                    otpChar2: otpChar2 ?  otpChar2.slice(0, 1) : undefined,
+                    otpChar3: otpChar3 ?  otpChar3.slice(0, 1) : undefined,
+                    otpChar4: otpChar4 ?  otpChar4.slice(0, 1) : undefined,
                 }
-                return v
             },{});
-            console.log(value)
-            /*setValue('otpChar1', value.otpChar1, {
-                shouldValidate: true,
-                shouldDirty: true
-            })*/
         });
-        /*
-                setValue('otpChar2', v.otpChar2)
-                setValue('otpChar3', v.otpChar3)
-                setValue('otpChar4', v.otpChar4)*/
         return () => subscription.unsubscribe();
     }, [watch]);
 
+    const [valueInput, setValueInput] = useState("")
 
-    if (!isJWT && fontsLoaded) {
+    const onChange = (e: any) => {
+        setValueInput(e)
+    }
+
+    useEffect(() => {
+        console.log(valueInput)
+    }, [valueInput])
+
+    const resendOTP = () => (user && dispatch(sendOTP(user.username)))
+
+    if (isLoggedIn && fontsLoaded) {
         return(
             <ScrollView contentContainerStyle={styles.container}>
                 <View>
@@ -144,8 +144,16 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                     </View>
 
                     <Text style={styles.titleText1}>Enter your verification code</Text>
-                    <Text style={styles.subTitleText1}>Kindly enter the verification code that was sent to <Text style={{textDecorationLine: 'underline'}}>+254720753971</Text></Text>
-                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30 }}>
+                    <Text style={styles.subTitleText1}>Kindly enter the verification code that was sent to <Text style={{textDecorationLine: 'underline'}}>{user && user.username}</Text></Text>
+                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, position: 'relative' }}>
+                        <TextInput
+                            style={{ position: 'absolute', top: 0, height: 70, width: '100%', zIndex: 1, opacity: 0 }}
+                            onChangeText={onChange}
+                            keyboardType="numeric"
+                            selectTextOnFocus={false}
+                            value={valueInput}
+                            defaultValue={valueInput}
+                        />
                         <Controller
                             control={control}
                             rules={{
@@ -161,6 +169,8 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                                     placeholder="*"
                                     placeholderTextColor="#FFFFFF"
                                     keyboardType="numeric"
+                                    editable={false}
+                                    selectTextOnFocus={false}
                                 />
                             )}
                             name="otpChar1"
@@ -180,6 +190,8 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                                     placeholder="*"
                                     placeholderTextColor="#FFFFFF"
                                     keyboardType="numeric"
+                                    editable={false}
+                                    selectTextOnFocus={false}
                                 />
                             )}
                             name="otpChar2"
@@ -199,6 +211,8 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                                     placeholder="*"
                                     placeholderTextColor="#FFFFFF"
                                     keyboardType="numeric"
+                                    editable={false}
+                                    selectTextOnFocus={false}
                                 />
                             )}
                             name="otpChar3"
@@ -218,14 +232,21 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                                     placeholder="*"
                                     placeholderTextColor="#FFFFFF"
                                     keyboardType="numeric"
+                                    editable={false}
+                                    selectTextOnFocus={false}
                                 />
                             )}
                             name="otpChar4"
                         />
                     </View>
 
-                    <Text style={styles.subTitleText1}>Did't receive code? <Text style={{textDecorationLine: 'underline', fontFamily: 'Poppins_600SemiBold' }}>Resend code</Text></Text>
-
+                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <TouchableOpacity onPress={() => resendOTP()} >
+                            <Text style={styles.subTitleText1}>
+                                Did't receive code? <Text style={{ textDecorationLine: 'underline' }}>Resend code</Text>
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', height: 100 }}>
                     {loading && <RotateView/>}

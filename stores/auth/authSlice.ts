@@ -23,14 +23,13 @@ interface UserData {
 }
 
 interface AuthData {
-    keycloakId: string,
-    username: string,
-    phoneNumber: string,
+    companyName: string,
     email: string,
     firstName: string,
+    keycloakId: string,
     lastName: string,
     tenantId: string,
-    companyName: string,
+    username: string,
 }
 
 export type storeState = {
@@ -38,10 +37,15 @@ export type storeState = {
     isLoggedIn: boolean;
     loading: boolean;
     isJWT: boolean | string;
+    otpSent: boolean;
 }
 
 export const checkForJWT = createAsyncThunk('checkForJWT', async () => {
     return await getSecureKey('jwt')
+})
+
+export const setLoading = createAsyncThunk('setLoading', (loading: boolean) => {
+    return loading
 })
 
 export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin, tenant = 't72767' }: Pick<loginUserType, "phoneNumber" | "pin" | "tenant">) => {
@@ -71,37 +75,67 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
 
         console.log("login response status", response.status)
 
+        if (response.status === 401) {
+            reject("Sorry, we do not have a user registered by that number")
+        }
+
         if (response.status === 200) {
-            resolve(await response.json())
+            response.json().then(saveKeys).then((response: any) => {
+                resolve(response)
+            })
         } else {
             reject(await response.json())
         }
     })
 })
 
+const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token }: any) => {
+    console.log("got JWTS", expires_in, refresh_expires_in)
+    await saveSecureKey('jwt', access_token)
+    await saveSecureKey('jwtRefresh', refresh_token)
+    return Promise.resolve(true)
+}
+
 export const authenticate = createAsyncThunk('authenticate', async () => {
     return new Promise(async (resolve, reject) => {
-        const key = await getSecureKey('jwt')
-        if (!key) {
-            reject("You are not authenticated")
-        }
-        const response = await fetch(`https://accounts.presta.co.ke/authenticate`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${key}`,
-            }
-        })
-        if (response.status === 200) {
-            resolve(await response.json())
-        } else {
-            reject(await response.json())
-        }
+       try {
+           const key = await getSecureKey('jwt')
+           if (!key) {
+               console.log("key not available")
+               reject("You are not authenticated")
+           } else {
+               console.log("authenticating....")
+           }
+           const response = await fetch(`https://accounts.presta.co.ke/authentication`, {
+               method: 'GET',
+               headers: {
+                   'Content-Type': 'application/json',
+                   'Authorization': `Bearer ${key}`,
+               }
+           })
+           if (response.status === 200) {
+               const data = await response.json()
+               resolve(data)
+           } else {
+               reject("Authentication Failed")
+           }
+       } catch (e: any) {
+           reject(e.message)
+       }
     })
 })
 
 export const logoutUser = createAsyncThunk('logoutUser', async () => {
     return await saveSecureKey('jwt', null)
+})
+
+export const sendOTP = createAsyncThunk('sendOTP', async (phoneNumber: string) => {
+    console.log("sending OTP", phoneNumber)
+    return Promise.resolve(true)
+})
+
+export const verifyOTP = createAsyncThunk('verifyOTP', async (OTP: string) => {
+    return Promise.resolve(true)
 })
 
 const authSlice = createSlice({
@@ -110,7 +144,8 @@ const authSlice = createSlice({
         user: null,
         isLoggedIn: false,
         loading: false,
-        isJWT: false
+        isJWT: false,
+        otpSent: false,
     },
     reducers: {},
     extraReducers: builder => {
@@ -118,8 +153,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(checkForJWT.fulfilled, (state, action) => {
-            console.log("updating isJWT")
-            state.isJWT = action.payload
+            state.isJWT = !!action.payload
             state.loading = false
         })
         builder.addCase(checkForJWT.rejected, (state) => {
@@ -127,22 +161,19 @@ const authSlice = createSlice({
         })
 
 
-
-
         builder.addCase(loginUser.pending, state => {
             state.loading = true
         })
         builder.addCase(loginUser.fulfilled, (state,action) => {
             console.log('loginUser.fulfilled', action.payload)
-            state.loading = true
+            state.loading = false
         })
         builder.addCase(loginUser.rejected, (state, error) => {
             console.log("loginUser.rejected", error)
+            state.isJWT = false
+            state.isLoggedIn = false
             state.loading = false
         })
-
-
-
 
 
         builder.addCase(authenticate.pending, state => {
@@ -150,10 +181,23 @@ const authSlice = createSlice({
         })
         builder.addCase(authenticate.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
             state.user = payload
-            // if payload provides a user set the user and change logged in state to true
+            state.isLoggedIn = true
             state.loading = false
         })
         builder.addCase(authenticate.rejected, state => {
+            state.isJWT = false
+            state.loading = false
+        })
+
+
+        builder.addCase(sendOTP.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(sendOTP.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
+            state.otpSent = true
+            state.loading = false
+        })
+        builder.addCase(sendOTP.rejected, state => {
             state.loading = false
         })
 
@@ -171,6 +215,10 @@ const authSlice = createSlice({
         })
         builder.addCase(logoutUser.rejected, state => {
             state.loading = false
+        })
+
+        builder.addCase(setLoading.fulfilled, (state, { payload }) => {
+            state.loading = payload
         })
     }
 })

@@ -38,6 +38,12 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
         })
     }, []);
 
+    useEffect(() => {
+        if (isLoggedIn) {
+            navigation.navigate('VerifyOTP')
+        }
+    }, [isLoggedIn]);
+
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -69,9 +75,6 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
             }
 
             dispatch(loginUser(payload)).then((response: any) => {
-                if (isLoggedIn) {
-                    navigation.navigate('VerifyOTP')
-                }
                 if (response.error) {
                     console.log("login user response", response)
                     setError('phoneNumber', {type: 'custom', message: response.error.message})

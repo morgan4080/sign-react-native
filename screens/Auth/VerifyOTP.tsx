@@ -15,7 +15,7 @@ import {
 import AppLoading from 'expo-app-loading';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import { sendOTP, authenticate, setLoading } from "../../stores/auth/authSlice";
+import { sendOTP, authenticate, setLoading, verifyOTP } from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
@@ -97,26 +97,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         Poppins_300Light
     });
 
-    const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>()
-
-    const onSubmit = async (value: any): Promise<void> => {
-        console.log(value)
-        dispatch(setLoading(true))
-    }
-    let newValues: FormData
-    useEffect(() => {
-        const subscription = watch((value) => {
-            newValues = [value].reduce((acc, { otpChar1, otpChar2, otpChar3, otpChar4 }) => {
-                return {
-                    otpChar1: otpChar1 ?  otpChar1.slice(0, 1) : undefined,
-                    otpChar2: otpChar2 ?  otpChar2.slice(0, 1) : undefined,
-                    otpChar3: otpChar3 ?  otpChar3.slice(0, 1) : undefined,
-                    otpChar4: otpChar4 ?  otpChar4.slice(0, 1) : undefined,
-                }
-            },{});
-        });
-        return () => subscription.unsubscribe();
-    }, [watch]);
+    const { control, setValue, formState: { errors } } = useForm<FormData>()
 
     const [valueInput, setValueInput] = useState("")
 
@@ -124,8 +105,37 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         setValueInput(e)
     }
 
+    const dispatchVerifyOTP = (valueInput: string) => {
+        return dispatch(verifyOTP(valueInput));
+    }
+
     useEffect(() => {
-        console.log(valueInput)
+        setValueInput(valueInput.slice(0, 4))
+        let result = valueInput.split('')
+        if (result.length > 0) {
+            let valName: any = `otpChar${result.length}`
+            setValue(valName, result[result.length - 1])
+            if (result.length === 4 && !loading) {
+                console.log("ready to submit otp", valueInput)
+                dispatch(setLoading(true))
+                dispatchVerifyOTP(valueInput).then(result => {
+                    // navigate to next view
+                    console.log("OTP verified:::", result)
+                    navigation.navigate('UserProfile')
+                }).catch((error: any) => {
+                    // log error if unverified
+                }).finally(() => {
+                    dispatch(setLoading(false))
+                })
+            }
+            let len = 4 - result.length
+            for (let i = 0; i < len; i++) {
+                let em: any = `otpChar${4-i}`
+                setValue(em, '')
+            }
+        } else {
+            setValue('otpChar1', '')
+        }
     }, [valueInput])
 
     const resendOTP = () => (user && dispatch(sendOTP(user.username)))

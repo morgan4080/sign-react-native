@@ -217,6 +217,7 @@ const authSlice = createSlice({
             state.loading = false
         })
 
+
         builder.addCase(setLoading.fulfilled, (state, { payload }) => {
             state.loading = payload
         })

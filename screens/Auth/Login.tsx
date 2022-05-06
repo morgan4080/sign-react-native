@@ -8,12 +8,13 @@ import {useEffect, useRef} from "react";
 
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import {loginUser, checkForJWT, authenticate, logoutUser} from "../../stores/auth/authSlice";
+import {loginUser, checkForJWT, authenticate, logoutUser, setLoading} from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 // import types
 import { storeState, loginUserType } from "../../stores/auth/authSlice"
 import {Ionicons} from "@expo/vector-icons";
+import {RotateView} from "./VerifyOTP";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -29,19 +30,21 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
     const dispatch : AppDispatch = useDispatch();
 
     // if user and otp phone no same take to profile
-
     useEffect(() => {
         dispatch(authenticate()).then(() => {
-            if (isLoggedIn) {
-                navigation.navigate('VerifyOTP')
-            }
+            navigation.navigate('VerifyOTP')
         })
     }, []);
 
     useEffect(() => {
+        let isLoggedInSubscribed = true;
         if (isLoggedIn) {
-            navigation.navigate('VerifyOTP')
+            if (isLoggedInSubscribed) navigation.navigate('VerifyOTP')
         }
+        return () => {
+            // cancel the subscription
+            isLoggedInSubscribed = false;
+        };
     }, [isLoggedIn]);
 
     let [fontsLoaded] = useFonts({
@@ -74,18 +77,24 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                 pin: value.pin,
             }
 
-            dispatch(loginUser(payload)).then((response: any) => {
-                if (response.error) {
-                    console.log("login user response", response)
-                    setError('phoneNumber', {type: 'custom', message: response.error.message})
+            try {
+                dispatch(setLoading(true))
+                const { type, error }: any = await dispatch(loginUser(payload))
+                if (error) {
+                    setError('phoneNumber', {type: 'custom', message: error.message})
                     return
+                } else if (type === 'loginUser/fulfilled') {
+                    console.log('login successful')
+                    navigation.navigate('VerifyOTP')
                 }
-            }).catch((e: any) => {
+            } catch (e: any) {
                 console.log("login error", e)
-            })
+            } finally {
+                dispatch(setLoading(false))
+            }
         }
     };
-    if (!isJWT && fontsLoaded && !loading) {
+    if (!isJWT && fontsLoaded) {
         return (
             <ScrollView contentContainerStyle={styles.container} >
                 <View>
@@ -140,43 +149,52 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                             />
                             {errors.pin && <Text style={styles.error}>Invalid entry</Text>}
                         </View>
-                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, marginTop: 40, position: 'relative' }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text style={styles.linkText}>I have a lenders code</Text></TouchableOpacity>
-                            <Svg
-                                style={{ position: 'absolute', left: '60%' }}
-                                width={1}
-                                height={40}
-                                viewBox="0 0 1 40"
-                                {...svgProps}
-                            >
-                                <Line x1="0.5" y1="64" x2="0.5" stroke="#cccccc"/>
-                            </Svg>
-                            <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text style={styles.linkText}>I have an invitation</Text></TouchableOpacity>
+                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 35, marginTop: 20 }}>
+                            <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text style={styles.linkText}>Forgot Password</Text></TouchableOpacity>
                         </View>
                     </View>
                 </View>
-                <View style={styles.container3}>
-                    <Svg
-                        style={{ position: 'absolute', top: 0 }}
-                        width={429}
-                        height={29}
-                        viewBox="0 0 429 29"
-                        {...svgProps}
-                    >
-                        <Path d="M428.5 -9.53674e-06C428.5 -9.53674e-06 311.695 31.5121 221 28.0002C127 24.3603 0.5 -9.53674e-06 0.5 -9.53674e-06L190 -9.53674e-06L428.5 -9.53674e-06Z" fill="#F8F8FA" />
-                    </Svg>
-                    <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)}>
-                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-                            <Text style={styles.buttonText}>Get Verified</Text>
-                            <Ionicons
-                                name="arrow-forward-outline"
-                                size={25}
-                                color='#fff'
-                                style={{ marginLeft: 15 }}
-                            />
+                {!loading &&
+                    <View style={styles.container3}>
+                        <Svg
+                            style={{ position: 'absolute', top: 0 }}
+                            width={429}
+                            height={29}
+                            viewBox="0 0 429 29"
+                            {...svgProps}
+                        >
+                            <Path d="M428.5 -9.53674e-06C428.5 -9.53674e-06 311.695 31.5121 221 28.0002C127 24.3603 0.5 -9.53674e-06 0.5 -9.53674e-06L190 -9.53674e-06L428.5 -9.53674e-06Z" fill="#F8F8FA" />
+                        </Svg>
+
+                        <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)}>
+                            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+                                <Text style={styles.buttonText}>Get OTP</Text>
+                                <Ionicons
+                                    name="arrow-forward-outline"
+                                    size={25}
+                                    color='#fff'
+                                    style={{ marginLeft: 15 }}
+                                />
+                            </View>
+                        </TouchableHighlight>
+                    </View>
+                }
+                {loading &&
+                    <View style={styles.container3}>
+                        <Svg
+                            style={{ position: 'absolute', top: 0 }}
+                            width={429}
+                            height={29}
+                            viewBox="0 0 429 29"
+                            {...svgProps}
+                        >
+                            <Path d="M428.5 -9.53674e-06C428.5 -9.53674e-06 311.695 31.5121 221 28.0002C127 24.3603 0.5 -9.53674e-06 0.5 -9.53674e-06L190 -9.53674e-06L428.5 -9.53674e-06Z" fill="#F8F8FA" />
+                        </Svg>
+                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', height: 100 }}>
+                            {loading && <RotateView/>}
                         </View>
-                    </TouchableHighlight>
-                </View>
+                    </View>
+                }
             </ScrollView>
         )
     }  else {
@@ -205,7 +223,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'flex-end',
         height: 160,
-        backgroundColor: '#489AAB',
+        backgroundColor: '#323492',
     },
     buttonText: {
         fontSize: 18,
@@ -224,7 +242,7 @@ const styles = StyleSheet.create({
     titleText: {
         fontSize: 20,
         textAlign: 'center',
-        color: '#489AAB',
+        color: '#323492',
         fontFamily: 'Poppins_600SemiBold',
         paddingTop: 30,
         marginBottom: 10,
@@ -240,7 +258,7 @@ const styles = StyleSheet.create({
     linkText: {
         fontSize: 15,
         textDecorationLine: 'underline',
-        color: '#3D889A',
+        color: '#323492',
         alignSelf: 'flex-start',
         fontFamily: 'Poppins_400Regular',
         marginBottom: 10,

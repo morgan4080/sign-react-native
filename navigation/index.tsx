@@ -3,7 +3,7 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -17,10 +17,14 @@ import NotFoundScreen from '../screens/NotFoundScreen';
 import TabOneScreen from '../screens/TabOneScreen';
 import TabTwoScreen from '../screens/TabTwoScreen';
 import GetStarted from "../screens/Landing/GetStarted";
+import UserEducation from "../screens/Landing/UserEducation";
 import Login from "../screens/Auth/Login";
 import Forgot from "../screens/Auth/Forgot";
 import VerifyOTP from "../screens/Auth/VerifyOTP";
 import UserProfile from "../screens/User/UserProfile";
+import LoanRequests from "../screens/User/LoanRequests";
+import Account from "../screens/User/Account";
+import History from "../screens/User/History";
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 
@@ -42,17 +46,19 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
   return (
-    <Stack.Navigator initialRouteName="Root">
+    <Stack.Navigator initialRouteName="GetStarted">
+      {/*<Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />*/}
       <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
+      <Stack.Screen name="UserEducation" component={UserEducation} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
       <Stack.Screen name="VerifyOTP" component={VerifyOTP} options={{ headerShown: false }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
-        <Stack.Screen name="Modal" component={ModalScreen} />
+        <Stack.Screen name="Modal" component={ModalScreen} options={{ title: '', }}/>
       </Stack.Group>
 
 
-        <Stack.Screen name="UserProfile" component={UserProfile} options={{ headerShown: false }} />
+        <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="Forgot" component={Forgot} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
@@ -69,38 +75,44 @@ function BottomTabNavigator() {
 
   return (
     <BottomTab.Navigator
-      initialRouteName="TabOne"
+      initialRouteName="UserProfile"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme].tint,
       }}>
       <BottomTab.Screen
-        name="TabOne"
-        component={TabOneScreen}
-        options={({ navigation }: RootTabScreenProps<'TabOne'>) => ({
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Pressable
-              onPress={() => navigation.navigate('Modal')}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.5 : 1,
-              })}>
-              <FontAwesome
-                name="info-circle"
-                size={25}
-                color={Colors[colorScheme].text}
-                style={{ marginRight: 15 }}
-              />
-            </Pressable>
-          ),
+        name="UserProfile"
+        component={UserProfile}
+        options={({ navigation }: RootTabScreenProps<'UserProfile'>) => ({
+          title: 'User Profile',
+          tabBarIcon: ({ color }) => <TabBarIcon name="home-account" color={color} />,
+          headerShown: false
         })}
       />
       <BottomTab.Screen
-        name="TabTwo"
-        component={TabTwoScreen}
+        name="LoanRequests"
+        component={LoanRequests}
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'Loan Requests',
+          tabBarIcon: ({ color }) => <TabBarIcon name="bank-transfer" color={color} />,
+            headerShown: false
+        }}
+      />
+      <BottomTab.Screen
+        name="History"
+        component={History}
+        options={{
+          title: 'History',
+          tabBarIcon: ({ color }) => <TabBarIcon name="history" color={color} />,
+            headerShown: false
+        }}
+      />
+      <BottomTab.Screen
+        name="Account"
+        component={Account}
+        options={{
+          title: 'My Account',
+          tabBarIcon: ({ color }) => <TabBarIcon name="account" color={color} />,
+            headerShown: false
         }}
       />
     </BottomTab.Navigator>
@@ -114,5 +126,5 @@ function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
-  return <FontAwesome size={30} style={{ marginBottom: -3 }} {...props} />;
+  return <MaterialCommunityIcons size={30} style={{ marginBottom: -3 }} {...props} />;
 }

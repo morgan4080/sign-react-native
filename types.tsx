@@ -6,6 +6,7 @@
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import UserProfile from "./screens/User/UserProfile";
 
 declare global {
   namespace ReactNavigation {
@@ -18,9 +19,10 @@ export type RootStackParamList = {
   Modal: undefined;
   NotFound: undefined;
   GetStarted: NavigatorScreenParams<RootTabParamList> | undefined;
+  UserEducation: NavigatorScreenParams<RootTabParamList> | undefined;
   Login: NavigatorScreenParams<RootTabParamList> | undefined;
   Forgot: NavigatorScreenParams<RootTabParamList> | undefined;
-  UserProfile: NavigatorScreenParams<RootTabParamList> | undefined;
+  ProfileMain: NavigatorScreenParams<RootTabParamList> | undefined;
   VerifyOTP: NavigatorScreenParams<RootTabParamList> | undefined;
 };
 
@@ -32,6 +34,10 @@ export type RootStackScreenProps<Screen extends keyof RootStackParamList> = Nati
 export type RootTabParamList = {
   TabOne: undefined;
   TabTwo: undefined;
+  UserProfile: undefined;
+  LoanRequests: undefined;
+  History: undefined;
+  Account: undefined;
 };
 
 export type RootTabScreenProps<Screen extends keyof RootTabParamList> = CompositeScreenProps<

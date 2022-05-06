@@ -1,11 +1,9 @@
 import * as React from 'react';
 import {Text, View, StyleSheet, Image, TouchableHighlight} from 'react-native';
-import Svg, { Path, G, Defs, ClipPath, Rect } from "react-native-svg";
 import AppLoading from 'expo-app-loading';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-import useColorScheme from "../../hooks/useColorScheme";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -32,7 +30,7 @@ export default function GetStarted({ navigation }: NavigationProps) {
                     source={require('../../assets/images/landingGetStarted.png')}
                 />
                 <View style={styles.container2}>
-                    <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('Login')}>
+                    <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('UserEducation')}>
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                             <Text style={styles.buttonText}>Get Started</Text>
                             <Ionicons
@@ -60,7 +58,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#F1F4F8',
         height: '100%',
-        position: 'relative'
+        position: 'relative',
     },
     container2: {
         padding: 20,
@@ -109,7 +107,7 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         position: 'absolute',
-        top: 80,
+        top: 250,
         width: '100%',
         display: 'flex',
         alignItems: 'center',

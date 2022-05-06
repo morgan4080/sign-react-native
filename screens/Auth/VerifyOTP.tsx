@@ -10,7 +10,8 @@ import {
     TextInput,
     Animated,
     Easing,
-    Button
+    Button,
+    Keyboard
 } from 'react-native';
 import AppLoading from 'expo-app-loading';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -36,7 +37,7 @@ type FormData = {
     otpChar4?: string | undefined;
 }
 
-const RotateView = () => {
+export const RotateView = () => {
     const rotateAnim = useRef(new Animated.Value(0)).current
 
     useEffect(() => {
@@ -109,6 +110,21 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         return dispatch(verifyOTP(valueInput));
     }
 
+    const verify_otp = async () => {
+        dispatch(setLoading(true))
+        try {
+            const result = await dispatchVerifyOTP(valueInput)
+            console.log("OTP verified:::", result)
+            setTimeout(() => {
+                dispatch(setLoading(false))
+                navigation.navigate('ProfileMain')
+            }, 3000)
+            return result
+        } catch (e: any) {
+            console.log('verify otp error', e)
+        }
+    }
+
     useEffect(() => {
         setValueInput(valueInput.slice(0, 4))
         let result = valueInput.split('')
@@ -117,15 +133,9 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
             setValue(valName, result[result.length - 1])
             if (result.length === 4 && !loading) {
                 console.log("ready to submit otp", valueInput)
-                dispatch(setLoading(true))
-                dispatchVerifyOTP(valueInput).then(result => {
-                    // navigate to next view
-                    console.log("OTP verified:::", result)
-                    navigation.navigate('UserProfile')
-                }).catch((error: any) => {
-                    // log error if unverified
-                }).finally(() => {
-                    dispatch(setLoading(false))
+                Keyboard.dismiss()
+                verify_otp().then((res: any) => {
+
                 })
             }
             let len = 4 - result.length
@@ -157,7 +167,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                     <Text style={styles.subTitleText1}>Kindly enter the verification code that was sent to <Text style={{textDecorationLine: 'underline'}}>{user && user.username}</Text></Text>
                     <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, position: 'relative' }}>
                         <TextInput
-                            style={{ position: 'absolute', top: 0, height: 70, width: '100%', zIndex: 1, opacity: 0 }}
+                            style={{ position: 'absolute', top: 30, left: 30, height: 70, width: '100%', zIndex: 5, opacity: 0, backgroundColor: 'rgba(255,255,255,0)'}}
                             onChangeText={onChange}
                             keyboardType="numeric"
                             selectTextOnFocus={false}
@@ -276,7 +286,7 @@ const styles = StyleSheet.create({
         display: 'flex',
         justifyContent: 'space-between',
         height: '100%',
-        backgroundColor: '#489AAB'
+        backgroundColor: '#323492'
     },
     titleText: {
         fontSize: 20,

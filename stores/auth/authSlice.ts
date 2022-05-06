@@ -1,5 +1,5 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit'
-import {getSecureKey, saveSecureKey} from '../../utils/secureStore'
+import {deleteSecureKey, getSecureKey, saveSecureKey} from '../../utils/secureStore'
 
 export type loginUserType = {
     phoneNumber: number,
@@ -44,8 +44,8 @@ export const checkForJWT = createAsyncThunk('checkForJWT', async () => {
     return await getSecureKey('jwt')
 })
 
-export const setLoading = createAsyncThunk('setLoading', (loading: boolean) => {
-    return loading
+export const setLoading = createAsyncThunk('setLoading', async (loading: boolean) => {
+    return Promise.resolve(loading)
 })
 
 export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin, tenant = 't72767' }: Pick<loginUserType, "phoneNumber" | "pin" | "tenant">) => {
@@ -76,15 +76,13 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
         console.log("login response status", response.status)
 
         if (response.status === 401) {
-            reject("Sorry, we do not have a user registered by that number")
+            reject("Incorrect phone number or password")
         }
 
         if (response.status === 200) {
-            response.json().then(saveKeys).then((response: any) => {
-                resolve(response)
-            })
-        } else {
-            reject(await response.json())
+            const data = await response.json();
+            const result: any = await saveKeys(data)
+            resolve(result)
         }
     })
 })
@@ -126,7 +124,7 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
 })
 
 export const logoutUser = createAsyncThunk('logoutUser', async () => {
-    return await saveSecureKey('jwt', null)
+    return await deleteSecureKey('jwt')
 })
 
 export const sendOTP = createAsyncThunk('sendOTP', async (phoneNumber: string) => {
@@ -209,8 +207,9 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(logoutUser.fulfilled, (state, action) => {
-            console.log('logoutUser.fulfilled', action.payload)
+            console.log('logout fulfilled', action)
             state.isLoggedIn = false
+            state.isJWT = false
             state.loading = false
         })
         builder.addCase(logoutUser.rejected, state => {

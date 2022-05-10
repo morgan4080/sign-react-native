@@ -6,9 +6,9 @@
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 import * as React from 'react';
-import { ColorSchemeName, Pressable } from 'react-native';
+import {ColorSchemeName, Dimensions, Image, Pressable, TouchableOpacity, View} from 'react-native';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
@@ -27,6 +27,7 @@ import Account from "../screens/User/Account";
 import History from "../screens/User/History";
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
+const { width, height } = Dimensions.get("window");
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
@@ -44,6 +45,7 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
  */
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+type NavigationProps = NativeStackScreenProps<any>
 function RootNavigator() {
   return (
     <Stack.Navigator initialRouteName="GetStarted">
@@ -54,12 +56,17 @@ function RootNavigator() {
       <Stack.Screen name="VerifyOTP" component={VerifyOTP} options={{ headerShown: false }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
-        <Stack.Screen name="Modal" component={ModalScreen} options={{ title: '', }}/>
+        <Stack.Screen name="Modal" component={ModalScreen} options={{
+            title: '',
+            headerStyle: {
+                backgroundColor: 'rgba(50,52,146,0.12)',
+            },
+            headerTintColor: '#323492',
+            headerShadowVisible: false
+        }}/>
       </Stack.Group>
-
-
-        <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{ headerShown: false }} />
-        <Stack.Screen name="Forgot" component={Forgot} options={{ headerShown: false }} />
+      <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{ headerShown: false }} />
+      <Stack.Screen name="Forgot" component={Forgot} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

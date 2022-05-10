@@ -29,11 +29,37 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
 
     const dispatch : AppDispatch = useDispatch();
 
+    let [fontsLoaded] = useFonts({
+        Poppins_900Black,
+        Poppins_500Medium,
+        Poppins_800ExtraBold,
+        Poppins_600SemiBold,
+        Poppins_400Regular,
+        Poppins_300Light
+    });
+
     // if user and otp phone no same take to profile
+
     useEffect(() => {
-        dispatch(authenticate()).then(() => {
-            navigation.navigate('VerifyOTP')
-        })
+        let authenticating = true;
+        if (authenticating) {
+            dispatch(setLoading(true))
+            dispatch(authenticate()).then((response: any) => {
+                if (response.type === 'authenticate/rejected') {
+                    return
+                }
+                if (response.type === 'authenticate/fulfilled') {
+                    navigation.navigate('VerifyOTP')
+                }
+            }).catch((error : any) => {
+                console.log("auth error", error)
+            }).finally(() => {
+                dispatch(setLoading(false))
+            })
+        }
+        return () => {
+            authenticating = false
+        }
     }, []);
 
     useEffect(() => {
@@ -47,15 +73,6 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
         };
     }, [isLoggedIn]);
 
-    let [fontsLoaded] = useFonts({
-        Poppins_900Black,
-        Poppins_500Medium,
-        Poppins_800ExtraBold,
-        Poppins_600SemiBold,
-        Poppins_400Regular,
-        Poppins_300Light
-    });
-
     const {
         control,
         handleSubmit,
@@ -63,7 +80,7 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
         formState: { errors }
     } = useForm<FormData>({
         defaultValues: {
-            phoneNumber: '254720753971',
+            phoneNumber: '254721373685',
             pin: '1234'
         }
     })
@@ -78,22 +95,19 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
             }
 
             try {
-                dispatch(setLoading(true))
                 const { type, error }: any = await dispatch(loginUser(payload))
-                if (error) {
+                if (type === 'loginUser/rejected' && error) {
                     setError('phoneNumber', {type: 'custom', message: error.message})
-                    return
-                } else if (type === 'loginUser/fulfilled') {
+                }
+                if (type === 'loginUser/fulfilled') {
                     console.log('login successful')
-                    navigation.navigate('VerifyOTP')
                 }
             } catch (e: any) {
                 console.log("login error", e)
-            } finally {
-                dispatch(setLoading(false))
             }
         }
     };
+
     if (!isJWT && fontsLoaded) {
         return (
             <ScrollView contentContainerStyle={styles.container} >

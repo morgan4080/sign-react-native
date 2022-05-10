@@ -27,7 +27,6 @@ import {Ionicons} from "@expo/vector-icons";
 import {UseFormWatch} from "react-hook-form/dist/types/form";
 import Colors from "../../constants/Colors";
 
-
 type NavigationProps = NativeStackScreenProps<any>
 
 type FormData = {
@@ -77,7 +76,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
     useEffect(() => {
         dispatch(authenticate()).then(() => {
             if (user && !otpSent) {
-                dispatch(sendOTP(user.username))
+                dispatch(sendOTP(user.phoneNumber))
             }
         })
     }, []);
@@ -148,7 +147,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         }
     }, [valueInput])
 
-    const resendOTP = () => (user && dispatch(sendOTP(user.username)))
+    const resendOTP = () => (user && dispatch(sendOTP(user.phoneNumber)))
 
     if (isLoggedIn && fontsLoaded) {
         return(

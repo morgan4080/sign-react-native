@@ -22,7 +22,8 @@ import {useDispatch, useSelector} from "react-redux";
 import {storeState, setLoading, fetchMember, logoutUser} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import Colors from "../../constants/Colors";
-import {MaterialCommunityIcons} from "@expo/vector-icons";
+import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
+import {CircleSnail as ProgressCircleSnail} from "react-native-progress";
 
 // Types
 
@@ -96,15 +97,15 @@ export default function UserProfile({ navigation }: NavigationProps) {
     if (fontsLoaded && !loading) {
         return (
             <View style={{ flex: 1, paddingTop: Bar.currentHeight, position: 'relative' }}>
+                <Image
+                    style={styles.landingBg}
+                    source={require('../../assets/images/profile-bg.png')}
+                />
                 <View style={styles.container}>
-                    <Image
-                        style={styles.landingBg}
-                        source={require('../../assets/images/profile-bg.png')}
-                    />
                     <View style={{ flex: 1, alignItems: 'center', }}>
                         <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width, height: height/2, position: 'relative' }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ backgroundColor: '#CCCCCC', borderRadius: 100, position: 'absolute', top: 10, left: 10 }}>
-                                <MaterialCommunityIcons style={{paddingHorizontal: 5, paddingVertical: 5}} name="account" color="#FFFFFF" size={30}/>
+                            <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
+                                <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                             </TouchableOpacity>
                             <View>
                                 <Text style={styles.titleText}>{ `Good ${ greeting() } ${ user?.firstName }` }</Text>
@@ -119,13 +120,13 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             </View>
                             <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center' }}>
                                 <View style={{ display: 'flex', flexDirection: 'row', marginTop: 50, justifyContent: 'space-between' }}>
-                                    <TouchableOpacity style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, borderColor: '#CCCCCC', borderWidth: 1, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: 'rgba(51,109,255,0.8)'  }}>
+                                    <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: 'rgba(51,109,255,0.8)'  }}>
                                         <Image
                                             source={require('../../assets/images/apply-loan.png')}
                                         />
                                         <Text style={{ color: '#ffffff', fontFamily: 'Poppins_600SemiBold', maxWidth: 100 }}>Apply For A Loan</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, borderColor: '#CCCCCC', borderWidth: 1, height: 120, marginLeft: 10, borderRadius: 25 }}>
+                                    <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipRequests')} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, borderColor: '#CCCCCC', borderWidth: 1, height: 120, marginLeft: 10, borderRadius: 25 }}>
                                         <Image
                                             source={require('../../assets/images/Guarantorship-Requests.png')}
                                         />
@@ -155,7 +156,9 @@ export default function UserProfile({ navigation }: NavigationProps) {
         )
     } else {
         return (
-            <AppLoading/>
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+                <ProgressCircleSnail size={50} color={['green', 'blue']} />
+            </View>
         )
     }
 }
@@ -163,7 +166,6 @@ export default function UserProfile({ navigation }: NavigationProps) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        position: 'relative'
     },
     subTitleText: {
         fontSize: 18,
@@ -175,6 +177,7 @@ const styles = StyleSheet.create({
     landingBg: {
         top: 0,
         position: 'absolute',
+        height: height/1.7
     },
     titleText: {
         fontSize: 30,

@@ -118,18 +118,18 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                             <Text style={{ fontFamily: 'Poppins_500Medium', color: '#ffffff', fontSize: 10, marginBottom: 15 }}>CREDIT RANK:</Text>
                                             <Text style={{ fontFamily: 'Poppins_500Medium', color: '#ffffff', fontSize: 10, marginBottom: 15 }}>REPAYMENT SCORE:</Text>
                                             <Text style={{ fontFamily: 'Poppins_500Medium', color: '#ffffff', fontSize: 10, marginBottom: 15 }}>REPAYMENT FREQ:</Text>
-                                            <TouchableOpacity style={{backgroundColor: '#27627E', borderRadius: 30, height: 32, display: 'flex', justifyContent: 'center', elevation: 3}}>
+                                            <TouchableOpacity onPress={() => navigation.navigate('History')} style={{backgroundColor: '#27627E', borderRadius: 30, height: 32, display: 'flex', justifyContent: 'center', elevation: 3}}>
                                                 <Text style={{ textAlign: 'center', fontFamily: 'Poppins_500Medium', fontSize: 11, color: '#ffffff' }}>HISTORY</Text>
                                             </TouchableOpacity>
                                         </View>
                                         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 15, paddingVertical: 10, paddingHorizontal: 10, width: '50%' }}>
                                             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                                                 <Text style={{ fontFamily: 'Poppins_500Medium', color: '#000000', fontSize: 10 }}>Performance scale</Text>
-                                                <Text style={{ fontFamily: 'Poppins_500Medium', color: '#4AB1C3', fontSize: 10 }}>12.5%</Text>
+                                                <Text style={{ fontFamily: 'Poppins_500Medium', color: '#4AB1C3', fontSize: 10 }}>12%</Text>
                                             </View>
                                             <Text style={{ fontFamily: 'Poppins_700Bold', color: '#607D8B', fontSize: 7 }}>Statistics information</Text>
                                             <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 20}}>
-                                                <ProgressCircle size={100} thickness={5} showsText={true} unfilledColor='#4AB1C3' progress={0.125} color='#323492' borderColor='transparent'/>
+                                                <ProgressCircle size={100} thickness={5} showsText={true} unfilledColor='#4AB1C3' progress={0.12} color='#323492' borderColor='transparent'/>
                                             </View>
                                         </View>
                                     </View>

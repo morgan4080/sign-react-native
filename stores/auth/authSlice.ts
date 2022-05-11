@@ -99,11 +99,20 @@ interface LoanRequest {
     loanDate: string
 }
 
+interface LoanProduct {
+    refId: string;
+    name: string;
+    interestRate: number;
+    requiredGuarantors: number;
+}
+
 export type storeState = {
     user: AuthData | null;
     member: MemberData | null;
     loanRequests: LoanRequestData[] | null;
     loanRequest: LoanRequest | null;
+    loanProducts: LoanProduct[] | null;
+    loanProduct: LoanProduct | null;
     isLoggedIn: boolean;
     loading: boolean;
     isJWT: boolean | string;
@@ -122,10 +131,6 @@ const parseJwt = (token: string) => {
 
 export const checkForJWT = createAsyncThunk('checkForJWT', async () => {
     return await getSecureKey('jwt')
-})
-
-export const setLoading = createAsyncThunk('setLoading', async (loading: boolean) => {
-    return Promise.resolve(loading)
 })
 
 export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin, tenant = 't72767' }: Pick<loginUserType, "phoneNumber" | "pin" | "tenant">) => {
@@ -166,6 +171,23 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
             resolve(result)
         }
     })
+})
+
+export const logoutUser = createAsyncThunk('logoutUser', async () => {
+    return await deleteSecureKey('jwt')
+})
+
+export const sendOTP = createAsyncThunk('sendOTP', async (phoneNumber: string) => {
+    console.log("sending OTP", phoneNumber)
+    return Promise.resolve(true)
+})
+
+export const verifyOTP = createAsyncThunk('verifyOTP', async (OTP: string) => {
+    return Promise.resolve(true)
+})
+
+export const setLoading = createAsyncThunk('setLoading', async (loading: boolean) => {
+    return Promise.resolve(loading)
 })
 
 const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token }: any) => {
@@ -354,17 +376,35 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
     })
 })
 
-export const logoutUser = createAsyncThunk('logoutUser', async () => {
-    return await deleteSecureKey('jwt')
-})
+export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async () => {
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loans-products`
 
-export const sendOTP = createAsyncThunk('sendOTP', async (phoneNumber: string) => {
-    console.log("sending OTP", phoneNumber)
-    return Promise.resolve(true)
-})
-
-export const verifyOTP = createAsyncThunk('verifyOTP', async (OTP: string) => {
-    return Promise.resolve(true)
+    return new Promise(async (resolve, reject) => {
+        try {
+            const key = await getSecureKey('jwt')
+            if (!key) {
+                console.log("key not available")
+                reject("You are not authenticated")
+            } else {
+                console.log("fetching loan products....")
+            }
+            const myHeaders = new Headers();
+            myHeaders.append("Authorization", `Bearer ${key}`)
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: myHeaders,
+                redirect: 'follow'
+            })
+            if (response.status === 200) {
+                const data = await response.json()
+                resolve(data.list)
+            } else {
+                reject("fetch loan products failed")
+            }
+        } catch (e: any) {
+            reject(e.message)
+        }
+    })
 })
 
 const authSlice = createSlice({
@@ -379,7 +419,12 @@ const authSlice = createSlice({
         loanRequests: null,
         loanRequest: null,
     },
-    reducers: {},
+    reducers: {
+        createLoanProduct(state, action) {
+            state.loanProduct = action.payload
+            return state
+        }
+    },
     extraReducers: builder => {
         builder.addCase(checkForJWT.pending, state => {
             state.loading = true
@@ -455,6 +500,17 @@ const authSlice = createSlice({
             state.loading = false
         })
 
+        builder.addCase(fetchLoanProducts.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(fetchLoanProducts.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
+            state.loanProducts = payload
+            state.loading = false
+        })
+        builder.addCase(fetchLoanProducts.rejected, state => {
+            state.loading = false
+        })
+
         builder.addCase(sendOTP.pending, state => {
             state.loading = true
         })
@@ -485,4 +541,9 @@ const authSlice = createSlice({
     }
 })
 
-export default authSlice.reducer
+// Extract the action creators object and the reducer
+const { actions, reducer } = authSlice
+// Extract and export each action creator by name
+export const { createLoanProduct } = actions
+// Export the reducer, either as a default or named export
+export default reducer

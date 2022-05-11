@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
 import * as React from "react";
-import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
+import {MaterialCommunityIcons} from "@expo/vector-icons";
 import AppLoading from "expo-app-loading";
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
@@ -25,14 +25,14 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import HistoryTile from "./Components/HistoryTile";
+import HistoryTile from "../User/Components/HistoryTile";
 
 type NavigationProps = NativeStackScreenProps<any>
 
 const { width, height } = Dimensions.get("window");
 
-export default function History ({ navigation }: NavigationProps) {
-    const { isLoggedIn, loading, user, member } = useSelector((state: { auth: storeState }) => state.auth);
+export default function GuarantorshipRequests ({ navigation }: NavigationProps) {
+    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
@@ -80,7 +80,7 @@ export default function History ({ navigation }: NavigationProps) {
         {
             executor: 'You',
             subject: 'Mauryn Mbithe',
-            event: 'requested guarantorship from',
+            event: 'requested guarantor',
             time: new Date().toLocaleTimeString()
         },
         {
@@ -99,38 +99,26 @@ export default function History ({ navigation }: NavigationProps) {
 
     if (fontsLoaded && !loading) {
         return (
-            <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
-                <View style={styles.container}>
-                    <View style={{flex: 1, alignItems: 'center',}}>
-                        <View style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            width,
-                            height: 1/12 * height,
-                            position: 'relative'
-                        }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
-                                <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
-                            </TouchableOpacity>
-                        </View>
-                        <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 11/12 * height }}>
+        <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+            <View style={{ position: 'absolute', right: -30, top: -10, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
+            <View style={styles.container}>
+                <View style={{flex: 1, alignItems: 'center',}}>
+                    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height }}>
 
-                            <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50  }}>
-                                <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_700Bold', fontSize: 22, marginTop: 30 }}>My History</Text>
-                                {
-                                    accountHistory && accountHistory.map((history, i) => (
-                                        <HistoryTile key={i} history={history}  />
-                                    ))
-                                }
-                            </ScrollView>
+                        <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50  }}>
+                        {
+                            accountHistory && accountHistory.map((history, i) => (
+                                <HistoryTile key={i} history={history}  />
+                        ))
+                        }
+                        </ScrollView>
 
-                        </SafeAreaView>
-                    </View>
+                    </SafeAreaView>
                 </View>
-                <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'}/>
             </View>
-        )
+            <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'}/>
+        </View>
+    )
     } else {
         return (
             <AppLoading/>

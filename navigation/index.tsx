@@ -23,10 +23,23 @@ import Forgot from "../screens/Auth/Forgot";
 import VerifyOTP from "../screens/Auth/VerifyOTP";
 import UserProfile from "../screens/User/UserProfile";
 import LoanRequests from "../screens/User/LoanRequests";
+import GuarantorshipRequests from "../screens/Guarantorship/GuarantorshipRequests";
 import Account from "../screens/User/Account";
 import History from "../screens/User/History";
+import LoanProducts from "../screens/Loans/LoanProducts";
+import LoanProduct from "../screens/Loans/LoanProduct";
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
+import {
+    Poppins_300Light,
+    Poppins_400Regular,
+    Poppins_500Medium, Poppins_600SemiBold,
+    Poppins_700Bold,
+    Poppins_800ExtraBold,
+    Poppins_900Black,
+    useFonts
+} from "@expo-google-fonts/poppins";
+
 const { width, height } = Dimensions.get("window");
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
@@ -47,6 +60,15 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 type NavigationProps = NativeStackScreenProps<any>
 function RootNavigator() {
+    let [fontsLoaded] = useFonts({
+        Poppins_900Black,
+        Poppins_500Medium,
+        Poppins_800ExtraBold,
+        Poppins_700Bold,
+        Poppins_600SemiBold,
+        Poppins_400Regular,
+        Poppins_300Light
+    });
   return (
     <Stack.Navigator initialRouteName="GetStarted">
       {/*<Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />*/}
@@ -66,6 +88,21 @@ function RootNavigator() {
         }}/>
       </Stack.Group>
       <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{ headerShown: false }} />
+      <Stack.Screen name="LoanProducts" component={LoanProducts} options={{ headerShown: false }} />
+      <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
+      <Stack.Screen name="GuarantorshipRequests" component={GuarantorshipRequests} options={{
+          headerShown: true,
+          title: 'Guarantorship Requests',
+          headerShadowVisible: false,
+          headerStyle: {
+              backgroundColor: 'rgba(204,204,204,0.28)',
+          },
+          headerTintColor: '#323492',
+          headerTitleStyle: {
+              fontSize: 20,
+              fontFamily: 'Poppins_600SemiBold'
+          }
+      }} />
       <Stack.Screen name="Forgot" component={Forgot} options={{ headerShown: false }} />
     </Stack.Navigator>
   );

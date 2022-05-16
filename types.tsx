@@ -24,6 +24,8 @@ export type RootStackParamList = {
   LoanProducts: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanProduct: NavigatorScreenParams<RootTabParamList> | undefined;
   GuarantorsHome: NavigatorScreenParams<RootTabParamList> | undefined;
+  WitnessesHome: NavigatorScreenParams<RootTabParamList> | undefined;
+  LoanConfirmation: NavigatorScreenParams<RootTabParamList> | undefined;
   Login: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanPurpose: NavigatorScreenParams<RootTabParamList> | undefined;
   Forgot: NavigatorScreenParams<RootTabParamList> | undefined;

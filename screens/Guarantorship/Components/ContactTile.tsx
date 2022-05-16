@@ -11,15 +11,15 @@ import {Dimensions, StyleSheet, Text, TouchableOpacity, View} from "react-native
 import {Ionicons} from "@expo/vector-icons";
 import * as React from "react";
 import Checkbox from "expo-checkbox";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 interface propInterface {
     contact: any,
     addContactToList: any
-    removeContactToList: any
+    removeContactFromList: any
 }
 const { width, height } = Dimensions.get("window");
-export default function contactTile ({contact, addContactToList, removeContactToList}: propInterface) {
+export default function contactTile ({contact, addContactToList, removeContactFromList}: propInterface) {
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -35,10 +35,12 @@ export default function contactTile ({contact, addContactToList, removeContactTo
         if (newValue) {
             addContactToList(contact)
         } else {
-            removeContactToList(contact)
+            removeContactFromList(contact)
         }
         setSelectedContact(newValue)
     }
+
+
     return (
         <TouchableOpacity style={styles.main} onPress={() => selectContact(!selectedContact, contact)}>
             <View style={styles.tile} >
@@ -73,7 +75,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 1, // IOS
         shadowRadius: 1, //IOS
         backgroundColor: '#FFFFFF',
-        elevation: 2, // Android
+        elevation: 6, // Android
     },
     tile: {
         display: 'flex',

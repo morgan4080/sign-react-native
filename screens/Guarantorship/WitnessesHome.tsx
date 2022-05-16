@@ -38,7 +38,7 @@ type FormData = {
     searchTerm: string;
     phoneNumber: string;
 }
-export default function GuarantorsHome({ navigation, route }: NavigationProps) {
+export default function WitnessesHome({ navigation, route }: NavigationProps) {
     const { loading } = useSelector((state: { auth: storeState }) => state.auth);
     // console.log("route params", route.params)
     const [contacts, setContacts] = useState<any[]>([])
@@ -178,7 +178,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
                             <View style={{paddingHorizontal: 20, marginTop: 30}}>
                                 <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22 }}>
-                                    Enter Guarantors ({route.params?.loanProduct.requiredGuarantors} Required)
+                                    Enter Witnesses ({route.params?.loanProduct.requiredGuarantors} Required)
                                 </Text>
                                 <Controller
                                     control={control}
@@ -241,8 +241,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         </SafeAreaView>
 
                         <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity disabled={selectedContacts.length < 4} onPress={() => navigation.navigate('WitnessesHome', {
-                                guarantors: selectedContacts,
+                            <TouchableOpacity disabled={selectedContacts.length < 4} onPress={() => navigation.navigate('LoanConfirmation', {
+                                witnesses: selectedContacts,
                                 ...route.params
                             })} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < 4 ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                 <Text style={styles.buttonText}>CONTINUE</Text>
@@ -270,9 +270,9 @@ const styles = StyleSheet.create({
         display: 'flex', alignItems: 'center', justifyContent: 'center', width: width/3, height: (height/2)/ 4
     },
     dialPadText: {
-      fontSize: 30,
-      color: '#336DFF',
-      fontFamily: 'Poppins_300Light',
+        fontSize: 30,
+        color: '#336DFF',
+        fontFamily: 'Poppins_300Light',
     },
     input: {
         borderWidth: 2,

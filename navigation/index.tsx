@@ -25,11 +25,13 @@ import UserProfile from "../screens/User/UserProfile";
 import LoanRequests from "../screens/User/LoanRequests";
 import GuarantorshipRequests from "../screens/Guarantorship/GuarantorshipRequests";
 import GuarantorsHome from "../screens/Guarantorship/GuarantorsHome";
+import WitnessesHome from "../screens/Guarantorship/WitnessesHome";
 import Account from "../screens/User/Account";
 import History from "../screens/User/History";
 import LoanProducts from "../screens/Loans/LoanProducts";
 import LoanProduct from "../screens/Loans/LoanProduct";
 import LoanPurpose from "../screens/Loans/LoanPurpose";
+import LoanConfirmation from "../screens/Loans/LoanConfirmation";
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import {
@@ -94,6 +96,8 @@ function RootNavigator() {
       <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
       <Stack.Screen name="LoanPurpose" component={LoanPurpose} options={{ headerShown: false }} />
       <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={{ headerShown: false }} />
+      <Stack.Screen name="WitnessesHome" component={WitnessesHome} options={{ headerShown: false }} />
+      <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={{ headerShown: false }} />
       <Stack.Screen name="GuarantorshipRequests" component={GuarantorshipRequests} options={{
           headerShown: true,
           title: 'Guarantorship Requests',

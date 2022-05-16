@@ -47,15 +47,15 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
         } else {
             dispatch(fetchLoanProducts()).then((response: any) => {
                 if (response.type === 'fetchLoanProducts/rejected' && response.error) {
-                    console.log("fetch loan products error")
+                    // console.log("fetch loan products error")
                     return
                 }
                 if (response.type === 'fetchLoanProducts/fulfilled') {
-                    console.log("fetch  loan products success")
+                    // console.log("fetch  loan products success")
                     return
                 }
             }).catch((e: any) => {
-                console.log("fetch loan requests error", e)
+                // console.log("fetch loan requests error", e)
             })
         }
         return () => { isMounted = false };

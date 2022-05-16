@@ -54,9 +54,9 @@ export default function UserEducation({navigation}: NavigationProps) {
                         </Text>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 40, marginBottom: 80 }}>
                             <View style={{ width: '10%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <TouchableOpacity style={{ backgroundColor: '#323492', height: 10, width: 10, borderRadius: 50 }} onPress={() => console.log('scrolling')}/>
-                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} onPress={() => console.log('scrolling')}/>
-                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} onPress={() => console.log('scrolling')}/>
+                                <TouchableOpacity style={{ backgroundColor: '#323492', height: 10, width: 10, borderRadius: 50 }} />
+                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} />
+                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} />
                             </View>
                         </View>
                     </View>
@@ -78,9 +78,9 @@ export default function UserEducation({navigation}: NavigationProps) {
                         </Text>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 40, marginBottom: 80 }}>
                             <View style={{ width: '10%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} onPress={() => console.log('scrolling')}/>
-                                <TouchableOpacity style={{ backgroundColor: '#323492', height: 10, width: 10, borderRadius: 50 }} onPress={() => console.log('scrolling')}/>
-                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} onPress={() => console.log('scrolling')}/>
+                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} />
+                                <TouchableOpacity style={{ backgroundColor: '#323492', height: 10, width: 10, borderRadius: 50 }} />
+                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} />
                             </View>
                         </View>
                     </View>
@@ -101,9 +101,9 @@ export default function UserEducation({navigation}: NavigationProps) {
                         </Text>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 40, marginBottom: 80 }}>
                             <View style={{ width: '10%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} onPress={() => console.log('scrolling')}/>
-                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} onPress={() => console.log('scrolling')}/>
-                                <TouchableOpacity style={{ backgroundColor: '#323492', height: 10, width: 10, borderRadius: 50 }} onPress={() => console.log('scrolling')}/>
+                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} />
+                                <TouchableOpacity style={{ backgroundColor: '#C4C4C4', height: 10, width: 10, borderRadius: 50 }} />
+                                <TouchableOpacity style={{ backgroundColor: '#323492', height: 10, width: 10, borderRadius: 50 }} />
                             </View>
                         </View>
                         <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('Login')}>

@@ -24,10 +24,12 @@ import VerifyOTP from "../screens/Auth/VerifyOTP";
 import UserProfile from "../screens/User/UserProfile";
 import LoanRequests from "../screens/User/LoanRequests";
 import GuarantorshipRequests from "../screens/Guarantorship/GuarantorshipRequests";
+import GuarantorsHome from "../screens/Guarantorship/GuarantorsHome";
 import Account from "../screens/User/Account";
 import History from "../screens/User/History";
 import LoanProducts from "../screens/Loans/LoanProducts";
 import LoanProduct from "../screens/Loans/LoanProduct";
+import LoanPurpose from "../screens/Loans/LoanPurpose";
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import {
@@ -90,6 +92,8 @@ function RootNavigator() {
       <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{ headerShown: false }} />
       <Stack.Screen name="LoanProducts" component={LoanProducts} options={{ headerShown: false }} />
       <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
+      <Stack.Screen name="LoanPurpose" component={LoanPurpose} options={{ headerShown: false }} />
+      <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={{ headerShown: false }} />
       <Stack.Screen name="GuarantorshipRequests" component={GuarantorshipRequests} options={{
           headerShown: true,
           title: 'Guarantorship Requests',

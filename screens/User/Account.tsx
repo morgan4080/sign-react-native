@@ -45,6 +45,10 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
         Poppins_300Light
     });
 
+    const toMoney = (money: string): string => {
+        return `${parseFloat(`${money}`).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${parseFloat(`${money}`).toFixed(2).split('.')[1]}`
+    }
+
     if (fontsLoaded && !loading) {
         return (
             <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
@@ -61,7 +65,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                         <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center', paddingBottom: 50 }}>
                             <View style={{display: 'flex', width: width-50, borderRadius: 15, backgroundColor: '#323492', paddingHorizontal: 25, paddingVertical: 10, marginTop: 15}}>
                                 <Text style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>Current Balance</Text>
-                                <Text style={{ fontFamily: 'Poppins_800ExtraBold', color: '#ffffff', fontSize: 35 }}>KES 13000</Text>
+                                <Text style={{ fontFamily: 'Poppins_800ExtraBold', color: '#ffffff', fontSize: 35 }}>KES {member ? toMoney(`${member.availableAmount}`) : ``}</Text>
                                 <View style={{ backgroundColor: '#FFFFFF', width: '100%', height: 1 }}/>
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, marginBottom: 20}}>
                                     <View>
@@ -81,7 +85,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                                             <Ionicons name="ios-wallet-outline" size={40} color="#ffffff" />
                                             <View style={{paddingLeft: 10}}>
-                                                <Text style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 15 }}>KES 13000</Text>
+                                                <Text style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 15 }}>KES {member ? toMoney(`${member.availableAmount}`) : ``}</Text>
                                                 <Text style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10 }}>Available for guarantee</Text>
                                             </View>
                                         </View>
@@ -91,7 +95,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 2   }}>
                                             <Ionicons name="ios-people-circle-outline" size={40} color="#ffffff" />
                                             <View style={{paddingLeft: 10}}>
-                                                <Text style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 15 }}>KES 13000</Text>
+                                                <Text style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 15 }}>KES {member ? toMoney(`${member.committedAmount}`) : ``}</Text>
                                                 <Text style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10, maxWidth: 80 }}>Total active loans guaranteed</Text>
                                             </View>
                                         </View>

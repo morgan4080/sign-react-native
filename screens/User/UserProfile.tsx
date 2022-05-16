@@ -4,7 +4,6 @@ import {
     View,
     ScrollView,
     StyleSheet,
-    TouchableHighlight,
     TouchableOpacity,
     SafeAreaView,
     Image,
@@ -14,15 +13,13 @@ import {
 } from 'react-native';
 
 import { StatusBar } from 'expo-status-bar';
-import AppLoading from 'expo-app-loading';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
-import {useEffect, useRef} from "react";
+import {useEffect} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {useDispatch, useSelector} from "react-redux";
 import {storeState, setLoading, fetchMember, logoutUser} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
-import Colors from "../../constants/Colors";
-import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
+import {Ionicons} from "@expo/vector-icons";
 import {CircleSnail as ProgressCircleSnail} from "react-native-progress";
 
 // Types
@@ -64,15 +61,15 @@ export default function UserProfile({ navigation }: NavigationProps) {
             if (user) {
                 dispatch(fetchMember(user?.phoneNumber)).then((response: any) => {
                     if (response.type === 'fetchMember/rejected' && response.error) {
-                        console.log("fetch member error", response)
+                        // console.log("fetch member error", response)
                         return
                     }
                     if (response.type === 'fetchMember/fulfilled') {
-                        console.log("fetch member success", response)
+                        // console.log("fetch member success", response)
                         return
                     }
                 }).catch((e: any) => {
-                    console.log("fetchMember error", e)
+                    // console.log("fetchMember error", e)
                 })
             }
         }

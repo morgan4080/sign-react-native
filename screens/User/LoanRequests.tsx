@@ -49,15 +49,11 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
             if (user) {
                 dispatch(fetchLoanRequests(member?.refId as string)).then((response: any) => {
                     if (response.type === 'fetchLoanRequests/rejected' && response.error) {
-                        console.log("fetch loan requests error")
                         return
                     }
                     if (response.type === 'fetchLoanRequests/fulfilled') {
-                        console.log("fetch  loan requests success")
                         return
                     }
-                }).catch((e: any) => {
-                    console.log("fetch loan requests error", e)
                 })
             }
         }

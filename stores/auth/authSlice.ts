@@ -158,7 +158,7 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
             body: formBody
         })
 
-        console.log("login response status", response.status)
+       // console.log("login response status", response.status)
 
         if (response.status === 401) {
             reject("Incorrect phone number or password")
@@ -167,7 +167,7 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
         if (response.status === 200) {
             const data = await response.json();
             const result: any = await saveKeys(data)
-            console.log('log in data', data)
+            // console.log('log in data', data)
             resolve(result)
         }
     })
@@ -178,7 +178,7 @@ export const logoutUser = createAsyncThunk('logoutUser', async () => {
 })
 
 export const sendOTP = createAsyncThunk('sendOTP', async (phoneNumber: string) => {
-    console.log("sending OTP", phoneNumber)
+    // console.log("sending OTP", phoneNumber)
     return Promise.resolve(true)
 })
 
@@ -191,7 +191,7 @@ export const setLoading = createAsyncThunk('setLoading', async (loading: boolean
 })
 
 const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token }: any) => {
-    console.log("got JWTS", expires_in, refresh_expires_in)
+    // console.log("got JWTS", expires_in, refresh_expires_in)
     await saveSecureKey('jwt', access_token)
     await saveSecureKey('jwtRefresh', refresh_token)
     return Promise.resolve(true)
@@ -203,10 +203,10 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
            const key = await getSecureKey('jwt')
            let phoneNumber
            if (!key) {
-               console.log("key not available")
+               // console.log("key not available")
                reject("You are not authenticated")
            } else {
-               console.log("authenticating....")
+               // console.log("authenticating....")
            }
            const response = await fetch(`https://accounts.presta.co.ke/authentication`, {
                method: 'GET',
@@ -256,10 +256,10 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
        try {
            const key = await getSecureKey('jwt')
            if (!key) {
-               console.log("key not available")
+               // console.log("key not available")
                reject("You are not authenticated")
            } else {
-               console.log("fetching member....")
+               // console.log("fetching member....")
            }
            const myHeaders = new Headers();
            myHeaders.append("Authorization", `Bearer ${key}`)
@@ -268,7 +268,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
                headers: myHeaders,
                redirect: 'follow'
            })
-           console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber}`, response.status)
+           // console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber}`, response.status)
            if (response.status === 200) {
                const data = await response.json()
                resolve(data)
@@ -287,10 +287,10 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
         try {
             const key = await getSecureKey('jwt')
             if (!key) {
-                console.log("key not available")
+                // console.log("key not available")
                 reject("You are not authenticated")
             } else {
-                console.log("fetching loan requests....")
+                // console.log("fetching loan requests....")
             }
             const myHeaders = new Headers();
             myHeaders.append("Authorization", `Bearer ${key}`)
@@ -309,7 +309,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                     })
                     if (response0.status === 200) {
                         const data0 = await response0.json()
-                        console.log("guarantor list", data0.guarantorList)
+                        // console.log("guarantor list", data0.guarantorList)
                         return {
                             "refId": data.content[i].refId,
                             "loanDate": data.content[i].loanDate,
@@ -352,10 +352,10 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
         try {
             const key = await getSecureKey('jwt')
             if (!key) {
-                console.log("key not available")
+                // console.log("key not available")
                 reject("You are not authenticated")
             } else {
-                console.log("fetching loan request....")
+                // console.log("fetching loan request....")
             }
             const myHeaders = new Headers();
             myHeaders.append("Authorization", `Bearer ${key}`)
@@ -383,10 +383,10 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async () 
         try {
             const key = await getSecureKey('jwt')
             if (!key) {
-                console.log("key not available")
+                // console.log("key not available")
                 reject("You are not authenticated")
             } else {
-                console.log("fetching loan products....")
+                // console.log("fetching loan products....")
             }
             const myHeaders = new Headers();
             myHeaders.append("Authorization", `Bearer ${key}`)
@@ -442,12 +442,12 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(loginUser.fulfilled, (state,action) => {
-            console.log('loginUser.fulfilled', action.payload)
+            // console.log('loginUser.fulfilled', action.payload)
             state.isLoggedIn = true
             state.loading = false
         })
         builder.addCase(loginUser.rejected, (state, error) => {
-            console.log("loginUser.rejected", error)
+            // console.log("loginUser.rejected", error)
             state.isJWT = false
             state.isLoggedIn = false
             state.loading = false
@@ -470,7 +470,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(fetchMember.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
-            console.log('fetchMember.fulfilled', payload)
+            // console.log('fetchMember.fulfilled', payload)
             state.member = payload
             state.loading = false
         })
@@ -526,7 +526,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(logoutUser.fulfilled, (state, action) => {
-            console.log('logout fulfilled', action)
+            // console.log('logout fulfilled', action)
             state.isLoggedIn = false
             state.isJWT = false
             state.loading = false

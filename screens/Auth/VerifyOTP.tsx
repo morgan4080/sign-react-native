@@ -113,14 +113,14 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         dispatch(setLoading(true))
         try {
             const result = await dispatchVerifyOTP(valueInput)
-            console.log("OTP verified:::", result)
+            // console.log("OTP verified:::", result)
             setTimeout(() => {
                 dispatch(setLoading(false))
                 navigation.navigate('ProfileMain')
             }, 3000)
             return result
         } catch (e: any) {
-            console.log('verify otp error', e)
+            // console.log('verify otp error', e)
         }
     }
 
@@ -131,7 +131,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
             let valName: any = `otpChar${result.length}`
             setValue(valName, result[result.length - 1])
             if (result.length === 4 && !loading) {
-                console.log("ready to submit otp", valueInput)
+                // console.log("ready to submit otp", valueInput)
                 Keyboard.dismiss()
                 verify_otp().then((res: any) => {
 

@@ -47,7 +47,7 @@ export default function ModalScreen() {
     await dispatch(logoutUser())
   }
   const getPic = () => {
-    console.log("pullup camera")
+    // console.log("pullup camera")
   }
   const {
     control,

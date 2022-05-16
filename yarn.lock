@@ -1846,6 +1846,11 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/debounce@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@types/debounce/-/debounce-1.2.1.tgz#79b65710bc8b6d44094d286aecf38e44f9627852"
+  integrity sha512-epMsEE85fi4lfmJUH/89/iV/LI+F5CvNIvmgs5g5jYFPfhO2S/ae8WSsLOKWdwtoaZw9Q2IhJ4tQ5tFCcS/4HA==
+
 "@types/graceful-fs@^4.1.2":
   version "4.1.5"
   resolved "https://registry.yarnpkg.com/@types/graceful-fs/-/graceful-fs-4.1.5.tgz#21ffba0d98da4350db64891f92a9e5db3cdb4e15"
@@ -2976,6 +2981,11 @@ dayjs@^1.8.15:
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.1.tgz#90b33a3dda3417258d48ad2771b415def6545eb0"
   integrity sha512-ER7EjqVAMkRRsxNCC5YqJ9d9VQYuWdGt7aiH2qA5R5wt8ZmWaP2dLUSIK6y/kVzLMlmh1Tvu5xUf4M/wdGJ5KA==
 
+debounce@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/debounce/-/debounce-1.2.1.tgz#38881d8f4166a5c5848020c11827b834bcb3e0a5"
+  integrity sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==
+
 debug@2.6.9, debug@^2.2.0, debug@^2.3.3:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
@@ -3353,6 +3363,11 @@ expo-camera@~12.1.2:
     "@koale/useworker" "^4.0.2"
     invariant "^2.2.4"
 
+expo-checkbox@~2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/expo-checkbox/-/expo-checkbox-2.0.0.tgz#417f5e6c4e3b4404e479064adab841bb2bef4d74"
+  integrity sha512-ZvDdpHRyyTd6P4JnqqJKyLzg8iKrvhHSXOKBK2uc/Xq5MWBj1JNtn2FCGs0oNpG9H1rt8/gV86Wzy96onxE7bw==
+
 expo-constants@~13.0.0, expo-constants@~13.0.2:
   version "13.0.2"
   resolved "https://registry.yarnpkg.com/expo-constants/-/expo-constants-13.0.2.tgz#b489ecd575cc82a9a0b3dfbf2385d45a44300eb1"
@@ -3360,6 +3375,14 @@ expo-constants@~13.0.0, expo-constants@~13.0.2:
   dependencies:
     "@expo/config" "^6.0.6"
     uuid "^3.3.2"
+
+expo-contacts@~10.1.0:
+  version "10.1.1"
+  resolved "https://registry.yarnpkg.com/expo-contacts/-/expo-contacts-10.1.1.tgz#2263d3218672fed77a494ddf695038d0440208cf"
+  integrity sha512-JmaSEuxZpGqfo5FACGKLOBxERE1HILapvbLgVswKQaVIUoCAUktkf0TuIQZk7j6BDGkLJVdsy4A3cuzz0Twkkg==
+  dependencies:
+    "@expo/config-plugins" "^4.0.2"
+    uuid "^3.4.0"
 
 expo-error-recovery@~3.0.5:
   version "3.0.5"

@@ -17,7 +17,7 @@ import * as React from "react";
 import {AntDesign, Ionicons, MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 import AppLoading from "expo-app-loading";
 import {useDispatch, useSelector} from "react-redux";
-import {fetchLoanRequests, storeState} from "../../stores/auth/authSlice";
+import {fetchLoanRequests, loginUser, loginUserType, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {
@@ -43,12 +43,11 @@ interface FormData {
     desiredPeriod: string | undefined
 }
 
-export default function LoanProduct ({ navigation }: NavigationProps) {
+export default function LoanProduct ({ navigation, route }: NavigationProps) {
     const { loading } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
-
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -66,7 +65,14 @@ export default function LoanProduct ({ navigation }: NavigationProps) {
         setError,
         setValue,
         formState: { errors }
-    } = useForm<FormData>()
+    } = useForm<FormData>(
+        {
+            defaultValues: {
+                desiredAmount: undefined,
+                desiredPeriod: '1'
+            }
+        }
+    )
 
     const setSelectedValue = (itemValue: string) => {
         setValue('desiredPeriod', itemValue)
@@ -80,12 +86,24 @@ export default function LoanProduct ({ navigation }: NavigationProps) {
         return acc
     }, [])
 
+    const onSubmit = async (value: any): Promise<void> => {
+        navigation.navigate('LoanPurpose',
+            {
+                loanProduct: route.params?.loanProduct,
+                loanDetails: {
+                    desiredAmount: value.desiredAmount,
+                    desiredPeriod: value.desiredPeriod
+                }
+            }
+        )
+    };
+
     if (fontsLoaded && !loading) {
         return (
             <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
                 <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', left: -100, top: '20%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', right: -80, top: '10%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
+                <View style={{ position: 'absolute', left: -100, top: 200, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
+                <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
                 <View style={styles.container}>
                     <View style={{flex: 1, alignItems: 'center',}}>
                         <View style={{
@@ -101,10 +119,11 @@ export default function LoanProduct ({ navigation }: NavigationProps) {
                             </TouchableOpacity>
 
                             <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22, marginTop: 30 }}>Enter Loan Details</Text>
+                            <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>{ route.params?.loanProduct.name }</Text>
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 9/12 * height }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>
-                                <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_400Regular', fontSize: 18, marginTop: 30, maxWidth: width/2 }}>Your current Loan limit is (KES 60,000)</Text>
+                                {/*<Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_400Regular', fontSize: 18, marginTop: 30, maxWidth: width/2 }}>Your current Loan limit is (KES 60,000)</Text>*/}
                                 <Controller
                                     control={control}
                                     rules={{
@@ -122,12 +141,9 @@ export default function LoanProduct ({ navigation }: NavigationProps) {
                                     )}
                                     name="desiredAmount"
                                 />
-                                {errors.desiredAmount && <Text style={styles.error}>{errors.desiredAmount?.message}</Text>}
+                                {errors.desiredAmount && <Text style={styles.error}>{errors.desiredAmount?.message ? errors.desiredAmount?.message : 'Loan amount is required'}</Text>}
                                 <Controller
                                     control={control}
-                                    rules={{
-                                        required: true,
-                                    }}
                                     render={( { field: { onChange, onBlur, value } }) => (
                                         <View style={styles.input0}>
                                             <Picker
@@ -146,7 +162,7 @@ export default function LoanProduct ({ navigation }: NavigationProps) {
                                     name="desiredPeriod"
                                 />
 
-                                <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('UserProfile')}>
+                                <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)}>
                                     <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                                         <Text style={styles.buttonText}>CONFIRM</Text>
                                     </View>
@@ -230,7 +246,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25,
         marginHorizontal: 80,
         marginBottom: 20,
-        marginTop: height/5,
+        marginTop: height/6,
         alignSelf: 'stretch',
         justifyContent: 'center'
     },
@@ -261,6 +277,6 @@ const styles = StyleSheet.create({
         color: 'rgba(243,0,0,0.62)',
         fontFamily: 'Poppins_400Regular',
         paddingHorizontal: 10,
-        marginTop: 5
-    }
+        marginTop: 5,
+    },
 });

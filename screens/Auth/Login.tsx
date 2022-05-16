@@ -52,7 +52,7 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                     navigation.navigate('VerifyOTP')
                 }
             }).catch((error : any) => {
-                console.log("auth error", error)
+                // console.log("auth error", error)
             }).finally(() => {
                 dispatch(setLoading(false))
             })
@@ -100,10 +100,10 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                     setError('phoneNumber', {type: 'custom', message: error.message})
                 }
                 if (type === 'loginUser/fulfilled') {
-                    console.log('login successful')
+                    // console.log('login successful')
                 }
             } catch (e: any) {
-                console.log("login error", e)
+                // console.log("login error", e)
             }
         }
     };
@@ -140,7 +140,7 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                                 )}
                                 name="phoneNumber"
                             />
-                            {errors.phoneNumber && <Text style={styles.error}>{errors.phoneNumber?.message}</Text>}
+                            {errors.phoneNumber && <Text style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Field is required'}</Text>}
 
                             <Controller
                                 control={control}
@@ -161,7 +161,7 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                                 )}
                                 name="pin"
                             />
-                            {errors.pin && <Text style={styles.error}>Invalid entry</Text>}
+                            {errors.pin && <Text style={styles.error}>Field is required</Text>}
                         </View>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 35, marginTop: 20 }}>
                             <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text style={styles.linkText}>Forgot Password</Text></TouchableOpacity>

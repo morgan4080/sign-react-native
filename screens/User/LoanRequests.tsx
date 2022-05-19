@@ -30,6 +30,7 @@ import {
 import { Pie as ProgressPie, CircleSnail as ProgressCircleSnail  } from 'react-native-progress';
 import {useEffect} from "react";
 import LoanRequest from "./Components/LoanRequest";
+import {RotateView} from "../Auth/VerifyOTP";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -106,7 +107,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
     } else {
         return (
             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-                <ProgressCircleSnail size={50} color={['green', 'blue']} />
+                <RotateView/>
             </View>
         )
     }

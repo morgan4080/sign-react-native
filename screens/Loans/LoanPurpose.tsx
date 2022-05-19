@@ -15,7 +15,7 @@ import {StatusBar} from "expo-status-bar";
 import * as React from "react";
 import {Ionicons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
-import {storeState} from "../../stores/auth/authSlice";
+import {setLoanCategories, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {
@@ -29,8 +29,9 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import {CircleSnail as ProgressCircleSnail  } from 'react-native-progress';
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import LoanPurposeTile from './Components/LoanPurposeTile'
+import {getSecureKey} from "../../utils/secureStore";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -44,49 +45,11 @@ interface FormData {
 }
 
 export default function LoanPurpose ({ navigation, route }: NavigationProps) {
-    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
-    type AppDispatch = typeof store.dispatch;
+    const { loading, loanCategories } = useSelector((state: { auth: storeState }) => state.auth);
 
-    const dispatch : AppDispatch = useDispatch();
-
-    type CategoryType = {name: string, options: {name: string, selected: boolean}[]}
+    type CategoryType = {code: string, name: string, options: {code: string, name: string, options: {code: string, name: string,selected: boolean}[], selected: boolean}[]}
 
     const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null)
-
-    const loanCategories: CategoryType[] = [
-        {
-            name: 'Trade',
-            options: [
-                {name: 'Business', selected: false},
-                {name: 'Horticulture', selected: false},
-                {name: 'Aquaculture', selected: false},
-            ]
-        },
-        {
-            name: 'Social',
-            options: [
-                {name: 'Business', selected: false},
-                {name: 'Horticulture', selected: false},
-                {name: 'Aquaculture', selected: false},
-            ]
-        },
-        {
-            name: 'Business',
-            options: [
-                {name: 'Business', selected: false},
-                {name: 'Horticulture', selected: false},
-                {name: 'Aquaculture', selected: false},
-            ]
-        },
-        {
-            name: 'Wholesale',
-            options: [
-                {name: 'Business', selected: false},
-                {name: 'Horticulture', selected: false},
-                {name: 'Aquaculture', selected: false},
-            ]
-        },
-    ]
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -102,7 +65,7 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
         setCurrentOpenIndex(index)
     }
     const setFormData = (data: CategoryType) => {
-        // console.log('selected category', data)
+        console.log(data.options[0].selected)
         if (data.options.some((element) => element.selected)) {
             setSelectedCategory(data)
         } else {
@@ -132,22 +95,22 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
                             <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22, marginTop: 30 }}>Select Loan Purpose Category</Text>
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 9/12 * height }}>
-                            <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>
+                            <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 120 }}>
                                 { loanCategories &&
                                     loanCategories.map((category, index: number) => (
                                         <LoanPurposeTile key={index} componentIndex={index} currentOpenIndex={currentOpenIndex} isOpen={isOpen} setFormData={setFormData} category={category} />
                                     ))
                                 }
-                                <TouchableHighlight style={styles.button} onPress={() => selectedCategory ? navigation.navigate('GuarantorsHome', {
-                                    category: selectedCategory,
-                                    ...route.params
-                                }) : null}>
-                                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Text style={styles.buttonText}>CONTINUE</Text>
-                                    </View>
-                                </TouchableHighlight>
                             </ScrollView>
                         </SafeAreaView>
+                        <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.6)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                            <TouchableOpacity onPress={() => selectedCategory ? navigation.navigate('GuarantorsHome', {
+                                category: selectedCategory,
+                                ...route.params
+                            }) : null} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                                <Text style={styles.buttonText}>CONTINUE</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
                 <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'}/>

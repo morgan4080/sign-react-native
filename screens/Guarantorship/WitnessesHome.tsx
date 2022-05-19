@@ -14,7 +14,7 @@ import {
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
-import {setLoading, storeState} from "../../stores/auth/authSlice";
+import {getContactsFromDB, searchContactsInDB, setLoading, storeState} from "../../stores/auth/authSlice";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -32,6 +32,7 @@ import { useForm, Controller } from "react-hook-form";
 import ContactTile from "./Components/ContactTile";
 import {PhoneNumber} from "expo-contacts";
 import {cloneDeep} from "lodash";
+import {RotateView} from "../Auth/VerifyOTP";
 type NavigationProps = NativeStackScreenProps<any>
 const { width, height } = Dimensions.get("window");
 type FormData = {
@@ -39,11 +40,32 @@ type FormData = {
     phoneNumber: string;
 }
 export default function WitnessesHome({ navigation, route }: NavigationProps) {
-    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
-    // console.log("route params", route.params)
-    const [contacts, setContacts] = useState<any[]>([])
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
+    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const [contacts, setContacts] = useState([])
+    const [from, setFrom] = useState(0)
+    const [to, setTo] = useState(100)
+    useEffect(() => {
+        let syncContacts = true;
+        (async () => {
+            await dispatch(getContactsFromDB({setContacts, from, to}))
+        })()
+        return () => {
+            syncContacts = false;
+        }
+    }, []);
+    useEffect(() => {
+        let syncContacts = true;
+        (async () => {
+            console.log('with constraints')
+            // await dispatch(getContactsFromDB({setContacts, from, to}))
+        })()
+        return () => {
+            syncContacts = false;
+        }
+    }, [from, to]);
+
     const {
         control,
         watch,
@@ -62,37 +84,8 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
         Poppins_300Light
     });
 
-    useEffect(() => {
-        (async () => {
-            const { status } = await Contacts.requestPermissionsAsync();
-            if (status === 'granted') {
-                const { data } = await Contacts.getContactsAsync();
-                if (data.length > 0) {
-                    const clean = data.reduce((acc:any[],contact: any) => {
-                        if (contact.phoneNumbers && contact.phoneNumbers.length > 0 ) {
-                            acc.push(contact)
-                        }
-                        return acc
-                    },[])
-                    setContacts(clean)
-                }
-            }
-        })();
-    }, []);
-
-    const filterContactsCB = (searchTerm: any = '') => {
-        const filteredContacts = contacts.reduce((acc,contact) => {
-            if (contact.phoneNumbers && contact.phoneNumbers.length > 0 ) {
-                const re = new RegExp(searchTerm);
-                if (contact.phoneNumbers.some((phone:PhoneNumber) => re.test(phone.number as string) )) {
-                    acc.push(contact)
-                }
-            }
-            return acc
-        },[]);
-        if (filteredContacts.length > 0) {
-            setContacts(filteredContacts)
-        }
+    const filterContactsCB = async (searchTerm: string = '') => {
+        await dispatch(searchContactsInDB({searchTerm, setContacts}))
     }
 
     useEffect(() => {
@@ -135,6 +128,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
 
     Keyboard.addListener('keyboardDidHide', () => {
         setAddingManually(false)
+        console.log("if member was found during the watch process, add them or let them know that member wasn't found")
     })
 
     if (fontsLoaded) {
@@ -178,7 +172,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
 
                             <View style={{paddingHorizontal: 20, marginTop: 30}}>
                                 <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22 }}>
-                                    Enter Witnesses ({route.params?.loanProduct.requiredGuarantors} Required)
+                                    Enter Witnesses (1 Required)
                                 </Text>
                                 <Controller
                                     control={control}
@@ -188,8 +182,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
                                             onBlur={onBlur}
                                             onChangeText={onChange}
                                             value={value}
-                                            placeholder="Search Phone or Member Number"
-                                            keyboardType="numeric"
+                                            placeholder="Search Phone"
                                         />
                                     )}
                                     name="searchTerm"
@@ -199,7 +192,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
                             <View style={{paddingHorizontal: 20, marginBottom: 20, marginTop: 10, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                                 <ScrollView horizontal>
                                     {selectedContacts && selectedContacts.map((co,i) => (
-                                        <View key={co.id} style={{
+                                        <View key={co.contact_id} style={{
                                             backgroundColor: 'rgba(50,52,146,0.31)',
                                             width: width / 7,
                                             height: width / 7,
@@ -228,23 +221,29 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
                             <View style={{ position: 'absolute', marginTop: -35, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                                 <TouchableOpacity onPress={() => setAddingManually(true)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, marginVertical: 15 }}>
                                     <MaterialIcons name="dialpad" size={16} color="white" />
-                                    <Text style={styles.buttonText0}>Add Phone NO</Text>
+                                    <Text style={styles.buttonText0}>Other</Text>
                                 </TouchableOpacity>
                             </View>
                             <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
                                 {
+                                    loading &&
+                                    <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
+                                        <RotateView/>
+                                    </View>
+                                }
+                                {
                                     contacts && contacts.map((contact: any, i: number) => (
-                                        <ContactTile key={contact.id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} />
+                                        <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} />
                                     ))
                                 }
                             </ScrollView>
                         </SafeAreaView>
 
                         <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity disabled={selectedContacts.length < 4} onPress={() => navigation.navigate('LoanConfirmation', {
+                            <TouchableOpacity disabled={ selectedContacts.length < 1 } onPress={() => navigation.navigate('LoanConfirmation', {
                                 witnesses: selectedContacts,
                                 ...route.params
-                            })} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < 4 ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            })} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < 1 ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                 <Text style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>
@@ -255,7 +254,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
     } else {
         return (
             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-                <ProgressCircle indeterminate={true} size={50} />
+                <RotateView/>
             </View>
         )
     }

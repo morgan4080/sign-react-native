@@ -14,7 +14,7 @@ import {
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
-import {setLoading, storeState} from "../../stores/auth/authSlice";
+import {db, getContactsFromDB, searchContactsInDB, setLoading, storeState} from "../../stores/auth/authSlice";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -32,6 +32,7 @@ import { useForm, Controller } from "react-hook-form";
 import ContactTile from "./Components/ContactTile";
 import {PhoneNumber} from "expo-contacts";
 import {cloneDeep} from "lodash";
+import {RotateView} from "../Auth/VerifyOTP";
 type NavigationProps = NativeStackScreenProps<any>
 const { width, height } = Dimensions.get("window");
 type FormData = {
@@ -39,11 +40,22 @@ type FormData = {
     phoneNumber: string;
 }
 export default function GuarantorsHome({ navigation, route }: NavigationProps) {
-    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
-    // console.log("route params", route.params)
-    const [contacts, setContacts] = useState<any[]>([])
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
+    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const [contacts, setContacts] = useState([])
+    const [from, setFrom] = useState(0)
+    const [to, setTo] = useState(100)
+    useEffect(() => {
+        let syncContacts = true;
+        (async () => {
+            console.log('with constraints')
+            await dispatch(getContactsFromDB({setContacts, from, to}))
+        })()
+        return () => {
+            syncContacts = false;
+        }
+    }, [from, to]);
     const {
         control,
         watch,
@@ -62,55 +74,27 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         Poppins_300Light
     });
 
-    useEffect(() => {
-        (async () => {
-            const { status } = await Contacts.requestPermissionsAsync();
-            if (status === 'granted') {
-                const { data } = await Contacts.getContactsAsync();
-                if (data.length > 0) {
-                    const clean = data.reduce((acc:any[],contact: any) => {
-                        if (contact.phoneNumbers && contact.phoneNumbers.length > 0 ) {
-                            acc.push(contact)
-                        }
-                        return acc
-                    },[])
-                    setContacts(clean)
-                }
-            }
-        })();
-    }, []);
-
-    const filterContactsCB = (searchTerm: any = '') => {
-        const filteredContacts = contacts.reduce((acc,contact) => {
-            if (contact.phoneNumbers && contact.phoneNumbers.length > 0 ) {
-                const re = new RegExp(searchTerm);
-                if (contact.phoneNumbers.some((phone:PhoneNumber) => re.test(phone.number as string) )) {
-                    acc.push(contact)
-                }
-            }
-            return acc
-        },[]);
-        if (filteredContacts.length > 0) {
-            setContacts(filteredContacts)
-        }
+    const filterContactsCB = async (searchTerm: string = '') => {
+        await dispatch(searchContactsInDB({searchTerm, setContacts}))
     }
 
     useEffect(() => {
         const subscription = watch((value, { name, type }) => {
-            switch (name) {
-                case 'searchTerm':
-                    if (type === 'change') {
-                        console.log(value.searchTerm)
-                        filterContactsCB(value.searchTerm);
-                    }
-                    break;
-                case 'phoneNumber':
-                    if (type === 'change') {
-                        console.log(value.phoneNumber)
-                        // search organisation database for user
-                    }
-                    break;
-            }
+            (async () => {
+                switch (name) {
+                    case 'searchTerm':
+                        if (type === 'change') {
+                            await filterContactsCB(value.searchTerm);
+                        }
+                        break;
+                    case 'phoneNumber':
+                        if (type === 'change') {
+                            console.log(value.phoneNumber)
+                            // search organisation database for user
+                        }
+                        break;
+                }
+            })()
         });
         return () => subscription.unsubscribe();
     }, [watch]);
@@ -120,7 +104,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const removeContactFromList = (contact2Remove: any): number | string => {
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts)
-        let index = newDeserializedCopy.findIndex(contact => contact.id === contact2Remove.id)
+        let index = newDeserializedCopy.findIndex(contact => contact.contact_id === contact2Remove.contact_id)
         newDeserializedCopy.splice(index, 1)
         setSelectedContacts(newDeserializedCopy)
         return contact2Remove.id
@@ -135,130 +119,128 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     Keyboard.addListener('keyboardDidHide', () => {
         setAddingManually(false)
+        // console.log("if member was found during the watch process, add them or let them know that member wasn't found")
     })
 
-    if (fontsLoaded) {
-        return (
-            <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
-                <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', left: -100, top: 200, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
-                {
-                    addingManually && <View style={{ position: 'absolute', zIndex: 5, backgroundColor: 'rgba(0,0,0,0.84)', display: 'flex', justifyContent: 'center', alignItems: 'center', height: height + 100, width }}>
-                        <Controller
-                            control={control}
-                            render={( { field: { onChange, onBlur, value } }) => (
-                                <TextInput
-                                    style={styles.input0}
-                                    onBlur={onBlur}
-                                    onChangeText={onChange}
-                                    value={value}
-                                    autoFocus={true}
-                                    placeholder="Enter phone number"
-                                    keyboardType="numeric"
-                                />
-                            )}
-                            name="phoneNumber"
-                        />
-                    </View>
-                }
-                <View style={styles.container}>
-                    <View style={{flex: 1, alignItems: 'center', position: 'relative'}}>
-                        <View style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center',
-                            width,
-                            height: 4/12 * height,
-                            position: 'relative'
-                        }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
-                                <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
-                            </TouchableOpacity>
+    return (
+        <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+            <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
+            <View style={{ position: 'absolute', left: -100, top: 200, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
+            <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
+            {
+                addingManually && <View style={{ position: 'absolute', zIndex: 5, backgroundColor: 'rgba(0,0,0,0.84)', display: 'flex', justifyContent: 'center', alignItems: 'center', height: height + 100, width }}>
+                    <Controller
+                        control={control}
+                        render={( { field: { onChange, onBlur, value } }) => (
+                            <TextInput
+                                style={styles.input0}
+                                onBlur={onBlur}
+                                onChangeText={onChange}
+                                value={value}
+                                autoFocus={true}
+                                placeholder="Enter phone number"
+                                keyboardType="numeric"
+                            />
+                        )}
+                        name="phoneNumber"
+                    />
+                </View>
+            }
+            <View style={styles.container}>
+                <View style={{flex: 1, alignItems: 'center', position: 'relative'}}>
+                    <View style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        width,
+                        height: 4/12 * height,
+                        position: 'relative'
+                    }}>
+                        <TouchableOpacity onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
+                            <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
+                        </TouchableOpacity>
 
-                            <View style={{paddingHorizontal: 20, marginTop: 30}}>
-                                <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22 }}>
-                                    Enter Guarantors ({route.params?.loanProduct.requiredGuarantors} Required)
-                                </Text>
-                                <Controller
-                                    control={control}
-                                    render={( { field: { onChange, onBlur, value } }) => (
-                                        <TextInput
-                                            style={styles.input}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            placeholder="Search Phone or Member Number"
-                                            keyboardType="numeric"
-                                        />
-                                    )}
-                                    name="searchTerm"
-                                />
+                        <View style={{paddingHorizontal: 20, marginTop: 30}}>
+                            <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22 }}>
+                                Enter Guarantors ({route.params?.loanProduct.requiredGuarantors} Required)
+                            </Text>
+                            <Controller
+                                control={control}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        style={styles.input}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="Search Contact"
+                                    />
+                                )}
+                                name="searchTerm"
+                            />
 
-                            </View>
-                            <View style={{paddingHorizontal: 20, marginBottom: 20, marginTop: 10, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                <ScrollView horizontal>
-                                    {selectedContacts && selectedContacts.map((co,i) => (
-                                        <View key={co.id} style={{
-                                            backgroundColor: 'rgba(50,52,146,0.31)',
-                                            width: width / 7,
-                                            height: width / 7,
-                                            borderRadius: 100,
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            marginRight: 10,
-                                            position: 'relative'
-                                        }}>
-                                            <TouchableOpacity onPress={() => removeContactFromList(co)} style={{ position: 'absolute', top: -2, right: -1 }}>
-                                                <MaterialIcons name="cancel" size={24} color="red" />
-                                            </TouchableOpacity>
-                                            <Text style={{
-                                                color: '#363D7D',
-                                                fontSize: 11,
-                                                fontFamily: 'Poppins_400Regular',
-                                                textAlign: 'center'
-                                            }}>{co.name}</Text>
-                                        </View>
-                                    ))}
-                                </ScrollView>
-                            </View>
                         </View>
-                        <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#e8e8e8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
-                            <View style={{ position: 'absolute', marginTop: -35, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                                <TouchableOpacity onPress={() => setAddingManually(true)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, marginVertical: 15 }}>
-                                    <MaterialIcons name="dialpad" size={16} color="white" />
-                                    <Text style={styles.buttonText0}>Add Phone NO</Text>
-                                </TouchableOpacity>
-                            </View>
-                            <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
-                                {
-                                    contacts && contacts.map((contact: any, i: number) => (
-                                        <ContactTile key={contact.id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} />
-                                    ))
-                                }
+                        <View style={{paddingHorizontal: 20, marginBottom: 20, marginTop: 10, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                            <ScrollView horizontal>
+                                {selectedContacts && selectedContacts.map((co,i) => (
+                                    <View key={i} style={{
+                                        backgroundColor: 'rgba(50,52,146,0.31)',
+                                        width: width / 7,
+                                        height: width / 7,
+                                        borderRadius: 100,
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginRight: 10,
+                                        position: 'relative'
+                                    }}>
+                                        <TouchableOpacity onPress={() => removeContactFromList(co)} style={{ position: 'absolute', top: -2, right: -1 }}>
+                                            <MaterialIcons name="cancel" size={24} color="red" />
+                                        </TouchableOpacity>
+                                        <Text style={{
+                                            color: '#363D7D',
+                                            fontSize: 11,
+                                            fontFamily: 'Poppins_400Regular',
+                                            textAlign: 'center'
+                                        }}>{co.name}</Text>
+                                    </View>
+                                ))}
                             </ScrollView>
-                        </SafeAreaView>
-
-                        <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity disabled={selectedContacts.length < 4} onPress={() => navigation.navigate('WitnessesHome', {
-                                guarantors: selectedContacts,
-                                ...route.params
-                            })} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < 4 ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                                <Text style={styles.buttonText}>CONTINUE</Text>
+                        </View>
+                    </View>
+                    <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#e8e8e8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+                        <View style={{ position: 'absolute', marginTop: -35, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                            <TouchableOpacity onPress={() => setAddingManually(true)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, marginVertical: 15 }}>
+                                <MaterialIcons name="dialpad" size={16} color="white" />
+                                <Text style={styles.buttonText0}>Other</Text>
                             </TouchableOpacity>
                         </View>
+                        <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
+                            {
+                                loading &&
+                                <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
+                                    <RotateView/>
+                                </View>
+                            }
+                            {
+                                contacts && contacts.map((contact: any, i: number) => (
+                                    <ContactTile key={i} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} />
+                                ))
+                            }
+                        </ScrollView>
+                    </SafeAreaView>
+
+                    <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                        <TouchableOpacity disabled={selectedContacts.length < 4} onPress={() => navigation.navigate('WitnessesHome', {
+                            guarantors: selectedContacts,
+                            ...route.params
+                        })} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < 4 ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            <Text style={styles.buttonText}>CONTINUE</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </View>
-        )
-    } else {
-        return (
-            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-                <ProgressCircle indeterminate={true} size={50} />
-            </View>
-        )
-    }
+        </View>
+    )
 }
 
 const styles = StyleSheet.create({

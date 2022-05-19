@@ -1,9 +1,19 @@
 import {Text, TouchableOpacity, View, StyleSheet} from "react-native";
 import Checkbox from 'expo-checkbox';
-import {MaterialIcons} from "@expo/vector-icons";
+import {AntDesign, MaterialIcons} from "@expo/vector-icons";
 import * as React from "react";
 import {useState} from "react";
-type categoryType = {name: string, options: {name: string, selected: boolean}[]}
+import {cloneDeep} from "lodash";
+import {
+    Poppins_300Light,
+    Poppins_400Regular,
+    Poppins_500Medium, Poppins_600SemiBold,
+    Poppins_700Bold,
+    Poppins_800ExtraBold,
+    Poppins_900Black,
+    useFonts
+} from "@expo-google-fonts/poppins";
+type categoryType = {code: string, name: string, options: {code: string, name: string, selected: boolean, options: {code: string, name: string, selected: boolean}[]}[]}
 interface propsInterface {
     category: categoryType,
     componentIndex: number,
@@ -14,6 +24,17 @@ interface propsInterface {
 export default function LoanPurposeTile({category, componentIndex, currentOpenIndex, isOpen, setFormData}: propsInterface) {
 
     const [selectedCategory, setSelectedCategory] = useState<categoryType | null>();
+    const [expanded, setExpanded] = useState('-1');
+
+    let [fontsLoaded] = useFonts({
+        Poppins_900Black,
+        Poppins_500Medium,
+        Poppins_800ExtraBold,
+        Poppins_700Bold,
+        Poppins_600SemiBold,
+        Poppins_400Regular,
+        Poppins_300Light
+    });
 
     const setSelected = () => {
         isOpen(componentIndex)
@@ -25,14 +46,25 @@ export default function LoanPurposeTile({category, componentIndex, currentOpenIn
         setSelectedCategory(null)
     }
 
-    const updateCopyCategory = (checkBoxVal: boolean, index: number) => {
-        let copyCategory = Object.assign({}, selectedCategory);
+    const updateCopyCategory = (selVal: boolean, index: number) => {
+        let copyCategory = cloneDeep(selectedCategory);
 
-        copyCategory.options[index].selected = checkBoxVal;
+        if (copyCategory) {
+            copyCategory.options[index].selected = selVal;
+            setSelectedCategory(copyCategory)
+        }
+    }
 
-        setSelectedCategory(copyCategory)
+    const updateSubCopyCategory = (checkBoxVal: boolean, index: number, i: number) => {
+        console.log(checkBoxVal, index)
+        let copyCategory = cloneDeep(selectedCategory)
 
-        setFormData(copyCategory)
+        if (copyCategory) {
+            copyCategory.options[index].selected = true;
+            copyCategory.options[index].options[i].selected = checkBoxVal;
+            setSelectedCategory(copyCategory)
+            setFormData(copyCategory)
+        }
     }
 
     return (
@@ -46,14 +78,35 @@ export default function LoanPurposeTile({category, componentIndex, currentOpenIn
                 currentOpenIndex === componentIndex && (
                     <View style={styles.categoryOption}>
                         { selectedCategory && selectedCategory.options.map((op, i) => (
-                            <View key={i} style={styles.checkboxContainer} collapsable={false}>
-                                <Checkbox
-                                    style={styles.checkbox}
-                                    value={op.selected}
-                                    onValueChange={(newValue) => updateCopyCategory(newValue, i) }
-                                    color={op.selected ? 'rgb(141,141,141)' : '#FFFFFF'}
-                                />
-                                <Text style={styles.label}>{ op.name }</Text>
+                            <View key={op.code} collapsable={false}>
+                                <View style={styles.checkboxContainer}>
+                                    <TouchableOpacity onPress={() => {
+                                        op.code === expanded ? setExpanded('-1') : setExpanded(op.code)
+                                        updateCopyCategory(op.code !== expanded, i)
+                                    }} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(204,204,204,0.24)', width: '100%', borderRadius: 25 }}>
+                                        <Text style={{...styles.label, fontFamily: 'Poppins_600SemiBold', marginRight: 4, marginLeft: 18}}>{ op.name }</Text>
+                                        {expanded !== op.code && <AntDesign name="caretright" size={10} color="white"/>}
+                                        {expanded === op.code && <AntDesign name="caretdown" size={10} color="white"/>}
+                                    </TouchableOpacity>
+                                </View>
+
+                                <View style={{marginBottom: expanded === op.code ? 20 : 0}}>
+                                    {
+                                        expanded === op.code  && op.options.map((o, index) => {
+                                            return (
+                                                <View key={o.code} style={{ display: 'flex', flexDirection: 'row' }} collapsable={false}>
+                                                    <Checkbox
+                                                        style={styles.checkbox}
+                                                        value={o.selected}
+                                                        onValueChange={(newValue) => updateSubCopyCategory(newValue, i, index)}
+                                                        color={o.selected ? 'rgb(141,141,141)' : '#FFFFFF'}
+                                                    />
+                                                    <Text style={{ ...styles.label, fontSize: 12, letterSpacing: 1 }}>{ o.name }</Text>
+                                                </View>
+                                            )
+                                        })
+                                    }
+                                </View>
                             </View>
                         ))}
                     </View>
@@ -84,7 +137,7 @@ const styles = StyleSheet.create({
         display: 'flex',
         flexDirection: 'column',
         paddingHorizontal: 50,
-        paddingTop: 40,
+        paddingTop: 30,
         paddingBottom: 10,
         marginTop: -15,
         backgroundColor: '#323492',
@@ -99,14 +152,15 @@ const styles = StyleSheet.create({
     checkboxContainer: {
         display: 'flex',
         flexDirection: "row",
-        marginBottom: 20,
-        paddingTop: 5
+        marginBottom: 10,
+        paddingVertical: 5
     },
     checkbox: {
         alignSelf: "center",
     },
     label: {
         margin: 8,
-        color: '#FFFFFF'
+        color: '#FFFFFF',
+        fontFamily: 'Poppins_400Regular'
     },
 })

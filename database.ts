@@ -2,9 +2,9 @@ import * as SQLite from 'expo-sqlite';
 import * as FileSystem from 'expo-file-system';
 import {Asset} from "expo-asset";
 import {Platform} from "react-native";
-import {Query, SQLiteCallback, SQLTransactionCallback, SQLTransactionErrorCallback} from "expo-sqlite";
+import {Query, SQLiteCallback, SQLTransactionCallback, SQLTransactionErrorCallback, WebSQLDatabase} from "expo-sqlite";
 
-async function openDatabase(pathToDatabaseFile: string): Promise<SQLite.WebSQLDatabase> {
+export async function openDatabase(): Promise<SQLite.WebSQLDatabase> {
     if (Platform.OS === "web") {
         return {
             version: "",
@@ -23,10 +23,10 @@ async function openDatabase(pathToDatabaseFile: string): Promise<SQLite.WebSQLDa
         await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'SQLite');
     }
     await FileSystem.downloadAsync(
-        Asset.fromModule(require(pathToDatabaseFile)).uri,
-        FileSystem.documentDirectory + 'SQLite/identifier.sqlite'
+        Asset.fromModule(require('./assets/data/contacts.db')).uri,
+        FileSystem.documentDirectory + 'SQLite/contacts.db'
     );
-    return SQLite.openDatabase('identifier.sqlite');
+    let database: any = SQLite.openDatabase('contacts.db');
+    database._db.close();
+    return SQLite.openDatabase('contacts.db');
 }
-
-export const db = openDatabase(`../assets/data/identifier.sqlite`);

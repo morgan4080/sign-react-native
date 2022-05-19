@@ -29,6 +29,7 @@ import {
 } from "@expo-google-fonts/poppins";
 import { Pie as ProgressPie, CircleSnail as ProgressCircleSnail  } from 'react-native-progress';
 import {useEffect} from "react";
+import {RotateView} from "../Auth/VerifyOTP";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -42,22 +43,13 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
 
     useEffect(() => {
         let isMounted = true;
-        if (!isLoggedIn) {
-            if (isMounted) navigation.navigate('Login')
-        } else {
-            dispatch(fetchLoanProducts()).then((response: any) => {
-                if (response.type === 'fetchLoanProducts/rejected' && response.error) {
-                    // console.log("fetch loan products error")
-                    return
-                }
-                if (response.type === 'fetchLoanProducts/fulfilled') {
-                    // console.log("fetch  loan products success")
-                    return
-                }
-            }).catch((e: any) => {
-                // console.log("fetch loan requests error", e)
-            })
-        }
+        (async () => {
+            if (!isLoggedIn) {
+                if (isMounted) navigation.navigate('Login')
+            } else {
+                await Promise.all([dispatch(fetchLoanProducts())]);
+            }
+        })()
         return () => { isMounted = false };
     }, [isLoggedIn]);
 
@@ -114,7 +106,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
     } else {
         return (
             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-                <ProgressCircleSnail size={50} color={['green', 'blue']} />
+                <RotateView/>
             </View>
         )
     }

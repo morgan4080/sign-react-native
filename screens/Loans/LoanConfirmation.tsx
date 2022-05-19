@@ -34,6 +34,9 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
         Poppins_400Regular,
         Poppins_300Light
     });
+    const submitLoanRequest = () => {
+        console.log("submitting route params")
+    }
     if (fontsLoaded) {
         return (
             <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
@@ -65,11 +68,11 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                     </View>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                                         <Text style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%' }}>Months:</Text>
-                                        <Text style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanDetails.desiredPeriod} Month</Text>
+                                        <Text style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanDetails.desiredPeriod}</Text>
                                     </View>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                                         <Text style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%' }}>Amount:</Text>
-                                        <Text style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanDetails.desiredAmount} Month</Text>
+                                        <Text style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanDetails.desiredAmount}</Text>
                                     </View>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                                         <Text style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%' }}>Guarantors:</Text>
@@ -98,6 +101,11 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                 </View>
                             </ScrollView>
                         </SafeAreaView>
+                        <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                            <TouchableOpacity onPress={() => submitLoanRequest()} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                                <Text style={styles.buttonText}>CONTINUE</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </View>
@@ -129,5 +137,11 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_400Regular',
         fontSize: 18,
         marginTop: 2,
+    },
+    buttonText: {
+        fontSize: 20,
+        textAlign: 'center',
+        color: '#FFFFFF',
+        fontFamily: 'Poppins_600SemiBold',
     }
 })

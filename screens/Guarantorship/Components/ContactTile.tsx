@@ -51,7 +51,7 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                     <Text style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 15, maxWidth: 200 }}>
                         {contact.name}
                     </Text>
-                    <Text style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 15 }}>{contact.phoneNumbers[0].number}</Text>
+                    <Text style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 15 }}>{contact.phone}</Text>
                 </View>
                 <View>
                     <Checkbox

@@ -80,7 +80,7 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
         formState: { errors }
     } = useForm<FormData>({
         defaultValues: {
-            phoneNumber: '254721373685',
+            phoneNumber: '254720753971',
             pin: '1234'
         }
     })

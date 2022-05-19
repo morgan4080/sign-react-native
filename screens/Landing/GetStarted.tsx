@@ -4,11 +4,14 @@ import AppLoading from 'expo-app-loading';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-import { db } from "../../utils/database";
+import {useEffect} from "react";
+import {store} from "../../stores/store";
+import {readContactsFromDb, saveContactsToDb, setLoading} from "../../stores/auth/authSlice"
+import {useDispatch, useSelector} from "react-redux";
+import {storeState} from "../../stores/auth/authSlice";
 type NavigationProps = NativeStackScreenProps<any>
 
 export default function GetStarted({ navigation }: NavigationProps) {
-
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,

@@ -1,11 +1,20 @@
-import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit'
+import {createAsyncThunk, createSlice} from '@reduxjs/toolkit'
 import {deleteSecureKey, getSecureKey, saveSecureKey} from '../../utils/secureStore'
+import {openDatabase} from "../../database";
+import * as Contacts from "expo-contacts";
+import {SQLError, SQLResultSet, SQLStatementErrorCallback, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
+export let db: WebSQLDatabase
+(async () => {
+    db = await openDatabase();
+})()
 
 export type loginUserType = {
     phoneNumber: number,
     pin: number,
     tenant?: string
 }
+
+type CategoryType = {code: string, name: string, options: {code: string, name: string, options: {code: string, name: string,selected: boolean}[], selected: boolean}[]}
 
 interface UserData {
     id: string,
@@ -117,6 +126,8 @@ export type storeState = {
     loading: boolean;
     isJWT: boolean | string;
     otpSent: boolean;
+    contacts: {contact_id: number, name: string, phone: string}[] | null;
+    loanCategories: CategoryType[] | null
 }
 
 const parseJwt = (token: string) => {
@@ -128,6 +139,102 @@ const parseJwt = (token: string) => {
 
     return JSON.parse(jsonPayload);
 }
+
+const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> => {
+    const { status } = await Contacts.requestPermissionsAsync();
+    if (status === 'granted') {
+        const { data } = await Contacts.getContactsAsync();
+        if (data.length > 0) {
+            return data.reduce((acc: any[], contact: any) => {
+                if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
+                    acc.push({name: contact.name, phone: contact.phoneNumbers[0].number})
+                }
+                return acc
+            }, [])
+        } else {
+            return []
+        }
+    } else {
+        return []
+    }
+}
+
+export const searchContactsInDB = createAsyncThunk('searchContactsInDB', async({searchTerm, setContacts}: {searchTerm: string, setContacts: any}) => {
+    console.log("searching.....")
+    return new Promise((resolve, reject) => {
+        db.transaction((tx: any) => {
+            tx.executeSql(`SELECT * FROM contacts WHERE name LIKE '%${searchTerm}%' LIMIT '0', '100'`, undefined,
+                // success callback which sends two things Transaction object and ResultSet Object
+                (txObj: any, { rows: { _array } } : any) => {
+                    console.log('success....')
+                    setContacts(_array)
+                },
+                // failure callback which sends two things Transaction object and Error
+                (txObj:any, error: any) => {
+                    console.log('errorrrr....', error)
+                    reject(error)
+                }
+            ) // end executeSQL
+        })
+    })
+})
+
+export const saveContactsToDb = createAsyncThunk('saveContactsToDb', async() => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const contacts2D = await fetchContactsFromPB()
+            db.transaction((tx: SQLTransaction) => {
+                contacts2D.reduce((acc: any, {name, phone}: {name: string, phone: string}, currentIndex, arr) => {
+                    tx.executeSql('INSERT INTO contacts (name, phone) values (?, ?)', [name, phone],
+                        // success callback which sends two things Transaction object and ResultSet Object
+                        (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                            // at the end of the loop resolve
+                            acc.push(resultSet.insertId)
+                            if (arr.length === (currentIndex + 1)) {
+                                console.log('contacts saved', arr.length)
+                                resolve(acc)
+                            }
+                        },
+                        // failure callback which sends two things Transaction object and Error
+                        (txObj: SQLTransaction, error: SQLError): any => {
+                            reject(error.message)
+                        }
+                    )
+                    return acc
+                }, []);
+                tx.executeSql('create index contacts_phone_index on contacts (phone)', undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully indexed')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log(error.message)
+                    }
+                )
+            })
+        } catch (e: any) {
+            reject(e)
+        }
+    })
+})
+
+export const getContactsFromDB = createAsyncThunk('getContactsFromDB', async ({setContacts, from, to}: {setContacts: any, from: number, to: number}) => {
+    return new Promise((resolve, reject) => {
+        db.transaction((tx: any) => {
+            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '100'`, undefined,
+                // success callback which sends two things Transaction object and ResultSet Object
+                (txObj: any, { rows: { _array } } : any) => {
+                    setContacts(_array)
+                },
+                // failure callback which sends two things Transaction object and Error
+                (txObj:any, error: any) => {
+                    console.log('getContactsFromDB')
+                    reject(error)
+                }
+            ) // end executeSQL
+        })
+    })
+})
 
 export const checkForJWT = createAsyncThunk('checkForJWT', async () => {
     return await getSecureKey('jwt')
@@ -158,8 +265,6 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
             body: formBody
         })
 
-       // console.log("login response status", response.status)
-
         if (response.status === 401) {
             reject("Incorrect phone number or password")
         }
@@ -167,7 +272,6 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
         if (response.status === 200) {
             const data = await response.json();
             const result: any = await saveKeys(data)
-            // console.log('log in data', data)
             resolve(result)
         }
     })
@@ -178,7 +282,6 @@ export const logoutUser = createAsyncThunk('logoutUser', async () => {
 })
 
 export const sendOTP = createAsyncThunk('sendOTP', async (phoneNumber: string) => {
-    // console.log("sending OTP", phoneNumber)
     return Promise.resolve(true)
 })
 
@@ -191,7 +294,6 @@ export const setLoading = createAsyncThunk('setLoading', async (loading: boolean
 })
 
 const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token }: any) => {
-    // console.log("got JWTS", expires_in, refresh_expires_in)
     await saveSecureKey('jwt', access_token)
     await saveSecureKey('jwtRefresh', refresh_token)
     return Promise.resolve(true)
@@ -203,10 +305,7 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
            const key = await getSecureKey('jwt')
            let phoneNumber
            if (!key) {
-               // console.log("key not available")
                reject("You are not authenticated")
-           } else {
-               // console.log("authenticating....")
            }
            const response = await fetch(`https://accounts.presta.co.ke/authentication`, {
                method: 'GET',
@@ -256,10 +355,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
        try {
            const key = await getSecureKey('jwt')
            if (!key) {
-               // console.log("key not available")
                reject("You are not authenticated")
-           } else {
-               // console.log("fetching member....")
            }
            const myHeaders = new Headers();
            myHeaders.append("Authorization", `Bearer ${key}`)
@@ -268,7 +364,6 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
                headers: myHeaders,
                redirect: 'follow'
            })
-           // console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber}`, response.status)
            if (response.status === 200) {
                const data = await response.json()
                resolve(data)
@@ -287,10 +382,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
         try {
             const key = await getSecureKey('jwt')
             if (!key) {
-                // console.log("key not available")
                 reject("You are not authenticated")
-            } else {
-                // console.log("fetching loan requests....")
             }
             const myHeaders = new Headers();
             myHeaders.append("Authorization", `Bearer ${key}`)
@@ -309,7 +401,6 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                     })
                     if (response0.status === 200) {
                         const data0 = await response0.json()
-                        // console.log("guarantor list", data0.guarantorList)
                         return {
                             "refId": data.content[i].refId,
                             "loanDate": data.content[i].loanDate,
@@ -352,10 +443,7 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
         try {
             const key = await getSecureKey('jwt')
             if (!key) {
-                // console.log("key not available")
                 reject("You are not authenticated")
-            } else {
-                // console.log("fetching loan request....")
             }
             const myHeaders = new Headers();
             myHeaders.append("Authorization", `Bearer ${key}`)
@@ -383,10 +471,7 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async () 
         try {
             const key = await getSecureKey('jwt')
             if (!key) {
-                // console.log("key not available")
                 reject("You are not authenticated")
-            } else {
-                // console.log("fetching loan products....")
             }
             const myHeaders = new Headers();
             myHeaders.append("Authorization", `Bearer ${key}`)
@@ -407,6 +492,101 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async () 
     })
 })
 
+export const setLoanCategories = createAsyncThunk('setLoanCategories', async(signal: any) => {
+    const key = await getSecureKey('jwt')
+    if (!key) {
+        console.log("You are not authenticated")
+    }
+    const myHeaders = new Headers();
+    myHeaders.append("Authorization", `Bearer ${key}`)
+    const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code', {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow',
+        signal: signal
+    })
+    if (response.status === 200) {
+        const data = await response.json();
+
+        let loanCategories = data.reduce((acc: {code: string, name: string, options: {code: string, name: string, selected: boolean, options: []}[]}[], current: {[key: string]: string}) => {
+            let code = Object.keys(current)[0]
+            acc.push({
+                code,
+                name: current[code],
+                options: []
+            })
+            return acc
+        },[]);
+
+        let loanSubCategoriesData = loanCategories.reduce((acc: any[], curr: {code: string, name: string, options: {name: string, selected: boolean}[]}) => {
+            acc.push(new Promise(resolve => {
+                fetch(`https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code?parent=${curr.code}`, {
+                    method: 'GET',
+                    headers: myHeaders,
+                    redirect: 'follow',
+                    signal: signal
+                })
+                    .then((res) => res.json())
+                    .then((data) => {
+                        let options = data.map((member: any, i: any) => {
+                            let code = Object.keys(member)[0]
+                            return {
+                                code,
+                                name: member[code],
+                                selected: false,
+                                options: [],
+                            }
+                        })
+                        resolve({
+                            ...curr,
+                            options
+                        })
+                    })
+            }))
+            return acc
+        },[]);
+
+        const loanSubCategories: CategoryType[] = await Promise.all(loanSubCategoriesData);
+        const withAllOptions = loanSubCategories.reduce((accumulator: any[], currentValue) => {
+            let allSubOptionsPromises = currentValue.options.reduce((a: any, c) => {
+                a.push(new Promise(resolve => {
+                    fetch(`https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code?parent=${currentValue.code}&child=${c.code}`, {
+                        method: 'GET',
+                        headers: myHeaders,
+                        redirect: 'follow',
+                        signal: signal
+                    })
+                        .then((res) => res.json())
+                        .then((data) => {
+                            let options = data.map((member: any, i: any) => {
+                                let code = Object.keys(member)[0]
+                                return {
+                                    code,
+                                    name: member[code],
+                                    selected: false
+                                }
+                            })
+                            resolve({
+                                ...c,
+                                options
+                            })
+                        })
+                }))
+                return a
+            },[])
+            accumulator.push(new Promise(resolve => {
+                Promise.all(allSubOptionsPromises).then((allSubOptionsData => {
+                    resolve({...currentValue, options: allSubOptionsData})
+                }))
+            }))
+            return accumulator
+        }, []);
+        return Promise.all(withAllOptions)
+    } else {
+        return Promise.reject('Cant resolve categories')
+    }
+})
+
 const authSlice = createSlice({
     name: 'auth',
     initialState: <storeState>{
@@ -418,6 +598,8 @@ const authSlice = createSlice({
         otpSent: false,
         loanRequests: null,
         loanRequest: null,
+        contacts: null,
+        loanCategories: null,
     },
     reducers: {
         createLoanProduct(state, action) {
@@ -438,16 +620,25 @@ const authSlice = createSlice({
             state.loading = false
         })
 
+        builder.addCase(setLoanCategories.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(setLoanCategories.fulfilled, (state, action) => {
+            state.loanCategories = action.payload
+            state.loading = false
+        })
+        builder.addCase(setLoanCategories.rejected, (state) => {
+            state.loading = false
+        })
+
         builder.addCase(loginUser.pending, state => {
             state.loading = true
         })
         builder.addCase(loginUser.fulfilled, (state,action) => {
-            // console.log('loginUser.fulfilled', action.payload)
             state.isLoggedIn = true
             state.loading = false
         })
         builder.addCase(loginUser.rejected, (state, error) => {
-            // console.log("loginUser.rejected", error)
             state.isJWT = false
             state.isLoggedIn = false
             state.loading = false
@@ -470,7 +661,6 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(fetchMember.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
-            // console.log('fetchMember.fulfilled', payload)
             state.member = payload
             state.loading = false
         })
@@ -526,12 +716,43 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(logoutUser.fulfilled, (state, action) => {
-            // console.log('logout fulfilled', action)
             state.isLoggedIn = false
             state.isJWT = false
             state.loading = false
         })
         builder.addCase(logoutUser.rejected, state => {
+            state.loading = false
+        })
+
+        builder.addCase(saveContactsToDb.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(saveContactsToDb.fulfilled, (state, action: any) => {
+            state.loading = false
+        })
+        builder.addCase(saveContactsToDb.rejected, (state, action) => {
+            state.loading = false
+        })
+
+        builder.addCase(getContactsFromDB.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(getContactsFromDB.fulfilled, (state, action: any) => {
+            // state.contacts = action.payload
+            state.loading = false
+        })
+        builder.addCase(getContactsFromDB.rejected, (state, action) => {
+            state.loading = false
+        })
+
+        builder.addCase(searchContactsInDB.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(searchContactsInDB.fulfilled, (state, action: any) => {
+            // state.contacts = action.payload
+            state.loading = false
+        })
+        builder.addCase(searchContactsInDB.rejected, (state, action) => {
             state.loading = false
         })
 

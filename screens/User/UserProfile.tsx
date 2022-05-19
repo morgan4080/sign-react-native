@@ -17,10 +17,17 @@ import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_700Bold, Popp
 import {useEffect} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {useDispatch, useSelector} from "react-redux";
-import {storeState, setLoading, fetchMember, logoutUser} from "../../stores/auth/authSlice";
+import {
+    storeState,
+    setLoading,
+    fetchMember,
+    logoutUser,
+    saveContactsToDb, setLoanCategories
+} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
 import {CircleSnail as ProgressCircleSnail} from "react-native-progress";
+import {RotateView} from "../Auth/VerifyOTP";
 
 // Types
 
@@ -35,10 +42,10 @@ const greeting = () => {
             if (parseInt(actualTime) >= 0 && parseInt(actualTime) < 12) {
                 return greetings[0]
             }
-            if (parseInt(actualTime) >= 12 && parseInt(actualTime) < 15) {
+            if (parseInt(actualTime) >= 12 && parseInt(actualTime) < 18) {
                 return greetings[1]
             }
-            if (parseInt(actualTime) >= 15) {
+            if (parseInt(actualTime) >= 18) {
                 return greetings[2]
             }
         }
@@ -55,25 +62,25 @@ export default function UserProfile({ navigation }: NavigationProps) {
 
     useEffect(() => {
         let isMounted = true;
-        if (!isLoggedIn) {
-            if (isMounted) navigation.navigate('Login')
-        } else {
-            if (user) {
-                dispatch(fetchMember(user?.phoneNumber)).then((response: any) => {
-                    if (response.type === 'fetchMember/rejected' && response.error) {
-                        // console.log("fetch member error", response)
-                        return
-                    }
-                    if (response.type === 'fetchMember/fulfilled') {
-                        // console.log("fetch member success", response)
-                        return
-                    }
-                }).catch((e: any) => {
-                    // console.log("fetchMember error", e)
-                })
+        const controller = new AbortController();
+        const signal = controller.signal;
+        (async () => {
+            if (!isLoggedIn) {
+                if (isMounted) navigation.navigate('Login')
+            } else {
+                if (user) {
+                    await Promise.all([
+                        dispatch(fetchMember(user?.phoneNumber)),
+                        dispatch(saveContactsToDb()),
+                        dispatch(setLoanCategories(signal))
+                    ])
+                }
             }
-        }
-        return () => { isMounted = false };
+        })()
+        return () => {
+            isMounted = false;
+            controller.abort()
+        };
     }, [isLoggedIn]);
 
     let [fontsLoaded] = useFonts({
@@ -91,9 +98,15 @@ export default function UserProfile({ navigation }: NavigationProps) {
         await dispatch(logoutUser())
     }
 
-    if (fontsLoaded && !loading) {
+    if (fontsLoaded) {
         return (
             <View style={{ flex: 1, paddingTop: Bar.currentHeight, position: 'relative' }}>
+                {
+                    loading &&
+                    <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
+                        <RotateView/>
+                    </View>
+                }
                 <Image
                     style={styles.landingBg}
                     source={require('../../assets/images/profile-bg.png')}
@@ -154,7 +167,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
     } else {
         return (
             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-                <ProgressCircleSnail size={50} color={['green', 'blue']} />
+                <RotateView/>
             </View>
         )
     }

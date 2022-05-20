@@ -1,4 +1,4 @@
-import {Dimensions, View, Text, StyleSheet, StatusBar as Bar, TouchableOpacity, SafeAreaView, ScrollView} from "react-native";
+import {Dimensions, Platform, View, Text, StyleSheet, StatusBar as Bar, TouchableOpacity, SafeAreaView, ScrollView} from "react-native";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {
     Poppins_300Light,
@@ -9,22 +9,24 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import {useState} from "react";
 import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
 import {Circle as ProgressCircle} from "react-native-progress";
 import * as React from "react";
 import {Ionicons} from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
+import * as Linking from 'expo-linking';
 
 type NavigationProps = NativeStackScreenProps<any>
 const { width, height } = Dimensions.get("window");
 
 export default function LoanConfirmation({navigation, route}: NavigationProps) {
-    const { loading, user } = useSelector((state: { auth: storeState }) => state.auth);
-    console.log("route params", route.params)
+    const { loading, user, member } = useSelector((state: { auth: storeState }) => state.auth);
+    // console.log("route params", route.params)
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
+
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -34,9 +36,115 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
         Poppins_400Regular,
         Poppins_300Light
     });
-    const submitLoanRequest = () => {
-        console.log("submitting route params")
+
+    // opening android contacts
+
+    const openPhoneContacts = () => {
+        Linking.openURL('content://com.android.contacts/data/callables')
     }
+
+    // Browser Linking to zoho sign
+
+    const redirectUrl = Linking.createURL('e_guarantor_ship/imarisha', {
+        queryParams: { hello: 'world' },
+    });
+
+    const handleRedirect = (event: any) => {
+        if (Platform.OS === 'ios') {
+            WebBrowser.dismissBrowser();
+        } else {
+            removeLinkingListener();
+        }
+
+        let { hostname, path, queryParams } = Linking.parse(event.url);
+
+        console.log('handleRedirect', hostname, path, queryParams)
+    };
+
+    const addLinkingListener = () => {
+        Linking.addEventListener("url", handleRedirect);
+    };
+
+    const removeLinkingListener = () => {
+        Linking.removeEventListener("url", handleRedirect);
+    };
+
+    const openBrowserAsync = async () => {
+        try {
+            addLinkingListener()
+
+            let url = `https://expo.dev?linkingUri=${redirectUrl}`
+
+            const result = await WebBrowser.openBrowserAsync(
+                url
+            )
+
+            if (Platform.OS === 'ios') {
+                removeLinkingListener();
+            }
+
+            console.log('openBrowserAsync', result)
+        } catch(error: any) {
+            console.log(error);
+        }
+    };
+
+    const openAuthSessionAsync = async () => {
+        try {
+            let result: any = await WebBrowser.openAuthSessionAsync(
+                `https://expo.dev`,
+                redirectUrl
+            );
+            let redirectData;
+            if (result.url) {
+                redirectData = Linking.parse(result.url);
+            }
+           console.log("openAuthSessionAsync", result, redirectData)
+        } catch (error) {
+            alert(error);
+            console.log(error);
+        }
+    };
+
+    const submitLoanRequest = () => {
+        let code = route.params?.category.options.filter((op: any) => op.selected)[0].options.filter((o: any) => o.selected)[0];
+        const {witnessRefId, witnessMemberNo} = route.params?.witnesses.splice(0,1).reduce((acc: any, current: any) => {
+            console.log('witness', current)
+            acc = {
+                witnessRefId: null,
+                witnessMemberNo: null
+            }
+            return acc;
+        }, {});
+        const guarantorList = route.params?.guarantors.splice(0,4).reduce((acc: any, current: any) => {
+            console.log('guarantor', current)
+            acc.push({
+                memberNumber: current.memberNumber,
+                memberRefId: current.memberRefId
+            })
+        }, []);
+
+        const payload = {
+            "loanProductName": route.params?.loanProduct.name,
+            "loanProductRefId": route.params?.loanProduct.refId,
+            "selfCommitment": 0,
+            "loanAmount": route.params?.loanDetails.desiredAmount,
+            "memberRefId": member?.refId,
+            "memberNumber": member?.memberNumber,
+            "phoneNumber": member?.phoneNumber,
+            "details": {
+                "loan-purpose": {
+                    "value": code.code,
+                    "type": "STRING"
+                }
+            },
+            "witnessRefId": witnessRefId,
+            "witnessMemberNo": witnessMemberNo,
+            "guarantorList": guarantorList
+        }
+    }
+
+
     if (fontsLoaded) {
         return (
             <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
@@ -93,7 +201,13 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                         <Text style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 12, width: '50%', textAlign: 'right'  }}>{
                                             route.params?.category.options.map((op: any) => {
                                                 if (op.selected) {
-                                                    return `${op.name}, `
+                                                    let subs = op.options.map((o: any) => {
+                                                        if (o.selected) {
+                                                            return ` ${o.name}`
+                                                        }
+                                                    }).toString()
+                                                    let message = `${op.name + ':' + subs}`
+                                                    return message
                                                 }
                                             })
                                         }</Text>
@@ -127,8 +241,8 @@ const styles = StyleSheet.create({
     headTitle: {
         textAlign: 'center',
         color: '#323492',
-        fontFamily: 'Poppins_600SemiBold',
-        fontSize: 22,
+        fontFamily: 'Poppins_700Bold',
+        fontSize: 25,
         marginTop: 22,
     },
     subtitle: {

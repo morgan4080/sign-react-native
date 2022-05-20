@@ -64,7 +64,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
         Poppins_300Light
     });
 
-    if (fontsLoaded && !loading) {
+    if (fontsLoaded) {
         return (
             <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
                 <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
@@ -88,6 +88,12 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 9/12 * height }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>
+                                {
+                                    loading &&
+                                    <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
+                                        <RotateView/>
+                                    </View>
+                                }
                                 {loanProducts &&
                                     loanProducts.map((product, index) => (
                                         <TouchableOpacity key={index} style={styles.tile} onPress={() => navigation.navigate('LoanProduct', { loanProduct: product })}>

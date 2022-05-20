@@ -12,6 +12,9 @@ import {Ionicons} from "@expo/vector-icons";
 import * as React from "react";
 import Checkbox from "expo-checkbox";
 import {useEffect, useState} from "react";
+import {initializeDB, updateContact, validateNumber} from "../../../stores/auth/authSlice";
+import {store} from "../../../stores/store";
+import {useDispatch} from "react-redux";
 
 interface propInterface {
     contact: any,
@@ -20,6 +23,8 @@ interface propInterface {
 }
 const { width, height } = Dimensions.get("window");
 export default function contactTile ({contact, addContactToList, removeContactFromList}: propInterface) {
+    type AppDispatch = typeof store.dispatch;
+    const dispatch : AppDispatch = useDispatch();
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -31,13 +36,43 @@ export default function contactTile ({contact, addContactToList, removeContactFr
     });
 
     const [selectedContact, setSelectedContact] = useState<boolean>(false)
-    const selectContact = (newValue: boolean, contact: any) => {
-        if (newValue) {
-            addContactToList(contact)
-        } else {
-            removeContactFromList(contact)
+    const selectContact = async (newValue: boolean, contact: any) => {
+        try {
+            let phone: string = ''
+            if (contact.phone[0] === '+') {
+                let number = contact.phone.substring(1);
+                phone = `${number.replace(/ /g, "")}`;
+                phone = `${phone.substring(0, 3) === '254' ? '' : '254'}${phone}`;
+                console.log('starts @+' ,phone);
+            } else if (contact.phone[0] === '0') {
+                let number = contact.phone.substring(1);
+                console.log('starts @0', `254${number.replace(/ /g, "")}`);
+                //number[number.length - 1].replace(/ /g, "")
+            }
+
+            const result: any = await dispatch(validateNumber(phone));
+            const {payload, type}: {payload: any, type: string} = result
+
+            if (type === 'validateNumber/rejected') {
+                console.log(result.error.message)
+                return
+            }
+            // update contact with member id and ref id
+            if (type === "validateNumber/fulfilled") {
+                const statement = `UPDATE contacts SET memberNumber = '${payload?.memberNumber}', memberRefId = '${payload?.refId}' WHERE contact_id = ${contact.contact_id};`;
+                let response = await dispatch(updateContact(statement))
+                console.log(response)
+                return
+                if (newValue) {
+                    addContactToList(contact)
+                } else {
+                    removeContactFromList(contact)
+                }
+                setSelectedContact(newValue)
+            }
+        } catch (e: any) {
+            console.log("error", e)
         }
-        setSelectedContact(newValue)
     }
 
 

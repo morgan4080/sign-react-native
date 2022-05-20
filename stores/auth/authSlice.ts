@@ -127,7 +127,8 @@ export type storeState = {
     isJWT: boolean | string;
     otpSent: boolean;
     contacts: {contact_id: number, name: string, phone: string}[] | null;
-    loanCategories: CategoryType[] | null
+    loanCategories: CategoryType[] | null,
+    appInitialized: boolean
 }
 
 const parseJwt = (token: string) => {
@@ -179,6 +180,118 @@ export const searchContactsInDB = createAsyncThunk('searchContactsInDB', async({
     })
 })
 
+export const initializeDB = createAsyncThunk('initializeDB', async (): Promise<any> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            db.transaction((tx: SQLTransaction) => {
+                tx.executeSql(`DROP TABLE IF EXISTS contacts.contacts`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully deleted contacts')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('delete contacts error', error.message)
+                    }
+                )
+                tx.executeSql(`DROP TABLE IF EXISTS contacts.groups`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully deleted contacts')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('delete contacts error', error.message)
+                    }
+                )
+
+                tx.executeSql(`DROP TABLE IF EXISTS contacts.contact_groups`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully dropped contacts')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('delete contacts error', error.message)
+                    }
+                )
+
+                tx.executeSql(`delete from contacts`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully deleted contacts')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('delete contacts error', error.message)
+                    }
+                )
+
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS groups ( group_id integer constraint groups_pk primary key autoincrement, name text not null)`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully created groups')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create groups error', error.message)
+                    }
+                )
+
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS contacts ( contact_id integer constraint contacts_pk primary key autoincrement, name text not null, phone text not null, memberNumber text default null, memberRefId text default null)`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully created contacts')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create contacts error', error.message)
+                    }
+                )
+
+                tx.executeSql(`alter table contacts add memberNumber text default null`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully altered contacts memberNumber')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create contacts error', error.message)
+                    }
+                )
+
+                tx.executeSql(`alter table contacts add memberRefId text default null`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully altered contacts memberRefId memberRefId')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create contacts error', error.message)
+                    }
+                )
+
+
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS contact_groups (contact_id INTEGER references contacts on delete cascade, group_id   INTEGER references groups on delete cascade, primary key (contact_id, group_id))`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully created contact_groups')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create contact_groups error', error.message)
+                    }
+                )
+
+                tx.executeSql(`create unique index contacts_phone_uindex on contacts (phone)`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully indexed unique phone number')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('indexed unique phone number error', error.message)
+                    }
+                )
+
+            })
+            resolve(Promise.all([true]))
+        } catch (e: any) {
+            reject(e)
+        }
+    })
+});
+
 export const saveContactsToDb = createAsyncThunk('saveContactsToDb', async() => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -188,33 +301,43 @@ export const saveContactsToDb = createAsyncThunk('saveContactsToDb', async() => 
                     tx.executeSql('INSERT INTO contacts (name, phone) values (?, ?)', [name, phone],
                         // success callback which sends two things Transaction object and ResultSet Object
                         (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            // at the end of the loop resolve
                             acc.push(resultSet.insertId)
+                            console.log('resultset', acc.length)
                             if (arr.length === (currentIndex + 1)) {
-                                console.log('contacts saved', arr.length)
                                 resolve(acc)
                             }
                         },
                         // failure callback which sends two things Transaction object and Error
                         (txObj: SQLTransaction, error: SQLError): any => {
-                            reject(error.message)
+                            console.log(error.message)
                         }
                     )
                     return acc
                 }, []);
-                tx.executeSql('create index contacts_phone_index on contacts (phone)', undefined,
-                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                        console.log('successfully indexed')
-                    },
-
-                    (txObj: SQLTransaction, error: SQLError): any => {
-                        console.log(error.message)
-                    }
-                )
             })
         } catch (e: any) {
             reject(e)
         }
+    })
+})
+
+export const updateContact = createAsyncThunk('updateContact', async (sql: string) => {
+    return new Promise((resolve, reject) => {
+        db.transaction((tx: any) => {
+            tx.executeSql(`${sql}`, undefined,
+                // success callback which sends two things Transaction object and ResultSet Object
+                (txObj: SQLTransaction, { rows: { _array } } : Pick<SQLResultSet, "rows">) => {
+                    let result: any = _array
+                    console.log(_array)
+                    resolve(result)
+                },
+                // failure callback which sends two things Transaction object and Error
+                (txObj: SQLTransaction, error: SQLError): any => {
+                    console.log('error updating', error.message);
+                    reject(error.message)
+                }
+            ) // end executeSQL
+        })
     })
 })
 
@@ -298,6 +421,29 @@ const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_
     await saveSecureKey('jwtRefresh', refresh_token)
     return Promise.resolve(true)
 }
+
+export const validateNumber = createAsyncThunk('validateNumber', async (phone: string) => {
+    return new Promise(async (resolve, reject) => {
+        const key = await getSecureKey('jwt')
+        if (!key) {
+            reject("You are not authenticated")
+        }
+        const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phone}`,{
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${key}`,
+            }
+        });
+
+        if (result.status === 200) {
+            const data = await result.json();
+            resolve(data);
+        } else {
+            reject("Not found");
+        }
+    })
+})
 
 export const authenticate = createAsyncThunk('authenticate', async () => {
     return new Promise(async (resolve, reject) => {
@@ -600,6 +746,7 @@ const authSlice = createSlice({
         loanRequest: null,
         contacts: null,
         loanCategories: null,
+        appInitialized: false,
     },
     reducers: {
         createLoanProduct(state, action) {
@@ -608,6 +755,17 @@ const authSlice = createSlice({
         }
     },
     extraReducers: builder => {
+        builder.addCase(initializeDB.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(initializeDB.fulfilled, (state, action) => {
+            state.appInitialized = true
+            state.loading = false
+        })
+        builder.addCase(initializeDB.rejected, (state) => {
+            state.loading = false
+        })
+
         builder.addCase(checkForJWT.pending, state => {
             state.loading = true
         })

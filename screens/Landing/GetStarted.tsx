@@ -6,12 +6,15 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import {useEffect} from "react";
 import {store} from "../../stores/store";
-import {readContactsFromDb, saveContactsToDb, setLoading} from "../../stores/auth/authSlice"
+import {initializeDB, saveContactsToDb, setLoading} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
 type NavigationProps = NativeStackScreenProps<any>
 
 export default function GetStarted({ navigation }: NavigationProps) {
+    const { appInitialized } = useSelector((state: { auth: storeState }) => state.auth);
+    type AppDispatch = typeof store.dispatch;
+    const dispatch : AppDispatch = useDispatch();
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -20,6 +23,27 @@ export default function GetStarted({ navigation }: NavigationProps) {
         Poppins_400Regular,
         Poppins_300Light
     });
+
+    useEffect(() => {
+        let initializing = true;
+        (async () => {
+            if (initializing) {
+                console.log('initializing...');
+                try {
+                    let response = await dispatch(initializeDB())
+                    if (response.type === 'initializeDB/fulfilled') {
+                        console.log('initialized', response)
+                    }
+                } catch (e: any) {
+                    console.log('promise error', e)
+                }
+            }
+        })()
+        return () => {
+            initializing = false;
+        };
+    }, [appInitialized]);
+
 
     if (fontsLoaded) {
         return (

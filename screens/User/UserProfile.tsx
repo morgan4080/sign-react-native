@@ -74,6 +74,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                         dispatch(saveContactsToDb()),
                         dispatch(setLoanCategories(signal))
                     ])
+                    dispatch(setLoading(false))
                 }
             }
         })()

@@ -240,10 +240,13 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
                         </SafeAreaView>
 
                         <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity disabled={ selectedContacts.length < 1 } onPress={() => navigation.navigate('LoanConfirmation', {
-                                witnesses: selectedContacts,
-                                ...route.params
-                            })} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < 1 ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            <TouchableOpacity disabled={ selectedContacts.length < 1 } onPress={() => {
+                                Keyboard.removeAllListeners('keyboardDidHide')
+                                navigation.navigate('LoanConfirmation', {
+                                    witnesses: selectedContacts,
+                                    ...route.params
+                                })
+                            }} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < 1 ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                 <Text style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>

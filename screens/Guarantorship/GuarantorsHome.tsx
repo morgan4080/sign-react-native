@@ -1,4 +1,5 @@
 import * as React from "react";
+
 import {
     View,
     Text,
@@ -11,10 +12,15 @@ import {
     TextInput,
     Keyboard
 } from "react-native";
+
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
+
 import {store} from "../../stores/store";
+
 import {useDispatch, useSelector} from "react-redux";
-import {db, getContactsFromDB, searchContactsInDB, setLoading, storeState} from "../../stores/auth/authSlice";
+
+import {getContactsFromDB, searchContactsInDB, setLoading, storeState} from "../../stores/auth/authSlice";
+
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -24,38 +30,55 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import {Circle as ProgressCircle} from "react-native-progress";
+
 import {MaterialIcons, Ionicons} from "@expo/vector-icons";
+
 import {useEffect, useState} from "react";
-import * as Contacts from 'expo-contacts';
+
 import { useForm, Controller } from "react-hook-form";
+
 import ContactTile from "./Components/ContactTile";
-import {PhoneNumber} from "expo-contacts";
+
 import {cloneDeep} from "lodash";
+
 import {RotateView} from "../Auth/VerifyOTP";
-type NavigationProps = NativeStackScreenProps<any>
+
+import { PanGestureHandler } from "react-native-gesture-handler";
+
+import Animated from "react-native-reanimated";
+
+type NavigationProps = NativeStackScreenProps<any>;
+
 const { width, height } = Dimensions.get("window");
 type FormData = {
     searchTerm: string;
     phoneNumber: string;
-}
+};
+
 export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     type AppDispatch = typeof store.dispatch;
+
     const dispatch : AppDispatch = useDispatch();
+
     const { loading } = useSelector((state: { auth: storeState }) => state.auth);
-    const [contacts, setContacts] = useState([])
-    const [from, setFrom] = useState(0)
-    const [to, setTo] = useState(100)
+
+    const [contacts, setContacts] = useState([]);
+
+    const [from, setFrom] = useState(0);
+
+    const [to, setTo] = useState(100);
+
     useEffect(() => {
         let syncContacts = true;
         (async () => {
-            console.log('with constraints')
-            await dispatch(getContactsFromDB({setContacts, from, to}))
+            await dispatch(getContactsFromDB({setContacts, from, to}));
         })()
         return () => {
+            Keyboard.removeAllListeners('keyboardDidHide');
             syncContacts = false;
         }
     }, [from, to]);
+
     const {
         control,
         watch,
@@ -63,7 +86,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         setError,
         setValue,
         formState: { errors }
-    } = useForm<FormData>()
+    } = useForm<FormData>();
+
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -75,8 +99,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     });
 
     const filterContactsCB = async (searchTerm: string = '') => {
-        await dispatch(searchContactsInDB({searchTerm, setContacts}))
-    }
+        await dispatch(searchContactsInDB({searchTerm, setContacts}));
+    };
 
     useEffect(() => {
         const subscription = watch((value, { name, type }) => {
@@ -89,7 +113,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         break;
                     case 'phoneNumber':
                         if (type === 'change') {
-                            console.log(value.phoneNumber)
+                            console.log(value.phoneNumber);
                             // search organisation database for user
                         }
                         break;
@@ -103,27 +127,33 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const [addingManually, setAddingManually] = useState<boolean>(false);
 
     const removeContactFromList = (contact2Remove: any): number | string => {
-        let newDeserializedCopy: any[] = cloneDeep(selectedContacts)
-        let index = newDeserializedCopy.findIndex(contact => contact.contact_id === contact2Remove.contact_id)
-        newDeserializedCopy.splice(index, 1)
-        setSelectedContacts(newDeserializedCopy)
+        let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
+        let index = newDeserializedCopy.findIndex(contact => contact.contact_id === contact2Remove.contact_id);
+        newDeserializedCopy.splice(index, 1);
+        setSelectedContacts(newDeserializedCopy);
         return contact2Remove.id
     }
 
     const addContactToList = (contact2Add: any): number | string => {
-        let newDeserializedCopy: any[] = cloneDeep(selectedContacts)
-        newDeserializedCopy.push(contact2Add)
-        setSelectedContacts(newDeserializedCopy)
-        return contact2Add.id
+        let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
+        newDeserializedCopy.push(contact2Add);
+        setSelectedContacts(newDeserializedCopy);
+        return contact2Add.id;
     }
 
     Keyboard.addListener('keyboardDidHide', () => {
-        setAddingManually(false)
+        setAddingManually(false);
         // console.log("if member was found during the watch process, add them or let them know that member wasn't found")
     })
 
     return (
         <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+            {
+                loading &&
+                <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
+                    <RotateView/>
+                </View>
+            }
             <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
             <View style={{ position: 'absolute', left: -100, top: 200, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
             <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
@@ -216,14 +246,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         </View>
                         <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
                             {
-                                loading &&
-                                <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
-                                    <RotateView/>
-                                </View>
-                            }
-                            {
                                 contacts && contacts.map((contact: any, i: number) => (
-                                    <ContactTile key={i} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} />
+                                    <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} />
                                 ))
                             }
                         </ScrollView>

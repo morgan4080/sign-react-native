@@ -59,14 +59,21 @@ export default function contactTile ({contact, addContactToList, removeContactFr
             }
             // update contact with member id and ref id
             if (type === "validateNumber/fulfilled") {
-                const statement = `UPDATE contacts SET memberNumber = '${payload?.memberNumber}', memberRefId = '${payload?.refId}' WHERE contact_id = ${contact.contact_id};`;
-                let response = await dispatch(updateContact(statement))
-                console.log(response)
-                return
                 if (newValue) {
-                    addContactToList(contact)
+                    const statement = `UPDATE contacts SET memberNumber = '${payload?.memberNumber}', memberRefId = '${payload?.refId}' WHERE contact_id = ${contact.contact_id};`;
+                    await dispatch(updateContact(statement));
+                    // console.log('update response', response);
+                    addContactToList({
+                       ...contact,
+                        memberNumber: payload?.memberNumber,
+                        memberRefId: payload?.refId
+                    });
                 } else {
-                    removeContactFromList(contact)
+                    removeContactFromList({
+                        ...contact,
+                        memberNumber: payload?.memberNumber,
+                        memberRefId: payload?.refId
+                    });
                 }
                 setSelectedContact(newValue)
             }
@@ -83,6 +90,7 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                     <Ionicons name="person-circle" size={40} color="#CCCCCC"/>
                 </View>
                 <View style={{ width: width * 6.8/12 }}>
+                    <Text>{contact.memberNumber}</Text>
                     <Text style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 15, maxWidth: 200 }}>
                         {contact.name}
                     </Text>

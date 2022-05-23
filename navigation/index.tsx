@@ -32,6 +32,7 @@ import LoanProducts from "../screens/Loans/LoanProducts";
 import LoanProduct from "../screens/Loans/LoanProduct";
 import LoanPurpose from "../screens/Loans/LoanPurpose";
 import LoanConfirmation from "../screens/Loans/LoanConfirmation";
+import LoanRequest from "../screens/Loans/LoanRequest";
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import {
@@ -98,6 +99,7 @@ function RootNavigator() {
       <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={{ headerShown: false }} />
       <Stack.Screen name="WitnessesHome" component={WitnessesHome} options={{ headerShown: false }} />
       <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={{ headerShown: false }} />
+      <Stack.Screen name="LoanRequest" component={LoanRequest} options={{ headerShown: false }} />
       <Stack.Screen name="GuarantorshipRequests" component={GuarantorshipRequests} options={{
           headerShown: true,
           title: 'Guarantorship Requests',

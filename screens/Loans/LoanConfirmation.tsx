@@ -11,12 +11,12 @@ import {
 } from "@expo-google-fonts/poppins";
 import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
-import {storeState} from "../../stores/auth/authSlice";
-import {Circle as ProgressCircle} from "react-native-progress";
+import {storeState, submitLoanRequest} from "../../stores/auth/authSlice";
 import * as React from "react";
 import {Ionicons} from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from 'expo-linking';
+import {RotateView} from "../Auth/VerifyOTP";
 
 type NavigationProps = NativeStackScreenProps<any>
 const { width, height } = Dimensions.get("window");
@@ -106,25 +106,31 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
         }
     };
 
-    const submitLoanRequest = () => {
+    const makeLoanRequest = async () => {
         let code = route.params?.category.options.filter((op: any) => op.selected)[0].options.filter((o: any) => o.selected)[0];
-        const {witnessRefId, witnessMemberNo} = route.params?.witnesses.splice(0,1).reduce((acc: any, current: any) => {
-            console.log('witness', current)
+        const { witnessRefId, witnessMemberNo } = route.params?.witnesses.reduce((acc: any, current: any) => {
             acc = {
-                witnessRefId: null,
-                witnessMemberNo: null
-            }
+                witnessRefId: current.memberRefId,
+                witnessMemberNo: current.memberNumber
+            };
             return acc;
         }, {});
-        const guarantorList = route.params?.guarantors.splice(0,4).reduce((acc: any, current: any) => {
-            console.log('guarantor', current)
+
+        const guarantorList = route.params?.guarantors.reduce((acc: {memberNumber: string, memberRefId: string}[], current: { contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string }) => {
             acc.push({
                 memberNumber: current.memberNumber,
                 memberRefId: current.memberRefId
-            })
+            });
+            return acc;
         }, []);
 
         const payload = {
+            "details": {
+                "loan-purpose": {
+                    "type": "TEXT",
+                    "value": code.code
+                }
+            },
             "loanProductName": route.params?.loanProduct.name,
             "loanProductRefId": route.params?.loanProduct.refId,
             "selfCommitment": 0,
@@ -132,18 +138,24 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
             "memberRefId": member?.refId,
             "memberNumber": member?.memberNumber,
             "phoneNumber": member?.phoneNumber,
-            "details": {
-                "loan-purpose": {
-                    "value": code.code,
-                    "type": "STRING"
-                }
-            },
             "witnessRefId": witnessRefId,
             "witnessMemberNo": witnessMemberNo,
             "guarantorList": guarantorList
+        };
+
+        // console.log("loan request payload", payload);
+
+        try {
+            const response = await dispatch(submitLoanRequest(payload));
+            if (response.type === 'submitLoanRequest/fulfilled') {
+                navigation.navigate('LoanRequest', response.payload)
+            } else {
+                console.log('loan request error', response)
+            }
+        } catch (error: any) {
+            console.log('loan request error', error)
         }
     }
-
 
     if (fontsLoaded) {
         return (
@@ -216,7 +228,8 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                             </ScrollView>
                         </SafeAreaView>
                         <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity onPress={() => submitLoanRequest()} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            <TouchableOpacity onPress={() => makeLoanRequest()} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                                {loading && <RotateView/>}
                                 <Text style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>
@@ -227,7 +240,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
     } else {
         return (
             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-                <ProgressCircle indeterminate={true} size={50} />
+                <RotateView/>
             </View>
         )
     }
@@ -254,8 +267,9 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         fontSize: 20,
+        marginLeft: 5,
         textAlign: 'center',
         color: '#FFFFFF',
-        fontFamily: 'Poppins_600SemiBold',
+        fontFamily: 'Poppins_600SemiBold'
     }
 })

@@ -9,7 +9,7 @@ export default function EditScreenInfo({ path }: { path: string }) {
   return (
     <View>
       <View style={styles.getStartedContainer}>
-        <Text
+        <Text  allowFontScaling={false}
           style={styles.getStartedText}
           lightColor="rgba(0,0,0,0.8)"
           darkColor="rgba(255,255,255,0.8)">
@@ -23,7 +23,7 @@ export default function EditScreenInfo({ path }: { path: string }) {
           <MonoText>{path}</MonoText>
         </View>
 
-        <Text
+        <Text  allowFontScaling={false}
           style={styles.getStartedText}
           lightColor="rgba(0,0,0,0.8)"
           darkColor="rgba(255,255,255,0.8)">
@@ -33,7 +33,7 @@ export default function EditScreenInfo({ path }: { path: string }) {
 
       <View style={styles.helpContainer}>
         <TouchableOpacity onPress={handleHelpPress} style={styles.helpLink}>
-          <Text style={styles.helpLinkText} lightColor={Colors.light.tint}>
+          <Text  allowFontScaling={false}  style={styles.helpLinkText} lightColor={Colors.light.tint}>
             Tap here if your app doesn't automatically update after making changes
           </Text>
         </TouchableOpacity>
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   getStartedText: {
-    fontSize: 17,
+    fontSize: 15,
     lineHeight: 24,
     textAlign: 'center',
   },

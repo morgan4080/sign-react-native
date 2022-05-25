@@ -15,7 +15,7 @@ import {StatusBar} from "expo-status-bar";
 import * as React from "react";
 import {Ionicons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
-import {setLoanCategories, storeState} from "../../stores/auth/authSlice";
+import {setLoading, setLoanCategories, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {
@@ -46,11 +46,26 @@ interface FormData {
 }
 
 export default function LoanPurpose ({ navigation, route }: NavigationProps) {
+    type AppDispatch = typeof store.dispatch;
+    const dispatch : AppDispatch = useDispatch();
     const { loading, loanCategories } = useSelector((state: { auth: storeState }) => state.auth);
 
     type CategoryType = {code: string, name: string, options: {code: string, name: string, options: {code: string, name: string,selected: boolean}[], selected: boolean}[]}
 
     const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null)
+
+    useEffect(() => {
+        if (loading) {
+            if (loanCategories && loanCategories.length > 0) {
+                dispatch(setLoading(false));
+            } else {
+                dispatch(setLoading(true));
+            }
+        }
+        return () => {
+            dispatch(setLoading(false));
+        };
+    }, [loanCategories]);
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -73,7 +88,7 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
             setSelectedCategory(null)
         }
     }
-    if (fontsLoaded && !loading) {
+    if (fontsLoaded) {
         return (
             <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
                 {
@@ -99,7 +114,7 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
                                 <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                             </TouchableOpacity>
 
-                            <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22, marginTop: 30 }}>Select Loan Purpose Category</Text>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginTop: 30 }}>Select Loan Purpose Category</Text>
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 9/12 * height }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 120 }}>
@@ -115,7 +130,7 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
                                 category: selectedCategory,
                                 ...route.params
                             }) : null} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                                <Text style={styles.buttonText}>CONTINUE</Text>
+                                <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -187,13 +202,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     buttonText: {
-        fontSize: 18,
+        fontSize: 15,
         color: 'white',
         alignSelf: 'center',
         fontFamily: 'Poppins_500Medium',
     },
     buttonText0: {
-        fontSize: 18,
+        fontSize: 15,
         color: '#3D889A',
         textDecorationLine: 'underline',
         alignSelf: 'center',

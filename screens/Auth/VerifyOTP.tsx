@@ -153,7 +153,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         return(
             <ScrollView contentContainerStyle={styles.container}>
                 <View>
-                    <Text style={styles.titleText}>Verify account</Text>
+                    <Text allowFontScaling={false} style={styles.titleText}>Verify account</Text>
 
                     <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                         <Image
@@ -162,8 +162,8 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                         />
                     </View>
 
-                    <Text style={styles.titleText1}>Enter your verification code</Text>
-                    <Text style={styles.subTitleText1}>Kindly enter the verification code that was sent to <Text style={{textDecorationLine: 'underline'}}>{user && user.username}</Text></Text>
+                    <Text allowFontScaling={false} style={styles.titleText1}>Enter your verification code</Text>
+                    <Text allowFontScaling={false} style={styles.subTitleText1}>Kindly enter the verification code that was sent to <Text allowFontScaling={false} style={{textDecorationLine: 'underline'}}>{user && user.username}</Text></Text>
                     <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, position: 'relative' }}>
                         <TextInput
                             style={{ position: 'absolute', top: 30, left: 30, height: 70, width: '100%', zIndex: 5, opacity: 0, backgroundColor: 'rgba(255,255,255,0)'}}
@@ -261,8 +261,8 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 
                     <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                         <TouchableOpacity onPress={() => resendOTP()} >
-                            <Text style={styles.subTitleText1}>
-                                Did't receive code? <Text style={{ textDecorationLine: 'underline' }}>Resend code</Text>
+                            <Text allowFontScaling={false} style={styles.subTitleText1}>
+                                Did't receive code? <Text allowFontScaling={false} style={{ textDecorationLine: 'underline' }}>Resend code</Text>
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -288,21 +288,21 @@ const styles = StyleSheet.create({
         backgroundColor: '#323492'
     },
     titleText: {
-        fontSize: 20,
+        fontSize: 15,
         textAlign: 'center',
         color: '#ffffff',
         fontFamily: 'Poppins_600SemiBold',
         marginTop: 100,
     },
     titleText1: {
-        fontSize: 25,
+        fontSize: 20,
         textAlign: 'center',
         color: '#ffffff',
         fontFamily: 'Poppins_600SemiBold',
         marginTop: 20,
     },
     subTitleText1: {
-        fontSize: 16,
+        fontSize: 14,
         paddingHorizontal: 60,
         textAlign: 'center',
         color: '#ffffff',

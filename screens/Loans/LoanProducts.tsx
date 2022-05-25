@@ -90,7 +90,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                                 <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                             </TouchableOpacity>
                             <AntDesign name="gift" size={70} color="#323492" />
-                            <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22, marginTop: 30 }}>Select Loan Product</Text>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginTop: 30 }}>Select Loan Product</Text>
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 9/12 * height }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>
@@ -103,7 +103,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                                 {loanProducts &&
                                     loanProducts.map((product, index) => (
                                         <TouchableOpacity key={index} style={styles.tile} onPress={() => navigation.navigate('LoanProduct', { loanProduct: product })}>
-                                            <Text style={{color: '#ADADAD', fontFamily: 'Poppins_400Regular'}}>{ product.name }</Text>
+                                            <Text allowFontScaling={false} style={{color: '#ADADAD', fontFamily: 'Poppins_400Regular', fontSize: 13}}>{ product.name }</Text>
                                             <MaterialIcons name="keyboard-arrow-right" size={40} color="#ADADAD"/>
                                         </TouchableOpacity>
                                     ))

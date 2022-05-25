@@ -70,7 +70,7 @@ export default function LoanPurposeTile({category, componentIndex, currentOpenIn
     return (
         <>
             <TouchableOpacity style={styles.tile} onPress={() => currentOpenIndex === componentIndex ? deselect() : setSelected()}>
-                <Text style={{color: '#ADADAD', fontFamily: 'Poppins_400Regular'}}>{ category.name }</Text>
+                <Text allowFontScaling={false} style={{color: '#ADADAD', fontFamily: 'Poppins_400Regular', fontSize: 13, maxWidth: 250}}>{ category.name }</Text>
                 {currentOpenIndex !== componentIndex && <MaterialIcons name="keyboard-arrow-right" size={40} color="#ADADAD" />}
                 {currentOpenIndex === componentIndex && <MaterialIcons name="keyboard-arrow-down" size={40} color="#ADADAD" />}
             </TouchableOpacity>
@@ -84,7 +84,7 @@ export default function LoanPurposeTile({category, componentIndex, currentOpenIn
                                         op.code === expanded ? setExpanded('-1') : setExpanded(op.code)
                                         updateCopyCategory(op.code !== expanded, i)
                                     }} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(204,204,204,0.24)', width: '100%', borderRadius: 25 }}>
-                                        <Text style={{...styles.label, fontFamily: 'Poppins_600SemiBold', marginRight: 4, marginLeft: 18}}>{ op.name }</Text>
+                                        <Text allowFontScaling={false} style={{...styles.label, fontFamily: 'Poppins_600SemiBold', marginRight: 4, marginLeft: 18, fontSize: 12}}>{ op.name }</Text>
                                         {expanded !== op.code && <AntDesign name="caretright" size={10} color="white"/>}
                                         {expanded === op.code && <AntDesign name="caretdown" size={10} color="white"/>}
                                     </TouchableOpacity>
@@ -101,7 +101,7 @@ export default function LoanPurposeTile({category, componentIndex, currentOpenIn
                                                         onValueChange={(newValue) => updateSubCopyCategory(newValue, i, index)}
                                                         color={o.selected ? 'rgb(141,141,141)' : '#FFFFFF'}
                                                     />
-                                                    <Text style={{ ...styles.label, fontSize: 12, letterSpacing: 1 }}>{ o.name }</Text>
+                                                    <Text allowFontScaling={false} style={{ ...styles.label, fontSize: 12, letterSpacing: 1 }}>{ o.name }</Text>
                                                 </View>
                                             )
                                         })

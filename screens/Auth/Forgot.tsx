@@ -41,7 +41,7 @@ export default function Forgot({ navigation }: NavigationProps) {
     if (fontsLoaded) {
         return (
             <View style={styles.container}>
-                <Text style={styles.titleText}>Reset your pin</Text>
+                <Text allowFontScaling={false} style={styles.titleText}>Reset your pin</Text>
                 <Controller
                     control={control}
                     rules={{
@@ -58,11 +58,11 @@ export default function Forgot({ navigation }: NavigationProps) {
                     )}
                     name="phoneNumber"
                 />
-                {errors.phoneNumber && <Text>This field is required</Text>}
+                {errors.phoneNumber && <Text  allowFontScaling={false} >This field is required</Text>}
                 <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)} underlayColor='#99d9f4'>
-                    <Text style={styles.buttonText}>Reset Pin</Text>
+                    <Text allowFontScaling={false} style={styles.buttonText}>Reset Pin</Text>
                 </TouchableHighlight>
-                <TouchableOpacity onPress={() => navigation.navigate('Login')}><Text style={styles.linkText}>Back to login</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Login')}><Text allowFontScaling={false} style={styles.linkText}>Back to login</Text></TouchableOpacity>
             </View>
         )
     }  else {
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
     },
     buttonText: {
-        fontSize: 18,
+        fontSize: 15,
         color: 'white',
         alignSelf: 'center',
         fontFamily: 'Poppins_500Medium',
@@ -100,13 +100,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     titleText: {
-        fontSize: 25,
+        fontSize: 20,
         color: '#3c3c3c',
         fontFamily: 'Poppins_600SemiBold',
         marginBottom: 30,
     },
     linkText: {
-        fontSize: 18,
+        fontSize: 14,
         color: '#3D889A',
         alignSelf: 'flex-start',
         fontFamily: 'Poppins_400Regular',
@@ -117,9 +117,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#cccccc',
         borderRadius: 20,
-        height: 70,
+        height: 60,
         marginBottom: 30,
         paddingHorizontal: 20,
-        fontSize: 15
+        fontSize: 14
     }
 });

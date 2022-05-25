@@ -83,7 +83,7 @@ export default function LoanRequest ({loan}: propInterface) {
                         loan.signingStatus === 'INPROGRESS' &&
                         <View style={{padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                             <ProgressPie progress={loan.loanRequestProgress / 100} size={40}/>
-                            <Text style={{
+                            <Text allowFontScaling={false} style={{
                                 fontFamily: 'Poppins_500Medium',
                                 color: '#FFFFFF',
                                 marginTop: 5,
@@ -95,7 +95,7 @@ export default function LoanRequest ({loan}: propInterface) {
                         loan.signingStatus === 'COMPLETED'  &&
                         <View style={{padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                             <Ionicons name="checkmark-done-circle-sharp" size={40} color="#0BB962FF" />
-                            <Text style={{
+                            <Text allowFontScaling={false} style={{
                                 fontFamily: 'Poppins_500Medium',
                                 color: '#FFFFFF',
                                 marginTop: 5,
@@ -104,8 +104,8 @@ export default function LoanRequest ({loan}: propInterface) {
                         </View>
                     }
                 </View>
-                <Text style={{ fontFamily: 'Poppins_600SemiBold', color: '#9a9a9a', fontSize: 18 }}>{ loan.loanProductName }</Text>
-                <Text style={{ fontFamily: 'Poppins_600SemiBold', color: '#9a9a9a', fontSize: 18 }}>Ksh. { loan.loanAmount }</Text>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_600SemiBold', color: '#9a9a9a', fontSize: 13, maxWidth: 80 }}>{ loan.loanProductName }</Text>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_600SemiBold', color: '#9a9a9a', fontSize: 13 }}>Ksh. { loan.loanAmount }</Text>
                 {!open && <MaterialIcons name="keyboard-arrow-right" size={40} color="#ADADAD" />}
                 {open && <MaterialIcons name="keyboard-arrow-down" size={40} color="#ADADAD" />}
             </TouchableOpacity>
@@ -116,22 +116,22 @@ export default function LoanRequest ({loan}: propInterface) {
                             {loan.guarantorList.map((item, key) => (
                                 <View key={key} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', }}>
                                     <View style={{width: width/3}}>
-                                        <Text style={{ fontFamily: 'Poppins_500Medium', color: '#727272' }}>{`${item.firstName} ${item.lastName}`}</Text>
-                                        <Text style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 12 }}>Committed: { item.committedAmount } Ksh</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#727272', fontSize: 12 }}>{`${item.firstName} ${item.lastName}`}</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 12 }}>{ item.committedAmount } Ksh</Text>
                                     </View>
                                     <View style={{ position: 'relative' }}>
                                         <View style={{ position: 'absolute', top: 0, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 2, width: width/2.1 }}>
                                             <View style={{position: 'relative'}}>
                                                 <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isAccepted ? '#0bb962' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
-                                                <Text style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6, position: 'absolute', width: 30, left: 0, bottom: -8 }}>Accepted</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6, position: 'absolute', width: 30, left: 0, bottom: -8 }}>Accepted</Text>
                                             </View>
                                             <View style={{position: 'relative'}}>
                                                 <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isSigned ? '#0bb962' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
-                                                <Text style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6, position: 'absolute', width: 30, left: -10, bottom: -8 }}>Signed</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6, position: 'absolute', width: 30, left: -10, bottom: -8 }}>Signed</Text>
                                             </View>
                                             <View style={{position: 'relative'}}>
                                                 <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isApproved ? '#0bb962' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
-                                                <Text style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6, position: 'absolute', width: 30, left: -20, bottom: -8 }}>Approved</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6, position: 'absolute', width: 32, left: -20, bottom: -8 }}>Approved</Text>
                                             </View>
                                         </View>
                                         <ProgressBar progress={computeProgress(item)} color='#0bb962' width={width/2.1}/>

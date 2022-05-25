@@ -24,6 +24,7 @@ import VerifyOTP from "../screens/Auth/VerifyOTP";
 import UserProfile from "../screens/User/UserProfile";
 import LoanRequests from "../screens/User/LoanRequests";
 import GuarantorshipRequests from "../screens/Guarantorship/GuarantorshipRequests";
+import FavouriteGuarantors from "../screens/Guarantorship/FavouriteGuarantors";
 import GuarantorsHome from "../screens/Guarantorship/GuarantorsHome";
 import WitnessesHome from "../screens/Guarantorship/WitnessesHome";
 import Account from "../screens/User/Account";
@@ -113,6 +114,19 @@ function RootNavigator() {
               fontFamily: 'Poppins_600SemiBold'
           }
       }} />
+      <Stack.Screen name="FavouriteGuarantors" component={FavouriteGuarantors} options={{
+          headerShown: true,
+          title: 'Favourite Guarantors',
+          headerShadowVisible: false,
+          headerStyle: {
+              backgroundColor: 'rgba(204,204,204,0.28)',
+          },
+          headerTintColor: '#323492',
+          headerTitleStyle: {
+              fontSize: 20,
+              fontFamily: 'Poppins_600SemiBold'
+          }
+      }} />
       <Stack.Screen name="Forgot" component={Forgot} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
@@ -177,8 +191,8 @@ function BottomTabNavigator() {
  * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
  */
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
+    name: React.ComponentProps<typeof FontAwesome>['name'];
+    color: string;
 }) {
-  return <MaterialCommunityIcons size={30} style={{ marginBottom: -3 }} {...props} />;
+    return <MaterialCommunityIcons size={30} style={{ marginBottom: -3 }} {...props} />;
 }

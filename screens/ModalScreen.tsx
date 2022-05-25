@@ -74,9 +74,9 @@ export default function ModalScreen() {
           <MaterialCommunityIcons name="camera" color="#FFFFFF" size={20} />
         </View>
       </TouchableOpacity>
-      <Text style={styles.titleText}>{ `${ member?.fullName }` }</Text>
-      <Text style={styles.subTitleText}>{ `Member NO: ${member?.memberNumber}` }</Text>
-      <Text style={styles.organisationText}>{ `${user?.companyName}` }</Text>
+      <Text allowFontScaling={false} style={styles.titleText}>{ `${ member?.fullName }` }</Text>
+      <Text allowFontScaling={false} style={styles.subTitleText}>{ `Member NO: ${member?.memberNumber}` }</Text>
+      <Text allowFontScaling={false} style={styles.organisationText}>{ `${user?.companyName}` }</Text>
       <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width-20, height: height/2 }}>
         <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center', paddingBottom: 50 }}>
           <Controller
@@ -115,7 +115,7 @@ export default function ModalScreen() {
           />
 
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 50 }}>
-            <Text style={{ fontSize: 18, color: '#767577', fontFamily: 'Poppins_500Medium' }}>Enable Fingerprint Protection</Text>
+            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium' }}>Enable Fingerprint Protection</Text>
             <Controller
                 control={control}
                 rules={{
@@ -134,7 +134,7 @@ export default function ModalScreen() {
           </View>
 
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 20 }}>
-            <Text style={{ fontSize: 18, color: '#767577', fontFamily: 'Poppins_500Medium' }}>Allow Guarantorship requests</Text>
+            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium' }}>Allow Guarantorship requests</Text>
             <Controller
                 control={control}
                 rules={{
@@ -153,7 +153,7 @@ export default function ModalScreen() {
           </View>
 
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 20 }}>
-            <Text style={{ fontSize: 18, color: '#767577', fontFamily: 'Poppins_500Medium' }}>Enable push notifications</Text>
+            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium' }}>Enable push notifications</Text>
             <Controller
                 control={control}
                 rules={{
@@ -172,13 +172,13 @@ export default function ModalScreen() {
           </View>
 
           <TouchableOpacity onPress={() => console.log('navigate to change pin')} style={styles.helpLink}>
-            <Text style={{ fontSize: 18, color: '#F26141', fontFamily: 'Poppins_500Medium' }} >
+            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium' }} >
               Change your pin
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => logout()} style={styles.helpLink}>
-            <Text style={{ fontSize: 18, color: '#F26141', fontFamily: 'Poppins_500Medium' }} >
+            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium' }} >
               Log Out
             </Text>
           </TouchableOpacity>
@@ -199,26 +199,26 @@ const styles = StyleSheet.create({
     position: "relative"
   },
   title: {
-    fontSize: 25,
+    fontSize: 20,
     paddingTop: 20,
     color: '#323492',
     fontFamily: 'Poppins_600SemiBold'
   },
   titleText: {
-    fontSize: 32,
+    fontSize: 22,
     textAlign: 'center',
     color: '#323492',
     fontFamily: 'Poppins_700Bold',
     marginTop: 20,
   },
   subTitleText: {
-    fontSize: 18,
+    fontSize: 14,
     textAlign: 'center',
     color: '#323492',
     fontFamily: 'Poppins_400Regular',
   },
   organisationText: {
-    fontSize: 18,
+    fontSize: 14,
     textAlign: 'center',
     color: '#323492',
     fontFamily: 'Poppins_600SemiBold',
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     width: width-80,
     marginTop: 40,
     paddingHorizontal: 20,
-    fontSize: 18,
+    fontSize: 15,
     color: '#767577',
     fontFamily: 'Poppins_500Medium'
   },

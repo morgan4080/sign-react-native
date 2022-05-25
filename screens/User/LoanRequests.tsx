@@ -91,7 +91,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 11/12 * height }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>
-                                <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_700Bold', fontSize: 22, marginTop: 30 }}>Your Loan Requests</Text>
+                                <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_700Bold', fontSize: 18, marginTop: 30 }}>Your Loan Requests</Text>
                                 {
                                     loanRequests && loanRequests.map((loan, i) => (
                                         <LoanRequest key={i} loan={loan}  />

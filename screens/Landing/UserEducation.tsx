@@ -42,14 +42,14 @@ export default function UserEducation({navigation}: NavigationProps) {
                             style={styles.landingLogo}
                             source={require('../../assets/images/LogoSmall.png')}
                         />
-                        <Text style={styles.titleText}>One-click Guarantorship Request</Text>
+                        <Text allowFontScaling={false} style={styles.titleText}>One-click Guarantorship Request</Text>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
                             <Image
                                 style={styles.artwork}
                                 source={require('../../assets/images/user-education-1.png')}
                             />
                         </View>
-                        <Text style={styles.subTitleText}>
+                        <Text allowFontScaling={false} style={styles.subTitleText}>
                             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vulputate sit purus scelerisque et suspendisse dictum quis facilisi. Faucibus nisi, lectus auctor augue faucibus suspendisse. Neque, lacus nullam amet malesuada eleifend. Cras lectus amet phasellus pulvinar sed vitae, et pharetra, consequat.
                         </Text>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 40, marginBottom: 80 }}>
@@ -65,15 +65,15 @@ export default function UserEducation({navigation}: NavigationProps) {
                             style={styles.landingLogo}
                             source={require('../../assets/images/LogoSmall.png')}
                         />
-                        <Text style={styles.titleText}>Track your Loan & Guarantorship status</Text>
+                        <Text allowFontScaling={false} style={styles.titleText}>Track your Loan & Guarantorship status</Text>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
                             <Image
                                 style={styles.artwork}
                                 source={require('../../assets/images/user-education-2.png')}
                             />
                         </View>
-                        <Text style={styles.titleText}>In progress</Text>
-                        <Text style={styles.subTitleText}>
+                        <Text allowFontScaling={false} style={styles.titleText}>In progress</Text>
+                        <Text allowFontScaling={false} style={styles.subTitleText}>
                             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vulputate sit purus scelerisque et suspendisse dictum quis facilisi. Faucibus nisi, lectus auctor augue faucibus suspendisse. Neque, lacus nullam amet malesuada eleifend. Cras lectus amet phasellus pulvinar sed vitae, et pharetra, consequat.
                         </Text>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 40, marginBottom: 80 }}>
@@ -89,14 +89,14 @@ export default function UserEducation({navigation}: NavigationProps) {
                             style={styles.landingLogo}
                             source={require('../../assets/images/LogoSmall.png')}
                         />
-                        <Text style={styles.titleText}>Sign all Documents electronically</Text>
+                        <Text allowFontScaling={false} style={styles.titleText}>Sign all Documents electronically</Text>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
                             <Image
                                 style={styles.artwork}
                                 source={require('../../assets/images/user-education-3.png')}
                             />
                         </View>
-                        <Text style={styles.subTitleText}>
+                        <Text allowFontScaling={false} style={styles.subTitleText}>
                             Digitally sign your loan documents from the cmfort of your mobile phone fast and easy.
                         </Text>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 40, marginBottom: 80 }}>
@@ -108,7 +108,7 @@ export default function UserEducation({navigation}: NavigationProps) {
                         </View>
                         <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('Login')}>
                             <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                                <Text style={styles.buttonText}>ACTIVATE ACCOUNT</Text>
+                                <Text allowFontScaling={false} style={styles.buttonText}>ACTIVATE ACCOUNT</Text>
                             </View>
                         </TouchableHighlight>
                     </View>
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     buttonText: {
-        fontSize: 18,
+        fontSize: 15,
         color: 'white',
         alignSelf: 'center',
         fontFamily: 'Poppins_500Medium',
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
         marginTop: 10
     },
     titleText: {
-        fontSize: 28,
+        fontSize: 20,
         textAlign: 'center',
         color: '#323492',
         fontFamily: 'Poppins_600SemiBold',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 10,
     },
     subTitleText: {
-        fontSize: 15,
+        fontSize: 14,
         marginHorizontal: 60,
         textAlign: 'center',
         color: '#8d8d8d',

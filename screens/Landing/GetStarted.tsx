@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Text, View, StyleSheet, Image, TouchableHighlight} from 'react-native';
+import {Text, View, StyleSheet, Image, TouchableHighlight, Linking} from 'react-native';
 import AppLoading from 'expo-app-loading';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -9,6 +9,7 @@ import {store} from "../../stores/store";
 import {initializeDB, saveContactsToDb, setLoading} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
+import {NotificationResponse} from "../../utils/notificationService";
 type NavigationProps = NativeStackScreenProps<any>
 
 export default function GetStarted({ navigation }: NavigationProps) {
@@ -23,6 +24,16 @@ export default function GetStarted({ navigation }: NavigationProps) {
         Poppins_400Regular,
         Poppins_300Light
     });
+    const lastNotificationResponse = NotificationResponse();
+
+    useEffect(() => {
+        (async () => {
+            if (lastNotificationResponse) {
+                await Linking.openURL(lastNotificationResponse.notification.request.content.data.url as string)
+            }
+        })();
+    }, [lastNotificationResponse]);
+
 
     useEffect(() => {
         let initializing = true;
@@ -59,8 +70,8 @@ export default function GetStarted({ navigation }: NavigationProps) {
                 />
                 <View style={styles.container2}>
                     <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('UserEducation')}>
-                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.buttonText}>Get Started</Text>
+                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                            <Text allowFontScaling={false} style={styles.buttonText}>Get Started</Text>
                             <Ionicons
                                 name="arrow-forward-outline"
                                 size={25}
@@ -97,7 +108,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     buttonText: {
-        fontSize: 18,
+        fontSize: 15,
         color: 'white',
         alignSelf: 'center',
         fontFamily: 'Poppins_500Medium',

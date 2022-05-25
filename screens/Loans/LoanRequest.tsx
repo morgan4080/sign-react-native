@@ -93,8 +93,8 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
                     </View>
                     <SafeAreaView style={{ flex: 1, width, height: 11/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                         <ScrollView contentContainerStyle={{ display: 'flex', flexDirection: 'column', marginTop: 20, paddingHorizontal: 40, paddingBottom: 100 }}>
-                            <Text style={styles.headTitle}>Your Loan ({loanRequest?.loanRequestNumber}) of KES {loanRequest?.loanAmount} has been confirmed.</Text>
-                            <Text style={styles.subtitle}>Proceed below to sign your form</Text>
+                            <Text allowFontScaling={false} style={styles.headTitle}>Your Loan ({loanRequest?.loanRequestNumber}) of KES {loanRequest?.loanAmount} has been confirmed.</Text>
+                            <Text allowFontScaling={false} style={styles.subtitle}>Proceed below to sign your form</Text>
                             <Image
                                 style={styles.formPreview}
                                 source={{ uri: `data:image/png;base64, ${loanRequest?.pdfThumbNail}` }}
@@ -104,7 +104,7 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
                     <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                         <TouchableOpacity onPress={() => makeSigningRequest()} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                             {loading && <RotateView/>}
-                            <Text style={styles.buttonText}>SIGN DOCUMENT</Text>
+                            <Text allowFontScaling={false} style={styles.buttonText}>SIGN DOCUMENT</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

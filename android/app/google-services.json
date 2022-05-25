@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "519672337231",
+    "project_id": "presta-sign",
+    "storage_bucket": "presta-sign.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:519672337231:android:7411722ac61aec46856b3a",
+        "android_client_info": {
+          "package_name": "com.presta.prestasign"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "519672337231-u2r7uk2i69fsf7u8032ltalqbiuabjpq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjda6MION6NC612q5W5TGYkfENsCXR8Ro"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "519672337231-u2r7uk2i69fsf7u8032ltalqbiuabjpq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

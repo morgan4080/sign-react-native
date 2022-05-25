@@ -67,16 +67,16 @@ export default function HistoryTile ({history}: propInterface) {
                     <Ionicons name="person-circle" size={40} color="#CCCCCC" />
                 </View>
                 <View style={{ width: width * 3/5 }}>
-                    <Text style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 15, maxWidth: 200 }}>
-                        <Text style={{ fontFamily: 'Poppins_500Medium', color: '#323492' }}>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12, maxWidth: 200 }}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#323492' }}>
                             { history.executor ? `${ history.executor } ` : '' }
                         </Text>
                         { history.event ? `${history.event} ` : '' }
-                        <Text style={{ fontFamily: 'Poppins_500Medium', color: '#323492' }}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#323492' }}>
                             { history.subject }
                         </Text>
                     </Text>
-                    <Text style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 15 }}>{ history.time }</Text>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 12 }}>{ history.time }</Text>
                 </View>
                 <Ionicons style={{ width: width/5 }} name="ellipsis-vertical" size={20} color="#ADADAD" />
             </View>

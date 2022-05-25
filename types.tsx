@@ -8,6 +8,7 @@ import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/n
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import UserProfile from "./screens/User/UserProfile";
 import LoanProduct from "./screens/Loans/LoanProduct";
+import {FavouriteGuarantors} from "./screens/Guarantorship/FavouriteGuarantors";
 
 declare global {
   namespace ReactNavigation {
@@ -32,6 +33,7 @@ export type RootStackParamList = {
   Forgot: NavigatorScreenParams<RootTabParamList> | undefined;
   ProfileMain: NavigatorScreenParams<RootTabParamList> | undefined;
   GuarantorshipRequests: NavigatorScreenParams<RootTabParamList> | undefined;
+  FavouriteGuarantors: NavigatorScreenParams<RootTabParamList> | undefined;
   VerifyOTP: NavigatorScreenParams<RootTabParamList> | undefined;
 };
 

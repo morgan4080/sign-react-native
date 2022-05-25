@@ -53,10 +53,22 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
             await dispatch(getContactsFromDB({setContacts, from, to}));
         })()
         return () => {
+            dispatch(setLoading(false));
             Keyboard.removeAllListeners('keyboardDidHide');
             syncContacts = false;
         }
     }, [from, to]);
+
+    useEffect(() => {
+        if (loading) {
+            if (contacts.length > 0) {
+                dispatch(setLoading(false));
+            }
+        }
+        return () => {
+            dispatch(setLoading(false));
+        };
+    }, [contacts]);
 
     const {
         control,
@@ -103,19 +115,43 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
     const [addingManually, setAddingManually] = useState<boolean>(false);
 
-    const removeContactFromList = (contact2Remove: any): number | string => {
-        let newDeserializedCopy: any[] = cloneDeep(selectedContacts)
-        let index = newDeserializedCopy.findIndex(contact => contact.id === contact2Remove.id)
-        newDeserializedCopy.splice(index, 1)
-        setSelectedContacts(newDeserializedCopy)
-        return contact2Remove.id
+    const removeContactFromList = (contact2Remove: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): number | string => {
+        let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
+        let index = newDeserializedCopy.findIndex(contact => contact.id === contact2Remove.contact_id);
+        newDeserializedCopy.splice(index, 1);
+        setSelectedContacts(newDeserializedCopy);
+        return contact2Remove.contact_id;
     }
 
-    const addContactToList = (contact2Add: any): number | string => {
-        let newDeserializedCopy: any[] = cloneDeep(selectedContacts)
-        newDeserializedCopy.push(contact2Add)
-        setSelectedContacts(newDeserializedCopy)
-        return contact2Add.id
+    const addContactToList = (contact2Add: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): boolean => {
+        let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
+        let phone: string = '';
+        if (contact2Add.phone[0] === '+') {
+            let number = contact2Add.phone.substring(1);
+            phone = `${number.replace(/ /g, "")}`;
+        } else if (contact2Add.phone[0] === '0') {
+            let number = contact2Add.phone.substring(1);
+            phone = `254${number.replace(/ /g, "")}`;
+        }
+        const isDuplicate = newDeserializedCopy.some((contact) => {
+            let phone0: string = '';
+            if (contact.phone[0] === '+') {
+                let number = contact.phone.substring(1);
+                phone0 = `${number.replace(/ /g, "")}`;
+            } else if (contact.phone[0] === '0') {
+                let number = contact.phone.substring(1);
+                phone0 = `254${number.replace(/ /g, "")}`;
+            }
+            console.log(phone, phone0);
+            return phone0 === phone;
+        });
+        console.log('duplicate?', isDuplicate);
+        if (!isDuplicate) {
+            newDeserializedCopy.push(contact2Add);
+            setSelectedContacts(newDeserializedCopy);
+            return true;
+        }
+        return false;
     }
 
     Keyboard.addListener('keyboardDidHide', () => {
@@ -169,7 +205,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
                             </TouchableOpacity>
 
                             <View style={{paddingHorizontal: 20, marginTop: 30}}>
-                                <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22 }}>
+                                <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22 }}>
                                     Enter Witnesses (1 Required)
                                 </Text>
                                 <Controller
@@ -204,7 +240,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
                                             <TouchableOpacity onPress={() => removeContactFromList(co)} style={{ position: 'absolute', top: -2, right: -1 }}>
                                                 <MaterialIcons name="cancel" size={24} color="red" />
                                             </TouchableOpacity>
-                                            <Text style={{
+                                            <Text allowFontScaling={false} style={{
                                                 color: '#363D7D',
                                                 fontSize: 11,
                                                 fontFamily: 'Poppins_400Regular',
@@ -219,7 +255,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
                             <View style={{ position: 'absolute', marginTop: -35, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                                 <TouchableOpacity onPress={() => setAddingManually(true)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, marginVertical: 15 }}>
                                     <MaterialIcons name="dialpad" size={16} color="white" />
-                                    <Text style={styles.buttonText0}>Other</Text>
+                                    <Text allowFontScaling={false} style={styles.buttonText0}>Other</Text>
                                 </TouchableOpacity>
                             </View>
                             <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
@@ -238,7 +274,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
                                     ...route.params
                                 })
                             }} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < 1 ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                                <Text style={styles.buttonText}>CONTINUE</Text>
+                                <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

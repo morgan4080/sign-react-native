@@ -119,8 +119,8 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                         />
                     </View>
                     <View style={styles.container2}>
-                        <Text style={styles.titleText}>Enter registered phone number</Text>
-                        <Text style={styles.subTitleText}>We will send you a One Time Pin. use it to verify your phone number</Text>
+                        <Text allowFontScaling={false} style={styles.titleText}>Enter registered phone number</Text>
+                        <Text allowFontScaling={false} style={styles.subTitleText}>We will send you a One Time Pin. use it to verify your phone number</Text>
                         <View style={{ paddingHorizontal: 30 }}>
                             <Controller
                                 control={control}
@@ -140,7 +140,7 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                                 )}
                                 name="phoneNumber"
                             />
-                            {errors.phoneNumber && <Text style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Field is required'}</Text>}
+                            {errors.phoneNumber && <Text  allowFontScaling={false}  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Field is required'}</Text>}
 
                             <Controller
                                 control={control}
@@ -161,10 +161,10 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                                 )}
                                 name="pin"
                             />
-                            {errors.pin && <Text style={styles.error}>Field is required</Text>}
+                            {errors.pin && <Text  allowFontScaling={false}  style={styles.error}>Field is required</Text>}
                         </View>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 35, marginTop: 20 }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text style={styles.linkText}>Forgot Password</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text  allowFontScaling={false}  style={styles.linkText}>Forgot Pin</Text></TouchableOpacity>
                         </View>
                     </View>
                 </View>
@@ -182,7 +182,7 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
 
                         <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)}>
                             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-                                <Text style={styles.buttonText}>Get OTP</Text>
+                                <Text  allowFontScaling={false}  style={styles.buttonText}>Get OTP</Text>
                                 <Ionicons
                                     name="arrow-forward-outline"
                                     size={25}
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#323492',
     },
     buttonText: {
-        fontSize: 18,
+        fontSize: 15,
         color: 'white',
         alignSelf: 'center',
         fontFamily: 'Poppins_500Medium',
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     subTitleText: {
-        fontSize: 15,
+        fontSize: 14,
         marginHorizontal: 60,
         textAlign: 'center',
         color: '#8d8d8d',
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     linkText: {
-        fontSize: 15,
+        fontSize: 14,
         textDecorationLine: 'underline',
         color: '#323492',
         alignSelf: 'flex-start',
@@ -285,10 +285,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#cccccc',
         borderRadius: 20,
-        height: 70,
+        height: 60,
         marginTop: 30,
         paddingHorizontal: 20,
-        fontSize: 15
+        fontSize: 14
     },
     error: {
         fontSize: 12,

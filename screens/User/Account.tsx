@@ -58,80 +58,80 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                     <View style={styles.userPicBtn}>
                         <MaterialCommunityIcons name="account" color="#FFFFFF" size={100}/>
                     </View>
-                    <Text style={styles.titleText}>{ `${ member?.fullName }` }</Text>
-                    <Text style={styles.subTitleText}>{ `Member NO: ${member?.memberNumber}` }</Text>
-                    <Text style={styles.organisationText}>{ `${user?.companyName}` }</Text>
+                    <Text allowFontScaling={false} style={styles.titleText}>{ `${ member?.fullName }` }</Text>
+                    <Text allowFontScaling={false} style={styles.subTitleText}>{ `Member NO: ${member?.memberNumber}` }</Text>
+                    <Text allowFontScaling={false} style={styles.organisationText}>{ `${user?.companyName}` }</Text>
                     <SafeAreaView style={{ flex: 1, width: width-20, height: height/2 }}>
                         <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center', paddingBottom: 50 }}>
                             <View style={{display: 'flex', width: width-50, borderRadius: 15, backgroundColor: '#323492', paddingHorizontal: 25, paddingVertical: 10, marginTop: 15}}>
-                                <Text style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>Current Balance</Text>
-                                <Text style={{ fontFamily: 'Poppins_800ExtraBold', color: '#ffffff', fontSize: 35 }}>KES {member ? toMoney(`${member.availableAmount}`) : ``}</Text>
+                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>Current Balance</Text>
+                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_800ExtraBold', color: '#ffffff', fontSize: 22 }}>KES {member ? toMoney(`${member.availableAmount}`) : ``}</Text>
                                 <View style={{ backgroundColor: '#FFFFFF', width: '100%', height: 1 }}/>
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, marginBottom: 20}}>
                                     <View>
-                                        <Text style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>ACTIVE LOANS</Text>
-                                        <Text style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 15 }}>2</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>ACTIVE LOANS</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>2</Text>
                                     </View>
                                     <View>
-                                        <Text style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>OUTSTANDING BALANCE</Text>
-                                        <Text style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 15 }}>KES 13000</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>OUTSTANDING BALANCE</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {toMoney('13000')}</Text>
                                     </View>
                                 </View>
                             </View>
                             <View style={{display: 'flex', width: width-50, borderRadius: 15, backgroundColor: '#323492', paddingHorizontal: 25, paddingVertical: 10, marginTop: 15}}>
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, marginBottom: 20}}>
                                     <View>
-                                        <Text style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>BALANCE</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>BALANCE</Text>
                                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                                             <Ionicons name="ios-wallet-outline" size={40} color="#ffffff" />
                                             <View style={{paddingLeft: 10}}>
-                                                <Text style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 15 }}>KES {member ? toMoney(`${member.availableAmount}`) : ``}</Text>
-                                                <Text style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10 }}>Available for guarantee</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {member ? toMoney(`${member.availableAmount}`) : ``}</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10, maxWidth: 80 }}>Available for guarantee</Text>
                                             </View>
                                         </View>
                                     </View>
                                     <View>
-                                        <Text style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>TOTAL GUARANTEED</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>TOTAL GUARANTEED</Text>
                                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 2   }}>
                                             <Ionicons name="ios-people-circle-outline" size={40} color="#ffffff" />
                                             <View style={{paddingLeft: 10}}>
-                                                <Text style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 15 }}>KES {member ? toMoney(`${member.committedAmount}`) : ``}</Text>
-                                                <Text style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10, maxWidth: 80 }}>Total active loans guaranteed</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {member ? toMoney(`${member.committedAmount}`) : ``}</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10, maxWidth: 80 }}>Total active loans guaranteed</Text>
                                             </View>
                                         </View>
                                     </View>
                                 </View>
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 5, marginBottom: 20}}>
                                     <View>
-                                        <Text style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>LOAN HISTORY</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>LOAN HISTORY</Text>
                                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 2  }}>
                                             <MaterialCommunityIcons name="credit-card-clock-outline" size={40} color="#ffffff" />
                                             <View style={{paddingLeft: 10}}>
-                                                <Text style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 15 }}>13</Text>
-                                                <Text style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10 }}>Total loans acquired</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>13</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10 }}>Total loans acquired</Text>
                                             </View>
                                         </View>
                                     </View>
                                 </View>
 
                                 <View style={{display: 'flex', width: '100%', borderRadius: 15, backgroundColor: '#336DFF', paddingHorizontal: 20, paddingVertical: 25, marginTop: 15, marginBottom: 50}}>
-                                    <Text style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 10 }}>LOAN PERFORMANCE</Text>
+                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 10 }}>LOAN PERFORMANCE</Text>
                                     <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                                         <View>
-                                            <Text style={{ fontFamily: 'Poppins_800ExtraBold', color: '#ffffff', fontSize: 24, marginBottom: 10, marginTop: 10 }}>Performing</Text>
-                                            <Text style={{ fontFamily: 'Poppins_500Medium', color: '#ffffff', fontSize: 10, marginBottom: 15 }}>CREDIT RANK:</Text>
-                                            <Text style={{ fontFamily: 'Poppins_500Medium', color: '#ffffff', fontSize: 10, marginBottom: 15 }}>REPAYMENT SCORE:</Text>
-                                            <Text style={{ fontFamily: 'Poppins_500Medium', color: '#ffffff', fontSize: 10, marginBottom: 15 }}>REPAYMENT FREQ:</Text>
+                                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_800ExtraBold', color: '#ffffff', fontSize: 18, marginBottom: 10, marginTop: 10 }}>Performing</Text>
+                                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#ffffff', fontSize: 10, marginBottom: 15 }}>CREDIT RANK:</Text>
+                                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#ffffff', fontSize: 10, marginBottom: 15 }}>REPAYMENT SCORE:</Text>
+                                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#ffffff', fontSize: 10, marginBottom: 15 }}>REPAYMENT FREQ:</Text>
                                             <TouchableOpacity onPress={() => navigation.navigate('History')} style={{backgroundColor: '#27627E', borderRadius: 30, height: 32, display: 'flex', justifyContent: 'center', elevation: 3}}>
-                                                <Text style={{ textAlign: 'center', fontFamily: 'Poppins_500Medium', fontSize: 11, color: '#ffffff' }}>HISTORY</Text>
+                                                <Text allowFontScaling={false} style={{ textAlign: 'center', fontFamily: 'Poppins_500Medium', fontSize: 11, color: '#ffffff' }}>HISTORY</Text>
                                             </TouchableOpacity>
                                         </View>
                                         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 15, paddingVertical: 10, paddingHorizontal: 10, width: '50%' }}>
-                                            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                                                <Text style={{ fontFamily: 'Poppins_500Medium', color: '#000000', fontSize: 10 }}>Performance scale</Text>
-                                                <Text style={{ fontFamily: 'Poppins_500Medium', color: '#4AB1C3', fontSize: 10 }}>12%</Text>
+                                            <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#000000', fontSize: 10 }}>Performance scale</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#4AB1C3', fontSize: 10 }}>12%</Text>
                                             </View>
-                                            <Text style={{ fontFamily: 'Poppins_700Bold', color: '#607D8B', fontSize: 7 }}>Statistics information</Text>
+                                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#607D8B', fontSize: 7 }}>Statistics information</Text>
                                             <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 20}}>
                                                 <ProgressCircle size={100} thickness={5} showsText={true} unfilledColor='#4AB1C3' progress={0.12} color='#323492' borderColor='transparent'/>
                                             </View>
@@ -173,20 +173,20 @@ const styles = StyleSheet.create({
         backgroundColor: '#EDEDED',
     },
     titleText: {
-        fontSize: 32,
+        fontSize: 25,
         textAlign: 'center',
         color: '#323492',
         fontFamily: 'Poppins_700Bold',
         marginTop: 20,
     },
     subTitleText: {
-        fontSize: 18,
+        fontSize: 15,
         textAlign: 'center',
         color: '#323492',
         fontFamily: 'Poppins_400Regular',
     },
     organisationText: {
-        fontSize: 18,
+        fontSize: 15,
         textAlign: 'center',
         color: '#323492',
         fontFamily: 'Poppins_600SemiBold',

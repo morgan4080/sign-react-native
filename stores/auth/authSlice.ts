@@ -172,7 +172,6 @@ export const searchContactsInDB = createAsyncThunk('searchContactsInDB', async({
                 },
                 // failure callback which sends two things Transaction object and Error
                 (txObj:any, error: any) => {
-                    console.log('errorrrr....', error)
                     reject(error)
                 }
             ) // end executeSQL
@@ -271,15 +270,14 @@ export const saveContactsToDb = createAsyncThunk('saveContactsToDb', async() => 
                     tx.executeSql('INSERT INTO contacts (name, phone) values (?, ?)', [name, phone],
                         // success callback which sends two things Transaction object and ResultSet Object
                         (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            acc.push(resultSet.insertId)
-                            console.log('resultset', acc.length)
+                            acc.push(resultSet.insertId);
                             if (arr.length === (currentIndex + 1)) {
-                                resolve(acc)
+                                resolve(acc);
                             }
                         },
                         // failure callback which sends two things Transaction object and Error
                         (txObj: SQLTransaction, error: SQLError): any => {
-                            console.log(error.message)
+                            // console.log(error.message);
                         }
                     )
                     return acc
@@ -424,6 +422,33 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
     })
 })
 
+export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuarantors', ({memberRefId, setFaveGuarantors}: {memberRefId: string | undefined, setFaveGuarantors: any}) => {
+    return new Promise(async (resolve, reject) => {
+        const key = await getSecureKey('jwt');
+        if (!memberRefId) {
+            reject('No Member Ref Id Provided');
+        }
+        if (!key) {
+            reject("You are not authenticated")
+        }
+        const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/favorite-guarantor/favorite-guarantors/${memberRefId}`,{
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${key}`,
+            }
+        });
+
+        if (result.status === 200) {
+            const data = await result.json();
+            setFaveGuarantors(data);
+            resolve(data);
+        } else {
+            reject(`is not a member of this organisation`);
+        }
+    })
+});
+
 export const validateNumber = createAsyncThunk('validateNumber', async (phone: string) => {
     return new Promise(async (resolve, reject) => {
         const key = await getSecureKey('jwt')
@@ -442,7 +467,7 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
             const data = await result.json();
             resolve(data);
         } else {
-            reject("Not found");
+            reject(`Is Not A Member Of this Organisation`);
         }
     })
 })
@@ -925,6 +950,17 @@ const authSlice = createSlice({
             state.loading = false
         })
         builder.addCase(validateNumber.rejected, (state, action) => {
+            state.loading = false
+        })
+
+        builder.addCase(fetchFavouriteGuarantors.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(fetchFavouriteGuarantors.fulfilled, (state, action: any) => {
+            // state.contacts = action.payload
+            state.loading = false
+        })
+        builder.addCase(fetchFavouriteGuarantors.rejected, (state, action) => {
             state.loading = false
         })
 

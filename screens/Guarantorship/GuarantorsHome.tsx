@@ -13,13 +13,21 @@ import {
     Keyboard
 } from "react-native";
 
+import { Picker } from "@react-native-picker/picker";
+
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 
 import {store} from "../../stores/store";
 
 import {useDispatch, useSelector} from "react-redux";
 
-import {getContactsFromDB, searchContactsInDB, setLoading, storeState} from "../../stores/auth/authSlice";
+import {
+    getContactsFromDB,
+    searchContactsInDB,
+    setLoading,
+    storeState,
+    validateNumber
+} from "../../stores/auth/authSlice";
 
 import {
     Poppins_300Light,
@@ -52,7 +60,9 @@ type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
 type FormData = {
     searchTerm: string;
-    phoneNumber: string;
+    phoneNumber: string | undefined;
+    memberNumber: string | undefined;
+    inputStrategy: string | number;
 };
 
 export default function GuarantorsHome({ navigation, route }: NavigationProps) {
@@ -74,10 +84,24 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             await dispatch(getContactsFromDB({setContacts, from, to}));
         })()
         return () => {
+            dispatch(setLoading(false));
             Keyboard.removeAllListeners('keyboardDidHide');
+            Keyboard.removeAllListeners('keyboardDidShow');
             syncContacts = false;
         }
     }, [from, to]);
+
+    useEffect(() => {
+        if (loading) {
+            if (contacts.length > 0) {
+                dispatch(setLoading(false));
+            }
+        }
+        return () => {
+            dispatch(setLoading(false));
+        };
+    }, [contacts]);
+
 
     const {
         control,
@@ -101,6 +125,10 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const filterContactsCB = async (searchTerm: string = '') => {
         await dispatch(searchContactsInDB({searchTerm, setContacts}));
     };
+    const [inputStrategy, setInputStrategy] = useState<number | string | undefined>(0);
+    const [memberNumber, setMemberNumber] = useState<number | string | undefined>(undefined);
+    const [phoneNumber, setPhoneNumber] = useState<number | string | undefined>(undefined);
+    const [keyboardHidden, setKeyboardHidden] = useState<boolean>(false);
 
     useEffect(() => {
         const subscription = watch((value, { name, type }) => {
@@ -113,9 +141,21 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         break;
                     case 'phoneNumber':
                         if (type === 'change') {
-                            console.log(value.phoneNumber);
-                            // search organisation database for user
+                            setPhoneNumber(value.phoneNumber);
+                            if (keyboardHidden) {
+                                console.log(phoneNumber);
+                            }
                         }
+                        break;
+                    case 'memberNumber':
+                        if (type === 'change') {
+                            setMemberNumber(value.memberNumber);
+                        }
+                        break;
+                    case 'inputStrategy':
+                        setValue('memberNumber', undefined);
+                        setValue('phoneNumber', undefined);
+                        setInputStrategy(value.inputStrategy);
                         break;
                 }
             })()
@@ -123,28 +163,110 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         return () => subscription.unsubscribe();
     }, [watch]);
 
+    const addToSelected = async (identifier: string) => {
+        if (inputStrategy === 1) {
+            let phone: string = ''
+            if (identifier[0] === '+') {
+                let number = identifier.substring(1);
+                phone = `${number.replace(/ /g, "")}`;
+                console.log('starts @+' ,phone);
+            } else if (identifier[0] === '0') {
+                let number = identifier.substring(1);
+                console.log('starts @0', `254${number.replace(/ /g, "")}`);
+                phone = `254${number.replace(/ /g, "")}`;
+            }
+
+            const result: any = await dispatch(validateNumber(phone));
+
+            const {payload, type}: {payload: any, type: string} = result;
+
+            if (type === 'validateNumber/rejected') {
+                console.log(`${phone} ${result.error.message}`)
+                alert(`${phone} ${result.error.message}`);
+                return
+            }
+
+            if (type === "validateNumber/fulfilled") {
+                // add this guy to contact table
+                // result added, add to contact list
+                console.log(payload)
+            }
+        }
+    }
+
+    useEffect(() => {
+        let searchingManual = true;
+        (async () => {
+            if (searchingManual) {
+                if (keyboardHidden && inputStrategy === 0 && memberNumber) {
+                    console.log(memberNumber);
+
+                }
+                if (keyboardHidden && inputStrategy === 1 && phoneNumber) {
+                    console.log(phoneNumber);
+                    await addToSelected(phoneNumber.toString());
+                }
+            }
+        })();
+        return () => {
+            searchingManual = false;
+        };
+    }, [keyboardHidden]);
+
+
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
     const [addingManually, setAddingManually] = useState<boolean>(false);
 
-    const removeContactFromList = (contact2Remove: any): number | string => {
+    const removeContactFromList = (contact2Remove: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): boolean => {
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
         let index = newDeserializedCopy.findIndex(contact => contact.contact_id === contact2Remove.contact_id);
         newDeserializedCopy.splice(index, 1);
         setSelectedContacts(newDeserializedCopy);
-        return contact2Remove.id
+        return true;
     }
 
-    const addContactToList = (contact2Add: any): number | string => {
+    const addContactToList = (contact2Add: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): boolean => {
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
-        newDeserializedCopy.push(contact2Add);
-        setSelectedContacts(newDeserializedCopy);
-        return contact2Add.id;
+        let phone: string = '';
+        if (contact2Add.phone[0] === '+') {
+            let number = contact2Add.phone.substring(1);
+            phone = `${number.replace(/ /g, "")}`;
+        } else if (contact2Add.phone[0] === '0') {
+            let number = contact2Add.phone.substring(1);
+            phone = `254${number.replace(/ /g, "")}`;
+        }
+        const isDuplicate = newDeserializedCopy.some((contact) => {
+            let phone0: string = '';
+            if (contact.phone[0] === '+') {
+                let number = contact.phone.substring(1);
+                phone0 = `${number.replace(/ /g, "")}`;
+            } else if (contact.phone[0] === '0') {
+                let number = contact.phone.substring(1);
+                phone0 = `254${number.replace(/ /g, "")}`;
+            }
+            console.log(phone, phone0);
+            return phone0 === phone;
+        });
+        console.log('duplicate?', isDuplicate);
+        if (!isDuplicate) {
+            newDeserializedCopy.push(contact2Add);
+            setSelectedContacts(newDeserializedCopy);
+            return true;
+        }
+        return false;
     }
 
     Keyboard.addListener('keyboardDidHide', () => {
-        setAddingManually(false);
-        // console.log("if member was found during the watch process, add them or let them know that member wasn't found")
-    })
+        setKeyboardHidden(true);
+    });
+
+    Keyboard.addListener('keyboardDidShow', () => {
+        setKeyboardHidden(false);
+    });
+
+    const setSelectedValue = (itemValue: string | number) => {
+        setValue('inputStrategy', itemValue)
+    }
 
     return (
         <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
@@ -158,22 +280,58 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             <View style={{ position: 'absolute', left: -100, top: 200, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
             <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
             {
-                addingManually && <View style={{ position: 'absolute', zIndex: 5, backgroundColor: 'rgba(0,0,0,0.84)', display: 'flex', justifyContent: 'center', alignItems: 'center', height: height + 100, width }}>
+                addingManually && <View style={{ position: 'absolute', zIndex: 12, backgroundColor: 'rgba(0,0,0,0.84)', display: 'flex', justifyContent: 'center', alignItems: 'center', height: height + 100, width }}>
                     <Controller
                         control={control}
                         render={( { field: { onChange, onBlur, value } }) => (
+                            <View style={styles.input0}>
+                                <Picker
+                                    style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 15, }}
+                                    onBlur={onBlur}
+                                    selectedValue={value}
+                                    onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+                                >
+                                    { [{name: "Member Number", value: 0}, {name: "Phone Number", value: 1}].map((p, i) =>(
+                                        <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
+                                    ))}
+                                </Picker>
+                                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: -5, fontSize: 10}}>Select Desired Identifier</Text>
+                            </View>
+                        )}
+                        name="inputStrategy"
+                    />
+
+                    {inputStrategy === 1 && <Controller
+                        control={control}
+                        render={({field: {onChange, onBlur, value}}) => (
                             <TextInput
                                 style={styles.input0}
                                 onBlur={onBlur}
                                 onChangeText={onChange}
                                 value={value}
                                 autoFocus={true}
-                                placeholder="Enter phone number"
+                                placeholder="0720000000"
                                 keyboardType="numeric"
                             />
                         )}
                         name="phoneNumber"
-                    />
+                    />}
+
+                    {inputStrategy === 0 && <Controller
+                        control={control}
+                        render={({field: {onChange, onBlur, value}}) => (
+                            <TextInput
+                                style={styles.input0}
+                                onBlur={onBlur}
+                                onChangeText={onChange}
+                                value={value}
+                                autoFocus={true}
+                                placeholder="Enter member number"
+                                keyboardType="numeric"
+                            />
+                        )}
+                        name="memberNumber"
+                    />}
                 </View>
             }
             <View style={styles.container}>
@@ -186,12 +344,12 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         height: 4/12 * height,
                         position: 'relative'
                     }}>
-                        <TouchableOpacity onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
+                        <TouchableOpacity onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10, zIndex: 11 }}>
                             <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                         </TouchableOpacity>
 
                         <View style={{paddingHorizontal: 20, marginTop: 30}}>
-                            <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22 }}>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 18 }}>
                                 Enter Guarantors ({route.params?.loanProduct.requiredGuarantors} Required)
                             </Text>
                             <Controller
@@ -226,9 +384,9 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                         <TouchableOpacity onPress={() => removeContactFromList(co)} style={{ position: 'absolute', top: -2, right: -1 }}>
                                             <MaterialIcons name="cancel" size={24} color="red" />
                                         </TouchableOpacity>
-                                        <Text style={{
+                                        <Text allowFontScaling={false} style={{
                                             color: '#363D7D',
-                                            fontSize: 11,
+                                            fontSize: 10,
                                             fontFamily: 'Poppins_400Regular',
                                             textAlign: 'center'
                                         }}>{co.name}</Text>
@@ -241,7 +399,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         <View style={{ position: 'absolute', marginTop: -35, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                             <TouchableOpacity onPress={() => setAddingManually(true)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, marginVertical: 15 }}>
                                 <MaterialIcons name="dialpad" size={16} color="white" />
-                                <Text style={styles.buttonText0}>Other</Text>
+                                <Text allowFontScaling={false} style={styles.buttonText0}>Other</Text>
                             </TouchableOpacity>
                         </View>
                         <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
@@ -258,7 +416,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                             guarantors: selectedContacts,
                             ...route.params
                         })} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < 4 ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                            <Text style={styles.buttonText}>CONTINUE</Text>
+                            <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -276,7 +434,7 @@ const styles = StyleSheet.create({
         display: 'flex', alignItems: 'center', justifyContent: 'center', width: width/3, height: (height/2)/ 4
     },
     dialPadText: {
-      fontSize: 30,
+      fontSize: 20,
       color: '#336DFF',
       fontFamily: 'Poppins_300Light',
     },
@@ -288,7 +446,7 @@ const styles = StyleSheet.create({
         height: 54,
         marginTop: 10,
         paddingHorizontal: 20,
-        fontSize: 15,
+        fontSize: 14,
         color: '#767577',
         fontFamily: 'Poppins_400Regular',
     },
@@ -301,13 +459,13 @@ const styles = StyleSheet.create({
         width: '80%',
         marginTop: 10,
         paddingHorizontal: 20,
-        fontSize: 15,
+        fontSize: 14,
         color: '#767577',
         fontFamily: 'Poppins_400Regular',
         marginBottom: 20,
     },
     buttonText: {
-        fontSize: 20,
+        fontSize: 15,
         textAlign: 'center',
         color: '#FFFFFF',
         fontFamily: 'Poppins_600SemiBold',

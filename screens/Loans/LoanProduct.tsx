@@ -118,12 +118,12 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
                                 <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                             </TouchableOpacity>
 
-                            <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 22, marginTop: 30 }}>Enter Loan Details</Text>
-                            <Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>{ route.params?.loanProduct.name }</Text>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 20, marginTop: 30 }}>Enter Loan Details</Text>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>{ route.params?.loanProduct.name }</Text>
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 9/12 * height }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>
-                                {/*<Text style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_400Regular', fontSize: 18, marginTop: 30, maxWidth: width/2 }}>Your current Loan limit is (KES 60,000)</Text>*/}
+                                {/*<Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_400Regular', fontSize: 18, marginTop: 30, maxWidth: width/2 }}>Your current Loan limit is (KES 60,000)</Text>*/}
                                 <Controller
                                     control={control}
                                     rules={{
@@ -141,7 +141,7 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
                                     )}
                                     name="desiredAmount"
                                 />
-                                {errors.desiredAmount && <Text style={styles.error}>{errors.desiredAmount?.message ? errors.desiredAmount?.message : 'Loan amount is required'}</Text>}
+                                {errors.desiredAmount && <Text allowFontScaling={false} style={styles.error}>{errors.desiredAmount?.message ? errors.desiredAmount?.message : 'Loan amount is required'}</Text>}
                                 <Controller
                                     control={control}
                                     render={( { field: { onChange, onBlur, value } }) => (
@@ -156,7 +156,7 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
                                                     <Picker.Item key={i} label={p.name} value={p.period} color='#767577' fontFamily='Poppins_500Medium' />
                                                 ))}
                                             </Picker>
-                                            <Text style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: -5}}>Select Desired Period (Eg. 1-24 Months)</Text>
+                                            <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: -5}}>Select Desired Period (Eg. 1-24 Months)</Text>
                                         </View>
                                     )}
                                     name="desiredPeriod"
@@ -164,13 +164,13 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
 
                                 <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)}>
                                     <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Text style={styles.buttonText}>CONFIRM</Text>
+                                        <Text allowFontScaling={false} style={styles.buttonText}>CONFIRM</Text>
                                     </View>
                                 </TouchableHighlight>
 
                                 <TouchableHighlight style={styles.button0} onPress={() => navigation.navigate('LoanProducts')}>
                                     <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Text style={styles.buttonText0}>Cancel</Text>
+                                        <Text allowFontScaling={false} style={styles.buttonText0}>Cancel</Text>
                                     </View>
                                 </TouchableHighlight>
                             </ScrollView>
@@ -260,13 +260,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     buttonText: {
-        fontSize: 18,
+        fontSize: 15,
         color: 'white',
         alignSelf: 'center',
         fontFamily: 'Poppins_500Medium',
     },
     buttonText0: {
-        fontSize: 18,
+        fontSize: 15,
         color: '#3D889A',
         textDecorationLine: 'underline',
         alignSelf: 'center',

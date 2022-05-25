@@ -8,7 +8,7 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import {Dimensions, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {Ionicons} from "@expo/vector-icons";
+import {Ionicons, Octicons} from "@expo/vector-icons";
 import * as React from "react";
 import Checkbox from "expo-checkbox";
 import {useEffect, useState} from "react";
@@ -36,34 +36,36 @@ export default function contactTile ({contact, addContactToList, removeContactFr
     });
 
     const [selectedContact, setSelectedContact] = useState<boolean>(false)
-    const selectContact = async (newValue: boolean, contact: any) => {
+    const selectContact = async (newValue: boolean, contact: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}) => {
         try {
             let phone: string = ''
             if (contact.phone[0] === '+') {
                 let number = contact.phone.substring(1);
                 phone = `${number.replace(/ /g, "")}`;
-                phone = `${phone.substring(0, 3) === '254' ? '' : '254'}${phone}`;
+                /*phone = `${phone.substring(0, 3) === '254' ? '' : '254'}${phone}`;*/
                 console.log('starts @+' ,phone);
             } else if (contact.phone[0] === '0') {
                 let number = contact.phone.substring(1);
                 console.log('starts @0', `254${number.replace(/ /g, "")}`);
-                //number[number.length - 1].replace(/ /g, "")
+                phone = `254${number.replace(/ /g, "")}`;
             }
 
             const result: any = await dispatch(validateNumber(phone));
-            const {payload, type}: {payload: any, type: string} = result
+            const {payload, type}: {payload: any, type: string} = result;
 
             if (type === 'validateNumber/rejected') {
-                console.log(result.error.message)
+                console.log(`${phone} ${result.error.message}`)
+                alert(`${phone} ${result.error.message}`);
                 return
             }
             // update contact with member id and ref id
+            let res: boolean = false;
             if (type === "validateNumber/fulfilled") {
                 if (newValue) {
                     const statement = `UPDATE contacts SET memberNumber = '${payload?.memberNumber}', memberRefId = '${payload?.refId}' WHERE contact_id = ${contact.contact_id};`;
                     await dispatch(updateContact(statement));
                     // console.log('update response', response);
-                    addContactToList({
+                    res = addContactToList({
                        ...contact,
                         memberNumber: payload?.memberNumber,
                         memberRefId: payload?.refId
@@ -75,7 +77,10 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                         memberRefId: payload?.refId
                     });
                 }
-                setSelectedContact(newValue)
+                if (!res) {
+                    alert("Already added contact");
+                }
+                setSelectedContact(res)
             }
         } catch (e: any) {
             console.log("error", e)
@@ -90,11 +95,13 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                     <Ionicons name="person-circle" size={40} color="#CCCCCC"/>
                 </View>
                 <View style={{ width: width * 6.8/12 }}>
-                    <Text>{contact.memberNumber}</Text>
-                    <Text style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 15, maxWidth: 200 }}>
-                        {contact.name}
-                    </Text>
-                    <Text style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 15 }}>{contact.phone}</Text>
+                    <View style={{ display: 'flex', flexDirection: 'row'}}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 13, maxWidth: 200 }}>{contact.name}</Text>
+                        {contact.memberNumber &&
+                            <Octicons style={{paddingLeft: 5}} name="verified" size={12} color="#336DFFFF" />
+                        }
+                    </View>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 13 }}>{contact.phone}</Text>
                 </View>
                 <View>
                     <Checkbox

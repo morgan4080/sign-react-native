@@ -15,6 +15,7 @@ import {useEffect, useState} from "react";
 import {initializeDB, updateContact, validateNumber} from "../../../stores/auth/authSlice";
 import {store} from "../../../stores/store";
 import {useDispatch} from "react-redux";
+import { Toast } from "../../../CustomModule";
 
 interface propInterface {
     contact: any,
@@ -55,7 +56,7 @@ export default function contactTile ({contact, addContactToList, removeContactFr
 
             if (type === 'validateNumber/rejected') {
                 console.log(`${phone} ${result.error.message}`)
-                alert(`${phone} ${result.error.message}`);
+                Toast.show(`${phone} ${result.error.message}`);
                 return
             }
             // update contact with member id and ref id
@@ -78,7 +79,7 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                     });
                 }
                 if (!res) {
-                    alert("Already added contact");
+                    Toast.show("Already added contact");
                 }
                 setSelectedContact(res)
             }

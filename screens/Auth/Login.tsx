@@ -43,19 +43,15 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
     useEffect(() => {
         let authenticating = true;
         if (authenticating) {
-            dispatch(setLoading(true))
-            dispatch(authenticate()).then((response: any) => {
+            (async () => {
+                const response = await dispatch(authenticate());
                 if (response.type === 'authenticate/rejected') {
                     return
                 }
                 if (response.type === 'authenticate/fulfilled') {
                     navigation.navigate('VerifyOTP')
                 }
-            }).catch((error : any) => {
-                // console.log("auth error", error)
-            }).finally(() => {
-                dispatch(setLoading(false))
-            })
+            })()
         }
         return () => {
             authenticating = false

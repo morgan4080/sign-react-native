@@ -420,7 +420,35 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
             reject(e.message);
         }
     })
-})
+});
+
+export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRequests', ({memberRefId, setGuarantorshipRequests}: {memberRefId: string | undefined, setGuarantorshipRequests: any}) => {
+    return new Promise(async (resolve, reject) => {
+        const key = await getSecureKey('jwt');
+        if (!memberRefId) {
+            reject('No Member Ref Id Provided');
+        }
+        if (!key) {
+            reject("You are not authenticated")
+        }
+        const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/guarantorship-request?acceptanceStatus=ANY&memberRefId=${memberRefId}`,{
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${key}`,
+            }
+        });
+
+        if (result.status === 200) {
+            const data = await result.json();
+            console.log('all guarantorship requests', data);
+            setGuarantorshipRequests(data);
+            resolve(data);
+        } else {
+            reject(`is not a member of this organisation`);
+        }
+    })
+});
 
 export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuarantors', ({memberRefId, setFaveGuarantors}: {memberRefId: string | undefined, setFaveGuarantors: any}) => {
     return new Promise(async (resolve, reject) => {
@@ -950,6 +978,17 @@ const authSlice = createSlice({
             state.loading = false
         })
         builder.addCase(validateNumber.rejected, (state, action) => {
+            state.loading = false
+        })
+
+        builder.addCase(fetchGuarantorshipRequests.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(fetchGuarantorshipRequests.fulfilled, (state, action: any) => {
+            // state.contacts = action.payload
+            state.loading = false
+        })
+        builder.addCase(fetchGuarantorshipRequests.rejected, (state, action) => {
             state.loading = false
         })
 

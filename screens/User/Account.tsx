@@ -27,9 +27,14 @@ import {
 } from "@expo-google-fonts/poppins";
 import { Circle as ProgressCircle } from 'react-native-progress';
 
-type NavigationProps = NativeStackScreenProps<any>
+type NavigationProps = NativeStackScreenProps<any>;
 
 const { width, height } = Dimensions.get("window");
+
+export const toMoney = (money: string): string => {
+    return `${parseFloat(`${money}`).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${parseFloat(`${money}`).toFixed(2).split('.')[1]}`
+};
+
 export default function LoanRequests ({ navigation }: NavigationProps) {
     const { loading, user, member } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
@@ -44,10 +49,6 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
         Poppins_400Regular,
         Poppins_300Light
     });
-
-    const toMoney = (money: string): string => {
-        return `${parseFloat(`${money}`).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${parseFloat(`${money}`).toFixed(2).split('.')[1]}`
-    }
 
     if (fontsLoaded && !loading) {
         return (

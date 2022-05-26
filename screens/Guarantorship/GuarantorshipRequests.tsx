@@ -13,7 +13,7 @@ import * as React from "react";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
 import AppLoading from "expo-app-loading";
 import {useDispatch, useSelector} from "react-redux";
-import {storeState} from "../../stores/auth/authSlice";
+import {fetchGuarantorshipRequests, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {
@@ -26,16 +26,48 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import HistoryTile from "../User/Components/HistoryTile";
+import {useEffect, useState} from "react";
+import {toMoney} from "../User/Account";
 
 type NavigationProps = NativeStackScreenProps<any>
 
 const { width, height } = Dimensions.get("window");
 
 export default function GuarantorshipRequests ({ navigation }: NavigationProps) {
-    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, member } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
+
+    type GuarantorshipRequestType = {
+        applicant: {firstName: string, lastName: string, refId: string},
+        committedAmount: string,
+        firstName: string,
+        isActive: string,
+        lastName: string,
+        loanRequest: {amount: number, loanNumber: string, refId: string},
+        memberNumber: string,
+        memberRefId: string,
+        refId: string
+    }
+
+
+    const [guarantorshipRequests, setGuarantorshipRequests] = useState<GuarantorshipRequestType[]>([]);
+
+    useEffect(() => {
+        let fetching = true;
+
+        if (fetching) {
+            (async () => {
+                await dispatch(fetchGuarantorshipRequests({ memberRefId: member?.refId, setGuarantorshipRequests}))
+            })()
+        }
+
+        return () => {
+            fetching = false;
+        };
+    }, []);
+
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -46,56 +78,15 @@ export default function GuarantorshipRequests ({ navigation }: NavigationProps) 
         Poppins_300Light
     });
 
-    const accountHistory = [
-        {
-            executor: 'Mary Ang’weno',
-            subject: '',
-            event: 'requested guarantorship',
+    const accountHistory = guarantorshipRequests.map((request, i) => {
+
+        return {
+            executor: request.applicant.firstName + " " + request.applicant.lastName,
+            subject: toMoney(`${request.loanRequest.amount}`),
+            event: 'requested you to guarantee their loan ' + request.loanRequest.loanNumber +  ' of Kshs',
             time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: 'You',
-            subject: 'Mauryn Mbithe',
-            event: 'requested guarantorship from',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: '',
-            subject: '',
-            event: 'Your loan was successfully processed',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: '',
-            subject: '',
-            event: 'You setted this loan',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: 'Mary Ang’weno',
-            subject: '',
-            event: 'requested guarantorship',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: 'You',
-            subject: 'Mauryn Mbithe',
-            event: 'requested guarantor',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: '',
-            subject: '',
-            event: 'Your loan was successfully processed',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: '',
-            subject: '',
-            event: 'You setted this loan',
-            time: new Date().toLocaleTimeString()
-        }
-    ]
+        };
+    })
 
     if (fontsLoaded && !loading) {
         return (

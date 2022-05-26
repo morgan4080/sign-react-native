@@ -1,4 +1,4 @@
-import {Dimensions, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Dimensions, StyleSheet, Text, TouchableHighlight, TouchableOpacity, View} from "react-native";
 import {Pie as ProgressPie, Bar as ProgressBar} from "react-native-progress";
 import {Ionicons, MaterialIcons} from "@expo/vector-icons";
 import * as React from "react";
@@ -50,6 +50,7 @@ interface propInterface {
 }
 const { width, height } = Dimensions.get("window");
 export default function HistoryTile ({history}: propInterface) {
+    const [pressed, setPressed] = useState<boolean>(false)
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -61,7 +62,7 @@ export default function HistoryTile ({history}: propInterface) {
     });
 
     return (
-        <View style={styles.main}>
+        <TouchableOpacity onPress={() => setPressed(!pressed)} style={styles.main}>
             <View style={styles.tile} >
                 <View style={{padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', width: width/5}}>
                     <Ionicons name="person-circle" size={40} color="#CCCCCC" />
@@ -80,12 +81,43 @@ export default function HistoryTile ({history}: propInterface) {
                 </View>
                 <Ionicons style={{ width: width/5 }} name="ellipsis-vertical" size={20} color="#ADADAD" />
             </View>
-        </View>
+            { pressed &&
+                <View style={{
+                    position: 'absolute',
+                    top: 40,
+                    right: 30, ...styles.main,
+                    backgroundColor: '#323492',
+                    width: width / 3,
+                    borderRadius: 8,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <View style={{
+                        transform: [{rotate: "0deg"}], position: 'absolute', top: -7, right: 0.09, width: 0,
+                        height: 0,
+                        borderTopWidth: 20,
+                        borderTopColor: 'rgba(255,255,255,0)',
+                        borderRightWidth: 20,
+                        borderRightColor: '#323492',
+                    }}>
+
+                    </View>
+                    <TouchableOpacity style={{marginTop: 10}}>
+                        <Text style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF'}}>Accept</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{marginTop: 10, marginBottom: 10}}>
+                        <Text style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF'}}>Revoke</Text>
+                    </TouchableOpacity>
+                </View>}
+        </TouchableOpacity>
     )
 }
 
 const styles = StyleSheet.create({
     main: {
+        zIndex: 0,
         marginTop: 20,
         borderRadius: 25,
         shadowColor: 'rgba(0,0,0, .4)', // IOS
@@ -102,6 +134,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 25,
         borderBottomRightRadius: 25,
         borderBottomLeftRadius: 25,
+        position: "relative"
     },
     guarantorContainer: {
         display: 'flex',

@@ -1,5 +1,15 @@
 import * as React from 'react';
-import {Text, View, StyleSheet, TouchableHighlight, TouchableOpacity, Image, ScrollView, TextInput} from 'react-native';
+import {
+    Text,
+    View,
+    StyleSheet,
+    TouchableHighlight,
+    TouchableOpacity,
+    Image,
+    ScrollView,
+    TextInput,
+    Dimensions, SafeAreaView
+} from 'react-native';
 import AppLoading from 'expo-app-loading';
 
 import Svg, { Path, Line, SvgProps } from "react-native-svg";
@@ -15,6 +25,7 @@ import { store } from "../../stores/store";
 import { storeState, loginUserType } from "../../stores/auth/authSlice"
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "./VerifyOTP";
+const { width, height } = Dimensions.get("window");
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -106,106 +117,101 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
 
     if (!isJWT && fontsLoaded) {
         return (
-            <ScrollView contentContainerStyle={styles.container} >
-                <View>
-                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <Image
-                            style={styles.landingLogo}
-                            source={require('../../assets/images/Logo.png')}
-                        />
-                    </View>
-                    <View style={styles.container2}>
-                        <Text allowFontScaling={false} style={styles.titleText}>Enter registered phone number</Text>
-                        <Text allowFontScaling={false} style={styles.subTitleText}>We will send you a One Time Pin. use it to verify your phone number</Text>
-                        <View style={{ paddingHorizontal: 30 }}>
-                            <Controller
-                                control={control}
-                                rules={{
-                                    required: true,
-                                    maxLength: 12,
-                                }}
-                                render={( { field: { onChange, onBlur, value } }) => (
-                                    <TextInput
-                                        style={styles.input}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="Phone no. i.e 254722000000"
-                                        keyboardType="numeric"
-                                    />
-                                )}
-                                name="phoneNumber"
+            <>
+                <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#e8e8e8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+                    <ScrollView contentContainerStyle={styles.container} >
+                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                            <Image
+                                style={styles.landingLogo}
+                                source={require('../../assets/images/Logo.png')}
                             />
-                            {errors.phoneNumber && <Text  allowFontScaling={false}  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Field is required'}</Text>}
-
-                            <Controller
-                                control={control}
-                                rules={{
-                                    required: true,
-                                    maxLength: 4,
-                                }}
-                                render={( { field: { onChange, onBlur, value } }) => (
-                                    <TextInput
-                                        style={styles.input}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        secureTextEntry={true}
-                                        placeholder="Registered pin. max 4 characters"
-                                        keyboardType="numeric"
-                                    />
-                                )}
-                                name="pin"
-                            />
-                            {errors.pin && <Text  allowFontScaling={false}  style={styles.error}>Field is required</Text>}
                         </View>
-                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 35, marginTop: 20 }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('Forgot')}><Text  allowFontScaling={false}  style={styles.linkText}>Forgot Pin</Text></TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-                {!loading &&
-                    <View style={styles.container3}>
-                        <Svg
-                            style={{ position: 'absolute', top: 0 }}
-                            width={429}
-                            height={29}
-                            viewBox="0 0 429 29"
-                            {...svgProps}
-                        >
-                            <Path d="M428.5 -9.53674e-06C428.5 -9.53674e-06 311.695 31.5121 221 28.0002C127 24.3603 0.5 -9.53674e-06 0.5 -9.53674e-06L190 -9.53674e-06L428.5 -9.53674e-06Z" fill="#F8F8FA" />
-                        </Svg>
-
-                        <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)}>
-                            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-                                <Text  allowFontScaling={false}  style={styles.buttonText}>Get OTP</Text>
-                                <Ionicons
-                                    name="arrow-forward-outline"
-                                    size={25}
-                                    color='#fff'
-                                    style={{ marginLeft: 15 }}
+                        <View style={styles.container2}>
+                            <Text allowFontScaling={false} style={styles.titleText}>Enter registered phone number</Text>
+                            <Text allowFontScaling={false} style={styles.subTitleText}>We will send you a One Time Pin. use it to verify your phone number</Text>
+                            <View style={{ paddingHorizontal: 30 }}>
+                                <Controller
+                                    control={control}
+                                    rules={{
+                                        required: true,
+                                        maxLength: 12,
+                                    }}
+                                    render={( { field: { onChange, onBlur, value } }) => (
+                                        <TextInput
+                                            style={styles.input}
+                                            onBlur={onBlur}
+                                            onChangeText={onChange}
+                                            value={value}
+                                            placeholder="Phone no. i.e 254722000000"
+                                            keyboardType="numeric"
+                                        />
+                                    )}
+                                    name="phoneNumber"
                                 />
+                                {errors.phoneNumber && <Text  allowFontScaling={false}  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Field is required'}</Text>}
+
+                                <Controller
+                                    control={control}
+                                    rules={{
+                                        required: true,
+                                        maxLength: 4,
+                                    }}
+                                    render={( { field: { onChange, onBlur, value } }) => (
+                                        <TextInput
+                                            style={styles.input}
+                                            onBlur={onBlur}
+                                            onChangeText={onChange}
+                                            value={value}
+                                            secureTextEntry={true}
+                                            placeholder="Registered pin. max 4 characters"
+                                            keyboardType="numeric"
+                                        />
+                                    )}
+                                    name="pin"
+                                />
+                                {errors.pin && <Text  allowFontScaling={false}  style={styles.error}>Field is required</Text>}
                             </View>
-                        </TouchableHighlight>
-                    </View>
-                }
-                {loading &&
-                    <View style={styles.container3}>
-                        <Svg
-                            style={{ position: 'absolute', top: 0 }}
-                            width={429}
-                            height={29}
-                            viewBox="0 0 429 29"
-                            {...svgProps}
-                        >
-                            <Path d="M428.5 -9.53674e-06C428.5 -9.53674e-06 311.695 31.5121 221 28.0002C127 24.3603 0.5 -9.53674e-06 0.5 -9.53674e-06L190 -9.53674e-06L428.5 -9.53674e-06Z" fill="#F8F8FA" />
-                        </Svg>
-                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', height: 100 }}>
-                            {loading && <RotateView/>}
+                            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 35, marginTop: 20 }}>
+                                <TouchableOpacity onPress={() => navigation.navigate('Forgot')}>
+                                    <Text allowFontScaling={false} style={styles.linkText}>
+                                        Forgot Pin
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
-                }
-            </ScrollView>
+                    </ScrollView>
+                </SafeAreaView>
+                <View style={{ backgroundColor: '#323492', width, display: 'flex', flexDirection: 'row', justifyContent: 'center', position: 'relative' }}>
+                    <Svg
+                        style={{ position: 'absolute', top: 0 }}
+                        width={429}
+                        height={29}
+                        viewBox="0 0 429 29"
+                        {...svgProps}
+                    >
+                        <Path d="M428.5 -9.53674e-06C428.5 -9.53674e-06 311.695 31.5121 221 28.0002C127 24.3603 0.5 -9.53674e-06 0.5 -9.53674e-06L190 -9.53674e-06L428.5 -9.53674e-06Z" fill="#F8F8FA" />
+                    </Svg>
+                    {!loading && <TouchableOpacity onPress={handleSubmit(onSubmit)} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        borderColor: '#FFFFFF',
+                        borderWidth: 1,
+                        width: width / 2,
+                        paddingHorizontal: 20,
+                        paddingVertical: 15,
+                        borderRadius: 25,
+                        marginTop: 45,
+                        marginBottom: 25
+                    }}>
+                        <Text allowFontScaling={false} style={styles.buttonText}>Get OTP</Text>
+                    </TouchableOpacity>}
+                    {loading &&
+                        <View style={{marginTop: 45, marginBottom: 25}}>
+                            <RotateView/>
+                        </View>
+                    }
+                </View>
+            </>
         )
     }  else {
         return (
@@ -217,37 +223,25 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
 const styles = StyleSheet.create({
     container: {
         display: 'flex',
-        justifyContent: 'space-between',
-        height: '100%',
+        height: height,
         backgroundColor: '#F8F8FA'
     },
     container2: {
         display: 'flex',
-        justifyContent: 'space-between',
-        height: 'auto'
-    },
-    container3: {
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        height: 160,
-        backgroundColor: '#323492',
+        justifyContent: 'space-between'
     },
     buttonText: {
         fontSize: 15,
         color: 'white',
         alignSelf: 'center',
-        fontFamily: 'Poppins_500Medium',
+        fontFamily: 'Poppins_500Medium'
     },
     button: {
         borderColor: '#ffffff',
         borderWidth: 1,
         borderRadius: 50,
         paddingVertical: 15,
-        paddingHorizontal: 25,
-        marginBottom: 35
+        paddingHorizontal: 25
     },
     titleText: {
         fontSize: 20,

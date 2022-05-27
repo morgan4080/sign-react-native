@@ -706,52 +706,24 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
         redirect: 'follow',
         signal: signal
     })
+
     if (response.status === 200) {
-        const data = await response.json();
-
-        let loanCategories = data.reduce((acc: {code: string, name: string, options: {code: string, name: string, selected: boolean, options: []}[]}[], current: {[key: string]: string}) => {
-            let code = Object.keys(current)[0]
-            acc.push({
-                code,
-                name: current[code],
-                options: []
-            })
-            return acc
-        },[]);
-
-        let loanSubCategoriesData = loanCategories.reduce((acc: any[], curr: {code: string, name: string, options: {name: string, selected: boolean}[]}) => {
-            acc.push(new Promise(resolve => {
-                fetch(`https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code?parent=${curr.code}`, {
-                    method: 'GET',
-                    headers: myHeaders,
-                    redirect: 'follow',
-                    signal: signal
+        try {
+            const data = await response.json();
+            console.log('running promise', data);
+            let loanCategories = data.reduce((acc: {code: string, name: string, options: {code: string, name: string, selected: boolean, options: []}[]}[], current: {[key: string]: string}) => {
+                let code = Object.keys(current)[0]
+                acc.push({
+                    code,
+                    name: current[code],
+                    options: []
                 })
-                    .then((res) => res.json())
-                    .then((data) => {
-                        let options = data.map((member: any, i: any) => {
-                            let code = Object.keys(member)[0]
-                            return {
-                                code,
-                                name: member[code],
-                                selected: false,
-                                options: [],
-                            }
-                        })
-                        resolve({
-                            ...curr,
-                            options
-                        })
-                    })
-            }))
-            return acc
-        },[]);
+                return acc
+            },[]);
 
-        const loanSubCategories: CategoryType[] = await Promise.all(loanSubCategoriesData);
-        const withAllOptions = loanSubCategories.reduce((accumulator: any[], currentValue) => {
-            let allSubOptionsPromises = currentValue.options.reduce((a: any, c) => {
-                a.push(new Promise(resolve => {
-                    fetch(`https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code?parent=${currentValue.code}&child=${c.code}`, {
+            let loanSubCategoriesData = loanCategories.reduce((acc: any[], curr: {code: string, name: string, options: {name: string, selected: boolean}[]}) => {
+                acc.push(new Promise(resolve => {
+                    fetch(`https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code?parent=${curr.code}`, {
                         method: 'GET',
                         headers: myHeaders,
                         redirect: 'follow',
@@ -764,27 +736,64 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
                                 return {
                                     code,
                                     name: member[code],
-                                    selected: false
+                                    selected: false,
+                                    options: [],
                                 }
                             })
                             resolve({
-                                ...c,
+                                ...curr,
                                 options
                             })
+                        }).catch((e: any) => {
+                        console.log("error sasra-code?parent", e)
+                    })
+                }))
+                return acc
+            },[]);
+
+            const loanSubCategories: CategoryType[] = await Promise.all(loanSubCategoriesData);
+            const withAllOptions = loanSubCategories.reduce((accumulator: any[], currentValue) => {
+                let allSubOptionsPromises = currentValue.options.reduce((a: any, c) => {
+                    a.push(new Promise(resolve => {
+                        fetch(`https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code?parent=${currentValue.code}&child=${c.code}`, {
+                            method: 'GET',
+                            headers: myHeaders,
+                            redirect: 'follow',
+                            signal: signal
                         })
+                            .then((res) => res.json())
+                            .then((data) => {
+                                let options = data.map((member: any, i: any) => {
+                                    let code = Object.keys(member)[0]
+                                    return {
+                                        code,
+                                        name: member[code],
+                                        selected: false
+                                    }
+                                })
+                                resolve({
+                                    ...c,
+                                    options
+                                })
+                            })
+                    }))
+                    return a
+                },[])
+                accumulator.push(new Promise(resolve => {
+                    Promise.all(allSubOptionsPromises).then((allSubOptionsData => {
+                        resolve({...currentValue, options: allSubOptionsData})
+                    }))
                 }))
-                return a
-            },[])
-            accumulator.push(new Promise(resolve => {
-                Promise.all(allSubOptionsPromises).then((allSubOptionsData => {
-                    resolve({...currentValue, options: allSubOptionsData})
-                }))
-            }))
-            return accumulator
-        }, []);
-        return Promise.all(withAllOptions)
+                return accumulator
+            }, []);
+            console.log(withAllOptions);
+            return Promise.all(withAllOptions);
+        } catch (e: any) {
+            console.log('errors not resolving purpose', e);
+            return Promise.reject('Cant resolve sasra');
+        }
     } else {
-        return Promise.reject('Cant resolve categories')
+        return Promise.reject('Cant resolve sasra');
     }
 })
 

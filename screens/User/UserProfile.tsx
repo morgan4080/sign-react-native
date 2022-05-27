@@ -9,7 +9,7 @@ import {
     Image,
     StatusBar as Bar,
     Dimensions,
-    Platform
+    Platform, NativeModules
 } from 'react-native';
 
 import { StatusBar } from 'expo-status-bar';
@@ -59,6 +59,8 @@ export default function UserProfile({ navigation }: NavigationProps) {
 
     const dispatch : AppDispatch = useDispatch();
 
+    const CSTM = NativeModules.CSTM;
+
     useEffect(() => {
         let isMounted = true;
         const controller = new AbortController();
@@ -68,6 +70,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                 if (isMounted) navigation.navigate('Login')
             } else {
                 if (user) {
+                    CSTM.showToast(`Welcome ${user?.firstName}`);
                     try {
                         await Promise.all([
                             dispatch(fetchMember(user?.phoneNumber)),

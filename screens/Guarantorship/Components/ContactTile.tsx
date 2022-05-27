@@ -11,11 +11,11 @@ import {Dimensions, StyleSheet, Text, TouchableOpacity, View} from "react-native
 import {Ionicons, Octicons} from "@expo/vector-icons";
 import * as React from "react";
 import Checkbox from "expo-checkbox";
-import {useEffect, useState} from "react";
-import {initializeDB, updateContact, validateNumber} from "../../../stores/auth/authSlice";
+import {useState} from "react";
+import {updateContact, validateNumber} from "../../../stores/auth/authSlice";
 import {store} from "../../../stores/store";
 import {useDispatch} from "react-redux";
-import { Toast } from "../../../CustomModule";
+import {NativeModules} from 'react-native';
 
 interface propInterface {
     contact: any,
@@ -35,6 +35,8 @@ export default function contactTile ({contact, addContactToList, removeContactFr
         Poppins_400Regular,
         Poppins_300Light
     });
+
+    const CSTM = NativeModules.CSTM;
 
     const [selectedContact, setSelectedContact] = useState<boolean>(false)
     const selectContact = async (newValue: boolean, contact: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}) => {
@@ -56,7 +58,7 @@ export default function contactTile ({contact, addContactToList, removeContactFr
 
             if (type === 'validateNumber/rejected') {
                 console.log(`${phone} ${result.error.message}`)
-                Toast.show(`${phone} ${result.error.message}`);
+                CSTM.showToast(`${phone} ${result.error.message}`);
                 return
             }
             // update contact with member id and ref id
@@ -79,7 +81,7 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                     });
                 }
                 if (!res) {
-                    Toast.show("Already added contact");
+                    CSTM.showToast("Already added contact");
                 }
                 setSelectedContact(res)
             }

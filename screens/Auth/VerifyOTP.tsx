@@ -11,7 +11,7 @@ import {
     Animated,
     Easing,
     Button,
-    Keyboard
+    Keyboard, Dimensions, SafeAreaView
 } from 'react-native';
 import AppLoading from 'expo-app-loading';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -35,6 +35,8 @@ type FormData = {
     otpChar3?: string | undefined;
     otpChar4?: string | undefined;
 }
+
+const { width, height } = Dimensions.get("window");
 
 export const RotateView = () => {
     const rotateAnim = useRef(new Animated.Value(0)).current
@@ -78,6 +80,9 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
             if (user && !otpSent) {
                 dispatch(sendOTP(user.phoneNumber))
             }
+        })
+        return (() => {
+            Keyboard.removeAllListeners('keyboardDidShow');
         })
     }, []);
 
@@ -149,128 +154,137 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 
     const resendOTP = () => (user && dispatch(sendOTP(user.phoneNumber)))
 
+    const scrollViewRef = useRef<any>();
+
+    Keyboard.addListener('keyboardDidShow', () => {
+        scrollViewRef.current.scrollToEnd({ animated: true });
+    })
+
     if (isLoggedIn && fontsLoaded) {
         return(
-            <ScrollView contentContainerStyle={styles.container}>
-                <View>
-                    <Text allowFontScaling={false} style={styles.titleText}>Verify account</Text>
+            <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#323492', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+                <ScrollView ref={scrollViewRef} contentContainerStyle={styles.container}>
+                    <View>
+                        <Text allowFontScaling={false} style={styles.titleText}>Verify account</Text>
 
-                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <Image
-                            style={styles.landingLogo}
-                            source={require('../../assets/images/verifyillustration.png')}
-                        />
+                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                            <Image
+                                style={styles.landingLogo}
+                                source={require('../../assets/images/verifyillustration.png')}
+                            />
+                        </View>
+
+                        <Text allowFontScaling={false} style={styles.titleText1}>Enter your verification code</Text>
+                        <Text allowFontScaling={false} style={styles.subTitleText1}>Kindly enter the verification code that was sent to <Text allowFontScaling={false} style={{textDecorationLine: 'underline'}}>{user && user.username}</Text></Text>
+                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, position: 'relative' }}>
+                            <TextInput
+                                style={{ position: 'absolute', top: 30, left: 30, height: 70, width: '100%', zIndex: 5, opacity: 0, backgroundColor: 'rgba(255,255,255,0)'}}
+                                onChangeText={onChange}
+                                keyboardType="numeric"
+                                selectTextOnFocus={false}
+                                value={valueInput}
+                                defaultValue={valueInput}
+                            />
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: true,
+                                    maxLength: 1,
+                                }}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        style={styles.input}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="*"
+                                        placeholderTextColor="#FFFFFF"
+                                        keyboardType="numeric"
+                                        editable={false}
+                                        selectTextOnFocus={false}
+                                    />
+                                )}
+                                name="otpChar1"
+                            />
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: true,
+                                    maxLength: 1,
+                                }}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        style={styles.input}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="*"
+                                        placeholderTextColor="#FFFFFF"
+                                        keyboardType="numeric"
+                                        editable={false}
+                                        selectTextOnFocus={false}
+                                    />
+                                )}
+                                name="otpChar2"
+                            />
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: true,
+                                    maxLength: 1,
+                                }}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        style={styles.input}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="*"
+                                        placeholderTextColor="#FFFFFF"
+                                        keyboardType="numeric"
+                                        editable={false}
+                                        selectTextOnFocus={false}
+                                    />
+                                )}
+                                name="otpChar3"
+                            />
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: true,
+                                    maxLength: 1,
+                                }}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        style={styles.input}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="*"
+                                        placeholderTextColor="#FFFFFF"
+                                        keyboardType="numeric"
+                                        editable={false}
+                                        selectTextOnFocus={false}
+                                    />
+                                )}
+                                name="otpChar4"
+                            />
+                        </View>
+
+                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                            <TouchableOpacity onPress={() => resendOTP()} >
+                                <Text allowFontScaling={false} style={styles.subTitleText1}>
+                                    Did't receive code? <Text allowFontScaling={false} style={{ textDecorationLine: 'underline' }}>Resend code</Text>
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
-                    <Text allowFontScaling={false} style={styles.titleText1}>Enter your verification code</Text>
-                    <Text allowFontScaling={false} style={styles.subTitleText1}>Kindly enter the verification code that was sent to <Text allowFontScaling={false} style={{textDecorationLine: 'underline'}}>{user && user.username}</Text></Text>
-                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, position: 'relative' }}>
-                        <TextInput
-                            style={{ position: 'absolute', top: 30, left: 30, height: 70, width: '100%', zIndex: 5, opacity: 0, backgroundColor: 'rgba(255,255,255,0)'}}
-                            onChangeText={onChange}
-                            keyboardType="numeric"
-                            selectTextOnFocus={false}
-                            value={valueInput}
-                            defaultValue={valueInput}
-                        />
-                        <Controller
-                            control={control}
-                            rules={{
-                                required: true,
-                                maxLength: 1,
-                            }}
-                            render={( { field: { onChange, onBlur, value } }) => (
-                                <TextInput
-                                    style={styles.input}
-                                    onBlur={onBlur}
-                                    onChangeText={onChange}
-                                    value={value}
-                                    placeholder="*"
-                                    placeholderTextColor="#FFFFFF"
-                                    keyboardType="numeric"
-                                    editable={false}
-                                    selectTextOnFocus={false}
-                                />
-                            )}
-                            name="otpChar1"
-                        />
-                        <Controller
-                            control={control}
-                            rules={{
-                                required: true,
-                                maxLength: 1,
-                            }}
-                            render={( { field: { onChange, onBlur, value } }) => (
-                                <TextInput
-                                    style={styles.input}
-                                    onBlur={onBlur}
-                                    onChangeText={onChange}
-                                    value={value}
-                                    placeholder="*"
-                                    placeholderTextColor="#FFFFFF"
-                                    keyboardType="numeric"
-                                    editable={false}
-                                    selectTextOnFocus={false}
-                                />
-                            )}
-                            name="otpChar2"
-                        />
-                        <Controller
-                            control={control}
-                            rules={{
-                                required: true,
-                                maxLength: 1,
-                            }}
-                            render={( { field: { onChange, onBlur, value } }) => (
-                                <TextInput
-                                    style={styles.input}
-                                    onBlur={onBlur}
-                                    onChangeText={onChange}
-                                    value={value}
-                                    placeholder="*"
-                                    placeholderTextColor="#FFFFFF"
-                                    keyboardType="numeric"
-                                    editable={false}
-                                    selectTextOnFocus={false}
-                                />
-                            )}
-                            name="otpChar3"
-                        />
-                        <Controller
-                            control={control}
-                            rules={{
-                                required: true,
-                                maxLength: 1,
-                            }}
-                            render={( { field: { onChange, onBlur, value } }) => (
-                                <TextInput
-                                    style={styles.input}
-                                    onBlur={onBlur}
-                                    onChangeText={onChange}
-                                    value={value}
-                                    placeholder="*"
-                                    placeholderTextColor="#FFFFFF"
-                                    keyboardType="numeric"
-                                    editable={false}
-                                    selectTextOnFocus={false}
-                                />
-                            )}
-                            name="otpChar4"
-                        />
+                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', height: height/8, marginTop: height/8 }}>
+                        {loading && <RotateView/>}
                     </View>
-
-                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                        <TouchableOpacity onPress={() => resendOTP()} >
-                            <Text allowFontScaling={false} style={styles.subTitleText1}>
-                                Did't receive code? <Text allowFontScaling={false} style={{ textDecorationLine: 'underline' }}>Resend code</Text>
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', height: 100 }}>
-                    {loading && <RotateView/>}
-                </View>
-            </ScrollView>
+                </ScrollView>
+            </SafeAreaView>
         )
     } else {
         return (
@@ -283,9 +297,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 const styles = StyleSheet.create({
     container: {
         display: 'flex',
-        justifyContent: 'space-between',
-        height: '100%',
-        backgroundColor: '#323492'
+        height: height
     },
     titleText: {
         fontSize: 15,

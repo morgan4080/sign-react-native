@@ -62,7 +62,7 @@ export default function HistoryTile ({history}: propInterface) {
     });
 
     return (
-        <TouchableOpacity onPress={() => setPressed(!pressed)} style={styles.main}>
+        <View style={styles.main}>
             <View style={styles.tile} >
                 <View style={{padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', width: width/5}}>
                     <Ionicons name="person-circle" size={40} color="#CCCCCC" />
@@ -79,12 +79,14 @@ export default function HistoryTile ({history}: propInterface) {
                     </Text>
                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 12 }}>{ history.time }</Text>
                 </View>
-                <Ionicons style={{ width: width/5 }} name="ellipsis-vertical" size={20} color="#ADADAD" />
+                <TouchableOpacity onPress={() => setPressed(!pressed)}>
+                    <Ionicons style={{ width: width/5 }} name="ellipsis-vertical" size={20} color="#ADADAD" />
+                </TouchableOpacity>
             </View>
             { pressed &&
                 <View style={{
                     position: 'absolute',
-                    top: 40,
+                    top: 20,
                     right: 30, ...styles.main,
                     backgroundColor: '#323492',
                     width: width / 3,
@@ -100,7 +102,7 @@ export default function HistoryTile ({history}: propInterface) {
                         borderTopWidth: 20,
                         borderTopColor: 'rgba(255,255,255,0)',
                         borderRightWidth: 20,
-                        borderRightColor: '#323492',
+                        borderRightColor: '#323492'
                     }}>
 
                     </View>
@@ -111,7 +113,7 @@ export default function HistoryTile ({history}: propInterface) {
                         <Text style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF'}}>Revoke</Text>
                     </TouchableOpacity>
                 </View>}
-        </TouchableOpacity>
+        </View>
     )
 }
 

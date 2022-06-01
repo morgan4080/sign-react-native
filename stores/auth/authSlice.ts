@@ -105,7 +105,10 @@ interface LoanRequestData {
 
 interface LoanRequest {
     refId: string,
-    loanDate: string
+    loanDate: string,
+    loanRequestNumber: string,
+    loanAmount: string,
+    pdfThumbNail: string,
 }
 
 interface LoanProduct {
@@ -348,22 +351,26 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
             formBody.push(encodedKey + "=" + encodedValue);
         }
         formBody = formBody.join("&");
-        const response = await fetch(`https://iam.presta.co.ke/auth/realms/${tenant}/protocol/openid-connect/token`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            },
-            body: formBody
-        })
+        try {
+            const response = await fetch(`https://iam.presta.co.ke/auth/realms/${tenant}/protocol/openid-connect/token`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                },
+                body: formBody
+            })
 
-        if (response.status === 401) {
-            reject("Incorrect phone number or password")
-        }
+            if (response.status === 401) {
+                reject("Incorrect phone number or password")
+            }
 
-        if (response.status === 200) {
-            const data = await response.json();
-            const result: any = await saveKeys(data)
-            resolve(result)
+            if (response.status === 200) {
+                const data = await response.json();
+                const result: any = await saveKeys(data)
+                resolve(result)
+            }
+        } catch (e: any) {
+            reject(e.message)
         }
     })
 })
@@ -467,8 +474,16 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
             }
         });
 
+        // console.log("favourite guarantors", result.status);
+
+        if (result.status === 204) {
+            console.log(`https://eguarantorship-api.presta.co.ke/api/v1/favorite-guarantor/favorite-guarantors/${memberRefId}`);
+            reject("No guarantors found");
+        }
+
         if (result.status === 200) {
             const data = await result.json();
+            console.log("favourite guarantors", data);
             setFaveGuarantors(data);
             resolve(data);
         } else {
@@ -495,7 +510,7 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
             const data = await result.json();
             resolve(data);
         } else {
-            reject(`Is Not A Member Of this Organisation`);
+            reject(`is not a member of this organisation`);
         }
     })
 })
@@ -554,27 +569,58 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
 export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: string) => {
     return new Promise(async (resolve, reject) => {
        try {
-           const key = await getSecureKey('jwt')
+           const key = await getSecureKey('jwt');
            if (!key) {
-               reject("You are not authenticated")
+               reject("You are not authenticated");
            }
            const myHeaders = new Headers();
-           myHeaders.append("Authorization", `Bearer ${key}`)
+           myHeaders.append("Authorization", `Bearer ${key}`);
            const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber}`, {
                method: 'GET',
                headers: myHeaders,
                redirect: 'follow'
-           })
+           });
            if (response.status === 200) {
-               const data = await response.json()
-               resolve(data)
+               const data = await response.json();
+               resolve(data);
            } else {
-               reject("Fetch Member Failed")
+               reject("Fetch Member Failed");
            }
        } catch (e: any) {
-           reject(e.message)
+           reject(e.message);
        }
     })
+})
+
+export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', async ({memberRefId, setWitnessRequests}: {memberRefId: string | undefined, setWitnessRequests: any }) => {
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/witness-request?acceptanceStatus=ANY&memberRefId=${memberRefId}`
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            const key = await getSecureKey('jwt')
+            if (!key) {
+                reject("You are not authenticated")
+            }
+            const myHeaders = new Headers();
+            myHeaders.append("Authorization", `Bearer ${key}`);
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: myHeaders,
+                redirect: 'follow'
+            });
+
+            if (response.status === 200) {
+                const data = await response.json();
+                console.log("witness data", data);
+                setWitnessRequests(data);
+                resolve(data);
+            } else {
+                reject("Witness Requests not found!");
+            }
+        } catch (e: any) {
+            reject(e.message)
+        }
+    });
 })
 
 export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string) => {
@@ -655,6 +701,7 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
             })
             if (response.status === 200) {
                 const data = await response.json()
+                console.log("fetchLoanRequest", data);
                 resolve(data)
             } else {
                 reject("Fetch Loan Request Failed")
@@ -710,12 +757,10 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
     if (response.status === 200) {
         try {
             const data = await response.json();
-            console.log('running promise', data);
             let loanCategories = data.reduce((acc: {code: string, name: string, options: {code: string, name: string, selected: boolean, options: []}[]}[], current: {[key: string]: string}) => {
-                let code = Object.keys(current)[0]
                 acc.push({
-                    code,
-                    name: current[code],
+                    code: current.code,
+                    name: current.name,
                     options: []
                 })
                 return acc
@@ -734,8 +779,8 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
                             let options = data.map((member: any, i: any) => {
                                 let code = Object.keys(member)[0]
                                 return {
-                                    code,
-                                    name: member[code],
+                                    code: member.code,
+                                    name: member.name,
                                     selected: false,
                                     options: [],
                                 }
@@ -766,8 +811,8 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
                                 let options = data.map((member: any, i: any) => {
                                     let code = Object.keys(member)[0]
                                     return {
-                                        code,
-                                        name: member[code],
+                                        code: member.code,
+                                        name: member.name,
                                         selected: false
                                     }
                                 })
@@ -786,7 +831,6 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
                 }))
                 return accumulator
             }, []);
-            console.log(withAllOptions);
             return Promise.all(withAllOptions);
         } catch (e: any) {
             console.log('errors not resolving purpose', e);
@@ -998,6 +1042,17 @@ const authSlice = createSlice({
             state.loading = false
         })
         builder.addCase(fetchGuarantorshipRequests.rejected, (state, action) => {
+            state.loading = false
+        })
+
+        builder.addCase(fetchWitnessRequests.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(fetchWitnessRequests.fulfilled, (state, action: any) => {
+            // state.contacts = action.payload
+            state.loading = false
+        })
+        builder.addCase(fetchWitnessRequests.rejected, (state, action) => {
             state.loading = false
         })
 

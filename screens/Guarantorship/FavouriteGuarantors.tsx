@@ -7,7 +7,6 @@ import {
     StyleSheet, Text, TouchableHighlight,
     View
 } from "react-native";
-import * as Clipboard from 'expo-clipboard';
 import {StatusBar} from "expo-status-bar";
 import * as React from "react";
 import {Ionicons} from "@expo/vector-icons";
@@ -26,7 +25,6 @@ import {
 } from "@expo-google-fonts/poppins";
 import {useEffect, useState} from "react";
 import {RotateView} from "../Auth/VerifyOTP";
-import {setString} from "expo-clipboard";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -41,7 +39,6 @@ const FavouriteGuarantors = ({ navigation }: NavigationProps) => {
     const [copied, setCopied] = useState<string>('')
 
     const copyToClipboard = async (content: string) => {
-        await Clipboard.setString(content);
         setCopied(content);
         setTimeout(() => setCopied(''), 1000)
     };
@@ -52,6 +49,7 @@ const FavouriteGuarantors = ({ navigation }: NavigationProps) => {
         let fetchingFavs = true
         if (fetchingFavs) {
             (async () => {
+                console.log(member)
                 await dispatch(fetchFavouriteGuarantors({memberRefId: member?.refId, setFaveGuarantors}))
             })()
         }
@@ -87,26 +85,26 @@ const FavouriteGuarantors = ({ navigation }: NavigationProps) => {
                                                     <Ionicons name="person-circle" size={40} color="#CCCCCC" />
                                                 </View>
                                                 <View style={{ width: width * 3/5 }}>
-                                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#323492', fontSize: 15, maxWidth: 200 }}>
+                                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#323492', fontSize: 14, maxWidth: 250 }}>
                                                         { guarantor?.fullName }
                                                     </Text>
                                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 15, maxWidth: 200 }}>
+                                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12, maxWidth: 250 }}>
                                                             { guarantor?.phoneNumber }
                                                         </Text>
-                                                        <TouchableHighlight style={{marginHorizontal: 10}} onPress={() => copyToClipboard(guarantor.phoneNumber)}>
+                                                        {/*<TouchableHighlight style={{marginHorizontal: 10}} onPress={() => copyToClipboard(guarantor.phoneNumber)}>
                                                             <Ionicons name="copy" size={15} color="#ADADAD" />
-                                                        </TouchableHighlight>
-                                                        {copied === guarantor.phoneNumber && <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 10, marginLeft: 2}}>Copied!</Text> }
+                                                        </TouchableHighlight>*/}
+                                                        {/*{copied === guarantor.phoneNumber && <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 10, marginLeft: 2}}>Copied!</Text> }*/}
                                                     </View>
                                                     <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 15 }}>
+                                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 12 }}>
                                                             { guarantor?.memberNumber }
                                                         </Text>
-                                                        <TouchableHighlight style={{marginHorizontal: 10}} onPress={() => copyToClipboard(guarantor.memberNumber)}>
+                                                        {/*<TouchableHighlight style={{marginHorizontal: 10}} onPress={() => copyToClipboard(guarantor.memberNumber)}>
                                                             <Ionicons name="copy" size={15} color="#ADADAD" />
-                                                        </TouchableHighlight>
-                                                        {copied === guarantor.memberNumber && <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 10, marginLeft: 2}}>Copied!</Text> }
+                                                        </TouchableHighlight>*/}
+                                                        {/*{copied === guarantor.memberNumber && <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 10, marginLeft: 2}}>Copied!</Text> }*/}
                                                     </View>
                                                 </View>
                                                 {/*<Ionicons style={{ width: width/5 }} name="ellipsis-vertical" size={20} color="#ADADAD" />*/}
@@ -152,7 +150,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderTopLeftRadius: 25,
         borderBottomRightRadius: 25,
-        borderBottomLeftRadius: 25,
+        borderBottomLeftRadius: 25
     },
     guarantorContainer: {
         display: 'flex',

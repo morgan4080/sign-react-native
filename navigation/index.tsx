@@ -45,6 +45,10 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
+import GuarantorshipStatus from "../screens/Guarantorship/GuarantorshipStatus";
+import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";
+import WitnessRequests from "../screens/Guarantorship/WitnessRequests";
+import WitnessStatus from "../screens/Guarantorship/WitnessStatus";
 
 const { width, height } = Dimensions.get("window");
 
@@ -52,7 +56,7 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
   return (
     <NavigationContainer
       linking={LinkingConfiguration}
-      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      theme={colorScheme === 'dark' ? DefaultTheme : DefaultTheme}>
       <RootNavigator />
     </NavigationContainer>
   );
@@ -114,9 +118,61 @@ function RootNavigator() {
               fontFamily: 'Poppins_600SemiBold'
           }
       }} />
+      <Stack.Screen name="WitnessRequests" component={WitnessRequests} options={{
+          headerShown: true,
+          title: 'Witness Requests',
+          headerShadowVisible: false,
+          headerStyle: {
+              backgroundColor: 'rgba(204,204,204,0.28)',
+          },
+          headerTintColor: '#323492',
+          headerTitleStyle: {
+              fontSize: 20,
+              fontFamily: 'Poppins_600SemiBold'
+          }
+      }} />
+      <Stack.Screen name="GuarantorshipStatus" component={GuarantorshipStatus} options={{
+          headerShown: true,
+          title: '',
+          headerShadowVisible: false,
+          headerStyle: {
+              backgroundColor: 'rgba(204,204,204,0.28)',
+          },
+          headerTintColor: '#323492',
+          headerTitleStyle: {
+              fontSize: 20,
+              fontFamily: 'Poppins_600SemiBold'
+          }
+      }} />
+      <Stack.Screen name="WitnessStatus" component={WitnessStatus} options={{
+          headerShown: true,
+          title: '',
+          headerShadowVisible: false,
+          headerStyle: {
+              backgroundColor: 'rgba(204,204,204,0.28)',
+          },
+          headerTintColor: '#323492',
+          headerTitleStyle: {
+              fontSize: 20,
+              fontFamily: 'Poppins_600SemiBold'
+          }
+      }} />
       <Stack.Screen name="FavouriteGuarantors" component={FavouriteGuarantors} options={{
           headerShown: true,
           title: 'Favourite Guarantors',
+          headerShadowVisible: false,
+          headerStyle: {
+              backgroundColor: 'rgba(204,204,204,0.28)',
+          },
+          headerTintColor: '#323492',
+          headerTitleStyle: {
+              fontSize: 20,
+              fontFamily: 'Poppins_600SemiBold'
+          }
+      }} />
+      <Stack.Screen name="SignDocumentRequest" component={SignDocumentRequest} options={{
+          headerShown: true,
+          title: '',
           headerShadowVisible: false,
           headerStyle: {
               backgroundColor: 'rgba(204,204,204,0.28)',

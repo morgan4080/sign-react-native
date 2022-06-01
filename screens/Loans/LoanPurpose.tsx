@@ -121,7 +121,7 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 120 }}>
                                 { loanCategories &&
                                     loanCategories.map((category, index: number) => (
-                                        <LoanPurposeTile key={index} componentIndex={index} currentOpenIndex={currentOpenIndex} isOpen={isOpen} setFormData={setFormData} category={category} />
+                                        <LoanPurposeTile key={category.code} componentIndex={index} currentOpenIndex={currentOpenIndex} isOpen={isOpen} setFormData={setFormData} category={category} />
                                     ))
                                 }
                             </ScrollView>

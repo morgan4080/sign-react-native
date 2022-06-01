@@ -57,8 +57,8 @@ export default function contactTile ({contact, addContactToList, removeContactFr
             const {payload, type}: {payload: any, type: string} = result;
 
             if (type === 'validateNumber/rejected') {
-                console.log(`${phone} ${result.error.message}`)
-                CSTM.showToast(`${phone} ${result.error.message}`);
+                console.log(`${contact.name} ${result.error.message}`);
+                CSTM.showToast(`${contact.name} ${result.error.message}`);
                 return
             }
             // update contact with member id and ref id

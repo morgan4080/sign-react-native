@@ -106,7 +106,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
 
     if (fontsLoaded) {
         return (
-            <View style={{ flex: 1, paddingTop: Bar.currentHeight, position: 'relative' }}>
+            <View style={{ flex: 1, paddingTop: Bar.currentHeight, position: 'relative', backgroundColor: '#FFFFFF' }}>
                 {
                     loading &&
                     <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
@@ -156,7 +156,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                         />
                                         <Text allowFontScaling={false} style={{ color: '#323492', fontSize: 12, fontFamily: 'Poppins_600SemiBold', maxWidth: 100, marginLeft: 10 }}>Favorite Guarantors</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, borderColor: '#CCCCCC', borderWidth: 1, height: 120, marginLeft: 10, borderRadius: 25 }}>
+                                    <TouchableOpacity onPress={() => navigation.navigate('WitnessRequests')} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, borderColor: '#CCCCCC', borderWidth: 1, height: 120, marginLeft: 10, borderRadius: 25 }}>
                                         <Image
                                             source={require('../../assets/images/Guarantorship-Requests.png')}
                                         />

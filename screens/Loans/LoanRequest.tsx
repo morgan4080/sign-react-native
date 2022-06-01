@@ -61,13 +61,22 @@ const styles = StyleSheet.create({
         height: height/2,
         resizeMode: 'contain'
     }
-})
+});
 
 const LoanRequest = ({navigation, route}: NavigationProps) => {
     const { loading } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
     const loanRequest = route.params;
+    let [fontsLoaded] = useFonts({
+        Poppins_900Black,
+        Poppins_500Medium,
+        Poppins_800ExtraBold,
+        Poppins_700Bold,
+        Poppins_600SemiBold,
+        Poppins_400Regular,
+        Poppins_300Light
+    });
     const makeSigningRequest = async () => {
       // ready to redirect to zoho
 

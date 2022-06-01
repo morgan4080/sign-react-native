@@ -27,7 +27,7 @@ interface LoanRequestData {
     "loanProductName": string,
     "loanProductRefId": string,
     "loanAmount": number,
-    "guarantorsRequired": number,
+    "guarantorRequired": number,
     "guarantorCount": number,
     "status": string,
     "signingStatus": string,
@@ -46,11 +46,13 @@ interface LoanRequestData {
 }
 
 interface propInterface {
-    history: any
+    guarantor: any,
+    setPressed: any,
+    setRequest: any,
+    pressed: boolean,
 }
 const { width, height } = Dimensions.get("window");
-export default function HistoryTile ({history}: propInterface) {
-    const [pressed, setPressed] = useState<boolean>(false)
+export default function GuarantorTiles ({guarantor, setPressed, pressed, setRequest}: propInterface) {
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -63,21 +65,24 @@ export default function HistoryTile ({history}: propInterface) {
 
     return (
         <View style={styles.main}>
-            <TouchableOpacity style={styles.tile} >
+            <TouchableOpacity onPress={() => {
+                setPressed(!pressed);
+                setRequest(guarantor);
+            }} style={styles.tile} >
                 <View style={{padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', width: width/5}}>
                     <Ionicons name="person-circle" size={40} color="#CCCCCC" />
                 </View>
                 <View style={{ width: width * 3/5 }}>
                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12, maxWidth: 200 }}>
                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#323492' }}>
-                            { history.executor ? `${ history.executor } ` : '' }
+                            { guarantor.executor ? `${ guarantor.executor } ` : '' }
                         </Text>
-                        { history.event ? `${history.event} ` : '' }
+                        { guarantor.event ? `${guarantor.event} ` : '' }
                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#323492' }}>
-                            { history.subject }
+                            { guarantor.subject }
                         </Text>
                     </Text>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 12 }}>{ history.time }</Text>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 12 }}>{ guarantor.time }</Text>
                 </View>
                 <TouchableOpacity onPress={() => setPressed(!pressed)}>
                     <Ionicons style={{ width: width/5 }} name="ellipsis-vertical" size={20} color="#ADADAD" />

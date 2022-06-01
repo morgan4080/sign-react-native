@@ -6,9 +6,7 @@
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import UserProfile from "./screens/User/UserProfile";
-import LoanProduct from "./screens/Loans/LoanProduct";
-import {FavouriteGuarantors} from "./screens/Guarantorship/FavouriteGuarantors";
+import WitnessStatus from "./screens/Guarantorship/WitnessStatus";
 
 declare global {
   namespace ReactNavigation {
@@ -33,6 +31,10 @@ export type RootStackParamList = {
   Forgot: NavigatorScreenParams<RootTabParamList> | undefined;
   ProfileMain: NavigatorScreenParams<RootTabParamList> | undefined;
   GuarantorshipRequests: NavigatorScreenParams<RootTabParamList> | undefined;
+  WitnessRequests: NavigatorScreenParams<RootTabParamList> | undefined;
+  GuarantorshipStatus: NavigatorScreenParams<RootTabParamList> | undefined;
+  WitnessStatus: NavigatorScreenParams<RootTabParamList> | undefined;
+  SignDocumentRequest: NavigatorScreenParams<RootTabParamList> | undefined;
   FavouriteGuarantors: NavigatorScreenParams<RootTabParamList> | undefined;
   VerifyOTP: NavigatorScreenParams<RootTabParamList> | undefined;
 };

@@ -183,34 +183,34 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                 <Text allowFontScaling={false} style={styles.subtitle}>Loan Request to <Text allowFontScaling={false} style={{color: '#323492', textDecorationStyle: 'dotted', textDecorationLine: 'underline'}}>{ `${user?.companyName}` }</Text></Text>
                                 <View style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 50, paddingHorizontal: 10}}>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%' }}>Loan Type:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanProduct.name}</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%' }}>Loan Type:</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanProduct.name}</Text>
                                     </View>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%' }}>Months:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanDetails.desiredPeriod}</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%' }}>Months:</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanDetails.desiredPeriod}</Text>
                                     </View>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%' }}>Amount:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanDetails.desiredAmount}</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%' }}>Amount:</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanDetails.desiredAmount}</Text>
                                     </View>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%' }}>Guarantors:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.guarantors.length}</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%' }}>Guarantors:</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.guarantors.length}</Text>
                                     </View>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%' }}>Witness:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.witnesses.length}</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%' }}>Witness:</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.witnesses.length}</Text>
                                     </View>
                                 </View>
                                 <View style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 50, paddingHorizontal: 10}}>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 18, marginBottom: 12, width: '50%' }}>Category:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 12, width: '50%', textAlign: 'right'  }}>{route.params?.category.name}</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 12, width: '50%' }}>Category:</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 12, width: '50%', textAlign: 'right'  }}>{route.params?.category.name}</Text>
                                     </View>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 18, marginBottom: 12, width: '50%' }}>Purpose:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 18, marginBottom: 12, width: '50%', textAlign: 'right'  }}>{
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 12, width: '50%' }}>Purpose:</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 12, width: '50%', textAlign: 'right'  }}>{
                                             route.params?.category.options.map((op: any) => {
                                                 if (op.selected) {
                                                     let subs = op.options.map((o: any) => {
@@ -255,18 +255,18 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#323492',
         fontFamily: 'Poppins_700Bold',
-        fontSize: 25,
+        fontSize: 22,
         marginTop: 22,
     },
     subtitle: {
         textAlign: 'center',
         color: '#747474',
         fontFamily: 'Poppins_400Regular',
-        fontSize: 18,
+        fontSize: 15,
         marginTop: 2,
     },
     buttonText: {
-        fontSize: 20,
+        fontSize: 18,
         marginLeft: 5,
         textAlign: 'center',
         color: '#FFFFFF',

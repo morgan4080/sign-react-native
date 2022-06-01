@@ -8,7 +8,7 @@ import {
     Image,
     ScrollView,
     TextInput,
-    Dimensions, SafeAreaView
+    Dimensions, SafeAreaView, NativeModules
 } from 'react-native';
 import AppLoading from 'expo-app-loading';
 
@@ -37,6 +37,7 @@ type FormData = {
 export default function Login({ navigation }: NavigationProps, svgProps: SvgProps) {
     const { isJWT, isLoggedIn, loading } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
+    const CSTM = NativeModules.CSTM;
 
     const dispatch : AppDispatch = useDispatch();
 
@@ -104,13 +105,18 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
             try {
                 const { type, error }: any = await dispatch(loginUser(payload))
                 if (type === 'loginUser/rejected' && error) {
-                    setError('phoneNumber', {type: 'custom', message: error.message})
+                    if (error.message === "Network request failed") {
+                        CSTM.showToast(error.message);
+                    } else {
+                        setError('phoneNumber', {type: 'custom', message: error.message});
+                    }
                 }
                 if (type === 'loginUser/fulfilled') {
-                    // console.log('login successful')
+                    CSTM.showToast("Login Successful");
                 }
             } catch (e: any) {
                 // console.log("login error", e)
+                console.log('errorssss', e);
             }
         }
     };

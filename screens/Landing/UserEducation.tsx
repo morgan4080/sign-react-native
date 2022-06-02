@@ -1,22 +1,18 @@
 import * as React from 'react';
-import {useRef} from "react";
 import {
     Text,
     View,
     StyleSheet,
     Image,
     SafeAreaView,
-    Button,
     TouchableOpacity,
     StatusBar,
     Dimensions,
-    Animated,
     ScrollView, TouchableHighlight
 } from 'react-native';
 import AppLoading from 'expo-app-loading';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import {Ionicons} from "@expo/vector-icons";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -35,7 +31,7 @@ export default function UserEducation({navigation}: NavigationProps) {
 
     if (fontsLoaded) {
         return (
-            <SafeAreaView  style={{ flex: 1, paddingTop: StatusBar.currentHeight,backgroundColor: '#ffffff' }}>
+            <SafeAreaView  style={{ flex: 1, paddingTop: StatusBar.currentHeight,backgroundColor: 'rgb(255,255,255)' }}>
                 <ScrollView snapToInterval={width} decelerationRate="fast" style={styles.container} horizontal>
                     <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", }}>
                         <Image

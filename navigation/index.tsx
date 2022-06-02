@@ -49,14 +49,22 @@ import GuarantorshipStatus from "../screens/Guarantorship/GuarantorshipStatus";
 import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";
 import WitnessRequests from "../screens/Guarantorship/WitnessRequests";
 import WitnessStatus from "../screens/Guarantorship/WitnessStatus";
+import { TransitionPresets } from '@react-navigation/stack';
 
 const { width, height } = Dimensions.get("window");
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
+    const MyTheme = {
+        ...DefaultTheme,
+        colors: {
+            ...DefaultTheme.colors,
+            primary: 'rgb(255, 45, 85)',
+        },
+    };
   return (
     <NavigationContainer
       linking={LinkingConfiguration}
-      theme={colorScheme === 'dark' ? DefaultTheme : DefaultTheme}>
+      theme={MyTheme}>
       <RootNavigator />
     </NavigationContainer>
   );
@@ -81,7 +89,6 @@ function RootNavigator() {
     });
   return (
     <Stack.Navigator initialRouteName="GetStarted">
-      {/*<Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />*/}
       <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
       <Stack.Screen name="UserEducation" component={UserEducation} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />

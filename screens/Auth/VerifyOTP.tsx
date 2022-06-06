@@ -162,7 +162,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 
     if (isLoggedIn && fontsLoaded) {
         return(
-            <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#323492', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+            <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#323492' }}>
                 <ScrollView ref={scrollViewRef} contentContainerStyle={styles.container}>
                     <View>
                         <Text allowFontScaling={false} style={styles.titleText}>Verify account</Text>

@@ -46,55 +46,15 @@ export default function History ({ navigation }: NavigationProps) {
         Poppins_300Light
     });
 
-    const accountHistory = [
-        {
+    /*{
             executor: 'Mary Ang’weno',
             subject: '',
             event: 'requested guarantorship',
             time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: 'You',
-            subject: 'Mauryn Mbithe',
-            event: 'requested guarantorship from',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: '',
-            subject: '',
-            event: 'Your loan was successfully processed',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: '',
-            subject: '',
-            event: 'You setted this loan',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: 'Mary Ang’weno',
-            subject: '',
-            event: 'requested guarantorship',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: 'You',
-            subject: 'Mauryn Mbithe',
-            event: 'requested guarantorship from',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: '',
-            subject: '',
-            event: 'Your loan was successfully processed',
-            time: new Date().toLocaleTimeString()
-        },
-        {
-            executor: '',
-            subject: '',
-            event: 'You setted this loan',
-            time: new Date().toLocaleTimeString()
-        }
+        }*/
+
+    const accountHistory: {executor: string, subject: string, event: string, time: string}[] = [
+
     ]
 
     if (fontsLoaded && !loading) {
@@ -119,9 +79,12 @@ export default function History ({ navigation }: NavigationProps) {
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50  }}>
                                 <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_700Bold', fontSize: 20, marginTop: 30 }}>My History</Text>
                                 {
-                                    accountHistory && accountHistory.map((history, i) => (
+                                    accountHistory.map((history, i) => (
                                         <HistoryTile key={i} history={history}  />
                                     ))
+                                }
+                                {
+                                    accountHistory.length === 0 && <View><Text style={{fontFamily: 'Poppins_600SemiBold', fontSize: 16}}>Coming Soon</Text></View>
                                 }
                             </ScrollView>
 

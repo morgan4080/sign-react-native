@@ -7,6 +7,7 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import WitnessStatus from "./screens/Guarantorship/WitnessStatus";
+import pinLogin from "./screens/Auth/PinLogin";
 
 declare global {
   namespace ReactNavigation {
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   LoanConfirmation: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanRequest: NavigatorScreenParams<RootTabParamList> | undefined;
   Login: NavigatorScreenParams<RootTabParamList> | undefined;
+  pinLogin: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanPurpose: NavigatorScreenParams<RootTabParamList> | undefined;
   Forgot: NavigatorScreenParams<RootTabParamList> | undefined;
   ProfileMain: NavigatorScreenParams<RootTabParamList> | undefined;

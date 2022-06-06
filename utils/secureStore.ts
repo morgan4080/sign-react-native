@@ -14,6 +14,6 @@ export async function getSecureKey(key: string) {
     if (result) {
         return result
     } else {
-        return false
+        return undefined
     }
 }

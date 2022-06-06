@@ -366,7 +366,7 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
 
             if (response.status === 200) {
                 const data = await response.json();
-                const result: any = await saveKeys(data)
+                const result: any = await saveKeys({...data, phoneNumber})
                 resolve(result)
             }
         } catch (e: any) {
@@ -391,9 +391,10 @@ export const setLoading = createAsyncThunk('setLoading', async (loading: boolean
     return Promise.resolve(loading)
 })
 
-const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token }: any) => {
-    await saveSecureKey('jwt', access_token)
-    await saveSecureKey('jwtRefresh', refresh_token)
+const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token, phoneNumber }: any) => {
+    await saveSecureKey('jwt', access_token);
+    await saveSecureKey('jwtRefresh', refresh_token);
+    await saveSecureKey('phoneNumber', phoneNumber);
     return Promise.resolve(true)
 }
 

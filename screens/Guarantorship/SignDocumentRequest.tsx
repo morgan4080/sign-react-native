@@ -16,6 +16,7 @@ import {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchLoanRequest, storeState} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
+import {toMoney} from "../User/Account";
 
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
@@ -47,7 +48,7 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
         <View style={{flex: 1, alignItems: 'center', position: 'relative'}}>
             <SafeAreaView style={{ flex: 1, width, height: 11/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                 <ScrollView contentContainerStyle={{ display: 'flex', flexDirection: 'column', marginTop: 20, paddingHorizontal: 40, paddingBottom: 100 }}>
-                    <Text allowFontScaling={false} style={styles.headTitle}>Your {route.params?.witness ? 'Witness' : 'Guarantorship'} ({loanRequest?.loanRequestNumber}) of KES {loanRequest?.loanAmount} has been confirmed.</Text>
+                    <Text allowFontScaling={false} style={styles.headTitle}>Your {route.params?.witness ? 'Witness' : 'Guarantorship'} ({loanRequest?.loanRequestNumber}) of KES {loanRequest? toMoney(loanRequest.loanAmount) : false } has been confirmed.</Text>
                     <Text allowFontScaling={false} style={styles.subtitle}>Proceed below to sign your form</Text>
                     <Image
                         style={styles.formPreview}
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#323492',
         fontFamily: 'Poppins_700Bold',
-        fontSize: 22,
+        fontSize: 20,
         marginTop: 22,
     },
     subtitle: {

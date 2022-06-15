@@ -25,6 +25,7 @@ import * as React from "react";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
 import {storeState} from "../../stores/auth/authSlice";
+import {toMoney} from "../User/Account";
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
 
@@ -38,18 +39,18 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#323492',
         fontFamily: 'Poppins_700Bold',
-        fontSize: 25,
+        fontSize: 22,
         marginTop: 22,
     },
     subtitle: {
         textAlign: 'center',
         color: '#747474',
         fontFamily: 'Poppins_400Regular',
-        fontSize: 18,
+        fontSize: 15,
         marginTop: 2,
     },
     buttonText: {
-        fontSize: 20,
+        fontSize: 15,
         marginLeft: 5,
         textAlign: 'center',
         color: '#FFFFFF',
@@ -102,7 +103,7 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
                     </View>
                     <SafeAreaView style={{ flex: 1, width, height: 11/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                         <ScrollView contentContainerStyle={{ display: 'flex', flexDirection: 'column', marginTop: 20, paddingHorizontal: 40, paddingBottom: 100 }}>
-                            <Text allowFontScaling={false} style={styles.headTitle}>Your Loan ({loanRequest?.loanRequestNumber}) of KES {loanRequest?.loanAmount} has been confirmed.</Text>
+                            <Text allowFontScaling={false} style={styles.headTitle}>Your Loan ({loanRequest?.loanRequestNumber}) of KES {loanRequest ? toMoney(loanRequest.loanAmount) : 0 } has been confirmed.</Text>
                             <Text allowFontScaling={false} style={styles.subtitle}>Proceed below to sign your form</Text>
                             <Image
                                 style={styles.formPreview}

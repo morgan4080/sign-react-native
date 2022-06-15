@@ -101,7 +101,10 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                     <View style={{ display: 'flex', flexDirection: 'row'}}>
                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 13, maxWidth: 200 }}>{contact.name}</Text>
                         {contact.memberNumber &&
-                            <Octicons style={{paddingLeft: 5}} name="verified" size={12} color="#336DFFFF" />
+                            <View style={{ display: 'flex', flexDirection: 'row'}}>
+                                <Octicons style={{paddingLeft: 5}} name="verified" size={12} color="#336DFFFF" />
+                                <Text style={{color: '#cccccc', fontSize: 10}}>{contact.memberNumber}</Text>
+                            </View>
                         }
                     </View>
                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 13 }}>{contact.phone}</Text>

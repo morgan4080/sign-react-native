@@ -130,7 +130,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: height/2 }}>
                             <View style={{ position: 'absolute', left: width/4, zIndex: 2 }}>
-                                <TouchableOpacity style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginTop: -30 }}>
+                                <TouchableOpacity onPress={() => navigation.navigate('Account')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginTop: -30 }}>
                                     <Text allowFontScaling={false} style={styles.buttonText}>View balances</Text>
                                 </TouchableOpacity>
                             </View>

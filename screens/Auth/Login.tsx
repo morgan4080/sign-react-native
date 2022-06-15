@@ -239,6 +239,7 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
     }
 }
 
+
 const styles = StyleSheet.create({
     container: {
         display: 'flex',

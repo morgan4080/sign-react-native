@@ -100,7 +100,7 @@ function RootNavigator() {
             headerStyle: {
                 backgroundColor: 'rgba(50,52,146,0.12)',
             },
-            headerTintColor: '#323492',
+            headerTintColor: '#489AAB',
             headerShadowVisible: false
         }}/>
       </Stack.Group>
@@ -119,7 +119,7 @@ function RootNavigator() {
           headerStyle: {
               backgroundColor: 'rgba(204,204,204,0.28)',
           },
-          headerTintColor: '#323492',
+          headerTintColor: '#489AAB',
           headerTitleStyle: {
               fontSize: 20,
               fontFamily: 'Poppins_600SemiBold'
@@ -132,7 +132,7 @@ function RootNavigator() {
           headerStyle: {
               backgroundColor: 'rgba(204,204,204,0.28)',
           },
-          headerTintColor: '#323492',
+          headerTintColor: '#489AAB',
           headerTitleStyle: {
               fontSize: 20,
               fontFamily: 'Poppins_600SemiBold'
@@ -145,7 +145,7 @@ function RootNavigator() {
           headerStyle: {
               backgroundColor: 'rgba(204,204,204,0.28)',
           },
-          headerTintColor: '#323492',
+          headerTintColor: '#489AAB',
           headerTitleStyle: {
               fontSize: 20,
               fontFamily: 'Poppins_600SemiBold'
@@ -158,7 +158,7 @@ function RootNavigator() {
           headerStyle: {
               backgroundColor: 'rgba(204,204,204,0.28)',
           },
-          headerTintColor: '#323492',
+          headerTintColor: '#489AAB',
           headerTitleStyle: {
               fontSize: 20,
               fontFamily: 'Poppins_600SemiBold'
@@ -171,7 +171,7 @@ function RootNavigator() {
           headerStyle: {
               backgroundColor: 'rgba(204,204,204,0.28)',
           },
-          headerTintColor: '#323492',
+          headerTintColor: '#489AAB',
           headerTitleStyle: {
               fontSize: 20,
               fontFamily: 'Poppins_600SemiBold'
@@ -184,7 +184,7 @@ function RootNavigator() {
           headerStyle: {
               backgroundColor: 'rgba(204,204,204,0.28)',
           },
-          headerTintColor: '#323492',
+          headerTintColor: '#489AAB',
           headerTitleStyle: {
               fontSize: 20,
               fontFamily: 'Poppins_600SemiBold'

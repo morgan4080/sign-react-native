@@ -85,7 +85,7 @@ const FavouriteGuarantors = ({ navigation }: NavigationProps) => {
                                                     <Ionicons name="person-circle" size={40} color="#CCCCCC" />
                                                 </View>
                                                 <View style={{ width: width * 3/5 }}>
-                                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#323492', fontSize: 14, maxWidth: 250 }}>
+                                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#489AAB', fontSize: 14, maxWidth: 250 }}>
                                                         { guarantor?.fullName }
                                                     </Text>
                                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>

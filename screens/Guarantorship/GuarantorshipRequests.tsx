@@ -34,7 +34,7 @@ type NavigationProps = NativeStackScreenProps<any>
 const { width, height } = Dimensions.get("window");
 
 export default function GuarantorshipRequests ({ navigation }: NavigationProps) {
-    const { loading, member, user } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, user, guarantorshipRequests } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
     type accountHistoryType = {refId: string, executor: string, subject: string, event: string, time: string}
 
@@ -42,35 +42,6 @@ export default function GuarantorshipRequests ({ navigation }: NavigationProps) 
     const [request, setRequest] = useState<accountHistoryType | null>()
 
     const dispatch : AppDispatch = useDispatch();
-
-    type GuarantorshipRequestType = {
-        applicant: {firstName: string, lastName: string, refId: string},
-        committedAmount: string,
-        firstName: string,
-        isActive: string,
-        lastName: string,
-        loanRequest: {amount: number, loanNumber: string, refId: string},
-        memberNumber: string,
-        memberRefId: string,
-        refId: string
-    }
-
-
-    const [guarantorshipRequests, setGuarantorshipRequests] = useState<GuarantorshipRequestType[]>([]);
-
-    useEffect(() => {
-        let fetching = true;
-
-        if (fetching) {
-            (async () => {
-                await dispatch(fetchGuarantorshipRequests({ memberRefId: member?.refId, setGuarantorshipRequests}))
-            })()
-        }
-
-        return () => {
-            fetching = false;
-        };
-    }, []);
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -136,12 +107,12 @@ export default function GuarantorshipRequests ({ navigation }: NavigationProps) 
                             <MaterialCommunityIcons name="account" color="#FFFFFF" size={50}/>
                         </View>
                         <View>
-                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#323492', fontSize: 20, textAlign: 'center', marginTop: (height/1.5)/30 }}>{request?.executor}</Text>
-                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#323492', fontSize: 12, textAlign: 'center' }}>{ `${user?.companyName}` }</Text>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#489AAB', fontSize: 20, textAlign: 'center', marginTop: (height/1.5)/30 }}>{request?.executor}</Text>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#489AAB', fontSize: 12, textAlign: 'center' }}>{ `${user?.companyName}` }</Text>
                             <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12, maxWidth: 250, textAlign: 'center', marginTop: (height/1.5)/20 }}>
                                 Kindly accept my request to add you as a guarantor  for this Loan Product valued :
                             </Text>
-                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#323492', fontSize: 20, textAlign: 'center', marginTop: (height/1.5)/20 }}>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#489AAB', fontSize: 20, textAlign: 'center', marginTop: (height/1.5)/20 }}>
                                 KES { request?.subject }
                             </Text>
                         </View>
@@ -180,7 +151,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 10,
-        borderColor: '#323492',
+        borderColor: '#489AAB',
         borderWidth: 1,
         borderRadius: 100,
         backgroundColor: '#EDEDED',

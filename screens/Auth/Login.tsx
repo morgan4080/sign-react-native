@@ -97,9 +97,25 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
         if (value) {
             // make redux action to login
             // once logged in move to next page
+
+            const organisations = [
+                {
+                    name: 'Imarisha Sacco',
+                    tenantId: 't72767',
+                    clientSecret: '238c4949-4c0a-4ef2-a3de-fa39bae8d9ce',
+                },
+                {
+                    name: 'Wanaanga Sacco',
+                    tenantId: 't74411',
+                    clientSecret: '25dd3083-d494-4af5-89a1-104fa02ef782',
+                }
+            ];
+
             const payload: loginUserType = {
                 phoneNumber: value.phoneNumber,
                 pin: value.pin,
+                tenant: organisations[1].tenantId,
+                clientSecret: organisations[1].clientSecret,
             }
 
             try {
@@ -110,9 +126,6 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                     } else {
                         setError('phoneNumber', {type: 'custom', message: error.message});
                     }
-                }
-                if (type === 'loginUser/fulfilled') {
-                    CSTM.showToast("Login Successful");
                 }
             } catch (e: any) {
                 // console.log("login error", e)
@@ -129,7 +142,7 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                             <Image
                                 style={styles.landingLogo}
-                                source={require('../../assets/images/Logo.png')}
+                                source={require('../../assets/images/DarkLogo.png')}
                             />
                         </View>
                         <View style={styles.container2}>
@@ -187,7 +200,7 @@ export default function Login({ navigation }: NavigationProps, svgProps: SvgProp
                         </View>
                     </ScrollView>
                 </SafeAreaView>
-                <View style={{ backgroundColor: '#323492', width, display: 'flex', flexDirection: 'row', justifyContent: 'center', position: 'relative' }}>
+                <View style={{ backgroundColor: '#489AAB', width, display: 'flex', flexDirection: 'row', justifyContent: 'center', position: 'relative' }}>
                     <Svg
                         style={{ position: 'absolute', top: 0 }}
                         width={429}
@@ -252,13 +265,13 @@ const styles = StyleSheet.create({
     titleText: {
         fontSize: 20,
         textAlign: 'center',
-        color: '#323492',
+        color: '#489AAB',
         fontFamily: 'Poppins_600SemiBold',
         paddingTop: 30,
         marginBottom: 10,
     },
     subTitleText: {
-        fontSize: 14,
+        fontSize: 13,
         marginHorizontal: 60,
         textAlign: 'center',
         color: '#8d8d8d',
@@ -268,14 +281,14 @@ const styles = StyleSheet.create({
     linkText: {
         fontSize: 14,
         textDecorationLine: 'underline',
-        color: '#323492',
+        color: '#489AAB',
         alignSelf: 'flex-start',
         fontFamily: 'Poppins_400Regular',
         marginBottom: 10,
         marginTop: 10,
     },
     landingLogo: {
-        marginTop: 80,
+        marginTop: height/9,
     },
     input: {
         borderWidth: 1,

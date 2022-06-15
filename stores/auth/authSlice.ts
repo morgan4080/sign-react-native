@@ -12,6 +12,7 @@ export type loginUserType = {
     phoneNumber: number,
     pin: number,
     tenant?: string
+    clientSecret?: string
 }
 
 type CategoryType = {code: string, name: string, options: {code: string, name: string, options: {code: string, name: string,selected: boolean}[], selected: boolean}[]}
@@ -118,6 +119,27 @@ interface LoanProduct {
     requiredGuarantors: number;
 }
 
+type WitnessRequestType = {
+    memberRefId: string,
+    firstName: string,
+    lastName: string,
+    witnessAcceptanceStatus: string,
+    applicant: {firstName: string, lastName: string, refId: string, memberNo: string},
+    loanRequest: {refId: string, loanNumber: string, amount: string}
+}
+
+type GuarantorshipRequestType = {
+    applicant: {firstName: string, lastName: string, refId: string},
+    committedAmount: string,
+    firstName: string,
+    isActive: string,
+    lastName: string,
+    loanRequest: {amount: number, loanNumber: string, refId: string},
+    memberNumber: string,
+    memberRefId: string,
+    refId: string
+}
+
 export type storeState = {
     user: AuthData | null;
     member: MemberData | null;
@@ -131,7 +153,9 @@ export type storeState = {
     otpSent: boolean;
     contacts: {contact_id: number, name: string, phone: string}[] | null;
     loanCategories: CategoryType[] | null,
-    appInitialized: boolean
+    appInitialized: boolean,
+    witnessRequests: WitnessRequestType[] | []
+    guarantorshipRequests: GuarantorshipRequestType[] | []
 }
 
 const parseJwt = (token: string) => {
@@ -334,16 +358,17 @@ export const checkForJWT = createAsyncThunk('checkForJWT', async () => {
     return await getSecureKey('jwt')
 })
 
-export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin, tenant = 't72767' }: Pick<loginUserType, "phoneNumber" | "pin" | "tenant">) => {
+export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin, tenant, clientSecret }: Pick<loginUserType, "phoneNumber" | "pin" | "tenant" | "clientSecret">) => {
     return new Promise(async (resolve, reject) => {
         const details: any = {
             phoneNumber: phoneNumber,
             ussdpin: pin,
             client_id: 'direct-access',
-            client_secret: '238c4949-4c0a-4ef2-a3de-fa39bae8d9ce',
+            client_secret: clientSecret,
             grant_type: 'password',
             scope: 'openid'
         }
+
         let formBody: any = [];
         for (const property in details) {
             let encodedKey = encodeURIComponent(property);
@@ -358,14 +383,16 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
                     'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
                 },
                 body: formBody
-            })
+            });
 
             if (response.status === 401) {
-                reject("Incorrect phone number or password")
+                console.log("Incorrect phone number or password");
+                reject("Incorrect phone number or password");
             }
 
             if (response.status === 200) {
                 const data = await response.json();
+                console.log("login data", data);
                 const result: any = await saveKeys({...data, phoneNumber})
                 resolve(result)
             }
@@ -395,7 +422,7 @@ const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_
     await saveSecureKey('jwt', access_token);
     await saveSecureKey('jwtRefresh', refresh_token);
     await saveSecureKey('phoneNumber', phoneNumber);
-    return Promise.resolve(true)
+    return Promise.resolve(true);
 }
 
 export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( payload: any) => {
@@ -430,7 +457,7 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
     })
 });
 
-export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRequests', ({memberRefId, setGuarantorshipRequests}: {memberRefId: string | undefined, setGuarantorshipRequests: any}) => {
+export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRequests', ({memberRefId}: {memberRefId: string | undefined }) => {
     return new Promise(async (resolve, reject) => {
         const key = await getSecureKey('jwt');
         if (!memberRefId) {
@@ -450,7 +477,6 @@ export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRe
         if (result.status === 200) {
             const data = await result.json();
             console.log('all guarantorship requests', data);
-            setGuarantorshipRequests(data);
             resolve(data);
         } else {
             reject(`is not a member of this organisation`);
@@ -531,6 +557,7 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
                    'Authorization': `Bearer ${key}`,
                }
            })
+           console.log(key);
            if (response.status === 200) {
                const data = await response.json()
 
@@ -551,7 +578,11 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
                    ) {
                        buffer = chars.indexOf(buffer);
                    }
-                   const { phoneNumber }: { phoneNumber?: string } = JSON.parse(output)
+                   const { phoneNumber }: { phoneNumber?: string } = JSON.parse(output);
+                   console.log("user data", {
+                       ...data,
+                       phoneNumber
+                   });
                    resolve({
                        ...data,
                        phoneNumber
@@ -581,10 +612,13 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
                headers: myHeaders,
                redirect: 'follow'
            });
+           console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber}`);
            if (response.status === 200) {
                const data = await response.json();
+               console.log("Fetch Member Data", data);
                resolve(data);
            } else {
+               console.log("Fetch Member Failed");
                reject("Fetch Member Failed");
            }
        } catch (e: any) {
@@ -593,7 +627,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
     })
 })
 
-export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', async ({memberRefId, setWitnessRequests}: {memberRefId: string | undefined, setWitnessRequests: any }) => {
+export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', async ({memberRefId}: {memberRefId: string | undefined }) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/witness-request?acceptanceStatus=ANY&memberRefId=${memberRefId}`
 
     return new Promise(async (resolve, reject) => {
@@ -613,7 +647,6 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
             if (response.status === 200) {
                 const data = await response.json();
                 console.log("witness data", data);
-                setWitnessRequests(data);
                 resolve(data);
             } else {
                 reject("Witness Requests not found!");
@@ -856,6 +889,8 @@ const authSlice = createSlice({
         contacts: null,
         loanCategories: null,
         appInitialized: false,
+        witnessRequests: [],
+        guarantorshipRequests: [],
     },
     reducers: {
         createLoanProduct(state, action) {
@@ -922,6 +957,8 @@ const authSlice = createSlice({
         builder.addCase(authenticate.rejected, state => {
             state.isJWT = false
             state.loading = false
+            state.isLoggedIn = false
+            state.isJWT = false
         })
 
         builder.addCase(fetchMember.pending, state => {
@@ -1039,7 +1076,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(fetchGuarantorshipRequests.fulfilled, (state, action: any) => {
-            // state.contacts = action.payload
+            state.guarantorshipRequests = action.payload
             state.loading = false
         })
         builder.addCase(fetchGuarantorshipRequests.rejected, (state, action) => {
@@ -1050,7 +1087,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(fetchWitnessRequests.fulfilled, (state, action: any) => {
-            // state.contacts = action.payload
+            state.witnessRequests = action.payload
             state.loading = false
         })
         builder.addCase(fetchWitnessRequests.rejected, (state, action) => {

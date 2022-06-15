@@ -89,8 +89,8 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                             <TouchableOpacity onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
                                 <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                             </TouchableOpacity>
-                            <AntDesign name="gift" size={70} color="#323492" />
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginTop: 30 }}>Select Loan Product</Text>
+                            <AntDesign name="gift" size={70} color="#489AAB" />
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginTop: 30 }}>Select Loan Product</Text>
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 9/12 * height }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
         elevation: 2, // Android
     },
     progress: {
-        backgroundColor: '#323492',
+        backgroundColor: '#489AAB',
         borderTopLeftRadius: 25,
         borderBottomRightRadius: 25,
         borderBottomLeftRadius: 25,

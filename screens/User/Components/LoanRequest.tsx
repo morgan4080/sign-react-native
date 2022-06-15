@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 25,
     },
     progress: {
-        backgroundColor: '#323492',
+        backgroundColor: '#489AAB',
         borderTopLeftRadius: 25,
         borderBottomRightRadius: 25,
         borderBottomLeftRadius: 25,

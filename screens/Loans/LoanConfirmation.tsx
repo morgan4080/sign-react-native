@@ -180,7 +180,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                         <SafeAreaView style={{ flex: 1, width, height: 11/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', flexDirection: 'column', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
                                 <Text allowFontScaling={false} style={styles.headTitle}>Confirm</Text>
-                                <Text allowFontScaling={false} style={styles.subtitle}>Loan Request to <Text allowFontScaling={false} style={{color: '#323492', textDecorationStyle: 'dotted', textDecorationLine: 'underline'}}>{ `${user?.companyName}` }</Text></Text>
+                                <Text allowFontScaling={false} style={styles.subtitle}>Loan Request to <Text allowFontScaling={false} style={{color: '#489AAB', textDecorationStyle: 'dotted', textDecorationLine: 'underline'}}>{ `${user?.companyName}` }</Text></Text>
                                 <View style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 50, paddingHorizontal: 10}}>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%' }}>Loan Type:</Text>
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     },
     headTitle: {
         textAlign: 'center',
-        color: '#323492',
+        color: '#489AAB',
         fontFamily: 'Poppins_700Bold',
         fontSize: 22,
         marginTop: 22,

@@ -15,11 +15,11 @@ const GuarantorshipStatus = ({ navigation, route }: NavigationProps) => {
             <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25 }}>
                 <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', justifyContent: 'center', width, height: height/1.5}}>
                     <View style={{display: 'flex', alignItems: 'center'}}>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#323492', fontSize: 20, maxWidth: 250, textAlign: 'center', marginTop: (height/1.5)/30 }}>Guarantorship Request {route.params?.accepted ? 'Accepted' : 'Declined'}</Text>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#489AAB', fontSize: 20, maxWidth: 250, textAlign: 'center', marginTop: (height/1.5)/30 }}>Guarantorship Request {route.params?.accepted ? 'Accepted' : 'Declined'}</Text>
                         {route.params?.accepted && <MaterialIcons name="check-circle" size={150} color="#78E49D"/>}
                         {!route.params?.accepted && <MaterialIcons name="cancel" size={150} color="#FF927A"/>}
                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12, maxWidth: 250, textAlign: 'center', marginTop: (height/1.5)/20 }}>
-                            You have {route.params?.accepted ? 'agreed' : 'declined'} to take on Guarantorship resposnsibility for <Text style={{color: '#323492'}}>{request?.executor}</Text> for a loan amount <Text style={{color: '#323492'}}>{request?.subject}</Text>
+                            You have {route.params?.accepted ? 'agreed' : 'declined'} to take on Guarantorship resposnsibility for <Text style={{color: '#489AAB'}}>{request?.executor}</Text> for a loan amount <Text style={{color: '#489AAB'}}>{request?.subject}</Text>
                         </Text>
                     </View>
                 </ScrollView>

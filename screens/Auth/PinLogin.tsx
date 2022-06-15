@@ -56,7 +56,7 @@ const pinLogin = ({ navigation }: NavigationProps) => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#323492' }}>
+        <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#489AAB' }}>
             <ScrollView contentContainerStyle={styles.container}>
 
             </ScrollView>

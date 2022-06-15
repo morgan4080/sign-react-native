@@ -69,11 +69,11 @@ export default function HistoryTile ({history}: propInterface) {
                 </View>
                 <View style={{ width: width * 3/5 }}>
                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12, maxWidth: 200 }}>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#323492' }}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#489AAB' }}>
                             { history.executor ? `${ history.executor } ` : '' }
                         </Text>
                         { history.event ? `${history.event} ` : '' }
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#323492' }}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#489AAB' }}>
                             { history.subject }
                         </Text>
                     </Text>

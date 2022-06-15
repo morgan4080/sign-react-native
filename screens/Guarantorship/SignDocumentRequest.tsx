@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     },
     headTitle: {
         textAlign: 'center',
-        color: '#323492',
+        color: '#489AAB',
         fontFamily: 'Poppins_700Bold',
         fontSize: 20,
         marginTop: 22,

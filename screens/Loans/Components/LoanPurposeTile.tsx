@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
         paddingTop: 30,
         paddingBottom: 10,
         marginTop: -15,
-        backgroundColor: '#323492',
+        backgroundColor: '#489AAB',
         borderBottomRightRadius: 25,
         borderBottomLeftRadius: 25,
         shadowColor: 'rgba(0,0,0, .4)', // IOS

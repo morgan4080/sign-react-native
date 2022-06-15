@@ -57,7 +57,7 @@ export default function ModalScreen() {
   } = useForm<FormData>({
     defaultValues: {
       fullName: member?.fullName,
-      phoneNumber: user?.phoneNumber,
+      phoneNumber: user?.phoneNumber ? user?.phoneNumber : user?.username,
       fingerPrint: false,
     }
   })
@@ -123,7 +123,7 @@ export default function ModalScreen() {
                 }}
                 render={( { field: { onChange, onBlur, value } }) => (
                     <Switch
-                        trackColor={{ false: "#767577", true: "#323492" }}
+                        trackColor={{ false: "#767577", true: "#489AAB" }}
                         thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
                         onValueChange={toggleSwitch}
                         value={isEnabled}
@@ -142,7 +142,7 @@ export default function ModalScreen() {
                 }}
                 render={( { field: { onChange, onBlur, value } }) => (
                     <Switch
-                        trackColor={{ false: "#767577", true: "#323492" }}
+                        trackColor={{ false: "#767577", true: "#489AAB" }}
                         thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
                         onValueChange={toggleSwitch}
                         value={isEnabled}
@@ -161,7 +161,7 @@ export default function ModalScreen() {
                 }}
                 render={( { field: { onChange, onBlur, value } }) => (
                     <Switch
-                        trackColor={{ false: "#767577", true: "#323492" }}
+                        trackColor={{ false: "#767577", true: "#489AAB" }}
                         thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
                         onValueChange={toggleSwitch}
                         value={isEnabled}
@@ -201,26 +201,26 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     paddingTop: 20,
-    color: '#323492',
+    color: '#489AAB',
     fontFamily: 'Poppins_600SemiBold'
   },
   titleText: {
     fontSize: 22,
     textAlign: 'center',
-    color: '#323492',
+    color: '#489AAB',
     fontFamily: 'Poppins_700Bold',
     marginTop: 20,
   },
   subTitleText: {
     fontSize: 14,
     textAlign: 'center',
-    color: '#323492',
+    color: '#489AAB',
     fontFamily: 'Poppins_400Regular',
   },
   organisationText: {
     fontSize: 14,
     textAlign: 'center',
-    color: '#323492',
+    color: '#489AAB',
     fontFamily: 'Poppins_600SemiBold',
   },
   input: {
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
-    borderColor: '#323492',
+    borderColor: '#489AAB',
     borderWidth: 2,
     borderRadius: 100,
     backgroundColor: '#EDEDED',

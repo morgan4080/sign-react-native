@@ -74,11 +74,11 @@ export default function GuarantorTiles ({guarantor, setPressed, pressed, setRequ
                 </View>
                 <View style={{ width: width * 3/5 }}>
                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12, maxWidth: 200 }}>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#323492' }}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#489AAB' }}>
                             { guarantor.executor ? `${ guarantor.executor } ` : '' }
                         </Text>
                         { guarantor.event ? `${guarantor.event} ` : '' }
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#323492' }}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', fontSize: 12, color: '#489AAB' }}>
                             { guarantor.subject }
                         </Text>
                     </Text>

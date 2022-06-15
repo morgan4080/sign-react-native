@@ -64,7 +64,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                     <Text allowFontScaling={false} style={styles.organisationText}>{ `${user?.companyName}` }</Text>
                     <SafeAreaView style={{ flex: 1, width: width-20, height: height/2 }}>
                         <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center', paddingBottom: 50 }}>
-                            <View style={{display: 'flex', width: width-50, borderRadius: 15, backgroundColor: '#323492', paddingHorizontal: 25, paddingVertical: 10, marginTop: 15}}>
+                            <View style={{display: 'flex', width: width-50, borderRadius: 15, backgroundColor: '#489AAB', paddingHorizontal: 25, paddingVertical: 10, marginTop: 15}}>
                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>Current Balance</Text>
                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_800ExtraBold', color: '#ffffff', fontSize: 22 }}>KES {member ? toMoney(`${member.availableAmount}`) : ``}</Text>
                                 <View style={{ backgroundColor: '#FFFFFF', width: '100%', height: 1 }}/>
@@ -79,7 +79,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                     </View>
                                 </View>
                             </View>
-                            <View style={{display: 'flex', width: width-50, borderRadius: 15, backgroundColor: '#323492', paddingHorizontal: 25, paddingVertical: 10, marginTop: 15}}>
+                            <View style={{display: 'flex', width: width-50, borderRadius: 15, backgroundColor: '#489AAB', paddingHorizontal: 25, paddingVertical: 10, marginTop: 15}}>
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, marginBottom: 20}}>
                                     <View>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>BALANCE</Text>
@@ -134,7 +134,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                             </View>
                                             <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#607D8B', fontSize: 7 }}>Statistics information</Text>
                                             <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 20}}>
-                                                <ProgressCircle size={100} thickness={5} showsText={true} unfilledColor='#4AB1C3' progress={0.12} color='#323492' borderColor='transparent'/>
+                                                <ProgressCircle size={100} thickness={5} showsText={true} unfilledColor='#4AB1C3' progress={0.12} color='#489AAB' borderColor='transparent'/>
                                             </View>
                                         </View>
                                     </View>
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 10,
-        borderColor: '#323492',
+        borderColor: '#489AAB',
         borderWidth: 2,
         borderRadius: 100,
         backgroundColor: '#EDEDED',
@@ -176,20 +176,20 @@ const styles = StyleSheet.create({
     titleText: {
         fontSize: 25,
         textAlign: 'center',
-        color: '#323492',
+        color: '#489AAB',
         fontFamily: 'Poppins_700Bold',
         marginTop: 20,
     },
     subTitleText: {
         fontSize: 15,
         textAlign: 'center',
-        color: '#323492',
+        color: '#489AAB',
         fontFamily: 'Poppins_400Regular',
     },
     organisationText: {
         fontSize: 15,
         textAlign: 'center',
-        color: '#323492',
+        color: '#489AAB',
         fontFamily: 'Poppins_600SemiBold',
     },
 });

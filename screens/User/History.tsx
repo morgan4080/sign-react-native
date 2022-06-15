@@ -77,7 +77,7 @@ export default function History ({ navigation }: NavigationProps) {
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 11/12 * height }}>
 
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50  }}>
-                                <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_700Bold', fontSize: 20, marginTop: 30 }}>My History</Text>
+                                <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_700Bold', fontSize: 20, marginTop: 30 }}>My History</Text>
                                 {
                                     accountHistory.map((history, i) => (
                                         <HistoryTile key={i} history={history}  />

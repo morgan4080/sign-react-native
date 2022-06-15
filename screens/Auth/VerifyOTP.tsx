@@ -11,7 +11,7 @@ import {
     Animated,
     Easing,
     Button,
-    Keyboard, Dimensions, SafeAreaView
+    Keyboard, Dimensions, SafeAreaView, NativeModules
 } from 'react-native';
 import AppLoading from 'expo-app-loading';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -69,6 +69,8 @@ export const RotateView = () => {
 
 export default function VerifyOTP({ navigation }: NavigationProps) {
 
+    const CSTM = NativeModules.CSTM;
+
     const { isLoggedIn, user, loading, otpSent } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
@@ -76,12 +78,23 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
     const dispatch : AppDispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(authenticate()).then(() => {
-            if (user && !otpSent) {
-                dispatch(sendOTP(user.phoneNumber))
-            }
-        })
+        let setupUser = true;
+
+        if (setupUser) {
+            (async () => {
+                const response = await dispatch(authenticate());
+
+                if (response.type === 'authenticate/rejected') {
+                    CSTM.showToast("500: Internal Server Error");
+                }
+
+                if (user && !otpSent) {
+                    dispatch(sendOTP(user.phoneNumber))
+                }
+            })()
+        }
         return (() => {
+            setupUser = false;
             Keyboard.removeAllListeners('keyboardDidShow');
         })
     }, []);
@@ -162,7 +175,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 
     if (isLoggedIn && fontsLoaded) {
         return(
-            <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#323492' }}>
+            <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#489AAB' }}>
                 <ScrollView ref={scrollViewRef} contentContainerStyle={styles.container}>
                     <View>
                         <Text allowFontScaling={false} style={styles.titleText}>Verify account</Text>

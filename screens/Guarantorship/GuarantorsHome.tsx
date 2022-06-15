@@ -349,7 +349,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         </TouchableOpacity>
 
                         <View style={{paddingHorizontal: 20, marginTop: 30}}>
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#323492', fontFamily: 'Poppins_600SemiBold', fontSize: 18 }}>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18 }}>
                                 Enter Guarantors ({route.params?.loanProduct.requiredGuarantors} Required)
                             </Text>
                             <Controller

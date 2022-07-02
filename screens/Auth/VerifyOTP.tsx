@@ -20,6 +20,7 @@ import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, 
 import {useEffect, useRef, useState} from "react";
 // import types
 import { storeState } from "../../stores/auth/authSlice"
+import {getSecureKey} from "../../utils/secureStore";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -88,7 +89,8 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                 if (response.type === 'authenticate/rejected') {
                     CSTM.showToast("500: Internal Server Error");
                 } else {
-                    const { type, error }: any  = await dispatch(sendOtp(user?.username));
+                    const phoneNumber = await getSecureKey('phoneNumber');
+                    const { type, error }: any  = await dispatch(sendOtp(phoneNumber));
                     if (type === "sendOtp/rejected") {
                         CSTM.showToast(error.message);
                     }

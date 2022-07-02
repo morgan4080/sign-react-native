@@ -10,9 +10,9 @@ export let db: WebSQLDatabase
 
 export type loginUserType = {
     phoneNumber: number,
-    pin: number,
-    tenant?: string
-    clientSecret?: string
+    pin: number | string,
+    tenant?: string,
+    clientSecret?: string,
 }
 
 type CategoryType = {code: string, name: string, options: {code: string, name: string, options: {code: string, name: string,selected: boolean}[], selected: boolean}[]}
@@ -140,6 +140,28 @@ type GuarantorshipRequestType = {
     refId: string
 }
 
+type TenantsType = {
+    "id": string,
+    "keycloakId": string,
+    "username": string,
+    "phoneNumber": string,
+    "email": string,
+    "firstName": string,
+    "lastName": string,
+    "tenantId": string,
+    "userType": string,
+    "pinStatus": string,
+    "invitationStatus": string,
+    "tenantName": string
+}
+
+type otpResponseType = {
+    "requestMapper": string,
+    "success": boolean,
+    "message": string,
+    "ttl": number
+}
+
 export type storeState = {
     user: AuthData | null;
     member: MemberData | null;
@@ -151,11 +173,15 @@ export type storeState = {
     loading: boolean;
     isJWT: boolean | string;
     otpSent: boolean;
+    optVerified: boolean;
     contacts: {contact_id: number, name: string, phone: string}[] | null;
     loanCategories: CategoryType[] | null,
     appInitialized: boolean,
     witnessRequests: WitnessRequestType[] | []
     guarantorshipRequests: GuarantorshipRequestType[] | []
+    tenants: TenantsType[] | []
+    selectedTenantId: string | null
+    otpResponse: otpResponseType | null
 }
 
 const parseJwt = (token: string) => {
@@ -386,13 +412,12 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
             });
 
             if (response.status === 401) {
-                console.log("Incorrect phone number or password");
+                // console.log("Incorrect phone number or password");
                 reject("Incorrect phone number or password");
             }
 
             if (response.status === 200) {
                 const data = await response.json();
-                console.log("login data", data);
                 const result: any = await saveKeys({...data, phoneNumber})
                 resolve(result)
             }
@@ -406,14 +431,6 @@ export const logoutUser = createAsyncThunk('logoutUser', async () => {
     return await deleteSecureKey('jwt')
 })
 
-export const sendOTP = createAsyncThunk('sendOTP', async (phoneNumber: string) => {
-    return Promise.resolve(true)
-})
-
-export const verifyOTP = createAsyncThunk('verifyOTP', async (OTP: string) => {
-    return Promise.resolve(true)
-})
-
 export const setLoading = createAsyncThunk('setLoading', async (loading: boolean) => {
     return Promise.resolve(loading)
 })
@@ -421,9 +438,76 @@ export const setLoading = createAsyncThunk('setLoading', async (loading: boolean
 const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token, phoneNumber }: any) => {
     await saveSecureKey('jwt', access_token);
     await saveSecureKey('jwtRefresh', refresh_token);
-    await saveSecureKey('phoneNumber', phoneNumber);
+    await saveSecureKey('phoneNumber', `${phoneNumber}`);
     return Promise.resolve(true);
 }
+
+export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
+    try {
+        const key = await getSecureKey('jwt');
+
+        if (!phoneNumber) {
+            return Promise.reject('User not available')
+        }
+
+        if (!key) {
+            return Promise.reject('You are not authenticated');
+        }
+
+        const myHeaders = new Headers();
+
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        myHeaders.append("Content-Type", 'application/json');
+        console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/send-otp/${phoneNumber}`);
+        const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/send-otp/${phoneNumber}`, {
+            method: 'POST',
+            headers: myHeaders
+        });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            console.log(data);
+            if (data.success) {
+                return Promise.resolve(data);
+            } else {
+                return Promise.reject(data.message);
+            }
+        } else {
+            return Promise.reject(`API error code: ${response.status}`);
+        }
+    } catch (e: any) {
+        return Promise.reject(e.message);
+    }
+})
+
+export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, OTP }: { requestMapper: string, OTP: string }) => {
+    try {
+        const key = await getSecureKey('jwt');
+
+        if (!key) {
+            return Promise.reject('You are not authenticated');
+        }
+
+        const myHeaders = new Headers();
+
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        myHeaders.append("Content-Type", 'application/json');
+
+        const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/validate-otp/${requestMapper}/${OTP}`, {
+            method: 'POST',
+            headers: myHeaders
+        });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            return Promise.resolve(data);
+        } else {
+            return Promise.reject(`API error code: ${response.status}`);
+        }
+    } catch (e: any) {
+        return Promise.reject(e.message);
+    }
+});
 
 export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( payload: any) => {
     return new Promise(async (resolve, reject) => {
@@ -546,7 +630,7 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
     return new Promise(async (resolve, reject) => {
        try {
            const key = await getSecureKey('jwt')
-           let phoneNumber
+
            if (!key) {
                reject("You are not authenticated")
            }
@@ -557,7 +641,6 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
                    'Authorization': `Bearer ${key}`,
                }
            })
-           console.log(key);
            if (response.status === 200) {
                const data = await response.json()
 
@@ -596,6 +679,32 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
            reject(e.message)
        }
     })
+})
+
+export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: string) => {
+    const myHeaders = new Headers();
+    myHeaders.append("api-key", `EqU.+vP\\_74Vu<'$jGxxfvwqN(z"h46Z2"*G=-ABs=rSDF&4.e`);
+    const url = `https://accounts.presta.co.ke/api/v1/users/tenants/${phoneNumber}`;
+    console.log(url)
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: myHeaders
+        });
+
+        if (response.status === 200) {
+            console.log("successful");
+            const data = await response.json()
+            return Promise.resolve(data)
+        } else {
+            console.log("Failure");
+            return Promise.reject("API response code: "+response.status)
+        }
+
+    } catch (e: any) {
+        console.log(e)
+        return Promise.reject(e)
+    }
 })
 
 export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: string) => {
@@ -884,6 +993,7 @@ const authSlice = createSlice({
         loading: false,
         isJWT: false,
         otpSent: false,
+        optVerified: false,
         loanRequests: null,
         loanRequest: null,
         contacts: null,
@@ -891,10 +1001,17 @@ const authSlice = createSlice({
         appInitialized: false,
         witnessRequests: [],
         guarantorshipRequests: [],
+        tenants: [],
+        selectedTenantId: null,
+        otpResponse: null,
     },
     reducers: {
         createLoanProduct(state, action) {
             state.loanProduct = action.payload
+            return state
+        },
+        setSelectedTenantId(state, action) {
+            state.selectedTenantId = action.payload
             return state
         }
     },
@@ -972,6 +1089,17 @@ const authSlice = createSlice({
             state.loading = false
         })
 
+        builder.addCase(getTenants.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(getTenants.fulfilled, (state, { payload }: Pick<TenantsType, any>) => {
+            state.tenants = payload
+            state.loading = false
+        })
+        builder.addCase(getTenants.rejected, state => {
+            state.loading = false
+        })
+
         builder.addCase(fetchLoanRequests.pending, state => {
             state.loading = true
         })
@@ -1002,17 +1130,6 @@ const authSlice = createSlice({
             state.loading = false
         })
         builder.addCase(fetchLoanProducts.rejected, state => {
-            state.loading = false
-        })
-
-        builder.addCase(sendOTP.pending, state => {
-            state.loading = true
-        })
-        builder.addCase(sendOTP.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
-            state.otpSent = true
-            state.loading = false
-        })
-        builder.addCase(sendOTP.rejected, state => {
             state.loading = false
         })
 
@@ -1117,6 +1234,32 @@ const authSlice = createSlice({
             state.loading = false
         })
 
+        builder.addCase(sendOtp.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(sendOtp.fulfilled, (state, action: any) => {
+            console.log("otp sent", action.payload)
+            state.otpResponse = action.payload
+            state.otpSent = true
+            state.loading = false
+        })
+        builder.addCase(sendOtp.rejected, (state, action) => {
+            state.loading = false
+            state.otpSent = false
+        })
+
+        builder.addCase(verifyOtp.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(verifyOtp.fulfilled, (state, action: any) => {
+            console.log("otp VERIFIED", action.payload)
+            state.optVerified = true
+            state.loading = false
+        })
+        builder.addCase(verifyOtp.rejected, (state, action) => {
+            state.loading = false
+        })
+
         builder.addCase(setLoading.fulfilled, (state, { payload }) => {
             state.loading = payload
         })
@@ -1126,6 +1269,6 @@ const authSlice = createSlice({
 // Extract the action creators object and the reducer
 const { actions, reducer } = authSlice
 // Extract and export each action creator by name
-export const { createLoanProduct } = actions
+export const { createLoanProduct, setSelectedTenantId } = actions
 // Export the reducer, either as a default or named export
 export default reducer

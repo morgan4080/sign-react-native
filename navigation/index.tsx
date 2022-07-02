@@ -21,6 +21,10 @@ import UserEducation from "../screens/Landing/UserEducation";
 import Login from "../screens/Auth/Login";
 import Forgot from "../screens/Auth/Forgot";
 import VerifyOTP from "../screens/Auth/VerifyOTP";
+import PinLogin from "../screens/Auth/PinLogin";
+import SetPin from "../screens/Auth/SetPin";
+import GetTenants from "../screens/Tenants/GetTenants";
+import ShowTenants from "../screens/Tenants/ShowTenants";
 import UserProfile from "../screens/User/UserProfile";
 import LoanRequests from "../screens/User/LoanRequests";
 import GuarantorshipRequests from "../screens/Guarantorship/GuarantorshipRequests";
@@ -49,7 +53,7 @@ import GuarantorshipStatus from "../screens/Guarantorship/GuarantorshipStatus";
 import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";
 import WitnessRequests from "../screens/Guarantorship/WitnessRequests";
 import WitnessStatus from "../screens/Guarantorship/WitnessStatus";
-import { TransitionPresets } from '@react-navigation/stack';
+// import { TransitionPresets } from '@react-navigation/stack';
 
 const { width, height } = Dimensions.get("window");
 
@@ -92,6 +96,22 @@ function RootNavigator() {
       <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
       <Stack.Screen name="UserEducation" component={UserEducation} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+      <Stack.Screen name="PinLogin" component={PinLogin} options={{ headerShown: false }} />
+      <Stack.Screen name="SetPin" component={SetPin} options={{ headerShown: false }} />
+      <Stack.Screen name="GetTenants" component={GetTenants} options={{ headerShown: false }} />
+      <Stack.Screen name="ShowTenants" component={ShowTenants} options={{
+          headerShown: true,
+          title: 'Select Organization',
+          headerShadowVisible: false,
+          headerStyle: {
+              backgroundColor: 'rgba(204,204,204,0.28)',
+          },
+          headerTintColor: '#489AAB',
+          headerTitleStyle: {
+              fontSize: 20,
+              fontFamily: 'Poppins_600SemiBold'
+          }
+      }} />
       <Stack.Screen name="VerifyOTP" component={VerifyOTP} options={{ headerShown: false }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>

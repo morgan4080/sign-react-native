@@ -9,7 +9,7 @@ type NavigationProps = NativeStackScreenProps<any>;
 
 const { width, height } = Dimensions.get("window");
 
-const pinLogin = ({ navigation }: NavigationProps) => {
+const PinLogin = ({ navigation }: NavigationProps) => {
     const [phoneNumber, setPhoneNumber] = useState<string | undefined>('');
 
     const { isLoggedIn, loading } = useSelector((state: { auth: storeState }) => state.auth);
@@ -72,4 +72,4 @@ const styles = StyleSheet.create({
 })
 
 
-export default pinLogin;
+export default PinLogin;

@@ -1,31 +1,25 @@
-import * as React from 'react';
 import {
     Text,
     View,
     StyleSheet,
-    TouchableHighlight,
     TouchableOpacity,
     Image,
     ScrollView,
     TextInput,
     Animated,
     Easing,
-    Button,
     Keyboard, Dimensions, SafeAreaView, NativeModules
 } from 'react-native';
 import AppLoading from 'expo-app-loading';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import { sendOTP, authenticate, setLoading, verifyOTP } from "../../stores/auth/authSlice";
+import { sendOtp, authenticate, setLoading, verifyOtp } from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import {useEffect, useRef, useState} from "react";
 // import types
-import { storeState, loginUserType } from "../../stores/auth/authSlice"
-import {Ionicons} from "@expo/vector-icons";
-import {UseFormWatch} from "react-hook-form/dist/types/form";
-import Colors from "../../constants/Colors";
+import { storeState } from "../../stores/auth/authSlice"
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -71,11 +65,18 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 
     const CSTM = NativeModules.CSTM;
 
-    const { isLoggedIn, user, loading, otpSent } = useSelector((state: { auth: storeState }) => state.auth);
+    const { isLoggedIn, user, loading, otpSent, otpResponse, optVerified } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
+    const resendOtp = async (): Promise<any> => {
+        if (user) {
+            return dispatch(sendOtp(user.username));
+        } else {
+            return Promise.resolve(false)
+        }
+    }
 
     useEffect(() => {
         let setupUser = true;
@@ -86,10 +87,11 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 
                 if (response.type === 'authenticate/rejected') {
                     CSTM.showToast("500: Internal Server Error");
-                }
-
-                if (user && !otpSent) {
-                    dispatch(sendOTP(user.phoneNumber))
+                } else {
+                    const { type, error }: any  = await dispatch(sendOtp(user?.username));
+                    if (type === "sendOtp/rejected") {
+                        CSTM.showToast(error.message);
+                    }
                 }
             })()
         }
@@ -104,6 +106,20 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
             navigation.navigate('Login')
         }
     }, [isLoggedIn, loading, user, otpSent]);
+
+    useEffect(() => {
+        let determineRedirect = true;
+
+        if (determineRedirect) {
+            if (optVerified) {
+                navigation.navigate('ProfileMain')
+            }
+        }
+
+        return (() => {
+            determineRedirect = false
+        })
+    }, [optVerified]);
 
 
     let [fontsLoaded] = useFonts({
@@ -123,37 +139,35 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         setValueInput(e)
     }
 
-    const dispatchVerifyOTP = (valueInput: string) => {
-        return dispatch(verifyOTP(valueInput));
-    }
-
-    const verify_otp = async () => {
-        dispatch(setLoading(true))
-        try {
-            const result = await dispatchVerifyOTP(valueInput)
-            // console.log("OTP verified:::", result)
-            setTimeout(() => {
-                dispatch(setLoading(false))
-                navigation.navigate('ProfileMain')
-            }, 3000)
-            return result
-        } catch (e: any) {
-            // console.log('verify otp error', e)
-        }
-    }
-
     useEffect(() => {
         setValueInput(valueInput.slice(0, 4))
         let result = valueInput.split('')
         if (result.length > 0) {
             let valName: any = `otpChar${result.length}`
             setValue(valName, result[result.length - 1])
-            if (result.length === 4 && !loading) {
-                // console.log("ready to submit otp", valueInput)
-                Keyboard.dismiss()
-                verify_otp().then((res: any) => {
-
-                })
+            if (result.length === 4 && !loading && otpResponse && otpResponse.success) {
+                Keyboard.dismiss();
+                (async () => {
+                    try {
+                        const {type, error}: any = await dispatch(verifyOtp({ requestMapper: otpResponse.requestMapper, OTP: valueInput }))
+                        if (type === 'verifyOtp/rejected' && error) {
+                            if (error.message === "Network request failed") {
+                                CSTM.showToast(error.message);
+                            } else {
+                                CSTM.showToast(error.message);
+                            }
+                            return false
+                        } else {
+                            CSTM.showToast('verified successfully');
+                        }
+                    } catch (e: any) {
+                        CSTM.showToast(e.message);
+                    }
+                })()
+            } else {
+                if (!otpResponse && !loading) {
+                    CSTM.showToast("OTP not sent");
+                }
             }
             let len = 4 - result.length
             for (let i = 0; i < len; i++) {
@@ -164,8 +178,6 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
             setValue('otpChar1', '')
         }
     }, [valueInput])
-
-    const resendOTP = () => (user && dispatch(sendOTP(user.phoneNumber)))
 
     const scrollViewRef = useRef<any>();
 
@@ -285,7 +297,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                         </View>
 
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                            <TouchableOpacity onPress={() => resendOTP()} >
+                            <TouchableOpacity onPress={() => resendOtp()} >
                                 <Text allowFontScaling={false} style={styles.subTitleText1}>
                                     Did't receive code? <Text allowFontScaling={false} style={{ textDecorationLine: 'underline' }}>Resend code</Text>
                                 </Text>

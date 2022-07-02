@@ -102,7 +102,7 @@ export default function UserEducation({navigation}: NavigationProps) {
                                 <TouchableOpacity style={{ backgroundColor: '#489AAB', height: 10, width: 10, borderRadius: 50 }} />
                             </View>
                         </View>
-                        <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('Login')}>
+                        <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('GetTenants')}>
                             <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                                 <Text allowFontScaling={false} style={styles.buttonText}>ACTIVATE ACCOUNT</Text>
                             </View>

@@ -8,7 +8,6 @@ import {
     View
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
-import * as React from "react";
 import {Ionicons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchFavouriteGuarantors, storeState} from "../../stores/auth/authSlice";

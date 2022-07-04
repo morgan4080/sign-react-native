@@ -9,11 +9,10 @@ import {
     View
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
-import * as React from "react";
-import {Ionicons, MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
+import {MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 import AppLoading from "expo-app-loading";
 import {useDispatch, useSelector} from "react-redux";
-import {fetchGuarantorshipRequests, storeState} from "../../stores/auth/authSlice";
+import {storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {

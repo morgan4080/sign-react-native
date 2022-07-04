@@ -9,7 +9,6 @@ import {
 } from "@expo-google-fonts/poppins";
 import {Dimensions, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Ionicons, Octicons} from "@expo/vector-icons";
-import * as React from "react";
 import Checkbox from "expo-checkbox";
 import {useState} from "react";
 import {updateContact, validateNumber} from "../../../stores/auth/authSlice";

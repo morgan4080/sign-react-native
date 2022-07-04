@@ -5,11 +5,11 @@ import {
     TouchableOpacity,
     ScrollView,
     TextInput,
-    Dimensions, SafeAreaView, NativeModules, Alert
+    Dimensions, SafeAreaView, NativeModules, Alert, Keyboard
 } from 'react-native';
 import AppLoading from 'expo-app-loading';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import * as LocalAuthentication from 'expo-local-authentication';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
@@ -78,7 +78,11 @@ export default function Login({ navigation }: NavigationProps) {
     useEffect(() => {
         let isLoggedInSubscribed = true;
         if (isLoggedIn) {
-            if (isLoggedInSubscribed) navigation.navigate('VerifyOTP')
+            if (isLoggedInSubscribed) {
+                setTimeout(() => {
+                    navigation.navigate('VerifyOTP')
+                }, 1000)
+            }
         }
         return () => {
             // cancel the subscription
@@ -229,7 +233,7 @@ export default function Login({ navigation }: NavigationProps) {
                         setValue(`pinChar2`, ``)
                         setValue(`pinChar3`, ``)
                         setValue(`pinChar4`, ``)
-                    }, 2000)
+                    }, 2000);
                     const organisations = [
                         {
                             name: 'Imarisha Sacco',
@@ -243,7 +247,7 @@ export default function Login({ navigation }: NavigationProps) {
                         }
                     ];
                     const pin = `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`;
-                    const currentTenant = organisations.find(org => org.tenantId === tenant?.tenantId)
+                    const currentTenant = organisations.find(org => org.tenantId === tenant?.tenantId);
                     console.log("the pin", pin);
                     if (currentTenant && tenant) {
                         const payload: loginUserType = {
@@ -274,6 +278,7 @@ export default function Login({ navigation }: NavigationProps) {
             }
         }
     }
+
     if (!isJWT && fontsLoaded) {
         return (
             <>
@@ -445,8 +450,7 @@ const styles = StyleSheet.create({
         height: height/20,
         width: height/20,
         fontWeight: '900',
-        fontSize: 30,
-        paddingBottom: 5
+        fontSize: 45
     },
     error: {
         fontSize: 12,

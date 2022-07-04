@@ -12,7 +12,6 @@ import {
 import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
 import {storeState, submitLoanRequest} from "../../stores/auth/authSlice";
-import * as React from "react";
 import {Ionicons} from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from 'expo-linking';

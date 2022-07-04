@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "presta-sign",
+    "name": "Presta Sign",
     "slug": "presta-sign",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "updates": {
@@ -27,7 +27,8 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.presta.prestasign",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/images/favicon.png"

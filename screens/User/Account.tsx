@@ -9,7 +9,6 @@ import {
     View
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
-import * as React from "react";
 import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 import AppLoading from "expo-app-loading";
 import {useDispatch, useSelector} from "react-redux";

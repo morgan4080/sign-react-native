@@ -1,8 +1,5 @@
-import {Dimensions, StyleSheet, Text, TouchableHighlight, TouchableOpacity, View} from "react-native";
-import {Pie as ProgressPie, Bar as ProgressBar} from "react-native-progress";
-import {Ionicons, MaterialIcons} from "@expo/vector-icons";
-import * as React from "react";
-import {useState} from "react";
+import {Dimensions, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Ionicons} from "@expo/vector-icons";
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_700Bold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 interface GuarantorData {
     refId: string,

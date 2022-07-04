@@ -1,18 +1,7 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {
-    Poppins_300Light,
-    Poppins_400Regular,
-    Poppins_500Medium, Poppins_600SemiBold,
-    Poppins_700Bold,
-    Poppins_800ExtraBold,
-    Poppins_900Black,
-    useFonts
-} from "@expo-google-fonts/poppins";
-import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
-import * as React from "react";
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchLoanRequest, storeState} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";

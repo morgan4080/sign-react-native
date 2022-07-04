@@ -1,5 +1,3 @@
-import * as React from "react";
-
 import {
     View,
     Text,
@@ -70,7 +68,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const dispatch : AppDispatch = useDispatch();
 
-    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, tenants, selectedTenantId } = useSelector((state: { auth: storeState }) => state.auth);
 
     const [contacts, setContacts] = useState([]);
 
@@ -268,6 +266,21 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         setValue('inputStrategy', itemValue)
     }
 
+    const tenant = tenants.find(t => t.id === selectedTenantId);
+
+    const requiredGuarantors = () => {
+
+        if (tenant && tenant.tenantId === 't74411') {
+            return 1
+        }
+
+        if (tenant && tenant.tenantId === 't72767') {
+            return 4
+        }
+
+        return 1
+    }
+
     return (
         <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
             {
@@ -412,10 +425,10 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     </SafeAreaView>
 
                     <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <TouchableOpacity disabled={selectedContacts.length < 4} onPress={() => navigation.navigate('WitnessesHome', {
+                        <TouchableOpacity disabled={selectedContacts.length < requiredGuarantors()} onPress={() => navigation.navigate('WitnessesHome', {
                             guarantors: selectedContacts,
                             ...route.params
-                        })} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < 4 ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                        })} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < requiredGuarantors() ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                             <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                         </TouchableOpacity>
                     </View>

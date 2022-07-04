@@ -1,7 +1,6 @@
 import {Text, TouchableOpacity, View, StyleSheet} from "react-native";
 import Checkbox from 'expo-checkbox';
 import {AntDesign, MaterialIcons} from "@expo/vector-icons";
-import * as React from "react";
 import {useState} from "react";
 import {cloneDeep} from "lodash";
 import {

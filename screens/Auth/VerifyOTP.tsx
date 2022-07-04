@@ -211,6 +211,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                                 selectTextOnFocus={false}
                                 value={valueInput}
                                 defaultValue={valueInput}
+                                autoFocus={true}
                             />
                             <Controller
                                 control={control}

@@ -13,11 +13,9 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import {StatusBar} from "expo-status-bar";
-import * as React from "react";
-import {AntDesign, Ionicons, MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
-import AppLoading from "expo-app-loading";
+import {Ionicons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
-import {fetchLoanRequests, loginUser, loginUserType, storeState} from "../../stores/auth/authSlice";
+import {storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {

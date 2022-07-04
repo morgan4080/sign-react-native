@@ -15,7 +15,6 @@ import {
 import {useDispatch, useSelector} from "react-redux";
 import {store} from "../stores/store";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
-import * as React from "react";
 import {Controller, useForm} from "react-hook-form";
 import {useState} from "react";
 

@@ -1,6 +1,6 @@
 import {
     Dimensions,
-    Image,
+    Image, Keyboard,
     NativeModules,
     SafeAreaView,
     ScrollView,
@@ -9,7 +9,6 @@ import {
     TextInput, TouchableOpacity,
     View
 } from "react-native";
-import * as React from "react";
 import {RotateView} from "../Auth/VerifyOTP";
 const { width, height } = Dimensions.get("window");
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -27,7 +26,7 @@ import {Controller, useForm} from "react-hook-form";
 import {authenticate, getTenants, storeState} from "../../stores/auth/authSlice";
 import {useDispatch, useSelector} from "react-redux";
 import {store} from "../../stores/store";
-import {useEffect} from "react";
+import {useEffect, useRef} from "react";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -66,6 +65,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
             })()
         }
         return () => {
+            Keyboard.removeAllListeners('keyboardDidShow');
             authenticating = false
         }
     }, []);
@@ -127,18 +127,22 @@ const GetTenants = ({ navigation }: NavigationProps) => {
         }
     }
 
+    const scrollViewRef = useRef<any>();
+
+    Keyboard.addListener('keyboardDidShow', () => {
+        scrollViewRef.current.scrollToEnd({ animated: true });
+    });
+
     if (!isJWT && fontsLoaded) {
         return (
             <>
                 <SafeAreaView style={{
                     flex: 1,
-                    width,
-                    height: 8 / 12 * height,
-                    backgroundColor: '#e8e8e8',
                     borderTopLeftRadius: 25,
                     borderTopRightRadius: 25,
+                    backgroundColor: '#F8F8FA'
                 }}>
-                    <ScrollView contentContainerStyle={styles.container}>
+                    <ScrollView  ref={scrollViewRef} contentContainerStyle={styles.container}>
                         <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
                             <Image
                                 style={styles.landingLogo}
@@ -157,6 +161,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                                     }}
                                     render={( { field: { onChange, onBlur, value } }) => (
                                         <TextInput
+                                            autoFocus={true}
                                             style={styles.input}
                                             onBlur={onBlur}
                                             onChangeText={onChange}
@@ -204,8 +209,9 @@ const GetTenants = ({ navigation }: NavigationProps) => {
 const styles = StyleSheet.create({
     container: {
         display: 'flex',
-        height: height,
-        backgroundColor: '#F8F8FA'
+        flexDirection: 'column',
+        width,
+        height: height - height/3
     },
     container2: {
         display: 'flex',
@@ -249,7 +255,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     landingLogo: {
-        marginTop: height/9,
+        marginTop: height/8,
     },
     input: {
         borderWidth: 1,

@@ -10,9 +10,7 @@ import {
     Text
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
-import * as React from "react";
-import {Ionicons, MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
-import AppLoading from "expo-app-loading";
+import {Ionicons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchLoanRequests, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";

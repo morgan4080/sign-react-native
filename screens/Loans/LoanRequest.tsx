@@ -21,7 +21,6 @@ import {
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
-import * as React from "react";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
 import {storeState} from "../../stores/auth/authSlice";

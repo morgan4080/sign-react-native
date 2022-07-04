@@ -13,6 +13,7 @@ import {
 import AppLoading from 'expo-app-loading';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import PagerView from 'react-native-pager-view';
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -32,8 +33,8 @@ export default function UserEducation({navigation}: NavigationProps) {
     if (fontsLoaded) {
         return (
             <SafeAreaView  style={{ flex: 1, paddingTop: StatusBar.currentHeight,backgroundColor: 'rgb(255,255,255)' }}>
-                <ScrollView snapToInterval={width} decelerationRate="fast" style={styles.container} horizontal>
-                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", }}>
+                <PagerView style={styles.container} initialPage={0}>
+                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", }} key="1">
                         <Image
                             style={styles.landingLogo}
                             source={require('../../assets/images/LogoSmall.png')}
@@ -56,7 +57,7 @@ export default function UserEducation({navigation}: NavigationProps) {
                             </View>
                         </View>
                     </View>
-                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", }}>
+                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", }} key="2">
                         <Image
                             style={styles.landingLogo}
                             source={require('../../assets/images/LogoSmall.png')}
@@ -80,7 +81,7 @@ export default function UserEducation({navigation}: NavigationProps) {
                             </View>
                         </View>
                     </View>
-                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", }}>
+                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", }} key="3">
                         <Image
                             style={styles.landingLogo}
                             source={require('../../assets/images/LogoSmall.png')}
@@ -108,7 +109,7 @@ export default function UserEducation({navigation}: NavigationProps) {
                             </View>
                         </TouchableHighlight>
                     </View>
-                </ScrollView>
+                </PagerView>
             </SafeAreaView >
         )
     } else {
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 10,
     },
     subTitleText: {
-        fontSize: 14,
+        fontSize: 13,
         marginHorizontal: 60,
         textAlign: 'center',
         color: '#8d8d8d',

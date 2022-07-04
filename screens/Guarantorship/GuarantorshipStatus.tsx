@@ -1,8 +1,6 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {Dimensions, SafeAreaView, ScrollView, Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import {MaterialIcons} from "@expo/vector-icons";
-import * as React from "react";
-
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
 

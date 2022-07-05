@@ -5,17 +5,12 @@
  */
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
-import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
-import * as React from 'react';
-import {ColorSchemeName, Dimensions, Image, Pressable, TouchableOpacity, View} from 'react-native';
-
+import {NavigationContainer, DefaultTheme, useNavigationContainerRef} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import ModalScreen from '../screens/ModalScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
-import TabOneScreen from '../screens/TabOneScreen';
-import TabTwoScreen from '../screens/TabTwoScreen';
 import GetStarted from "../screens/Landing/GetStarted";
 import UserEducation from "../screens/Landing/UserEducation";
 import Login from "../screens/Auth/Login";
@@ -40,39 +35,31 @@ import LoanConfirmation from "../screens/Loans/LoanConfirmation";
 import LoanRequest from "../screens/Loans/LoanRequest";
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
-import {
-    Poppins_300Light,
-    Poppins_400Regular,
-    Poppins_500Medium, Poppins_600SemiBold,
-    Poppins_700Bold,
-    Poppins_800ExtraBold,
-    Poppins_900Black,
-    useFonts
-} from "@expo-google-fonts/poppins";
 import GuarantorshipStatus from "../screens/Guarantorship/GuarantorshipStatus";
 import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";
 import WitnessRequests from "../screens/Guarantorship/WitnessRequests";
 import WitnessStatus from "../screens/Guarantorship/WitnessStatus";
-// import { TransitionPresets } from '@react-navigation/stack';
 
-const { width, height } = Dimensions.get("window");
+const Navigation = () => {
+  const MyTheme = {
+     ...DefaultTheme,
+     colors: {
+        ...DefaultTheme.colors,
+        primary: 'rgb(255, 45, 85)',
+     },
+  };
 
-export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
-    const MyTheme = {
-        ...DefaultTheme,
-        colors: {
-            ...DefaultTheme.colors,
-            primary: 'rgb(255, 45, 85)',
-        },
-    };
   return (
     <NavigationContainer
       linking={LinkingConfiguration}
-      theme={MyTheme}>
+      theme={MyTheme}
+    >
       <RootNavigator />
     </NavigationContainer>
   );
-}
+};
+
+export default Navigation;
 
 /**
  * A root stack navigator is often used for displaying modals on top of all other content.
@@ -80,17 +67,8 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
  */
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-type NavigationProps = NativeStackScreenProps<any>
+
 function RootNavigator() {
-    let [fontsLoaded] = useFonts({
-        Poppins_900Black,
-        Poppins_500Medium,
-        Poppins_800ExtraBold,
-        Poppins_700Bold,
-        Poppins_600SemiBold,
-        Poppins_400Regular,
-        Poppins_300Light
-    });
   return (
     <Stack.Navigator initialRouteName="GetStarted">
       <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />

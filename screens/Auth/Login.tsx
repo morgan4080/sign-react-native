@@ -5,7 +5,12 @@ import {
     TouchableOpacity,
     ScrollView,
     TextInput,
-    Dimensions, SafeAreaView, NativeModules, Alert, Keyboard
+    Dimensions,
+    SafeAreaView,
+    NativeModules,
+    Alert,
+    Keyboard,
+    Animated
 } from 'react-native';
 import AppLoading from 'expo-app-loading';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
@@ -19,6 +24,7 @@ import { store } from "../../stores/store";
 import { storeState, loginUserType } from "../../stores/auth/authSlice"
 import {RotateView} from "./VerifyOTP";
 import {FontAwesome5} from "@expo/vector-icons";
+import {getSecureKey} from "../../utils/secureStore";
 const { width, height } = Dimensions.get("window");
 
 type NavigationProps = NativeStackScreenProps<any>
@@ -32,17 +38,13 @@ type FormData = {
 }
 
 export default function Login({ navigation }: NavigationProps) {
-    const { isJWT, tenants, selectedTenantId, isLoggedIn, loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const { isJWT, tenants, selectedTenantId, isLoggedIn, loading, optVerified } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
     const CUSTOM = NativeModules.CSTM;
 
     const tenant = tenants.find(t => t.id === selectedTenantId);
-
-    if (tenants.length === 0) {
-        navigation.navigate('GetTenants')
-    }
 
     const dispatch : AppDispatch = useDispatch();
 
@@ -66,7 +68,12 @@ export default function Login({ navigation }: NavigationProps) {
                     return
                 }
                 if (response.type === 'authenticate/fulfilled') {
-                    navigation.navigate('VerifyOTP')
+                    let otpVerified = await getSecureKey('otpVerified');
+                    if (otpVerified === 'true') {
+                        navigation.navigate('ProfileMain')
+                    } else {
+                        navigation.navigate('VerifyOTP')
+                    }
                 }
             })()
         }
@@ -77,12 +84,15 @@ export default function Login({ navigation }: NavigationProps) {
 
     useEffect(() => {
         let isLoggedInSubscribed = true;
-        if (isLoggedIn) {
-            if (isLoggedInSubscribed) {
-                setTimeout(() => {
+        if (isLoggedIn && isLoggedInSubscribed) {
+            (async () => {
+                let otpVerified = await getSecureKey('otpVerified');
+                if (otpVerified === 'true') {
+                    navigation.navigate('ProfileMain')
+                } else {
                     navigation.navigate('VerifyOTP')
-                }, 1000)
-            }
+                }
+            })()
         }
         return () => {
             // cancel the subscription
@@ -194,6 +204,8 @@ export default function Login({ navigation }: NavigationProps) {
     }
     let characters: number[] = []
 
+    const animatedOpacity = useRef(new Animated.Value(1))
+
     const onPressed = async (field: number) => {
         if (!loading) {
             if (field === -1) {
@@ -226,8 +238,6 @@ export default function Login({ navigation }: NavigationProps) {
                     if (i === 3) setValue(`pinChar4`, `⬤`)
                 });
                 if (characters.length === 4) {
-                    // animate input fields
-                    // handle submit
                     setTimeout(() => {
                         setValue(`pinChar1`, ``)
                         setValue(`pinChar2`, ``)
@@ -266,12 +276,9 @@ export default function Login({ navigation }: NavigationProps) {
                                     setError('phoneNumber', {type: 'custom', message: error.message});
                                     CUSTOM.showToast(error.message);
                                 }
-                            } else {
-                                navigation.navigate('VerifyOTP')
                             }
                         } catch (e: any) {
-                            // console.log("login error", e)
-                            console.log('errorssss', e);
+                            console.log('LOGIN ERROR', e);
                         }
                     }
                 }
@@ -301,7 +308,7 @@ export default function Login({ navigation }: NavigationProps) {
                             </View>
 
                             <View>
-                                <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light', textTransform: 'uppercase'}}>{tenant?.tenantName}</Text>
+                                <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light', textTransform: 'uppercase'}}>{tenant?.tenantName} LOGIN</Text>
                                 <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light'}}>ENTER PIN</Text>
                                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: width/4 }}>
                                     <Controller
@@ -311,15 +318,17 @@ export default function Login({ navigation }: NavigationProps) {
                                             maxLength: 1,
                                         }}
                                         render={( { field: { onChange, onBlur, value } }) => (
-                                            <TextInput
-                                                style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB',}}
-                                                onBlur={onBlur}
-                                                onChangeText={onChange}
-                                                value={value}
-                                                keyboardType="numeric"
-                                                editable={false}
-                                                selectTextOnFocus={false}
-                                            />
+                                            <Animated.View style={{ opacity: animatedOpacity.current }}>
+                                                <TextInput
+                                                    style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB' }}
+                                                    onBlur={onBlur}
+                                                    onChangeText={onChange}
+                                                    value={value}
+                                                    keyboardType="numeric"
+                                                    editable={false}
+                                                    selectTextOnFocus={false}
+                                                />
+                                            </Animated.View>
                                         )}
                                         name="pinChar1"
                                     />
@@ -330,15 +339,17 @@ export default function Login({ navigation }: NavigationProps) {
                                             maxLength: 1,
                                         }}
                                         render={( { field: { onChange, onBlur, value } }) => (
-                                            <TextInput
-                                                style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB',}}
-                                                onBlur={onBlur}
-                                                onChangeText={onChange}
-                                                value={value}
-                                                keyboardType="numeric"
-                                                editable={false}
-                                                selectTextOnFocus={false}
-                                            />
+                                            <Animated.View style={{ opacity: animatedOpacity.current }}>
+                                                <TextInput
+                                                    style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB' }}
+                                                    onBlur={onBlur}
+                                                    onChangeText={onChange}
+                                                    value={value}
+                                                    keyboardType="numeric"
+                                                    editable={false}
+                                                    selectTextOnFocus={false}
+                                                />
+                                            </Animated.View>
                                         )}
                                         name="pinChar2"
                                     />
@@ -349,15 +360,17 @@ export default function Login({ navigation }: NavigationProps) {
                                             maxLength: 1,
                                         }}
                                         render={( { field: { onChange, onBlur, value } }) => (
-                                            <TextInput
-                                                style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB',}}
-                                                onBlur={onBlur}
-                                                onChangeText={onChange}
-                                                value={value}
-                                                keyboardType="numeric"
-                                                editable={false}
-                                                selectTextOnFocus={false}
-                                            />
+                                            <Animated.View style={{ opacity: animatedOpacity.current }}>
+                                                <TextInput
+                                                    style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB',}}
+                                                    onBlur={onBlur}
+                                                    onChangeText={onChange}
+                                                    value={value}
+                                                    keyboardType="numeric"
+                                                    editable={false}
+                                                    selectTextOnFocus={false}
+                                                />
+                                            </Animated.View>
                                         )}
                                         name="pinChar3"
                                     />
@@ -368,15 +381,17 @@ export default function Login({ navigation }: NavigationProps) {
                                             maxLength: 1,
                                         }}
                                         render={( { field: { onChange, onBlur, value } }) => (
-                                            <TextInput
-                                                style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB',}}
-                                                onBlur={onBlur}
-                                                onChangeText={onChange}
-                                                value={value}
-                                                keyboardType="numeric"
-                                                editable={false}
-                                                selectTextOnFocus={false}
-                                            />
+                                            <Animated.View style={{ opacity: animatedOpacity.current }}>
+                                                <TextInput
+                                                    style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB',}}
+                                                    onBlur={onBlur}
+                                                    onChangeText={onChange}
+                                                    value={value}
+                                                    keyboardType="numeric"
+                                                    editable={false}
+                                                    selectTextOnFocus={false}
+                                                />
+                                            </Animated.View>
                                         )}
                                         name="pinChar4"
                                     />
@@ -450,7 +465,7 @@ const styles = StyleSheet.create({
         height: height/20,
         width: height/20,
         fontWeight: '900',
-        fontSize: 45
+        fontSize: 44
     },
     error: {
         fontSize: 12,

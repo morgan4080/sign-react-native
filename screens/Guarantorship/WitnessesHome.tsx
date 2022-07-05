@@ -23,13 +23,10 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import {Circle as ProgressCircle} from "react-native-progress";
 import {MaterialIcons, Ionicons} from "@expo/vector-icons";
 import {useEffect, useState} from "react";
-import * as Contacts from 'expo-contacts';
 import { useForm, Controller } from "react-hook-form";
 import ContactTile from "./Components/ContactTile";
-import {PhoneNumber} from "expo-contacts";
 import {cloneDeep} from "lodash";
 import {RotateView} from "../Auth/VerifyOTP";
 type NavigationProps = NativeStackScreenProps<any>
@@ -38,10 +35,11 @@ type FormData = {
     searchTerm: string;
     phoneNumber: string;
 }
+
 export default function WitnessesHome({ navigation, route }: NavigationProps) {
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
-    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, selectedTenantId, tenants } = useSelector((state: { auth: storeState }) => state.auth);
     const [contacts, setContacts] = useState([])
     const [from, setFrom] = useState(0)
     const [to, setTo] = useState(100)
@@ -156,7 +154,22 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
     Keyboard.addListener('keyboardDidHide', () => {
         setAddingManually(false)
         console.log("if member was found during the watch process, add them or let them know that member wasn't found")
-    })
+    });
+
+    const tenant = tenants.find(t => t.id === selectedTenantId);
+
+    const requiredWitnesses = () => {
+
+        if (tenant && tenant.tenantId === 't74411') {
+            return 0
+        }
+
+        if (tenant && tenant.tenantId === 't72767') {
+            return 4
+        }
+
+        return 0
+    }
 
     if (fontsLoaded) {
         return (
@@ -205,7 +218,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
 
                             <View style={{paddingHorizontal: 20, marginTop: 30}}>
                                 <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 22 }}>
-                                    Enter Witnesses (1 Required)
+                                    Enter Witnesses
                                 </Text>
                                 <Controller
                                     control={control}
@@ -267,12 +280,12 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
                         </SafeAreaView>
 
                         <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity disabled={ selectedContacts.length < 1 } onPress={() => {
+                            <TouchableOpacity disabled={ selectedContacts.length < requiredWitnesses()} onPress={() => {
                                 navigation.navigate('LoanConfirmation', {
                                     witnesses: selectedContacts,
                                     ...route.params
                                 })
-                            }} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < 1 ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            }} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < requiredWitnesses() ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                 <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>

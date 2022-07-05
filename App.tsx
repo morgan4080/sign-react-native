@@ -1,15 +1,24 @@
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
+import React, { useEffect } from 'react';
+import {Linking} from 'react-native';
 import useCachedResources from './hooks/useCachedResources';
-import useColorScheme from './hooks/useColorScheme';
 import Navigation from './navigation';
 import { Provider } from 'react-redux';
 import { store } from "./stores/store";
+import {NotificationResponse} from "./utils/notificationService";
 
 export default function App() {
     const isLoadingComplete = useCachedResources();
-    const colorScheme = useColorScheme();
+    const lastNotificationResponse = NotificationResponse();
+
+    useEffect(() => {
+        (async () => {
+            if (lastNotificationResponse) {
+                await Linking.openURL(lastNotificationResponse.notification.request.content.data.url as string)
+            }
+        })();
+    }, [lastNotificationResponse]);
 
     if (!isLoadingComplete) {
         return null;
@@ -17,7 +26,7 @@ export default function App() {
         return (
             <Provider store={store}>
                 <SafeAreaProvider>
-                    <Navigation colorScheme={colorScheme} />
+                    <Navigation />
                     <StatusBar />
                 </SafeAreaProvider>
             </Provider>

@@ -73,7 +73,14 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
     const dispatch : AppDispatch = useDispatch();
     const resendOtp = async (): Promise<any> => {
         if (user) {
-            return dispatch(sendOtp(user.username));
+            const phoneNumber = await getSecureKey('phoneNumber');
+            const {type, error, payload}: any = await dispatch(sendOtp(phoneNumber));
+            if (type === "sendOtp/rejected") {
+                CSTM.showToast(error.message);
+            } else {
+                CSTM.showToast(payload.message);
+            }
+            return Promise.resolve(true)
         } else {
             return Promise.resolve(false)
         }
@@ -85,21 +92,22 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         if (setupUser) {
             (async () => {
                 const response = await dispatch(authenticate());
-
                 if (response.type === 'authenticate/rejected') {
                     CSTM.showToast("500: Internal Server Error");
                 } else {
                     const phoneNumber = await getSecureKey('phoneNumber');
-                    const { type, error }: any  = await dispatch(sendOtp(phoneNumber));
+                    const {type, error, payload}: any = await dispatch(sendOtp(phoneNumber));
                     if (type === "sendOtp/rejected") {
                         CSTM.showToast(error.message);
+                    } else {
+                        CSTM.showToast(payload.message);
                     }
                 }
             })()
         }
         return (() => {
-            setupUser = false;
             Keyboard.removeAllListeners('keyboardDidShow');
+            setupUser = false;
         })
     }, []);
 
@@ -114,7 +122,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 
         if (determineRedirect) {
             if (optVerified) {
-                navigation.navigate('ProfileMain')
+                navigation.navigate('ProfileMain');
             }
         }
 
@@ -159,8 +167,6 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                                 CSTM.showToast(error.message);
                             }
                             return false
-                        } else {
-                            CSTM.showToast('verified successfully');
                         }
                     } catch (e: any) {
                         CSTM.showToast(e.message);
@@ -185,7 +191,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 
     Keyboard.addListener('keyboardDidShow', () => {
         scrollViewRef.current.scrollToEnd({ animated: true });
-    })
+    });
 
     if (isLoggedIn && fontsLoaded) {
         return(

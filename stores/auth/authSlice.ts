@@ -3,6 +3,7 @@ import {deleteSecureKey, getSecureKey, saveSecureKey} from '../../utils/secureSt
 import {openDatabase} from "../../database";
 import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLStatementErrorCallback, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
+import {red} from "react-native-reanimated/lib/types/lib/reanimated2";
 export let db: WebSQLDatabase
 (async () => {
     db = await openDatabase();
@@ -162,9 +163,38 @@ type otpResponseType = {
     "ttl": number
 }
 
+type MemberDetailsType = {
+    "refId": string,
+    "created": string,
+    "createdBy": string,
+    "updated": string,
+    "updatedBy": string,
+    "isActive": boolean,
+    "id": number,
+    "firstName": string,
+    "fullName": string,
+    "lastName": string,
+    "idNumber": string,
+    "memberNumber": string,
+    "phoneNumber": string,
+    "email": string,
+    "totalShares": number,
+    "totalDeposits": number,
+    "committedAmount": number,
+    "availableAmount": number,
+    "isTermsAccepted": boolean,
+    "memberStatus": string,
+    "details": any,
+    "loansGuaranteedByMe": any[],
+    "loansGuaranteedToMe": any[],
+    "activeLoans": any[],
+    "lastModified": string
+}
+
 export type storeState = {
     user: AuthData | null;
     member: MemberData | null;
+    memberDetails: MemberDetailsType | null;
     loanRequests: LoanRequestData[] | null;
     loanRequest: LoanRequest | null;
     loanProducts: LoanProduct[] | null;
@@ -214,13 +244,11 @@ const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> =
 }
 
 export const searchContactsInDB = createAsyncThunk('searchContactsInDB', async({searchTerm, setContacts}: {searchTerm: string, setContacts: any}) => {
-    console.log("searching.....")
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
             tx.executeSql(`SELECT * FROM contacts WHERE name LIKE '%${searchTerm}%' LIMIT '0', '100'`, undefined,
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: any, { rows: { _array } } : any) => {
-                    console.log('success....')
                     setContacts(_array)
                 },
                 // failure callback which sends two things Transaction object and Error
@@ -428,7 +456,8 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
 })
 
 export const logoutUser = createAsyncThunk('logoutUser', async () => {
-    return await deleteSecureKey('jwt')
+    await deleteSecureKey('otpVerified');
+    return await deleteSecureKey('jwt');
 })
 
 export const setLoading = createAsyncThunk('setLoading', async (loading: boolean) => {
@@ -439,6 +468,7 @@ const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_
     await saveSecureKey('jwt', access_token);
     await saveSecureKey('jwtRefresh', refresh_token);
     await saveSecureKey('phoneNumber', `${phoneNumber}`);
+    await saveSecureKey('oldBoy', 'true');
     return Promise.resolve(true);
 }
 
@@ -500,7 +530,13 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
 
         if (response.status === 200) {
             const data = await response.json();
-            return Promise.resolve(data);
+            if (data.validated) {
+                await saveSecureKey('otpVerified', 'true');
+                return Promise.resolve(data);
+            } else {
+                return Promise.reject("OTP Invalid");
+            }
+
         } else {
             return Promise.reject(`API error code: ${response.status}`);
         }
@@ -707,7 +743,7 @@ export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: str
     }
 })
 
-export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: string) => {
+export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: string | undefined) => {
     return new Promise(async (resolve, reject) => {
        try {
            const key = await getSecureKey('jwt');
@@ -984,11 +1020,40 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
     }
 })
 
+export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string, signal: any}) => {
+    try {
+        const key = await getSecureKey('jwt')
+        if (!key) {
+            console.log("You are not authenticated")
+        }
+        const myHeaders = new Headers();
+        myHeaders.append("Authorization", `Bearer ${key}`);
+
+        const url = `https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/member-details?memberId=${memberNo}`;
+
+        const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code', {
+            method: 'GET',
+            headers: myHeaders,
+            redirect: 'follow',
+            signal: signal
+        });
+        if (response.status === 200) {
+            const data = await response.json();
+            return Promise.resolve(data)
+        } else {
+            return Promise.reject(response.status + ": API Error");
+        }
+    } catch (e: any) {
+        return Promise.reject(e.message);
+    }
+})
+
 const authSlice = createSlice({
     name: 'auth',
     initialState: <storeState>{
         user: null,
         member: null,
+        memberDetails: null,
         isLoggedIn: false,
         loading: false,
         isJWT: false,
@@ -1024,6 +1089,17 @@ const authSlice = createSlice({
             state.loading = false
         })
         builder.addCase(initializeDB.rejected, (state) => {
+            state.loading = false
+        })
+
+        builder.addCase(fetchMemberDetails.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(fetchMemberDetails.fulfilled, (state, action) => {
+            state.memberDetails = action.payload
+            state.loading = false
+        })
+        builder.addCase(fetchMemberDetails.rejected, (state) => {
             state.loading = false
         })
 
@@ -1252,9 +1328,8 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(verifyOtp.fulfilled, (state, action: any) => {
-            console.log("otp VERIFIED", action.payload)
-            state.optVerified = true
-            state.loading = false
+            state.optVerified = true;
+            state.loading = false;
         })
         builder.addCase(verifyOtp.rejected, (state, action) => {
             state.loading = false
@@ -1271,4 +1346,4 @@ const { actions, reducer } = authSlice
 // Extract and export each action creator by name
 export const { createLoanProduct, setSelectedTenantId } = actions
 // Export the reducer, either as a default or named export
-export default reducer
+export const authReducer = reducer

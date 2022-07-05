@@ -64,7 +64,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                     <SafeAreaView style={{ flex: 1, width: width-20, height: height/2 }}>
                         <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center', paddingBottom: 50 }}>
                             <View style={{display: 'flex', width: width-50, borderRadius: 15, backgroundColor: '#489AAB', paddingHorizontal: 25, paddingVertical: 10, marginTop: 15}}>
-                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>Current Balance</Text>
+                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>Available Balance</Text>
                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_800ExtraBold', color: '#ffffff', fontSize: 22 }}>KES {member ? toMoney(`${member.availableAmount}`) : ``}</Text>
                                 <View style={{ backgroundColor: '#FFFFFF', width: '100%', height: 1 }}/>
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, marginBottom: 20}}>
@@ -73,7 +73,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>2</Text>
                                     </View>
                                     <View>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>OUTSTANDING BALANCE</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>SHARES AMOUNT</Text>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {toMoney('13000')}</Text>
                                     </View>
                                 </View>
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#EDEDED',
     },
     titleText: {
-        fontSize: 25,
+        fontSize: 20,
         textAlign: 'center',
         color: '#489AAB',
         fontFamily: 'Poppins_700Bold',

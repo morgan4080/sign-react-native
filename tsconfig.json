@@ -3,7 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "typeRoots": [
-      "customTypings",
+      "typings",
       "node_modules/@types"
     ],
   }

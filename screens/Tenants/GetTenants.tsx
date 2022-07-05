@@ -27,6 +27,7 @@ import {authenticate, getTenants, storeState} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {store} from "../../stores/store";
 import {useEffect, useRef} from "react";
+import {getSecureKey} from "../../utils/secureStore";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -60,20 +61,31 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                     return
                 }
                 if (response.type === 'authenticate/fulfilled') {
-                    navigation.navigate('VerifyOTP')
+                    let otpVerified = await getSecureKey('otpVerified');
+                    if (otpVerified === 'true') {
+                        navigation.navigate('ProfileMain')
+                    } else {
+                        navigation.navigate('VerifyOTP')
+                    }
                 }
             })()
         }
         return () => {
-            Keyboard.removeAllListeners('keyboardDidShow');
-            authenticating = false
+            authenticating = false;
         }
     }, []);
 
     useEffect(() => {
         let isLoggedInSubscribed = true;
         if (isLoggedIn) {
-            if (isLoggedInSubscribed) navigation.navigate('VerifyOTP')
+            (async () => {
+                let otpVerified = await getSecureKey('otpVerified');
+                if (otpVerified === 'true') {
+                    navigation.navigate('ProfileMain')
+                } else {
+                    navigation.navigate('VerifyOTP')
+                }
+            })()
         }
         return () => {
             // cancel the subscription
@@ -127,12 +139,6 @@ const GetTenants = ({ navigation }: NavigationProps) => {
         }
     }
 
-    const scrollViewRef = useRef<any>();
-
-    Keyboard.addListener('keyboardDidShow', () => {
-        scrollViewRef.current.scrollToEnd({ animated: true });
-    });
-
     if (!isJWT && fontsLoaded) {
         return (
             <>
@@ -142,7 +148,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                     borderTopRightRadius: 25,
                     backgroundColor: '#F8F8FA'
                 }}>
-                    <ScrollView  ref={scrollViewRef} contentContainerStyle={styles.container}>
+                    <ScrollView contentContainerStyle={styles.container}>
                         <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
                             <Image
                                 style={styles.landingLogo}
@@ -161,7 +167,6 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                                     }}
                                     render={( { field: { onChange, onBlur, value } }) => (
                                         <TextInput
-                                            autoFocus={true}
                                             style={styles.input}
                                             onBlur={onBlur}
                                             onChangeText={onChange}

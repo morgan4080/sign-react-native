@@ -24,6 +24,7 @@ import {
 import {useEffect} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RotateView} from "../Auth/VerifyOTP";
+import {getSecureKey} from "../../utils/secureStore";
 const { width, height } = Dimensions.get("window");
 type NavigationProps = NativeStackScreenProps<any>;
 
@@ -60,7 +61,12 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
                     return
                 }
                 if (response.type === 'authenticate/fulfilled') {
-                    navigation.navigate('VerifyOTP')
+                    let otpVerified = await getSecureKey('otpVerified');
+                    if (otpVerified === 'true') {
+                        navigation.navigate('ProfileMain')
+                    } else {
+                        navigation.navigate('VerifyOTP')
+                    }
                 }
             })()
         }
@@ -72,7 +78,16 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
     useEffect(() => {
         let isLoggedInSubscribed = true;
         if (isLoggedIn) {
-            if (isLoggedInSubscribed) navigation.navigate('VerifyOTP')
+            if (isLoggedInSubscribed) {
+                (async () => {
+                    let otpVerified = await getSecureKey('otpVerified');
+                    if (otpVerified === 'true') {
+                        navigation.navigate('ProfileMain')
+                    } else {
+                        navigation.navigate('VerifyOTP')
+                    }
+                })()
+            }
         }
         return () => {
             // cancel the subscription

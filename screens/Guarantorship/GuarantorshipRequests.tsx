@@ -11,10 +11,9 @@ import {
 import {StatusBar} from "expo-status-bar";
 import {MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 import AppLoading from "expo-app-loading";
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {store} from "../../stores/store";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -34,13 +33,10 @@ const { width, height } = Dimensions.get("window");
 
 export default function GuarantorshipRequests ({ navigation }: NavigationProps) {
     const { loading, user, guarantorshipRequests } = useSelector((state: { auth: storeState }) => state.auth);
-    type AppDispatch = typeof store.dispatch;
     type accountHistoryType = {refId: string, executor: string, subject: string, event: string, time: string}
 
     const [pressed, setPressed] = useState<boolean>(false)
     const [request, setRequest] = useState<accountHistoryType | null>()
-
-    const dispatch : AppDispatch = useDispatch();
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,

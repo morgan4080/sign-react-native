@@ -1,12 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
 import { Dimensions, Platform, StyleSheet, TextInput, TouchableOpacity, Switch, SafeAreaView, ScrollView, StatusBar as Bar } from 'react-native';
-
+import { Camera } from 'expo-camera';
 import { Text, View } from 'react-native';
 import {logoutUser, setLoading, storeState} from "../stores/auth/authSlice";
 import {
   Poppins_300Light,
   Poppins_400Regular,
-  Poppins_500Medium, Poppins_600SemiBold,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
   Poppins_700Bold,
   Poppins_800ExtraBold,
   Poppins_900Black,
@@ -16,7 +17,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {store} from "../stores/store";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
 import {Controller, useForm} from "react-hook-form";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 const { width, height } = Dimensions.get("window");
 
@@ -41,12 +42,21 @@ export default function ModalScreen() {
     Poppins_400Regular,
     Poppins_300Light
   });
+  const [hasPermission, setHasPermission] = useState<any>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+    })();
+  }, []);
+
   const logout = async () => {
     await dispatch(setLoading(true))
     await dispatch(logoutUser())
   }
   const getPic = () => {
-    // console.log("pullup camera")
+    // console.log("pull up camera")
   }
   const {
     control,
@@ -76,7 +86,7 @@ export default function ModalScreen() {
       <Text allowFontScaling={false} style={styles.titleText}>{ `${ member?.fullName }` }</Text>
       <Text allowFontScaling={false} style={styles.subTitleText}>{ `Member NO: ${member?.memberNumber}` }</Text>
       <Text allowFontScaling={false} style={styles.organisationText}>{ `${user?.companyName}` }</Text>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width-20, height: height/2 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', marginTop: 30, borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width-20, height: height/2 }}>
         <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center', paddingBottom: 50 }}>
           <Controller
               control={control}
@@ -198,29 +208,29 @@ const styles = StyleSheet.create({
     position: "relative"
   },
   title: {
-    fontSize: 20,
+    fontSize: 16,
     paddingTop: 20,
     color: '#489AAB',
     fontFamily: 'Poppins_600SemiBold'
   },
   titleText: {
-    fontSize: 22,
+    fontSize: 16,
     textAlign: 'center',
     color: '#489AAB',
-    fontFamily: 'Poppins_700Bold',
-    marginTop: 20,
+    fontFamily: 'Poppins_600SemiBold',
+    marginTop: 5,
   },
   subTitleText: {
-    fontSize: 14,
+    fontSize: 12,
     textAlign: 'center',
     color: '#489AAB',
     fontFamily: 'Poppins_400Regular',
   },
   organisationText: {
-    fontSize: 14,
+    fontSize: 12,
     textAlign: 'center',
     color: '#489AAB',
-    fontFamily: 'Poppins_600SemiBold',
+    fontFamily: 'Poppins_400Regular',
   },
   input: {
     borderWidth: 1,
@@ -228,11 +238,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     height: 54,
     width: width-80,
-    marginTop: 40,
+    marginTop: 30,
     paddingHorizontal: 20,
     fontSize: 15,
     color: '#767577',
-    fontFamily: 'Poppins_500Medium'
+    fontFamily: 'Poppins_400Regular'
   },
   separator: {
     marginVertical: 30,
@@ -240,9 +250,9 @@ const styles = StyleSheet.create({
     width: '80%',
   },
   userPicBtn: {
-    marginTop: 40,
-    width: 130,
-    height: 130,
+    marginTop: 20,
+    width: 120,
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,

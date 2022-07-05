@@ -9,7 +9,7 @@ import {store} from "../../stores/store";
 import {initializeDB, saveContactsToDb, setLoading} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
-import {NotificationResponse} from "../../utils/notificationService";
+import {getSecureKey} from "../../utils/secureStore";
 type NavigationProps = NativeStackScreenProps<any>
 
 export default function GetStarted({ navigation }: NavigationProps) {
@@ -24,16 +24,6 @@ export default function GetStarted({ navigation }: NavigationProps) {
         Poppins_400Regular,
         Poppins_300Light
     });
-    const lastNotificationResponse = NotificationResponse();
-
-    useEffect(() => {
-        (async () => {
-            if (lastNotificationResponse) {
-                await Linking.openURL(lastNotificationResponse.notification.request.content.data.url as string)
-            }
-        })();
-    }, [lastNotificationResponse]);
-
 
     useEffect(() => {
         let initializing = true;
@@ -41,9 +31,16 @@ export default function GetStarted({ navigation }: NavigationProps) {
             if (initializing) {
                 console.log('initializing...');
                 try {
-                    let response = await dispatch(initializeDB())
-                    if (response.type === 'initializeDB/fulfilled') {
-                        console.log('initialized', response)
+                    const oldBoy = await getSecureKey('oldBoy');
+
+                    if (oldBoy === 'true') {
+                        navigation.navigate('GetTenants');
+                    } else {
+                        console.log('new boyyyyyyyyyyyyyy');
+                        let response = await dispatch(initializeDB())
+                        if (response.type === 'initializeDB/fulfilled') {
+                            console.log('initialized', response)
+                        }
                     }
                 } catch (e: any) {
                     console.log('promise error', e)

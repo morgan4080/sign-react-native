@@ -22,11 +22,16 @@ import {
     setLoading,
     fetchMember,
     logoutUser,
-    saveContactsToDb, setLoanCategories, fetchGuarantorshipRequests, fetchWitnessRequests
+    saveContactsToDb,
+    setLoanCategories,
+    fetchGuarantorshipRequests,
+    fetchWitnessRequests,
+    authenticate
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
+import {getSecureKey} from "../../utils/secureStore";
 
 // Types
 
@@ -62,32 +67,48 @@ export default function UserProfile({ navigation }: NavigationProps) {
     const CSTM = NativeModules.CSTM;
 
     useEffect(() => {
-        let isMounted = true;
+        let authenticating = true;
         const controller = new AbortController();
         const signal = controller.signal;
+        if (authenticating) {
+            (async () => {
+                const { type, payload }: any = await dispatch(authenticate());
+                if (type === 'authenticate/rejected') {
+                    navigation.navigate('Login')
+                    return
+                }
+                console.log("Authentication", payload);
+
+                CSTM.showToast(`Welcome ${payload.firstName}`);
+
+                try {
+                    await Promise.all([
+                        dispatch(fetchMember(payload.username)),
+                        dispatch(saveContactsToDb()),
+                        dispatch(setLoanCategories(signal)),
+                        dispatch(fetchGuarantorshipRequests({ memberRefId: member?.refId})),
+                        dispatch(fetchWitnessRequests({ memberRefId: member?.refId}))
+                    ]);
+                } catch (e: any) {
+                    console.log('promise rejection', e);
+                }
+            })()
+        }
+        return () => {
+            controller.abort();
+            authenticating = false;
+        }
+    }, []);
+
+    useEffect(() => {
+        let isMounted = true;
         (async () => {
             if (!isLoggedIn) {
                 if (isMounted) navigation.navigate('Login')
-            } else {
-                if (user) {
-                    CSTM.showToast(`Welcome ${user?.firstName}`);
-                    try {
-                        await Promise.all([
-                            dispatch(fetchMember(user?.phoneNumber ? user?.phoneNumber : user?.username)),
-                            dispatch(saveContactsToDb()),
-                            dispatch(setLoanCategories(signal)),
-                            dispatch(fetchGuarantorshipRequests({ memberRefId: member?.refId})),
-                            dispatch(fetchWitnessRequests({ memberRefId: member?.refId}))
-                        ]);
-                    } catch (e: any) {
-                        console.log('promise rejection', e);
-                    }
-                }
             }
         })()
         return () => {
             isMounted = false;
-            controller.abort()
         };
     }, [isLoggedIn]);
 

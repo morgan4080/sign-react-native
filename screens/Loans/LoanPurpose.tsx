@@ -76,16 +76,19 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
         Poppins_400Regular,
         Poppins_300Light
     });
-    const [currentOpenIndex, setCurrentOpenIndex] = useState<number>(-1)
+    const [currentOpenIndex, setCurrentOpenIndex] = useState<number>(-1);
     const isOpen = (index: number): void => {
-        setCurrentOpenIndex(index)
+        setCurrentOpenIndex(index);
     }
+    const [optionSelected, setOptionSelected] = useState<boolean>(false);
     const setFormData = (data: CategoryType) => {
         console.log(data.options[0].selected)
         if (data.options.some((element) => element.selected)) {
-            setSelectedCategory(data)
+            setOptionSelected(true);
+            setSelectedCategory(data);
         } else {
-            setSelectedCategory(null)
+            setOptionSelected(false);
+            setSelectedCategory(null);
         }
     }
     if (fontsLoaded) {
@@ -126,10 +129,10 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
                             </ScrollView>
                         </SafeAreaView>
                         <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.6)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity onPress={() => selectedCategory ? navigation.navigate('GuarantorsHome', {
+                            <TouchableOpacity disabled={!optionSelected} onPress={() => selectedCategory ? navigation.navigate('GuarantorsHome', {
                                 category: selectedCategory,
                                 ...route.params
-                            }) : null} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            }) : null} style={{ display: 'flex', alignItems: 'center', backgroundColor: !optionSelected ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                 <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>

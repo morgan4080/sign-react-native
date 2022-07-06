@@ -211,6 +211,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                         <Text allowFontScaling={false} style={styles.subTitleText1}>Kindly enter the verification code that was sent to <Text allowFontScaling={false} style={{textDecorationLine: 'underline'}}>{user && user.username}</Text></Text>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, position: 'relative' }}>
                             <TextInput
+                                allowFontScaling={false}
                                 style={{ position: 'absolute', top: 30, left: 30, height: 70, width: '100%', zIndex: 5, opacity: 0, backgroundColor: 'rgba(255,255,255,0)'}}
                                 onChangeText={onChange}
                                 keyboardType="numeric"
@@ -227,6 +228,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                                 }}
                                 render={( { field: { onChange, onBlur, value } }) => (
                                     <TextInput
+                                        allowFontScaling={false}
                                         style={styles.input}
                                         onBlur={onBlur}
                                         onChangeText={onChange}
@@ -248,6 +250,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                                 }}
                                 render={( { field: { onChange, onBlur, value } }) => (
                                     <TextInput
+                                        allowFontScaling={false}
                                         style={styles.input}
                                         onBlur={onBlur}
                                         onChangeText={onChange}
@@ -269,6 +272,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                                 }}
                                 render={( { field: { onChange, onBlur, value } }) => (
                                     <TextInput
+                                        allowFontScaling={false}
                                         style={styles.input}
                                         onBlur={onBlur}
                                         onChangeText={onChange}
@@ -290,6 +294,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                                 }}
                                 render={( { field: { onChange, onBlur, value } }) => (
                                     <TextInput
+                                        allowFontScaling={false}
                                         style={styles.input}
                                         onBlur={onBlur}
                                         onChangeText={onChange}

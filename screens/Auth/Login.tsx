@@ -9,8 +9,8 @@ import {
     SafeAreaView,
     NativeModules,
     Alert,
-    Keyboard,
-    Animated
+    Animated,
+    TouchableHighlight
 } from 'react-native';
 import AppLoading from 'expo-app-loading';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
@@ -206,6 +206,8 @@ export default function Login({ navigation }: NavigationProps) {
 
     const animatedOpacity = useRef(new Animated.Value(1))
 
+    const [inputDisabled, setInputDisabled] = useState(false)
+
     const onPressed = async (field: number) => {
         if (!loading) {
             if (field === -1) {
@@ -238,6 +240,9 @@ export default function Login({ navigation }: NavigationProps) {
                     if (i === 3) setValue(`pinChar4`, `⬤`)
                 });
                 if (characters.length === 4) {
+                    // disable all buttons
+                    setInputDisabled(true);
+
                     setTimeout(() => {
                         setValue(`pinChar1`, ``)
                         setValue(`pinChar2`, ``)
@@ -279,6 +284,8 @@ export default function Login({ navigation }: NavigationProps) {
                             }
                         } catch (e: any) {
                             console.log('LOGIN ERROR', e);
+                        } finally {
+                            setInputDisabled(false);
                         }
                     }
                 }
@@ -320,11 +327,11 @@ export default function Login({ navigation }: NavigationProps) {
                                         render={( { field: { onChange, onBlur, value } }) => (
                                             <Animated.View style={{ opacity: animatedOpacity.current }}>
                                                 <TextInput
+                                                    allowFontScaling={false}
                                                     style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB' }}
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
-                                                    keyboardType="numeric"
                                                     editable={false}
                                                     selectTextOnFocus={false}
                                                 />
@@ -341,11 +348,11 @@ export default function Login({ navigation }: NavigationProps) {
                                         render={( { field: { onChange, onBlur, value } }) => (
                                             <Animated.View style={{ opacity: animatedOpacity.current }}>
                                                 <TextInput
+                                                    allowFontScaling={false}
                                                     style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB' }}
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
-                                                    keyboardType="numeric"
                                                     editable={false}
                                                     selectTextOnFocus={false}
                                                 />
@@ -362,11 +369,11 @@ export default function Login({ navigation }: NavigationProps) {
                                         render={( { field: { onChange, onBlur, value } }) => (
                                             <Animated.View style={{ opacity: animatedOpacity.current }}>
                                                 <TextInput
+                                                    allowFontScaling={false}
                                                     style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB',}}
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
-                                                    keyboardType="numeric"
                                                     editable={false}
                                                     selectTextOnFocus={false}
                                                 />
@@ -383,11 +390,11 @@ export default function Login({ navigation }: NavigationProps) {
                                         render={( { field: { onChange, onBlur, value } }) => (
                                             <Animated.View style={{ opacity: animatedOpacity.current }}>
                                                 <TextInput
+                                                    allowFontScaling={false}
                                                     style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB',}}
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
-                                                    keyboardType="numeric"
                                                     editable={false}
                                                     selectTextOnFocus={false}
                                                 />
@@ -400,7 +407,7 @@ export default function Login({ navigation }: NavigationProps) {
                         </View>
                         <View style={{height: height/2.8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap'}}>
                             {[1,2,3,4,5,6,7,8,9,-2,0,-1].map(num => (
-                                <TouchableOpacity onPress={() => onPressed(num)} key={num} style={{width: width/3, height: height/11, display: 'flex', justifyContent: 'center'}}>
+                                <TouchableHighlight disabled={inputDisabled} onPress={() => onPressed(num)} key={num} style={{width: width/3, height: height/11, display: 'flex', justifyContent: 'center'}}>
                                     {
                                         num >= 0 ?
                                             <Text allowFontScaling={false} style={{fontSize: 18, textAlign: 'center', fontFamily: 'Poppins_400Regular'}}>{num}</Text>
@@ -413,7 +420,7 @@ export default function Login({ navigation }: NavigationProps) {
                                                 CLEAR
                                             </Text>
                                     }
-                                </TouchableOpacity>
+                                </TouchableHighlight>
                             ))}
                         </View>
                     </ScrollView>
@@ -465,7 +472,7 @@ const styles = StyleSheet.create({
         height: height/20,
         width: height/20,
         fontWeight: '900',
-        fontSize: 44
+        fontSize: height/width * 17
     },
     error: {
         fontSize: 12,

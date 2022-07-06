@@ -95,6 +95,7 @@ export default function ModalScreen() {
               }}
               render={( { field: { onChange, onBlur, value } }) => (
                   <TextInput
+                      allowFontScaling={false}
                       style={styles.input}
                       onBlur={onBlur}
                       onChangeText={onChange}
@@ -112,6 +113,7 @@ export default function ModalScreen() {
               }}
               render={( { field: { onChange, onBlur, value } }) => (
                   <TextInput
+                      allowFontScaling={false}
                       style={styles.input}
                       onBlur={onBlur}
                       onChangeText={onChange}

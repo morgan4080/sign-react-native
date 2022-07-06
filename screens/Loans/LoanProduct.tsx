@@ -129,6 +129,7 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
                                     }}
                                     render={( { field: { onChange, onBlur, value } }) => (
                                         <TextInput
+                                            allowFontScaling={false}
                                             style={styles.input}
                                             onBlur={onBlur}
                                             onChangeText={onChange}

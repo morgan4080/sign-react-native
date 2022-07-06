@@ -1,4 +1,5 @@
 import {
+    Animated,
     View,
     Text,
     Dimensions,
@@ -8,7 +9,9 @@ import {
     SafeAreaView,
     ScrollView,
     TextInput,
-    Keyboard
+    Keyboard,
+    NativeModules,
+    TouchableHighlight
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
@@ -39,7 +42,7 @@ import {
 
 import {MaterialIcons, Ionicons} from "@expo/vector-icons";
 
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
 import { useForm, Controller } from "react-hook-form";
 
@@ -49,9 +52,11 @@ import {cloneDeep} from "lodash";
 
 import {RotateView} from "../Auth/VerifyOTP";
 
-import { PanGestureHandler } from "react-native-gesture-handler";
+/*import { PanGestureHandler } from "react-native-gesture-handler";
 
-import Animated from "react-native-reanimated";
+import Animated from "react-native-reanimated";*/
+
+import configuration from "../../utils/configuration"
 
 type NavigationProps = NativeStackScreenProps<any>;
 
@@ -72,9 +77,13 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const [contacts, setContacts] = useState([]);
 
+    const CSTM = NativeModules.CSTM;
+
     const [from, setFrom] = useState(0);
 
     const [to, setTo] = useState(100);
+
+    const settings = configuration.find(conf => conf.tenantId === selectedTenantId);
 
     useEffect(() => {
         let syncContacts = true;
@@ -180,7 +189,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
             if (type === 'validateNumber/rejected') {
                 console.log(`${phone} ${result.error.message}`)
-                alert(`${phone} ${result.error.message}`);
+                CSTM.showToast(`${phone} ${result.error.message}`);
                 return
             }
 
@@ -211,9 +220,9 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         };
     }, [keyboardHidden]);
 
-
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
     const [addingManually, setAddingManually] = useState<boolean>(false);
+    const [employerInput, setEmployerInput] = useState<boolean>(false);
 
     const removeContactFromList = (contact2Remove: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): boolean => {
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
@@ -242,13 +251,14 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 let number = contact.phone.substring(1);
                 phone0 = `254${number.replace(/ /g, "")}`;
             }
-            console.log(phone, phone0);
+
             return phone0 === phone;
         });
-        console.log('duplicate?', isDuplicate);
+
         if (!isDuplicate) {
             newDeserializedCopy.push(contact2Add);
             setSelectedContacts(newDeserializedCopy);
+            settings && setEmployerInput(settings.employerInfo)
             return true;
         }
         return false;
@@ -281,6 +291,19 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         return 1
     }
 
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.timing(
+            fadeAnim,
+            {
+                useNativeDriver: true,
+                toValue: 1,
+                duration: 1000
+            }
+        ).start();
+    }, [fadeAnim])
+
     return (
         <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
             {
@@ -293,58 +316,65 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             <View style={{ position: 'absolute', left: -100, top: 200, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
             <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
             {
-                addingManually && <View style={{ position: 'absolute', zIndex: 12, backgroundColor: 'rgba(0,0,0,0.84)', display: 'flex', justifyContent: 'center', alignItems: 'center', height: height + 100, width }}>
-                    <Controller
-                        control={control}
-                        render={( { field: { onChange, onBlur, value } }) => (
-                            <View style={styles.input0}>
-                                <Picker
-                                    style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 15, }}
-                                    onBlur={onBlur}
-                                    selectedValue={value}
-                                    onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-                                >
-                                    { [{name: "Member Number", value: 0}, {name: "Phone Number", value: 1}].map((p, i) =>(
-                                        <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
-                                    ))}
-                                </Picker>
-                                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: -5, fontSize: 10}}>Select Desired Identifier</Text>
-                            </View>
-                        )}
-                        name="inputStrategy"
-                    />
-
-                    {inputStrategy === 1 && <Controller
-                        control={control}
-                        render={({field: {onChange, onBlur, value}}) => (
-                            <TextInput
-                                style={styles.input0}
-                                onBlur={onBlur}
-                                onChangeText={onChange}
-                                value={value}
-                                autoFocus={true}
-                                placeholder="0720000000"
-                                keyboardType="numeric"
+                addingManually &&
+                <View style={{ position: 'absolute', zIndex: 12, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', height: height + 100, width }}>
+                    <Animated.View style={{ opacity: fadeAnim, position: 'absolute', bottom: 0, zIndex: 12, borderTopRightRadius: 25, borderTopLeftRadius: 25, backgroundColor: '#FFFFFF', display: 'flex', alignItems: 'center', height: height/1.4, width }}>
+                        <View style={{width: width/5, height: 5, backgroundColor: '#CCCCCC', borderRadius: 50, marginTop: 10}}></View>
+                        <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', marginTop: height/20, width}}>
+                            <Controller
+                                control={control}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <View style={styles.input0}>
+                                        <Picker
+                                            style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 15, }}
+                                            onBlur={onBlur}
+                                            selectedValue={value}
+                                            onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+                                        >
+                                            { [{name: "Member Number", value: 0}, {name: "Phone Number", value: 1}].map((p, i) =>(
+                                                <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
+                                            ))}
+                                        </Picker>
+                                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: -5, fontSize: 10}}>Select Desired Identifier</Text>
+                                    </View>
+                                )}
+                                name="inputStrategy"
                             />
-                        )}
-                        name="phoneNumber"
-                    />}
 
-                    {inputStrategy === 0 && <Controller
-                        control={control}
-                        render={({field: {onChange, onBlur, value}}) => (
-                            <TextInput
-                                style={styles.input0}
-                                onBlur={onBlur}
-                                onChangeText={onChange}
-                                value={value}
-                                autoFocus={true}
-                                placeholder="Enter member number"
-                                keyboardType="numeric"
-                            />
-                        )}
-                        name="memberNumber"
-                    />}
+                            {inputStrategy === 1 && <Controller
+                                control={control}
+                                render={({field: {onChange, onBlur, value}}) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={styles.input0}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        autoFocus={true}
+                                        placeholder="0720000000"
+                                        keyboardType="numeric"
+                                    />
+                                )}
+                                name="phoneNumber"
+                            />}
+
+                            {inputStrategy === 0 && <Controller
+                                control={control}
+                                render={({field: {onChange, onBlur, value}}) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={styles.input0}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        autoFocus={true}
+                                        placeholder="Enter member number"
+                                    />
+                                )}
+                                name="memberNumber"
+                            />}
+                        </ScrollView>
+                    </Animated.View>
                 </View>
             }
             <View style={styles.container}>
@@ -369,16 +399,16 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                 control={control}
                                 render={( { field: { onChange, onBlur, value } }) => (
                                     <TextInput
+                                        allowFontScaling={false}
                                         style={styles.input}
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
-                                        placeholder="Search Contact"
+                                        placeholder="Search Contact name or phone"
                                     />
                                 )}
                                 name="searchTerm"
                             />
-
                         </View>
                         <View style={{paddingHorizontal: 20, marginBottom: 20, marginTop: 10, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                             <ScrollView horizontal>
@@ -410,10 +440,12 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     </View>
                     <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#e8e8e8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                         <View style={{ position: 'absolute', marginTop: -35, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity onPress={() => setAddingManually(true)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, marginVertical: 15 }}>
-                                <MaterialIcons name="dialpad" size={16} color="white" />
-                                <Text allowFontScaling={false} style={styles.buttonText0}>Other</Text>
-                            </TouchableOpacity>
+                            <TouchableHighlight onPress={() => setAddingManually(true)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, marginVertical: 15 }}>
+                                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+                                    <MaterialIcons name="dialpad" size={16} color="white" />
+                                    <Text allowFontScaling={false} style={styles.buttonText0}>Other</Text>
+                                </View>
+                            </TouchableHighlight>
                         </View>
                         <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
                             {
@@ -464,12 +496,12 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_400Regular',
     },
     input0: {
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: '#cccccc',
         backgroundColor: '#FFFFFF',
         borderRadius: 20,
         height: 54,
-        width: '80%',
+        width: '90%',
         marginTop: 10,
         paddingHorizontal: 20,
         fontSize: 14,

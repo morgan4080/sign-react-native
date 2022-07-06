@@ -246,7 +246,7 @@ const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> =
 export const searchContactsInDB = createAsyncThunk('searchContactsInDB', async({searchTerm, setContacts}: {searchTerm: string, setContacts: any}) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM contacts WHERE name LIKE '%${searchTerm}%' LIMIT '0', '100'`, undefined,
+            tx.executeSql(`SELECT * FROM contacts WHERE name LIKE '%${searchTerm}%' OR phone LIKE '%${searchTerm}%' LIMIT '0', '100'`, undefined,
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: any, { rows: { _array } } : any) => {
                     setContacts(_array)

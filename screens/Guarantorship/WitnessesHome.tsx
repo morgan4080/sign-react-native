@@ -189,6 +189,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
                             control={control}
                             render={( { field: { onChange, onBlur, value } }) => (
                                 <TextInput
+                                    allowFontScaling={false}
                                     style={styles.input0}
                                     onBlur={onBlur}
                                     onChangeText={onChange}
@@ -224,6 +225,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
                                     control={control}
                                     render={( { field: { onChange, onBlur, value } }) => (
                                         <TextInput
+                                            allowFontScaling={false}
                                             style={styles.input}
                                             onBlur={onBlur}
                                             onChangeText={onChange}

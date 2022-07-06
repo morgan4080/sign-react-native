@@ -1,3 +1,6 @@
-# PrestaCustomer
+# Presta Sign App
+✨✨✨✨✨✨
+## RN
+### Development build
 
-✨✨✨React Native ✨✨✨
+

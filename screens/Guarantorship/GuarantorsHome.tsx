@@ -1,5 +1,4 @@
 import {
-    Animated,
     View,
     Text,
     Dimensions,
@@ -52,9 +51,9 @@ import {cloneDeep} from "lodash";
 
 import {RotateView} from "../Auth/VerifyOTP";
 
-/*import { PanGestureHandler } from "react-native-gesture-handler";
+import Animated, { Easing, useSharedValue, useAnimatedStyle, withTiming, useAnimatedGestureHandler, withSpring} from "react-native-reanimated";
 
-import Animated from "react-native-reanimated";*/
+import { GestureHandlerRootView, GestureDetector, Gesture } from "react-native-gesture-handler";
 
 import configuration from "../../utils/configuration"
 
@@ -291,18 +290,54 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         return 1
     }
 
-    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const opacity = useSharedValue(0);
 
-    useEffect(() => {
-        Animated.timing(
-            fadeAnim,
-            {
-                useNativeDriver: true,
-                toValue: 1,
-                duration: 1000
-            }
-        ).start();
-    }, [fadeAnim])
+    const style = useAnimatedStyle(() => {
+        return {
+            opacity: withTiming(opacity.value + 1, {
+                duration: 500,
+                easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+            }),
+        };
+    });
+
+    const SCREEN_HEIGHT = height + (Bar.currentHeight ? Bar.currentHeight : 0);
+    const MAX_TRANSLATE_Y = -SCREEN_HEIGHT/1.5;
+
+    const translateY = useSharedValue(0);
+
+    const context = useSharedValue({y: 0});
+
+    const gesture = Gesture.Pan().onStart(() => {
+        context.value = { y: translateY.value };
+    }).onUpdate((event) => {
+        translateY.value = event.translationY + context.value.y;
+        translateY.value = Math.max(translateY.value, MAX_TRANSLATE_Y);
+    }).onEnd(() => {
+        if (translateY.value > -SCREEN_HEIGHT/3) {
+            translateY.value = withSpring(0, { damping: 50 });
+            setTimeout(() => {
+                setAddingManually(false);
+            },1000)
+        } else if (translateY.value < -SCREEN_HEIGHT/ 3) {
+            translateY.value = withSpring(MAX_TRANSLATE_Y, { damping: 50 });
+        }
+    });
+
+    const transform = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateY: translateY.value }]
+        }
+    });
+
+    const launchOther = () => {
+        setAddingManually(true);
+        setTimeout(() => {
+            translateY.value = withSpring(-SCREEN_HEIGHT/1.5, {
+                damping: 50
+            });
+        }, 500);
+    };
 
     return (
         <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
@@ -317,65 +352,70 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
             {
                 addingManually &&
-                <View style={{ position: 'absolute', zIndex: 12, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', height: height + 100, width }}>
-                    <Animated.View style={{ opacity: fadeAnim, position: 'absolute', bottom: 0, zIndex: 12, borderTopRightRadius: 25, borderTopLeftRadius: 25, backgroundColor: '#FFFFFF', display: 'flex', alignItems: 'center', height: height/1.4, width }}>
-                        <View style={{width: width/5, height: 5, backgroundColor: '#CCCCCC', borderRadius: 50, marginTop: 10}}></View>
-                        <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', marginTop: height/20, width}}>
-                            <Controller
-                                control={control}
-                                render={( { field: { onChange, onBlur, value } }) => (
-                                    <View style={styles.input0}>
-                                        <Picker
-                                            style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 15, }}
-                                            onBlur={onBlur}
-                                            selectedValue={value}
-                                            onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-                                        >
-                                            { [{name: "Member Number", value: 0}, {name: "Phone Number", value: 1}].map((p, i) =>(
-                                                <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
-                                            ))}
-                                        </Picker>
-                                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: -5, fontSize: 10}}>Select Desired Identifier</Text>
-                                    </View>
-                                )}
-                                name="inputStrategy"
-                            />
-
-                            {inputStrategy === 1 && <Controller
-                                control={control}
-                                render={({field: {onChange, onBlur, value}}) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input0}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        autoFocus={true}
-                                        placeholder="0720000000"
-                                        keyboardType="numeric"
+                <GestureHandlerRootView style={{ position: 'absolute', zIndex: 12, height: height + (Bar.currentHeight ? Bar.currentHeight : 0), width }}>
+                    <Animated.View style={[style, {height: "100%", width: "100%", backgroundColor: 'rgba(0,0,0,0.5)'}]}>
+                        <GestureDetector gesture={gesture}>
+                            <Animated.View style={[
+                                { position: 'absolute', top: height + (Bar.currentHeight ? Bar.currentHeight : 0), zIndex: 12, borderRadius: 25, backgroundColor: '#FFFFFF', height, width },
+                                transform
+                            ]}>
+                                <View style={{width: 75, height: 4, backgroundColor: 'grey', borderRadius: 2, marginVertical: 15, alignSelf: 'center'}}></View>
+                                <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', width}}>
+                                    <Controller
+                                        control={control}
+                                        render={( { field: { onChange, onBlur, value } }) => (
+                                            <View style={styles.input0}>
+                                                <Picker
+                                                    style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 15, }}
+                                                    onBlur={onBlur}
+                                                    selectedValue={value}
+                                                    onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+                                                >
+                                                    { [{name: "Member Number", value: 0}, {name: "Phone Number", value: 1}].map((p, i) =>(
+                                                        <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
+                                                    ))}
+                                                </Picker>
+                                                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: -5, fontSize: 10}}>Select Desired Identifier</Text>
+                                            </View>
+                                        )}
+                                        name="inputStrategy"
                                     />
-                                )}
-                                name="phoneNumber"
-                            />}
 
-                            {inputStrategy === 0 && <Controller
-                                control={control}
-                                render={({field: {onChange, onBlur, value}}) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input0}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        autoFocus={true}
-                                        placeholder="Enter member number"
-                                    />
-                                )}
-                                name="memberNumber"
-                            />}
-                        </ScrollView>
+                                    {inputStrategy === 1 && <Controller
+                                        control={control}
+                                        render={({field: {onChange, onBlur, value}}) => (
+                                            <TextInput
+                                                allowFontScaling={false}
+                                                style={styles.input0}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                value={value}
+                                                placeholder="0720000000"
+                                                keyboardType="numeric"
+                                            />
+                                        )}
+                                        name="phoneNumber"
+                                    />}
+
+                                    {inputStrategy === 0 && <Controller
+                                        control={control}
+                                        render={({field: {onChange, onBlur, value}}) => (
+                                            <TextInput
+                                                allowFontScaling={false}
+                                                style={styles.input0}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                value={value}
+                                                placeholder="Enter member number"
+                                            />
+                                        )}
+                                        name="memberNumber"
+                                    />}
+                                </ScrollView>
+                            </Animated.View>
+                        </GestureDetector>
                     </Animated.View>
-                </View>
+                </GestureHandlerRootView>
             }
             <View style={styles.container}>
                 <View style={{flex: 1, alignItems: 'center', position: 'relative'}}>
@@ -440,7 +480,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     </View>
                     <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#e8e8e8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                         <View style={{ position: 'absolute', marginTop: -35, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableHighlight onPress={() => setAddingManually(true)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, marginVertical: 15 }}>
+                            <TouchableHighlight onPress={() => launchOther()} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, marginVertical: 15 }}>
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
                                     <MaterialIcons name="dialpad" size={16} color="white" />
                                     <Text allowFontScaling={false} style={styles.buttonText0}>Other</Text>

@@ -64,6 +64,7 @@ type FormData = {
     searchTerm: string;
     phoneNumber: string | undefined;
     memberNumber: string | undefined;
+    employerName: string;
     inputStrategy: string | number;
 };
 
@@ -83,6 +84,10 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const [to, setTo] = useState(100);
 
     const settings = configuration.find(conf => conf.tenantId === selectedTenantId);
+
+    const [memberSearching, setMemberSearching] = useState<boolean>(false)
+
+    const [context, setContext] = useState<string>("")
 
     useEffect(() => {
         let syncContacts = true;
@@ -148,14 +153,13 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     case 'phoneNumber':
                         if (type === 'change') {
                             setPhoneNumber(value.phoneNumber);
-                            if (keyboardHidden) {
-                                console.log(phoneNumber);
-                            }
+                            setMemberSearching(true);
                         }
                         break;
                     case 'memberNumber':
                         if (type === 'change') {
                             setMemberNumber(value.memberNumber);
+                            setMemberSearching(true);
                         }
                         break;
                     case 'inputStrategy':
@@ -198,6 +202,10 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 console.log(payload)
             }
         }
+
+        if (inputStrategy === 0) {
+            // implement search by memberNo
+        }
     }
 
     useEffect(() => {
@@ -206,7 +214,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             if (searchingManual) {
                 if (keyboardHidden && inputStrategy === 0 && memberNumber) {
                     console.log(memberNumber);
-
+                    await addToSelected(`${memberNumber}`);
                 }
                 if (keyboardHidden && inputStrategy === 1 && phoneNumber) {
                     console.log(phoneNumber);
@@ -220,7 +228,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     }, [keyboardHidden]);
 
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
-    const [addingManually, setAddingManually] = useState<boolean>(false);
     const [employerInput, setEmployerInput] = useState<boolean>(false);
 
     const removeContactFromList = (contact2Remove: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): boolean => {
@@ -290,8 +297,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         return 1
     }
 
-    const [memberSearching, setMemberSearching] = useState<boolean>(false)
-    const [context, setContext] = useState<string>("")
+
 
     const ref = useRef<BottomSheetRefProps>(null);
 
@@ -306,8 +312,56 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     }, []);
 
     const submitSearch = (ctx: string) => {
-
+        if (ctx === 'search') {
+            if (inputStrategy === 1 && phoneNumber) {
+                console.log("ready to search eligibility", phoneNumber);
+            } else if (inputStrategy === 0 && memberNumber) {
+                console.log("ready to search eligibility", memberNumber);
+            }
+        }
     }
+
+    const verifyGuarantors = async () => {
+        if (tenant?.tenantId === 't74411') {
+            let payload = {
+                "applicantMemberRefId": "string",
+                "memberRefId": "string",
+                "loanProductRefId": "string",
+                "guaranteeAmount": 0
+            }
+
+            let url = "https://eguarantorship-api.presta.co.ke/api/v1/loan-request/guarantors-status"
+        }
+
+        if (tenant?.tenantId === 't72767') {
+            let payload = {
+                "applicantMemberRefId": "mgxb6WeCjEatLkCh",
+                "memberRefIds": [
+                    "3L1mPsDTaPVzGUT1",
+                    "6VDXgAA0XVH9B7Ip",
+                    "8WyHlj18STVKoFer",
+                    "nq64UuTssU8cIHPu"
+                ],
+                "loanProductRefId": "zN9x5MBI5x559icx",
+                "loanAmount": 1000000
+            }
+
+            let url = "https://eguarantorship-api.presta.co.ke/api/v1/loan-request/guarantor-status"
+        }
+
+        navigation.navigate('WitnessesHome', {
+            guarantors: selectedContacts,
+            ...route.params
+        })
+    }
+
+    useEffect(() => {
+        onPress('employment');
+        console.log(settings && settings.employerInfo);
+        if (settings && settings.employerInfo) {
+
+        }
+    }, [])
 
     return (
         <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
@@ -399,10 +453,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     </SafeAreaView>
 
                     <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <TouchableOpacity disabled={selectedContacts.length < requiredGuarantors()} onPress={() => navigation.navigate('WitnessesHome', {
-                            guarantors: selectedContacts,
-                            ...route.params
-                        })} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < requiredGuarantors() ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                        <TouchableOpacity disabled={selectedContacts.length < requiredGuarantors() || loading} onPress={verifyGuarantors} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < requiredGuarantors() || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                             <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                         </TouchableOpacity>
                     </View>
@@ -410,61 +461,129 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             </View>
             <BottomSheet ref={ref}>
                 <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', width}}>
-                    <Text allowFontScaling={false} style={styles.subtitle}>Search Member</Text>
-                    <Controller
-                        control={control}
-                        render={( { field: { onChange, onBlur, value } }) => (
-                            <View style={styles.input0}>
-                                <Picker
-                                    style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 15, }}
-                                    onBlur={onBlur}
-                                    selectedValue={value}
-                                    onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-                                >
-                                    { [{name: "Member Number", value: 0}, {name: "Phone Number", value: 1}].map((p, i) =>(
-                                        <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
-                                    ))}
-                                </Picker>
-                                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: -5, fontSize: 10}}>Select Desired Identifier</Text>
-                            </View>
-                        )}
-                        name="inputStrategy"
-                    />
-
-                    {inputStrategy === 1 && <Controller
-                        control={control}
-                        render={({field: {onChange, onBlur, value}}) => (
-                            <TextInput
-                                allowFontScaling={false}
-                                style={styles.input0}
-                                onBlur={onBlur}
-                                onChangeText={onChange}
-                                value={value}
-                                placeholder="0720000000"
-                                keyboardType="numeric"
+                    { context === "search" &&
+                        <View style={{display: 'flex', alignItems: 'center', width}}>
+                            <Text allowFontScaling={false} style={styles.subtitle}>Search Member</Text>
+                            <Controller
+                                control={control}
+                                render={( {field: {onChange, onBlur, value}}) => (
+                                    <View style={styles.input0}>
+                                        <Picker
+                                            style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 15,}}
+                                            onBlur={onBlur}
+                                            selectedValue={value}
+                                            onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+                                        >
+                                            {[{name: "Member Number", value: 0}, {name: "Phone Number", value: 1}].map((p, i) =>(
+                                                <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
+                                            ))}
+                                        </Picker>
+                                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: -5, fontSize: 10}}>Select Desired Identifier</Text>
+                                    </View>
+                                )}
+                                name="inputStrategy"
                             />
-                        )}
-                        name="phoneNumber"
-                    />}
 
-                    {inputStrategy === 0 && <Controller
-                        control={control}
-                        render={({field: {onChange, onBlur, value}}) => (
-                            <TextInput
-                                allowFontScaling={false}
-                                style={styles.input0}
-                                onBlur={onBlur}
-                                onChangeText={onChange}
-                                value={value}
-                                placeholder="Enter member number"
+                            { inputStrategy === 1 && <Controller
+                                control={control}
+                                render={({field: {onChange, onBlur, value}}) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={styles.input0}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="0720000000"
+                                        keyboardType="numeric"
+                                    />
+                                )}
+                                name="phoneNumber"
+                            />}
+
+                            {inputStrategy === 0 && <Controller
+                                control={control}
+                                render={({field: {onChange, onBlur, value}}) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={styles.input0}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="Enter member number"
+                                    />
+                                )}
+                                name="memberNumber"
+                            />}
+                        </View>
+                    }
+                    { context === "employment" &&
+                        <View style={{display: 'flex', alignItems: 'center', width}}>
+                            <Text allowFontScaling={false} style={styles.subtitle}>Add Employment</Text>
+                            <Controller
+                                control={control}
+                                render={({field: {onChange, onBlur, value}}) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={styles.input0}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="Employer name"
+                                    />
+                                )}
+                                name="employerName"
                             />
-                        )}
-                        name="memberNumber"
-                    />}
+
+                            <Controller
+                                control={control}
+                                render={({field: {onChange, onBlur, value}}) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={styles.input0}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="Employment/Service No."
+                                    />
+                                )}
+                                name="employerName"
+                            />
+
+                            <Controller
+                                control={control}
+                                render={({field: {onChange, onBlur, value}}) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={styles.input0}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="Gross Salary"
+                                    />
+                                )}
+                                name="employerName"
+                            />
+
+                            <Controller
+                                control={control}
+                                render={({field: {onChange, onBlur, value}}) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={styles.input0}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="Net Salary"
+                                    />
+                                )}
+                                name="employerName"
+                            />
+                        </View>
+                    }
                     <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <TouchableOpacity disabled={!memberSearching} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                        <TouchableOpacity disabled={!memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                             {loading && <RotateView/>}
-                            <Text allowFontScaling={false} style={styles.buttonText}>{context}</Text>
+                            <Text allowFontScaling={false} style={styles.buttonText}>{context === 'search' ? 'Search' : 'Submit'}</Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>

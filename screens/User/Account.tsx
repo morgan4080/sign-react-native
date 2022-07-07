@@ -58,7 +58,9 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
 
     useEffect(() => {
         let fetching = true;
-        if (fetching) console.log(memberDetails)
+        if (fetching) {
+            console.log(memberDetails);
+        }
         return () => {
             fetching = false;
         }
@@ -95,22 +97,22 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, marginBottom: 20}}>
                                     <View>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>ACTIVE LOANS</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>2</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>{ memberDetails?.activeLoans.length }</Text>
                                     </View>
                                     <View>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>SHARES AMOUNT</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {toMoney('13000')}</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {toMoney(`${memberDetails?.totalShares}`)}</Text>
                                     </View>
                                 </View>
                             </View>
                             <View style={{display: 'flex', width: width-50, borderRadius: 15, backgroundColor: '#489AAB', paddingHorizontal: 25, paddingVertical: 10, marginTop: 15}}>
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, marginBottom: 20}}>
                                     <View>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>BALANCE</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>DEPOSITS</Text>
                                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                                             <Ionicons name="ios-wallet-outline" size={40} color="#ffffff" />
                                             <View style={{paddingLeft: 10}}>
-                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {member ? toMoney(`${member.availableAmount}`) : ``}</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {member ? toMoney(`${memberDetails?.totalDeposits}`) : ``}</Text>
                                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10, maxWidth: 80 }}>Available for guarantee</Text>
                                             </View>
                                         </View>
@@ -132,7 +134,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 2  }}>
                                             <MaterialCommunityIcons name="credit-card-clock-outline" size={40} color="#ffffff" />
                                             <View style={{paddingLeft: 10}}>
-                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>13</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>0</Text>
                                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10 }}>Total loans acquired</Text>
                                             </View>
                                         </View>

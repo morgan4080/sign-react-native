@@ -12,7 +12,7 @@ import {StatusBar} from "expo-status-bar";
 import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 import AppLoading from "expo-app-loading";
 import {useDispatch, useSelector} from "react-redux";
-import {storeState} from "../../stores/auth/authSlice";
+import {fetchMemberDetails, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {
@@ -25,6 +25,7 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import { Circle as ProgressCircle } from 'react-native-progress';
+import {useEffect} from "react";
 
 type NavigationProps = NativeStackScreenProps<any>;
 
@@ -35,10 +36,34 @@ export const toMoney = (money: string): string => {
 };
 
 export default function LoanRequests ({ navigation }: NavigationProps) {
-    const { loading, user, member } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, user, member, memberDetails } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
+
+    useEffect(() => {
+        let fetching = true;
+        const controller = new AbortController();
+        const signal = controller.signal;
+        if (fetching) {
+            (async () => {
+                await dispatch(fetchMemberDetails({memberNo: member?.memberNumber, signal}))
+            })()
+        }
+        return () => {
+            controller.abort();
+            fetching = false;
+        }
+    }, []);
+
+    useEffect(() => {
+        let fetching = true;
+        if (fetching) console.log(memberDetails)
+        return () => {
+            fetching = false;
+        }
+    }, [memberDetails]);
+
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,

@@ -64,9 +64,7 @@ export const RotateView = () => {
 
 export default function VerifyOTP({ navigation }: NavigationProps) {
 
-    const CSTM = NativeModules.CSTM;
-
-    const { isLoggedIn, user, loading, otpSent, otpResponse, optVerified } = useSelector((state: { auth: storeState }) => state.auth);
+    const { isLoggedIn, user, loading, otpResponse, optVerified } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
@@ -76,9 +74,9 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
             const phoneNumber = await getSecureKey('phoneNumber');
             const {type, error, payload}: any = await dispatch(sendOtp(phoneNumber));
             if (type === "sendOtp/rejected") {
-                CSTM.showToast(error.message);
+                console.log(error.message);
             } else {
-                CSTM.showToast(payload.message);
+                console.log(payload.message);
             }
             return Promise.resolve(true)
         } else {
@@ -93,14 +91,14 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
             (async () => {
                 const response = await dispatch(authenticate());
                 if (response.type === 'authenticate/rejected') {
-                    CSTM.showToast("500: Internal Server Error");
+                    console.log("500: Internal Server Error");
                 } else {
                     const phoneNumber = await getSecureKey('phoneNumber');
                     const {type, error, payload}: any = await dispatch(sendOtp(phoneNumber));
                     if (type === "sendOtp/rejected") {
-                        CSTM.showToast(error.message);
+                        console.log(error.message);
                     } else {
-                        CSTM.showToast(payload.message);
+                        console.log(payload.message);
                     }
                 }
             })()
@@ -112,10 +110,10 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
     }, []);
 
     useEffect(() => {
-        if (!loading && !isLoggedIn) {
-            navigation.navigate('Login')
+        if (!isLoggedIn) {
+            navigation.navigate('GetTenants')
         }
-    }, [isLoggedIn, loading, user, otpSent]);
+    }, [isLoggedIn]);
 
     useEffect(() => {
         let determineRedirect = true;
@@ -155,26 +153,26 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         if (result.length > 0) {
             let valName: any = `otpChar${result.length}`
             setValue(valName, result[result.length - 1])
-            if (result.length === 4 && !loading && otpResponse && otpResponse.success) {
+            if (result.length === 4 && otpResponse) {
                 Keyboard.dismiss();
                 (async () => {
                     try {
                         const {type, error}: any = await dispatch(verifyOtp({ requestMapper: otpResponse.requestMapper, OTP: valueInput }))
                         if (type === 'verifyOtp/rejected' && error) {
                             if (error.message === "Network request failed") {
-                                CSTM.showToast(error.message);
+                                console.log(error.message);
                             } else {
-                                CSTM.showToast(error.message);
+                                console.log(error.message);
                             }
                             return false
                         }
                     } catch (e: any) {
-                        CSTM.showToast(e.message);
+                        console.log(e.message);
                     }
                 })()
             } else {
                 if (!otpResponse && !loading) {
-                    CSTM.showToast("OTP not sent");
+                    console.log("OTP not sent");
                 }
             }
             let len = 4 - result.length

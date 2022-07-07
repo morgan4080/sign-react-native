@@ -26,12 +26,11 @@ import {
     setLoanCategories,
     fetchGuarantorshipRequests,
     fetchWitnessRequests,
-    authenticate
+    authenticate, fetchMemberDetails
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
-import {getSecureKey} from "../../utils/secureStore";
 
 // Types
 
@@ -58,13 +57,11 @@ const greeting = () => {
 }
 
 export default function UserProfile({ navigation }: NavigationProps) {
-    const { isLoggedIn, loading, user, member, guarantorshipRequests, witnessRequests } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, user, member, guarantorshipRequests, witnessRequests } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
-
-    const CSTM = NativeModules.CSTM;
 
     useEffect(() => {
         let authenticating = true;
@@ -74,23 +71,18 @@ export default function UserProfile({ navigation }: NavigationProps) {
             (async () => {
                 const { type, payload }: any = await dispatch(authenticate());
                 if (type === 'authenticate/rejected') {
-                    navigation.navigate('Login')
-                    return
-                }
-                console.log("Authentication", payload);
-
-                CSTM.showToast(`Welcome ${payload.firstName}`);
-
-                try {
-                    await Promise.all([
-                        dispatch(fetchMember(payload.username)),
-                        dispatch(saveContactsToDb()),
-                        dispatch(setLoanCategories(signal)),
-                        dispatch(fetchGuarantorshipRequests({ memberRefId: member?.refId})),
-                        dispatch(fetchWitnessRequests({ memberRefId: member?.refId}))
-                    ]);
-                } catch (e: any) {
-                    console.log('promise rejection', e);
+                    navigation.navigate('GetTenants')
+                } else {
+                    console.log("Authentication", payload);
+                    try {
+                        await Promise.all([
+                            dispatch(fetchMember(payload.username)),
+                            dispatch(saveContactsToDb()),
+                            dispatch(setLoanCategories(signal))
+                        ]);
+                    } catch (e: any) {
+                        console.log('promise rejection', e);
+                    }
                 }
             })()
         }
@@ -99,18 +91,6 @@ export default function UserProfile({ navigation }: NavigationProps) {
             authenticating = false;
         }
     }, []);
-
-    useEffect(() => {
-        let isMounted = true;
-        (async () => {
-            if (!isLoggedIn) {
-                if (isMounted) navigation.navigate('Login')
-            }
-        })()
-        return () => {
-            isMounted = false;
-        };
-    }, [isLoggedIn]);
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,

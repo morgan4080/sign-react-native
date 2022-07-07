@@ -43,7 +43,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
     useEffect(() => {
         let isMounted = true;
         if (!isLoggedIn) {
-            if (isMounted) navigation.navigate('Login')
+            if (isMounted) navigation.navigate('GetTenants')
         } else {
             if (user) {
                 dispatch(fetchLoanRequests(member?.refId as string)).then((response: any) => {

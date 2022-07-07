@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Dimensions, Platform, StyleSheet, TextInput, TouchableOpacity, Switch, SafeAreaView, ScrollView, StatusBar as Bar } from 'react-native';
 import { Camera } from 'expo-camera';
 import { Text, View } from 'react-native';
-import {logoutUser, setLoading, storeState} from "../stores/auth/authSlice";
+import {logoutUser, storeState} from "../stores/auth/authSlice";
 import {
   Poppins_300Light,
   Poppins_400Regular,
@@ -18,6 +18,7 @@ import {store} from "../stores/store";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
 import {Controller, useForm} from "react-hook-form";
 import {useEffect, useState} from "react";
+import {NativeStackScreenProps} from "@react-navigation/native-stack";
 
 const { width, height } = Dimensions.get("window");
 
@@ -27,8 +28,10 @@ type FormData = {
   fingerPrint: false,
 }
 
-export default function ModalScreen() {
-  const { isLoggedIn, loading, user, member } = useSelector((state: { auth: storeState }) => state.auth);
+type NavigationProps = NativeStackScreenProps<any>;
+
+export default function ModalScreen({ navigation }: NavigationProps) {
+  const { isLoggedIn, user, member } = useSelector((state: { auth: storeState }) => state.auth);
 
   type AppDispatch = typeof store.dispatch;
 
@@ -52,9 +55,17 @@ export default function ModalScreen() {
   }, []);
 
   const logout = async () => {
-    await dispatch(setLoading(true))
-    await dispatch(logoutUser())
-  }
+    await Promise.all([
+      dispatch(logoutUser())
+    ])
+  };
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigation.navigate('GetTenants')
+    }
+  }, [isLoggedIn]);
+
   const getPic = () => {
     // console.log("pull up camera")
   }

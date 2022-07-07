@@ -407,7 +407,7 @@ export default function Login({ navigation }: NavigationProps) {
                         </View>
                         <View style={{height: height/2.8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap'}}>
                             {[1,2,3,4,5,6,7,8,9,-2,0,-1].map(num => (
-                                <TouchableHighlight disabled={inputDisabled} onPress={() => onPressed(num)} key={num} style={{width: width/3, height: height/11, display: 'flex', justifyContent: 'center'}}>
+                                <TouchableHighlight disabled={inputDisabled} underlayColor='#CCCCCC' onPress={() => onPressed(num)} key={num} style={{width: width/3, height: height/11, display: 'flex', justifyContent: 'center'}}>
                                     {
                                         num >= 0 ?
                                             <Text allowFontScaling={false} style={{fontSize: 18, textAlign: 'center', fontFamily: 'Poppins_400Regular'}}>{num}</Text>

@@ -290,9 +290,13 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         return 1
     }
 
+    const [memberSearching, setMemberSearching] = useState<boolean>(false)
+    const [context, setContext] = useState<string>("")
+
     const ref = useRef<BottomSheetRefProps>(null);
 
-    const onPress = useCallback(() => {
+    const onPress = useCallback((ctx: string) => {
+        setContext(ctx)
         const isActive = ref?.current?.isActive();
         if (isActive) {
             ref?.current?.scrollTo(0);
@@ -300,6 +304,10 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             ref?.current?.scrollTo(MAX_TRANSLATE_Y);
         }
     }, []);
+
+    const submitSearch = (ctx: string) => {
+
+    }
 
     return (
         <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
@@ -373,8 +381,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         </View>
                     </View>
                     <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#e8e8e8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
-                        <View style={{ position: 'absolute', marginTop: -10, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableHighlight onPress={onPress} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/3, height: 30, borderRadius: 50 }}>
+                        <View style={{ position: 'absolute', marginTop: -16, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                            <TouchableHighlight onPress={() => onPress('search')} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/3, height: 35, borderRadius: 50 }}>
                                 <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                                     <MaterialIcons name="dialpad" size={16} color="white" />
                                     <Text allowFontScaling={false} style={styles.buttonText0}>OTHER</Text>
@@ -402,6 +410,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             </View>
             <BottomSheet ref={ref}>
                 <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', width}}>
+                    <Text allowFontScaling={false} style={styles.subtitle}>Search Member</Text>
                     <Controller
                         control={control}
                         render={( { field: { onChange, onBlur, value } }) => (
@@ -452,15 +461,13 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         )}
                         name="memberNumber"
                     />}
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                        <TouchableOpacity disabled={!memberSearching} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            {loading && <RotateView/>}
+                            <Text allowFontScaling={false} style={styles.buttonText}>{context}</Text>
+                        </TouchableOpacity>
+                    </View>
                 </ScrollView>
-                <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                    <TouchableOpacity disabled={selectedContacts.length < requiredGuarantors()} onPress={() => navigation.navigate('WitnessesHome', {
-                        guarantors: selectedContacts,
-                        ...route.params
-                    })} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < requiredGuarantors() ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                        <Text allowFontScaling={false} style={styles.buttonText}>SEARCH</Text>
-                    </TouchableOpacity>
-                </View>
             </BottomSheet>
         </GestureHandlerRootView>
     )
@@ -472,12 +479,24 @@ const styles = StyleSheet.create({
         position: 'relative'
     },
     dialPad: {
-        display: 'flex', alignItems: 'center', justifyContent: 'center', width: width/3, height: (height/2)/ 4
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: width/3,
+        height: (height/2)/ 4
     },
     dialPadText: {
-      fontSize: 20,
-      color: '#336DFF',
-      fontFamily: 'Poppins_300Light',
+        fontSize: 20,
+        color: '#336DFF',
+        fontFamily: 'Poppins_300Light'
+    },
+    subtitle: {
+        textAlign: 'left',
+        alignSelf: 'flex-start',
+        color: '#489AAB',
+        fontFamily: 'Poppins_600SemiBold',
+        fontSize: 14,
+        paddingHorizontal: 30
     },
     input: {
         borderWidth: 2,
@@ -487,7 +506,7 @@ const styles = StyleSheet.create({
         height: 54,
         marginTop: 10,
         paddingHorizontal: 20,
-        fontSize: 14,
+        fontSize: 13,
         color: '#767577',
         fontFamily: 'Poppins_400Regular',
     },
@@ -500,7 +519,7 @@ const styles = StyleSheet.create({
         width: '90%',
         marginTop: 10,
         paddingHorizontal: 20,
-        fontSize: 14,
+        fontSize: 13,
         color: '#767577',
         fontFamily: 'Poppins_400Regular',
         marginBottom: 20,

@@ -2,8 +2,7 @@ import {createAsyncThunk, createSlice} from '@reduxjs/toolkit'
 import {deleteSecureKey, getSecureKey, saveSecureKey} from '../../utils/secureStore'
 import {openDatabase} from "../../database";
 import * as Contacts from "expo-contacts";
-import {SQLError, SQLResultSet, SQLStatementErrorCallback, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
-import {red} from "react-native-reanimated/lib/types/lib/reanimated2";
+import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
 export let db: WebSQLDatabase
 (async () => {
     db = await openDatabase();
@@ -17,21 +16,6 @@ export type loginUserType = {
 }
 
 type CategoryType = {code: string, name: string, options: {code: string, name: string, options: {code: string, name: string,selected: boolean}[], selected: boolean}[]}
-
-interface UserData {
-    id: string,
-    keycloakId: string,
-    username: string,
-    phoneNumber: string,
-    email: string,
-    firstName: string,
-    lastName: string,
-    tenantId: string,
-    userType: string,
-    pinStatus: string,
-    invitationStatus: string,
-    userAssignedRolesId: any[]
-}
 
 interface AuthData {
     companyName: string,
@@ -212,16 +196,6 @@ export type storeState = {
     tenants: TenantsType[] | []
     selectedTenantId: string | null
     otpResponse: otpResponseType | null
-}
-
-const parseJwt = (token: string) => {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-
-    return JSON.parse(jsonPayload);
 }
 
 const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> => {
@@ -456,9 +430,11 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
 })
 
 export const logoutUser = createAsyncThunk('logoutUser', async () => {
-    await deleteSecureKey('otpVerified');
-    return await deleteSecureKey('jwt');
-})
+    return await Promise.all([
+        deleteSecureKey('otpVerified'),
+        deleteSecureKey('jwt'),
+    ]);
+});
 
 export const setLoading = createAsyncThunk('setLoading', async (loading: boolean) => {
     return Promise.resolve(loading)
@@ -1020,7 +996,7 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
     }
 })
 
-export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string, signal: any}) => {
+export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string | undefined, signal: any}) => {
     try {
         const key = await getSecureKey('jwt')
         if (!key) {
@@ -1031,7 +1007,7 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
 
         const url = `https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/member-details?memberId=${memberNo}`;
 
-        const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code', {
+        const response = await fetch(url, {
             method: 'GET',
             headers: myHeaders,
             redirect: 'follow',
@@ -1044,6 +1020,7 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
             return Promise.reject(response.status + ": API Error");
         }
     } catch (e: any) {
+        console.log(e.message);
         return Promise.reject(e.message);
     }
 })

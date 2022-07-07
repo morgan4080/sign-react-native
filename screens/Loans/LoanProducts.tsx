@@ -12,7 +12,11 @@ import {
 import {StatusBar} from "expo-status-bar";
 import {AntDesign, Ionicons, MaterialIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
-import {fetchLoanProducts, storeState} from "../../stores/auth/authSlice";
+import {
+    authenticate,
+    fetchLoanProducts,
+    storeState
+} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {
@@ -25,7 +29,6 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import { Pie as ProgressPie, CircleSnail as ProgressCircleSnail  } from 'react-native-progress';
 import {useEffect} from "react";
 import {RotateView} from "../Auth/VerifyOTP";
 
@@ -34,22 +37,32 @@ type NavigationProps = NativeStackScreenProps<any>
 const { width, height } = Dimensions.get("window");
 
 export default function LoanProducts ({ navigation }: NavigationProps) {
-    const { loading, isLoggedIn, loanProducts } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, loanProducts } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
 
     useEffect(() => {
-        let isMounted = true;
-        (async () => {
-            if (!isLoggedIn) {
-                if (isMounted) navigation.navigate('Login')
-            } else {
-                await Promise.all([dispatch(fetchLoanProducts())]);
-            }
-        })()
-        return () => { isMounted = false };
-    }, [isLoggedIn]);
+        let authenticating = true;
+        if (authenticating) {
+            (async () => {
+                const { type, payload }: any = await dispatch(authenticate());
+                if (type === 'authenticate/rejected') {
+                    navigation.navigate('GetTenants')
+                } else {
+                    console.log("Authentication", payload);
+                    try {
+                        await Promise.all([dispatch(fetchLoanProducts())]);
+                    } catch (e: any) {
+                        console.log('promise rejection', e);
+                    }
+                }
+            })()
+        }
+        return () => {
+            authenticating = false;
+        }
+    }, []);
 
 
     let [fontsLoaded] = useFonts({

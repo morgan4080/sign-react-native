@@ -11,8 +11,8 @@ import {
 import {StatusBar} from "expo-status-bar";
 import {MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 import AppLoading from "expo-app-loading";
-import {useSelector} from "react-redux";
-import {storeState} from "../../stores/auth/authSlice";
+import {useDispatch, useSelector} from "react-redux";
+import {fetchWitnessRequests, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {
     Poppins_300Light,
@@ -26,13 +26,31 @@ import {
 import {useEffect, useRef, useState} from "react";
 import {toMoney} from "../User/Account";
 import GuarantorTiles from "../User/Components/GuarantorTiles";
+import {store} from "../../stores/store";
 
 type NavigationProps = NativeStackScreenProps<any>
 
 const { width, height } = Dimensions.get("window");
 
 export default function WitnessRequests ({ navigation }: NavigationProps) {
-    const { loading, user, witnessRequests } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, user, witnessRequests, member } = useSelector((state: { auth: storeState }) => state.auth);
+    type AppDispatch = typeof store.dispatch;
+
+    const dispatch : AppDispatch = useDispatch();
+
+    useEffect(() => {
+        let fetching = true;
+
+        if (fetching) {
+            (async () => {
+                await dispatch(fetchWitnessRequests({ memberRefId: member?.refId}))
+            })()
+        }
+        return () => {
+            fetching = false;
+        }
+    }, []);
+
     type accountHistoryType = {id: number, executor: string, subject: string, event: string, time: string}
 
     const [pressed, setPressed] = useState<boolean>(false)

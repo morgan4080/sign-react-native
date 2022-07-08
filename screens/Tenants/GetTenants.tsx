@@ -121,11 +121,23 @@ const GetTenants = ({ navigation }: NavigationProps) => {
     const onSubmit = async (value: any): Promise<void> => {
         if (value) {
             try {
-                if (value.phoneNumber.length < 12) {
+                if (value.phoneNumber.length < 10) {
                     setError('phoneNumber', {type: 'custom', message: 'Please provide a valid phone number'});
                     return
                 }
-                const { type, error }: any = await dispatch(getTenants(value.phoneNumber))
+                let phone: string = ''
+                let identifier: string = `${value.phoneNumber}`
+                if (identifier[0] === '+') {
+                    let number = identifier.substring(1);
+                    phone = `${number.replace(/ /g, "")}`;
+                    console.log('starts @+' ,phone);
+                } else if (identifier[0] === '0') {
+                    let number = identifier.substring(1);
+                    console.log('starts @0', `254${number.replace(/ /g, "")}`);
+                    phone = `254${number.replace(/ /g, "")}`;
+                }
+
+                const { type, error }: any = await dispatch(getTenants(phone !== '' ? phone : value.phoneNumber));
                 if (type === 'getTenants/rejected' && error) {
                     if (error.message === "Network request failed") {
                         CSTM.showToast(error.message);
@@ -172,7 +184,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                                             onBlur={onBlur}
                                             onChangeText={onChange}
                                             value={value}
-                                            placeholder="254722000000"
+                                            placeholder="Enter phone number"
                                             keyboardType="numeric"
                                         />
                                     )}

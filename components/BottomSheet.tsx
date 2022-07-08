@@ -12,7 +12,7 @@ const { height, width } = Dimensions.get('window');
 
 const SCREEN_HEIGHT = height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0);
 
-export const MAX_TRANSLATE_Y = -SCREEN_HEIGHT/1.5;
+export const MAX_TRANSLATE_Y = -SCREEN_HEIGHT/1.38;
 
 type BottomSheetProps = {
     children?: React.ReactNode;
@@ -64,7 +64,7 @@ const BottomSheet = React.forwardRef<BottomSheetRefProps, BottomSheetProps>(
             const borderRadius = interpolate(
                 translateY.value,
                 [MAX_TRANSLATE_Y + 50, MAX_TRANSLATE_Y],
-                [25, 5],
+                [25, 20],
                 Extrapolate.CLAMP
             );
 
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     line: {
         width: 75,
         height: 4,
-        backgroundColor: 'grey',
+        backgroundColor: '#489AAB',
         alignSelf: 'center',
         marginVertical: 15,
         borderRadius: 2,

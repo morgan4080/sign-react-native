@@ -8,9 +8,8 @@ import {
     SafeAreaView,
     ScrollView,
     TextInput,
-    Keyboard,
     NativeModules,
-    TouchableHighlight
+    TouchableHighlight, Switch, StatusBar
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
@@ -66,6 +65,12 @@ type FormData = {
     memberNumber: string | undefined;
     employerName: string;
     inputStrategy: string | number;
+    employerDetails: boolean;
+    serviceNo: string;
+    grossSalary: string;
+    netSalary: string;
+    businessLocation: string;
+    businessType: string;
 };
 
 export default function GuarantorsHome({ navigation, route }: NavigationProps) {
@@ -77,17 +82,21 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const [contacts, setContacts] = useState([]);
 
+    const tenant = tenants.find(t => t.id === selectedTenantId);
+
+    const settings = configuration.find(config => config.tenantId === tenant?.tenantId);
+
     const CSTM = NativeModules.CSTM;
 
     const [from, setFrom] = useState(0);
 
     const [to, setTo] = useState(100);
 
-    const settings = configuration.find(conf => conf.tenantId === selectedTenantId);
+    const [employerDetailsEnabled, setEmployerDetailsEnabled] = useState(false);
 
-    const [memberSearching, setMemberSearching] = useState<boolean>(false)
+    const [memberSearching, setMemberSearching] = useState<boolean>(false);
 
-    const [context, setContext] = useState<string>("")
+    const [context, setContext] = useState<string>("");
 
     useEffect(() => {
         let syncContacts = true;
@@ -96,8 +105,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         })()
         return () => {
             dispatch(setLoading(false));
-            Keyboard.removeAllListeners('keyboardDidHide');
-            Keyboard.removeAllListeners('keyboardDidShow');
             syncContacts = false;
         }
     }, [from, to]);
@@ -121,7 +128,11 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         setError,
         setValue,
         formState: { errors }
-    } = useForm<FormData>();
+    } = useForm<FormData>({
+        defaultValues: {
+            employerDetails: settings && settings.employerInfo
+        }
+    });
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -139,7 +150,12 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const [inputStrategy, setInputStrategy] = useState<number | string | undefined>(0);
     const [memberNumber, setMemberNumber] = useState<number | string | undefined>(undefined);
     const [phoneNumber, setPhoneNumber] = useState<number | string | undefined>(undefined);
-    const [keyboardHidden, setKeyboardHidden] = useState<boolean>(false);
+    const [employerName, setEmployerName] = useState<string>();
+    const [serviceNo, setServiceNo] = useState<string>();
+    const [grossSalary, setGrossSalary] = useState<string>();
+    const [netSalary, setNetSalary] = useState<string>();
+    const [businessType, setBusinessType] = useState<string>();
+    const [businessLocation, setBusinessLocation] = useState<string>();
 
     useEffect(() => {
         const subscription = watch((value, { name, type }) => {
@@ -166,6 +182,26 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         setValue('memberNumber', undefined);
                         setValue('phoneNumber', undefined);
                         setInputStrategy(value.inputStrategy);
+                        break;
+                    case  'employerName':
+                        setEmployerName(value.employerName);
+                        break;
+                    case  'serviceNo':
+                        setServiceNo(value.serviceNo);
+                        break;
+                    case  'grossSalary':
+                        setGrossSalary(value.grossSalary);
+                        break;
+                    case  'netSalary':
+                        setNetSalary(value.netSalary);
+                        setMemberSearching(true);
+                        break;
+                    case  'businessType':
+                        setBusinessType(value.businessType);
+                        setMemberSearching(true);
+                        break;
+                    case  'businessLocation':
+                        setBusinessLocation(value.businessLocation);
                         break;
                 }
             })()
@@ -207,25 +243,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             // implement search by memberNo
         }
     }
-
-    useEffect(() => {
-        let searchingManual = true;
-        (async () => {
-            if (searchingManual) {
-                if (keyboardHidden && inputStrategy === 0 && memberNumber) {
-                    console.log(memberNumber);
-                    await addToSelected(`${memberNumber}`);
-                }
-                if (keyboardHidden && inputStrategy === 1 && phoneNumber) {
-                    console.log(phoneNumber);
-                    await addToSelected(phoneNumber.toString());
-                }
-            }
-        })();
-        return () => {
-            searchingManual = false;
-        };
-    }, [keyboardHidden]);
 
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
     const [employerInput, setEmployerInput] = useState<boolean>(false);
@@ -270,19 +287,9 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         return false;
     }
 
-    Keyboard.addListener('keyboardDidHide', () => {
-        setKeyboardHidden(true);
-    });
-
-    Keyboard.addListener('keyboardDidShow', () => {
-        setKeyboardHidden(false);
-    });
-
     const setSelectedValue = (itemValue: string | number) => {
         setValue('inputStrategy', itemValue)
     }
-
-    const tenant = tenants.find(t => t.id === selectedTenantId);
 
     const requiredGuarantors = () => {
 
@@ -311,12 +318,46 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         }
     }, []);
 
-    const submitSearch = (ctx: string) => {
+    const [tab, setTab] = useState<number>(0);
+    type employerPayloadType = {
+
+    }
+    type businessPayloadType = {
+
+    }
+    const [employerPayload, setEmployerPayload] = useState<employerPayloadType>();
+    const [businessPayload, setBusinessPayload] = useState<businessPayloadType>();
+
+    const submitSearch = async (ctx: string) => {
         if (ctx === 'search') {
             if (inputStrategy === 1 && phoneNumber) {
                 console.log("ready to search eligibility", phoneNumber);
+                await addToSelected(phoneNumber.toString());
             } else if (inputStrategy === 0 && memberNumber) {
                 console.log("ready to search eligibility", memberNumber);
+                await addToSelected(`${memberNumber}`);
+            }
+        }
+
+        if (ctx === 'employment') {
+            if (tab === 0) {
+                // set payload for employer
+                let payload = {
+                    employerName,
+                    serviceNo,
+                    grossSalary,
+                    netSalary
+                }
+                setEmployerPayload(payload)
+                console.log(payload)
+            } else if (tab === 1) {
+                // set payload for business
+                let payload = {
+                    businessLocation,
+                    businessType
+                }
+                setBusinessPayload(payload)
+                console.log(payload)
             }
         }
     }
@@ -355,13 +396,21 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         })
     }
 
-    useEffect(() => {
-        onPress('employment');
-        console.log(settings && settings.employerInfo);
-        if (settings && settings.employerInfo) {
-
+    const toggleEmployerDetailsEnabled = () => setEmployerDetailsEnabled((previousState: boolean) => {
+        if (!previousState) {
+            setContext('employment');
+        } else {
+            setContext('search');
         }
-    }, [])
+        return !previousState
+    });
+
+    useEffect(() => {
+        if (settings && settings.employerInfo) {
+            toggleEmployerDetailsEnabled();
+            setTimeout(() => onPress('employment'), 1000);
+        }
+    }, []);
 
     return (
         <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
@@ -434,12 +483,15 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                             </ScrollView>
                         </View>
                     </View>
-                    <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#e8e8e8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+                    <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                         <View style={{ position: 'absolute', marginTop: -16, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableHighlight onPress={() => onPress('search')} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/3, height: 35, borderRadius: 50 }}>
+                            <TouchableHighlight onPress={() => {
+                                setEmployerDetailsEnabled(false);
+                                onPress('search');
+                            }} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, height: 35, borderRadius: 50 }}>
                                 <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                                     <MaterialIcons name="dialpad" size={16} color="white" />
-                                    <Text allowFontScaling={false} style={styles.buttonText0}>OTHER</Text>
+                                    <Text allowFontScaling={false} style={styles.buttonText0}>Search Member NO.</Text>
                                 </View>
                             </TouchableHighlight>
                         </View>
@@ -460,7 +512,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 </View>
             </View>
             <BottomSheet ref={ref}>
-                <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', width}}>
+                <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
                     { context === "search" &&
                         <View style={{display: 'flex', alignItems: 'center', width}}>
                             <Text allowFontScaling={false} style={styles.subtitle}>Search Member</Text>
@@ -469,7 +521,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                 render={( {field: {onChange, onBlur, value}}) => (
                                     <View style={styles.input0}>
                                         <Picker
-                                            style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 15,}}
+                                            style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14,}}
                                             onBlur={onBlur}
                                             selectedValue={value}
                                             onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
@@ -478,7 +530,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                                 <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
                                             ))}
                                         </Picker>
-                                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: -5, fontSize: 10}}>Select Desired Identifier</Text>
                                     </View>
                                 )}
                                 name="inputStrategy"
@@ -518,68 +569,133 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     }
                     { context === "employment" &&
                         <View style={{display: 'flex', alignItems: 'center', width}}>
-                            <Text allowFontScaling={false} style={styles.subtitle}>Add Employment</Text>
-                            <Controller
-                                control={control}
-                                render={({field: {onChange, onBlur, value}}) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input0}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="Employer name"
-                                    />
-                                )}
-                                name="employerName"
-                            />
+                            <View style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', width: width-50, paddingBottom: 15 }}>
+                                <TouchableOpacity onPress={() => {
+                                    setMemberSearching(true)
+                                    setTab(0)
+                                }} style={{ display: 'flex', borderBottomWidth: tab === 0 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
+                                    <Text allowFontScaling={false} style={[{color: tab === 0 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Employed</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {
+                                    setMemberSearching(true)
+                                    setTab(1)
+                                }} style={{ display: 'flex', borderBottomWidth: tab === 1 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
+                                    <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
+                                </TouchableOpacity>
+                            </View>
+                            { tab === 0 ?
+                            <>
+                                <Controller
+                                    control={control}
+                                    render={({field: {onChange, onBlur, value}}) => (
+                                        <TextInput
+                                            allowFontScaling={false}
+                                            style={styles.input0}
+                                            onBlur={onBlur}
+                                            onChangeText={onChange}
+                                            value={value}
+                                            placeholder="Employer name"
+                                        />
+                                    )}
+                                    name="employerName"
+                                />
 
-                            <Controller
-                                control={control}
-                                render={({field: {onChange, onBlur, value}}) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input0}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="Employment/Service No."
-                                    />
-                                )}
-                                name="employerName"
-                            />
+                                <Controller
+                                    control={control}
+                                    render={({field: {onChange, onBlur, value}}) => (
+                                        <TextInput
+                                            allowFontScaling={false}
+                                            style={styles.input0}
+                                            onBlur={onBlur}
+                                            onChangeText={onChange}
+                                            value={value}
+                                            placeholder="Employment/Service No."
+                                        />
+                                    )}
+                                    name="serviceNo"
+                                />
 
-                            <Controller
-                                control={control}
-                                render={({field: {onChange, onBlur, value}}) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input0}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="Gross Salary"
-                                    />
-                                )}
-                                name="employerName"
-                            />
+                                <Controller
+                                    control={control}
+                                    render={({field: {onChange, onBlur, value}}) => (
+                                        <TextInput
+                                            allowFontScaling={false}
+                                            style={styles.input0}
+                                            onBlur={onBlur}
+                                            onChangeText={onChange}
+                                            value={value}
+                                            placeholder="Gross Salary"
+                                        />
+                                    )}
+                                    name="grossSalary"
+                                />
 
-                            <Controller
-                                control={control}
-                                render={({field: {onChange, onBlur, value}}) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input0}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="Net Salary"
-                                    />
-                                )}
-                                name="employerName"
-                            />
+                                <Controller
+                                    control={control}
+                                    render={({field: {onChange, onBlur, value}}) => (
+                                        <TextInput
+                                            allowFontScaling={false}
+                                            style={styles.input0}
+                                            onBlur={onBlur}
+                                            onChangeText={onChange}
+                                            value={value}
+                                            placeholder="Net Salary"
+                                        />
+                                    )}
+                                    name="netSalary"
+                                />
+                            </>
+                            :
+                            <>
+                                <Controller
+                                    control={control}
+                                    render={({field: {onChange, onBlur, value}}) => (
+                                        <TextInput
+                                            allowFontScaling={false}
+                                            style={styles.input0}
+                                            onBlur={onBlur}
+                                            onChangeText={onChange}
+                                            value={value}
+                                            placeholder="Business Location"
+                                        />
+                                    )}
+                                    name="businessLocation"
+                                />
+                                <Controller
+                                    control={control}
+                                    render={({field: {onChange, onBlur, value}}) => (
+                                        <TextInput
+                                            allowFontScaling={false}
+                                            style={styles.input0}
+                                            onBlur={onBlur}
+                                            onChangeText={onChange}
+                                            value={value}
+                                            placeholder="Business Type"
+                                        />
+                                    )}
+                                    name="businessType"
+                                />
+                            </> }
                         </View>
                     }
+                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width, paddingHorizontal: 30, marginHorizontal: 20 }}>
+                        <Controller
+                            control={control}
+                            rules={{
+                                required: true,
+                            }}
+                            render={( { field: { onChange, onBlur, value } }) => (
+                                <Switch
+                                    trackColor={{ false: "#767577", true: "#489AAB" }}
+                                    thumbColor={employerDetailsEnabled ? "#FFFFFF" : "#f4f3f4"}
+                                    onValueChange={toggleEmployerDetailsEnabled}
+                                    value={employerDetailsEnabled}
+                                />
+                            )}
+                            name="employerDetails"
+                        />
+                        <Text allowFontScaling={false} style={{ fontSize: 12, color: '#CCCCCC', fontFamily: 'Poppins_400Regular' }}>Enter employer/ business details</Text>
+                    </View>
                     <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                         <TouchableOpacity disabled={!memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                             {loading && <RotateView/>}
@@ -615,17 +731,24 @@ const styles = StyleSheet.create({
         color: '#489AAB',
         fontFamily: 'Poppins_600SemiBold',
         fontSize: 14,
-        paddingHorizontal: 30
+        paddingHorizontal: 30,
+        marginBottom: 10
+    },
+    tabTitle: {
+        textAlign: 'left',
+        alignSelf: 'flex-start',
+        fontFamily: 'Poppins_600SemiBold',
+        fontSize: 12,
+        padding: 5
     },
     input: {
         borderWidth: 2,
         borderColor: '#cccccc',
         backgroundColor: '#FFFFFF',
         borderRadius: 20,
-        height: 54,
-        marginTop: 10,
+        height: 45,
         paddingHorizontal: 20,
-        fontSize: 13,
+        fontSize: 12,
         color: '#767577',
         fontFamily: 'Poppins_400Regular',
     },
@@ -634,11 +757,10 @@ const styles = StyleSheet.create({
         borderColor: '#cccccc',
         backgroundColor: '#FFFFFF',
         borderRadius: 20,
-        height: 54,
+        height: 45,
         width: '90%',
-        marginTop: 10,
         paddingHorizontal: 20,
-        fontSize: 13,
+        fontSize: 12,
         color: '#767577',
         fontFamily: 'Poppins_400Regular',
         marginBottom: 20,

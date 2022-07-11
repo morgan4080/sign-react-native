@@ -71,6 +71,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
             })()
         }
         return () => {
+            // when destroying component delete form fields/ selections
             authenticating = false;
         }
     }, []);

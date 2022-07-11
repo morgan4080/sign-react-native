@@ -3,13 +3,17 @@ const config = [
         tenantId: 't72767',
         employerInfo: false,
         guarantors: 'count',
-        witness: true
+        witness: true,
+        repaymentDisbursementModes: false,
+        amounts: false,
     },
     {
         tenantId: 't74411',
         employerInfo: true,
         guarantors: 'value',
-        witness: false
+        witness: false,
+        repaymentDisbursementModes: true,
+        amounts: true
     }
 ]
 

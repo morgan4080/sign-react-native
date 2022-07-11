@@ -1,18 +1,23 @@
 import {
-    View,
-    Text,
     Dimensions,
-    StatusBar as Bar,
-    StyleSheet,
-    TouchableOpacity,
+    FlatList,
+    NativeModules,
     SafeAreaView,
     ScrollView,
+    StatusBar as Bar,
+    StatusBar,
+    StyleSheet,
+    Switch,
+    Text,
     TextInput,
-    NativeModules,
-    TouchableHighlight, Switch, StatusBar
+    TouchableOpacity,
+    TouchableHighlight,
+    View
 } from "react-native";
 
-import { Picker } from "@react-native-picker/picker";
+import {Picker} from "@react-native-picker/picker";
+
+import ContactTile from "./Components/ContactTile";
 
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 
@@ -21,7 +26,9 @@ import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
 
 import {
+    authenticate,
     getContactsFromDB,
+    searchByMemberNo,
     searchContactsInDB,
     setLoading,
     storeState,
@@ -31,39 +38,42 @@ import {
 import {
     Poppins_300Light,
     Poppins_400Regular,
-    Poppins_500Medium, Poppins_600SemiBold,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
     Poppins_700Bold,
     Poppins_800ExtraBold,
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
 
-import {MaterialIcons, Ionicons, FontAwesome, FontAwesome5} from "@expo/vector-icons";
+import {FontAwesome5, Ionicons, MaterialIcons} from "@expo/vector-icons";
 
-import {useEffect, useRef, useCallback, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 
-import { useForm, Controller } from "react-hook-form";
+import {Controller, useForm} from "react-hook-form";
 
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
-import ContactTile from "./Components/ContactTile";
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 import {cloneDeep} from "lodash";
 
 import {RotateView} from "../Auth/VerifyOTP";
 
-import configuration from "../../utils/configuration"
+import configuration from "../../utils/configuration";
 
 import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../components/BottomSheet";
+
+import {toMoney} from "../User/Account";
 
 type NavigationProps = NativeStackScreenProps<any>;
 
 const { width, height } = Dimensions.get("window");
+
 type FormData = {
     searchTerm: string;
     phoneNumber: string | undefined;
     memberNumber: string | undefined;
     employerName: string;
+    amountToGuarantee: string | undefined;
     inputStrategy: string | number;
     employerDetails: boolean;
     serviceNo: string;
@@ -78,13 +88,13 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const dispatch : AppDispatch = useDispatch();
 
-    const { loading, tenants, selectedTenantId } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, tenants, selectedTenantId, user, member } = useSelector((state: { auth: storeState }) => state.auth);
 
     const [contacts, setContacts] = useState([]);
 
     const tenant = tenants.find(t => t.id === selectedTenantId);
 
-    const settings = configuration.find(config => config.tenantId === tenant?.tenantId);
+    const settings = configuration.find(config => config.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
 
     const CSTM = NativeModules.CSTM;
 
@@ -156,6 +166,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const [netSalary, setNetSalary] = useState<string>();
     const [businessType, setBusinessType] = useState<string>();
     const [businessLocation, setBusinessLocation] = useState<string>();
+    const [amountToGuarantee, setAmountToGuarantee] = useState<any[]>([]);
+    const [amountCertified, setAmountCertified] = useState<boolean>(false);
 
     useEffect(() => {
         const subscription = watch((value, { name, type }) => {
@@ -203,46 +215,15 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     case  'businessLocation':
                         setBusinessLocation(value.businessLocation);
                         break;
+                    case  'amountToGuarantee':
+                        let newArr: any[] = [...amountToGuarantee, value.amountToGuarantee];
+                        if (amountToGuarantee) setAmountToGuarantee(newArr);
+                        break;
                 }
             })()
         });
         return () => subscription.unsubscribe();
     }, [watch]);
-
-    const addToSelected = async (identifier: string) => {
-        if (inputStrategy === 1) {
-            let phone: string = ''
-            if (identifier[0] === '+') {
-                let number = identifier.substring(1);
-                phone = `${number.replace(/ /g, "")}`;
-                console.log('starts @+' ,phone);
-            } else if (identifier[0] === '0') {
-                let number = identifier.substring(1);
-                console.log('starts @0', `254${number.replace(/ /g, "")}`);
-                phone = `254${number.replace(/ /g, "")}`;
-            }
-
-            const result: any = await dispatch(validateNumber(phone));
-
-            const {payload, type}: {payload: any, type: string} = result;
-
-            if (type === 'validateNumber/rejected') {
-                console.log(`${phone} ${result.error.message}`)
-                CSTM.showToast(`${phone} ${result.error.message}`);
-                return
-            }
-
-            if (type === "validateNumber/fulfilled") {
-                // add this guy to contact table
-                // result added, add to contact list
-                console.log(payload)
-            }
-        }
-
-        if (inputStrategy === 0) {
-            // implement search by memberNo
-        }
-    }
 
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
     const [employerInput, setEmployerInput] = useState<boolean>(false);
@@ -255,7 +236,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         return true;
     }
 
-    const addContactToList = (contact2Add: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): boolean => {
+    const addContactToList = (contact2Add: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}): boolean => {
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
         let phone: string = '';
         if (contact2Add.phone[0] === '+') {
@@ -285,6 +266,83 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             return true;
         }
         return false;
+    }
+
+    const addToSelected = async (identifier: string) => {
+        if (settings && settings.amounts && amountCertified) {
+            onPress('amount');
+
+            return
+        }
+        if (inputStrategy === 1) {
+            let phone: string = ''
+            if (identifier[0] === '+') {
+                let number = identifier.substring(1);
+                phone = `${number.replace(/ /g, "")}`;
+                console.log('starts @+' ,phone);
+            } else if (identifier[0] === '0') {
+                let number = identifier.substring(1);
+                phone = `254${number.replace(/ /g, "")}`;
+            }
+
+            const result: any = await dispatch(validateNumber(phone));
+
+            const {payload, type}: {payload: any, type: string} = result;
+
+            if (type === 'validateNumber/rejected') {
+                console.log(`${phone} ${result.error.message}`)
+                CSTM.showToast(`${phone} ${result.error.message}`);
+                return
+            }
+
+            if (type === "validateNumber/fulfilled") {
+                // add this guy to contact table
+                // result added, add to contact list
+                console.log(payload)
+
+                let member = {
+                    contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
+                    memberNumber: `${payload.memberNumber}`,
+                    memberRefId: `${payload.refId}`,
+                    name: `${payload.firstName}`,
+                    phone: `${payload.phoneNumber}`
+                }
+
+                addContactToList(member)
+            }
+        }
+
+        if (inputStrategy === 0) {
+            // implement search by memberNo
+
+            const {payload, type, error}: {payload: any, type: string, error?: any} = await dispatch(searchByMemberNo(identifier))
+
+            if (type === 'searchByMemberNo/rejected') {
+                CSTM.showToast(`${error.message}`);
+                return
+            }
+
+            if (type === "searchByMemberNo/fulfilled") {
+                // add this guy to contact table
+                // result added, add to contact list
+                console.log(payload);
+                if (payload.length < 1) {
+                    CSTM.showToast(`${identifier}: is not a member.`);
+                }
+
+                let member = {
+                    contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
+                    memberNumber: `${payload[0].memberNumber}`,
+                    memberRefId: `${payload[0].refId}`,
+                    name: `${payload[0].firstName}`,
+                    phone: `${payload[0].phoneNumber}`
+                }
+
+                addContactToList(member)
+
+            }
+
+        }
     }
 
     const setSelectedValue = (itemValue: string | number) => {
@@ -320,10 +378,14 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const [tab, setTab] = useState<number>(0);
     type employerPayloadType = {
-
+        employerName: string | undefined;
+        serviceNo: string | undefined;
+        grossSalary: string | undefined;
+        netSalary: string | undefined;
     }
     type businessPayloadType = {
-
+        businessLocation: string | undefined;
+        businessType: string | undefined;
     }
     const [employerPayload, setEmployerPayload] = useState<employerPayloadType>();
     const [businessPayload, setBusinessPayload] = useState<businessPayloadType>();
@@ -360,7 +422,34 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 console.log(payload)
             }
         }
+
+        onPress('search');
     }
+
+    useEffect(() => {
+        console.log(route.params)
+        let authenticating = true;
+        if (authenticating) {
+            (async () => {
+                const response = await dispatch(authenticate());
+                if (response.type === 'authenticate/rejected') {
+                    navigation.navigate('GetTenants')
+                }
+            })()
+        }
+        return () => {
+            authenticating = false
+        }
+    }, []);
+
+    const toggleEmployerDetailsEnabled = () => setEmployerDetailsEnabled((previousState: boolean) => {
+        if (!previousState) {
+            setContext('employment');
+        } else {
+            setContext('search');
+        }
+        return !previousState
+    });
 
     const verifyGuarantors = async () => {
         if (tenant?.tenantId === 't74411') {
@@ -390,20 +479,29 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             let url = "https://eguarantorship-api.presta.co.ke/api/v1/loan-request/guarantor-status"
         }
 
-        navigation.navigate('WitnessesHome', {
-            guarantors: selectedContacts,
-            ...route.params
-        })
-    }
-
-    const toggleEmployerDetailsEnabled = () => setEmployerDetailsEnabled((previousState: boolean) => {
-        if (!previousState) {
-            setContext('employment');
-        } else {
-            setContext('search');
+        if (settings && settings.employerInfo  && !(employerPayload || businessPayload)) {
+            setEmployerDetailsEnabled(true);
+            onPress("employment");
+            return;
         }
-        return !previousState
-    });
+
+        if (settings && settings.witness && (employerPayload || businessPayload)) {
+            navigation.navigate('WitnessesHome', {
+                guarantors: selectedContacts,
+                employerPayload,
+                businessPayload,
+                ...route.params
+            })
+        } else if (settings && !settings.witness) {
+            navigation.navigate('LoanConfirmation', {
+                witnesses: [],
+                guarantors: selectedContacts,
+                employerPayload,
+                businessPayload,
+                ...route.params
+            })
+        }
+    }
 
     useEffect(() => {
         if (settings && settings.employerInfo) {
@@ -411,6 +509,79 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             setTimeout(() => onPress('employment'), 1000);
         }
     }, []);
+
+
+    const [guarantorshipOptions, setGuarantorshipOptions] = useState([
+        {
+            id: "1",
+            name: "Search Member No.",
+            context: "search",
+            icon: "verified-user"
+        },
+        {
+            id: "2",
+            name: "Search Phone No.",
+            context: "search",
+            icon: "phone-iphone"
+        },
+        {
+            id: "3",
+            name: "Self Guarantee",
+            context: "self-guarantee",
+            icon: "self-improvement"
+        }
+    ]);
+
+    const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
+        <TouchableOpacity onPress={onPress} style={[styles.option, backgroundColor]}>
+            <MaterialIcons name={item.icon} size={24} style={[textColor]} />
+            <Text allowFontScaling={false} style={[styles.optionName, textColor]}>{item.name}</Text>
+        </TouchableOpacity>
+    );
+
+    const renderItem = ({ item }: any) => {
+        const backgroundColor = item.context === context? "#489AAB" : "#FFFFFF";
+        const color = item.context === context ? 'white' : '#767577';
+
+        return (
+            <Item
+                item={item}
+                onPress={() => {
+                    if (item.context === 'self-guarantee') {
+                        // submit self as guarantor
+                        if (member) {
+                            (async () => {
+                                await addToSelected(member.memberNumber);
+                                onPress('');
+                            })()
+                        }
+                        return
+                    }
+                    if (item.name === 'Search Member No.') setValue('inputStrategy', 0)
+                    if (item.name === 'Search Phone No.') setValue('inputStrategy', 1)
+                    setEmployerDetailsEnabled(false);
+                    setContext(item.context);
+                }}
+                backgroundColor={{ backgroundColor }}
+                textColor={{ color }}
+            />
+        );
+    };
+
+    const calculateGuarantorship = (amount: string): string => {
+        if (settings && settings.guarantors) {
+            if (settings.guarantors === 'value') {
+                // sum all guarantors amount inputs until they equal amount
+                // when sum === amount stop ability to add guarantors
+            }
+            if (settings.guarantors === 'count') {
+                // split requiredGuarantors to amount
+                // when sum === amount stop ability to add guarantors
+            }
+            return "0"
+        }
+        return amount
+    }
 
     return (
         <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
@@ -435,9 +606,12 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         paddingTop:(Bar.currentHeight ? Bar.currentHeight : 0) + 10,
                         marginBottom: 20
                     }}>
-                        <View style={{paddingHorizontal: 20}}>
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18 }}>
-                                Enter Guarantors ({route.params?.loanProduct.requiredGuarantors} Required)
+                        <View style={{paddingHorizontal: 20, marginBottom: 5}}>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 16 }}>
+                                Add Guarantors ({route.params?.loanProduct.requiredGuarantors} Required)
+                            </Text>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12 }}>
+                                Loan: {toMoney(route.params?.loanDetails.desiredAmount)} KSH - Guaranteed: {toMoney(calculateGuarantorship(route.params?.loanDetails.desiredAmount))}
                             </Text>
                             <Controller
                                 control={control}
@@ -454,7 +628,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                 name="searchTerm"
                             />
                         </View>
-                        <View style={{paddingHorizontal: 20, marginBottom: 20, marginTop: 10, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                        <View style={{paddingHorizontal: 20, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                             <ScrollView horizontal>
                                 {selectedContacts && selectedContacts.map((co,i) => (
                                     <View key={i} style={{
@@ -483,15 +657,15 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                             </ScrollView>
                         </View>
                     </View>
-                    <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
-                        <View style={{ position: 'absolute', marginTop: -16, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                    <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#e8e8e8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+                        <View style={{ position: 'absolute', marginTop: -18, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                             <TouchableHighlight onPress={() => {
                                 setEmployerDetailsEnabled(false);
-                                onPress('search');
-                            }} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, height: 35, borderRadius: 50 }}>
+                                onPress('options');
+                            }} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/3, height: 35, borderRadius: 50 }}>
                                 <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                    <MaterialIcons name="dialpad" size={16} color="white" />
-                                    <Text allowFontScaling={false} style={styles.buttonText0}>Search Member NO.</Text>
+                                    <Ionicons name="options-outline" size={16} color="white" />
+                                    <Text allowFontScaling={false} style={styles.buttonText0}>Options</Text>
                                 </View>
                             </TouchableHighlight>
                         </View>
@@ -512,7 +686,14 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 </View>
             </View>
             <BottomSheet ref={ref}>
-                <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
+                <SafeAreaView style={{display: 'flex', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
+                    {context === "options" &&
+                        <FlatList
+                            data={guarantorshipOptions}
+                            renderItem={renderItem}
+                            keyExtractor={item => item.id}
+                        />
+                    }
                     { context === "search" &&
                         <View style={{display: 'flex', alignItems: 'center', width}}>
                             <Text allowFontScaling={false} style={styles.subtitle}>Search Member</Text>
@@ -526,7 +707,16 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                             selectedValue={value}
                                             onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
                                         >
-                                            {[{name: "Member Number", value: 0}, {name: "Phone Number", value: 1}].map((p, i) =>(
+                                            {[
+                                                {
+                                                    name: "Member Number",
+                                                    value: 0
+                                                },
+                                                {
+                                                    name: "Phone Number",
+                                                    value: 1
+                                                }
+                                            ].map((p, i) =>(
                                                 <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
                                             ))}
                                         </Picker>
@@ -565,6 +755,26 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                 )}
                                 name="memberNumber"
                             />}
+                        </View>
+                    }
+                    {
+                        context === "amount" &&
+                        <View style={{display: 'flex', alignItems: 'center', width}}>
+                            <Controller
+                                control={control}
+                                render={({field: {onChange, onBlur, value}}) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={styles.input0}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="Amount Guaranteed"
+                                        keyboardType="numeric"
+                                    />
+                                )}
+                                name="amountToGuarantee"
+                            />
                         </View>
                     }
                     { context === "employment" &&
@@ -625,6 +835,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                             onChangeText={onChange}
                                             value={value}
                                             placeholder="Gross Salary"
+                                            keyboardType="numeric"
                                         />
                                     )}
                                     name="grossSalary"
@@ -640,6 +851,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                             onChangeText={onChange}
                                             value={value}
                                             placeholder="Net Salary"
+                                            keyboardType="numeric"
                                         />
                                     )}
                                     name="netSalary"
@@ -678,31 +890,33 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                             </> }
                         </View>
                     }
-                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width, paddingHorizontal: 30, marginHorizontal: 20 }}>
-                        <Controller
-                            control={control}
-                            rules={{
-                                required: true,
-                            }}
-                            render={( { field: { onChange, onBlur, value } }) => (
-                                <Switch
-                                    trackColor={{ false: "#767577", true: "#489AAB" }}
-                                    thumbColor={employerDetailsEnabled ? "#FFFFFF" : "#f4f3f4"}
-                                    onValueChange={toggleEmployerDetailsEnabled}
-                                    value={employerDetailsEnabled}
-                                />
-                            )}
-                            name="employerDetails"
-                        />
-                        <Text allowFontScaling={false} style={{ fontSize: 12, color: '#CCCCCC', fontFamily: 'Poppins_400Regular' }}>Enter employer/ business details</Text>
-                    </View>
+                    {   context !== 'search-phone-book' &&
+                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width, paddingHorizontal: 30, marginHorizontal: 20 }}>
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: true,
+                                }}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <Switch
+                                        trackColor={{ false: "#767577", true: "#489AAB" }}
+                                        thumbColor={employerDetailsEnabled ? "#FFFFFF" : "#f4f3f4"}
+                                        onValueChange={toggleEmployerDetailsEnabled}
+                                        value={employerDetailsEnabled}
+                                    />
+                                )}
+                                name="employerDetails"
+                            />
+                            <Text allowFontScaling={false} style={{ fontSize: 12, color: '#CCCCCC', fontFamily: 'Poppins_400Regular' }}>Enter employer/ business details</Text>
+                        </View>
+                    }
                     <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                         <TouchableOpacity disabled={!memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                             {loading && <RotateView/>}
                             <Text allowFontScaling={false} style={styles.buttonText}>{context === 'search' ? 'Search' : 'Submit'}</Text>
                         </TouchableOpacity>
                     </View>
-                </ScrollView>
+                </SafeAreaView>
             </BottomSheet>
         </GestureHandlerRootView>
     )
@@ -745,9 +959,10 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: '#cccccc',
         backgroundColor: '#FFFFFF',
-        borderRadius: 20,
-        height: 45,
-        paddingHorizontal: 20,
+        borderRadius: 15,
+        height: 40,
+        marginTop: 10,
+        paddingHorizontal: 15,
         fontSize: 12,
         color: '#767577',
         fontFamily: 'Poppins_400Regular',
@@ -777,5 +992,28 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#FFFFFF',
         fontFamily: 'Poppins_300Light',
-    }
+    },
+    option: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: width/1.12,
+        backgroundColor: '#f9c2ff',
+        padding: 20,
+        marginVertical: 8,
+        marginHorizontal: 16,
+        borderRadius: 20,
+        borderColor: '#CCCCCC',
+        borderWidth: .5,
+        shadowColor: 'rgba(0,0,0, .4)', // IOS
+        shadowOffset: { height: 1, width: 1 }, // IOS
+        shadowOpacity: 1, // IOS
+        shadowRadius: 1, //IOS
+        elevation: 2, // Android
+    },
+    optionName: {
+        fontSize: 16,
+        fontFamily: 'Poppins_300Light',
+        marginLeft: 10
+    },
 });

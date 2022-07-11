@@ -1,9 +1,20 @@
-import {Dimensions, Platform, View, Text, StyleSheet, StatusBar as Bar, TouchableOpacity, SafeAreaView, ScrollView} from "react-native";
+import {
+    Dimensions,
+    Platform,
+    SafeAreaView,
+    ScrollView, StatusBar,
+    StatusBar as Bar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {
     Poppins_300Light,
     Poppins_400Regular,
-    Poppins_500Medium, Poppins_600SemiBold,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
     Poppins_700Bold,
     Poppins_800ExtraBold,
     Poppins_900Black,
@@ -16,15 +27,78 @@ import {Ionicons} from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from 'expo-linking';
 import {RotateView} from "../Auth/VerifyOTP";
-
-type NavigationProps = NativeStackScreenProps<any>
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../components/BottomSheet";
+import {Controller, useForm} from "react-hook-form";
+import {useCallback, useEffect, useRef, useState} from "react";
+import {Picker} from "@react-native-picker/picker";
+import configuration from "../../utils/configuration";
 const { width, height } = Dimensions.get("window");
+type FormData = {
+    disbursement_mode: string,
+    repayment_mode: string
+}
+type NavigationProps = NativeStackScreenProps<any>
 
 export default function LoanConfirmation({navigation, route}: NavigationProps) {
-    const { loading, user, member } = useSelector((state: { auth: storeState }) => state.auth);
-    // console.log("route params", route.params)
+    const { loading, user, member, tenants, selectedTenantId } = useSelector((state: { auth: storeState }) => state.auth);
+    console.log("route params", route.params)
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
+
+    const {
+        control,
+        watch,
+        handleSubmit,
+        setError,
+        setValue,
+        formState: { errors }
+    } = useForm<FormData>();
+
+    const [disbursement_mode, set_disbursement_mode] = useState<string>();
+    const [repayment_mode, set_repayment_mode] = useState<string>();
+    const [context, setContext] = useState<string>("");
+    const [allowDisbursmentSelect, setAllowDisbursmentSelect] = useState<boolean>(false)
+
+    useEffect(() => {
+        const subscription = watch((value, { name, type }) => {
+            (async () => {
+                switch (name) {
+                    case 'disbursement_mode':
+                        if (type === 'change') {
+                            set_disbursement_mode(value.disbursement_mode)
+                        }
+                        break;
+                    case 'repayment_mode':
+                        if (type === 'change') {
+                            set_repayment_mode(value.repayment_mode)
+                        }
+                        break;
+                }
+            })()
+        });
+        return () => subscription.unsubscribe();
+    }, [watch]);
+
+    const tenant = tenants.find(t => t.id === selectedTenantId);
+
+    const settings = configuration.find(config => config.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
+
+    const ref = useRef<BottomSheetRefProps>(null);
+
+    const onPress = useCallback(async (ctx: string) => {
+        if (settings && settings.repaymentDisbursementModes) {
+            setContext(ctx)
+            const isActive = ref?.current?.isActive();
+            if (isActive) {
+                ref?.current?.scrollTo(0);
+            } else {
+                ref?.current?.scrollTo(MAX_TRANSLATE_Y);
+            }
+        } else {
+            await makeLoanRequest()
+        }
+    }, []);
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -125,9 +199,50 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
 
         const payload = {
             "details": {
-                "loan-purpose": {
-                    "type": "TEXT",
-                    "value": code.code
+                loan_purpose: {
+                    value: '' // loan purpose name
+                },
+                purposeOneOfLoan: {
+                    value: '' // loan purpose one
+                },
+                loanPurposeCode: {
+                    value: code.code
+                },
+                loanPeriod: {
+                    value: route.params?.loanDetails.desiredAmount
+                },
+                repayment_period: {
+                    value: route.params?.loanDetails.desiredAmount
+                },
+                employer_name: {
+                    value: '' // // employer name if any
+                },
+                employment_type: {
+                    value: '' // employment type if any
+                },
+                employment_number: {
+                    value: '' // employment number if any
+                },
+                business_location: {
+                    value: '' // business location if any
+                },
+                business_type: {
+                    value: '' // business type if any
+                },
+                net_salary: {
+                    value: '' // net salary if any
+                },
+                gross_salary: {
+                    value: '' // gross salary if any
+                },
+                disbursement_mode: {
+                    value: disbursement_mode // disbursement mode { cheque, my account , EFT}
+                },
+                repayment_mode: {
+                    value: repayment_mode // repayment mode {checkoff, cash pay bill, standing offer}
+                },
+                loan_type: {
+                    value: route.params?.loanProduct.name
                 }
             },
             "loanProductName": route.params?.loanProduct.name,
@@ -158,7 +273,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
 
     if (fontsLoaded) {
         return (
-            <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+            <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
                 <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', left: -100, top: 200, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
@@ -172,7 +287,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                             height: 1/12 * height,
                             position: 'relative'
                         }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
+                            <TouchableOpacity disabled={loading} onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
                                 <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                             </TouchableOpacity>
                         </View>
@@ -217,8 +332,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                                             return ` ${o.name}`
                                                         }
                                                     }).toString()
-                                                    let message = `${op.name + ':' + subs}`
-                                                    return message
+                                                    return `${op.name + ':' + subs}`
                                                 }
                                             })
                                         }</Text>
@@ -227,14 +341,94 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                             </ScrollView>
                         </SafeAreaView>
                         <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity disabled={loading} onPress={() => makeLoanRequest()} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            <TouchableOpacity disabled={loading} onPress={() => onPress('repaymentDisbursement')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                 {loading && <RotateView/>}
                                 <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
-            </View>
+                <BottomSheet ref={ref}>
+                    <View style={{display: 'flex', zIndex: 4, alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
+                        {
+                            context === "repaymentDisbursement" &&
+                            <View style={{display: 'flex', alignItems: 'flex-start', width}}>
+                                <Text style={{fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular' }} allowFontScaling={false}>Disbursement Mode</Text>
+                                <Controller
+                                    control={control}
+                                    render={( {field: {onChange, onBlur, value}}) => (
+                                        <View style={styles.input0}>
+                                            <Picker
+                                                style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14,}}
+                                                onBlur={onBlur}
+                                                selectedValue={value}
+                                                onValueChange={(itemValue, itemIndex) => setValue('disbursement_mode', itemValue)}
+                                            >
+                                                {[
+                                                    {
+                                                        name: "Cheque",
+                                                        value: "Cheque"
+                                                    },
+                                                    {
+                                                        name: "My Account",
+                                                        value: "My Account"
+                                                    },
+                                                    {
+                                                        name: "EFT",
+                                                        value: "EFT"
+                                                    }
+                                                ].map((p, i) =>(
+                                                    <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
+                                                ))}
+                                            </Picker>
+                                        </View>
+                                    )}
+                                    name="disbursement_mode"
+                                />
+                                <Text allowFontScaling={false} style={{ fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular' }}>Repayment Mode</Text>
+                                <Controller
+                                    control={control}
+                                    render={( {field: {onChange, onBlur, value}}) => (
+                                        <View style={styles.input0}>
+                                            <Picker
+                                                style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14,}}
+                                                onBlur={onBlur}
+                                                selectedValue={value}
+                                                onValueChange={(itemValue, itemIndex) => setValue('repayment_mode', itemValue)}
+                                            >
+                                                {[
+                                                    {
+                                                        name: "Checkoff",
+                                                        value: "Checkoff"
+                                                    },
+                                                    {
+                                                        name: "Cash Paybill",
+                                                        value: "Cash Paybill"
+                                                    },
+                                                    {
+                                                        name: "Standing Offer",
+                                                        value: "Standing Offer"
+                                                    }
+                                                ].map((p, i) =>(
+                                                    <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
+                                                ))}
+                                            </Picker>
+                                        </View>
+                                    )}
+                                    name="repayment_mode"
+                                />
+                            </View>
+                        }
+
+                        <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                            <TouchableOpacity disabled={loading} onPress={() => makeLoanRequest()} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                                {loading && <RotateView/>}
+                                <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </BottomSheet>
+            </GestureHandlerRootView>
         )
     } else {
         return (
@@ -270,5 +464,18 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#FFFFFF',
         fontFamily: 'Poppins_600SemiBold'
-    }
+    },
+    input0: {
+        borderWidth: 1,
+        borderColor: '#cccccc',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        height: 45,
+        width: '90%',
+        paddingHorizontal: 20,
+        fontSize: 12,
+        color: '#767577',
+        fontFamily: 'Poppins_400Regular',
+        marginBottom: 20,
+    },
 })

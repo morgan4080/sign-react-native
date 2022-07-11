@@ -175,6 +175,24 @@ type MemberDetailsType = {
     "lastModified": string
 }
 
+type membersFilter = {
+    "isTermsAccepted": boolean,
+    "refId": string,
+    "created": string,
+    "firstName": string,
+    "lastName": string,
+    "idNumber": string,
+    "memberNumber": string,
+    "phoneNumber": string,
+    "email": string,
+    "totalShares": number,
+    "totalDeposits": number,
+    "committedAmount": number,
+    "availableAmount": number,
+    "memberStatus": string,
+    "loanCount": number
+};
+
 export type storeState = {
     user: AuthData | null;
     member: MemberData | null;
@@ -188,6 +206,7 @@ export type storeState = {
     isJWT: boolean | string;
     otpSent: boolean;
     optVerified: boolean;
+    searchedMembers: membersFilter[];
     contacts: {contact_id: number, name: string, phone: string}[] | null;
     loanCategories: CategoryType[] | null,
     appInitialized: boolean,
@@ -486,6 +505,38 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
     }
 })
 
+export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memberNo: string) => {
+    try {
+        const key = await getSecureKey('jwt');
+
+        if (!key) {
+            return Promise.reject('You are not authenticated');
+        }
+
+        const myHeaders = new Headers();
+
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        myHeaders.append("Content-Type", 'application/json');
+
+        const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members?order=ASC&pageSize=1&searchTerm=${memberNo}`, {
+            method: 'GET',
+            headers: myHeaders
+        });
+
+        if (response.status === 200) {
+            const { list } = await response.json();
+            return Promise.resolve(list);
+        } else if (response.status > 400) {
+            return Promise.reject(`Authentication Error`);
+        } else {
+            return Promise.reject(`is not a member.`);
+        }
+
+    } catch (e: any) {
+        return Promise.reject(e.message);
+    }
+})
+
 export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, OTP }: { requestMapper: string, OTP: string }) => {
     try {
         const key = await getSecureKey('jwt');
@@ -575,7 +626,7 @@ export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRe
             console.log('all guarantorship requests', data);
             resolve(data);
         } else {
-            reject(`is not a member of this organisation`);
+            reject(`is not a member.`);
         }
     })
 });
@@ -610,30 +661,36 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
             setFaveGuarantors(data);
             resolve(data);
         } else {
-            reject(`is not a member of this organisation`);
+            reject(`is not a member.`);
         }
     })
 });
 
 export const validateNumber = createAsyncThunk('validateNumber', async (phone: string) => {
     return new Promise(async (resolve, reject) => {
-        const key = await getSecureKey('jwt')
-        if (!key) {
-            reject("You are not authenticated")
-        }
-        const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phone}`,{
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${key}`,
+        try {
+            const key = await getSecureKey('jwt')
+            if (!key) {
+                reject("You are not authenticated")
             }
-        });
-
-        if (result.status === 200) {
-            const data = await result.json();
-            resolve(data);
-        } else {
-            reject(`is not a member of this organisation`);
+            const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phone}`,{
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${key}`,
+                }
+            });
+            console.log(result.status)
+            if (result.status === 200) {
+                const data = await result.json();
+                resolve(data);
+            } else if (result.status > 400) {
+                reject(`Authentication Error`);
+            } else {
+                reject(`is not a member of this organisation`);
+            }
+        } catch (e: any) {
+            reject(e.message);
         }
     })
 })
@@ -1309,6 +1366,18 @@ const authSlice = createSlice({
             state.loading = false;
         })
         builder.addCase(verifyOtp.rejected, (state, action) => {
+            state.loading = false
+        })
+
+        builder.addCase(searchByMemberNo.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(searchByMemberNo.fulfilled, (state, action: any) => {
+            console.log("search by member number", action.payload);
+            state.searchedMembers = action.payload
+            state.loading = false;
+        })
+        builder.addCase(searchByMemberNo.rejected, (state, action) => {
             state.loading = false
         })
 

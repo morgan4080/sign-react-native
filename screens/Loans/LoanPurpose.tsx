@@ -54,7 +54,6 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
     const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null)
 
     useEffect(() => {
-        console.log("heaat", loanCategories);
         if (loading) {
             if (loanCategories && loanCategories.length > 0) {
                 dispatch(setLoading(false));

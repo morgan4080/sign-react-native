@@ -139,7 +139,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             </View>
                             <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center' }}>
                                 <View style={{ display: 'flex', flexDirection: 'row', marginTop: 50, justifyContent: 'space-between' }}>
-                                    <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderWidth: 1, borderColor: '#bdbdbd', borderRadius: 25, backgroundColor: 'rgba(51,109,255,0.8)', position: 'relative'  }}>
+                                    <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: 'rgba(51,109,255,0.8)', position: 'relative'  }}>
                                         <Text allowFontScaling={false} style={{ flex: 3, color: '#ffffff', fontSize: 11.5, marginLeft: 10, marginRight: 10, fontFamily: 'Poppins_600SemiBold' }}>
                                             Apply For A Loan
                                         </Text>

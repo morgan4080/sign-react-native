@@ -160,13 +160,14 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const [inputStrategy, setInputStrategy] = useState<number | string | undefined>(0);
     const [memberNumber, setMemberNumber] = useState<number | string | undefined>(undefined);
     const [phoneNumber, setPhoneNumber] = useState<number | string | undefined>(undefined);
-    const [employerName, setEmployerName] = useState<string>();
-    const [serviceNo, setServiceNo] = useState<string>();
-    const [grossSalary, setGrossSalary] = useState<string>();
-    const [netSalary, setNetSalary] = useState<string>();
-    const [businessType, setBusinessType] = useState<string>();
-    const [businessLocation, setBusinessLocation] = useState<string>();
-    const [amountToGuarantee, setAmountToGuarantee] = useState<any[]>([]);
+    const [employerName, setEmployerName] = useState<string | undefined>(undefined);
+    const [serviceNo, setServiceNo] = useState<string | undefined>(undefined);
+    const [grossSalary, setGrossSalary] = useState<string | undefined>(undefined);
+    const [netSalary, setNetSalary] = useState<string | undefined>(undefined);
+    const [businessType, setBusinessType] = useState<string | undefined>(undefined);
+    const [businessLocation, setBusinessLocation] = useState<string | undefined>(undefined);
+    const [amountToGuarantee, setAmountToGuarantee] = useState<string | undefined>(undefined);
+    const [allGuaranteedAmounts, setAllGuaranteedAmounts] = useState<string[]>([]);
     const [amountCertified, setAmountCertified] = useState<boolean>(false);
 
     useEffect(() => {
@@ -206,18 +207,20 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         break;
                     case  'netSalary':
                         setNetSalary(value.netSalary);
-                        setMemberSearching(true);
+                        setMemberSearching(true)
                         break;
                     case  'businessType':
                         setBusinessType(value.businessType);
-                        setMemberSearching(true);
                         break;
                     case  'businessLocation':
                         setBusinessLocation(value.businessLocation);
+                        setMemberSearching(true)
                         break;
                     case  'amountToGuarantee':
-                        let newArr: any[] = [...amountToGuarantee, value.amountToGuarantee];
-                        if (amountToGuarantee) setAmountToGuarantee(newArr);
+                        if (value.amountToGuarantee !== '') {
+                            setAmountToGuarantee(value.amountToGuarantee);
+                            setMemberSearching(true);
+                        }
                         break;
                 }
             })()
@@ -226,15 +229,19 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     }, [watch]);
 
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
-    const [employerInput, setEmployerInput] = useState<boolean>(false);
 
     const removeContactFromList = (contact2Remove: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): boolean => {
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
         let index = newDeserializedCopy.findIndex(contact => contact.contact_id === contact2Remove.contact_id);
         newDeserializedCopy.splice(index, 1);
+        let amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
+        amountsToG.splice(index, 1);
+        setAllGuaranteedAmounts(amountsToG);
         setSelectedContacts(newDeserializedCopy);
         return true;
     }
+
+    const [currentGuarantor, setCurrentGuarantor] = useState<{contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}>()
 
     const addContactToList = (contact2Add: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}): boolean => {
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
@@ -260,20 +267,19 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         });
 
         if (!isDuplicate) {
-            newDeserializedCopy.push(contact2Add);
-            setSelectedContacts(newDeserializedCopy);
-            settings && setEmployerInput(settings.employerInfo)
+            if (settings && settings.guarantors === 'value' && settings.amounts) {
+                setCurrentGuarantor(contact2Add)
+                onPress('amount');
+            } else {
+                newDeserializedCopy.push(contact2Add);
+                setSelectedContacts(newDeserializedCopy);
+            }
             return true;
         }
         return false;
     }
 
     const addToSelected = async (identifier: string) => {
-        if (settings && settings.amounts && amountCertified) {
-            onPress('amount');
-
-            return
-        }
         if (inputStrategy === 1) {
             let phone: string = ''
             if (identifier[0] === '+') {
@@ -307,8 +313,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     name: `${payload.firstName}`,
                     phone: `${payload.phoneNumber}`
                 }
-
-                addContactToList(member)
+                addContactToList(member);
             }
         }
 
@@ -328,6 +333,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 console.log(payload);
                 if (payload.length < 1) {
                     CSTM.showToast(`${identifier}: is not a member.`);
+
+                    return
                 }
 
                 let member = {
@@ -338,7 +345,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     phone: `${payload[0].phoneNumber}`
                 }
 
-                addContactToList(member)
+                addContactToList(member);
 
             }
 
@@ -367,13 +374,19 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const ref = useRef<BottomSheetRefProps>(null);
 
     const onPress = useCallback((ctx: string) => {
-        setContext(ctx)
+        setContext(ctx);
+        if (ctx === 'amount') {
+            ref?.current?.scrollTo(MAX_TRANSLATE_Y);
+            setMemberSearching(false);
+            return
+        }
         const isActive = ref?.current?.isActive();
         if (isActive) {
             ref?.current?.scrollTo(0);
         } else {
             ref?.current?.scrollTo(MAX_TRANSLATE_Y);
         }
+        setMemberSearching(false);
     }, []);
 
     const [tab, setTab] = useState<number>(0);
@@ -395,10 +408,13 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             if (inputStrategy === 1 && phoneNumber) {
                 console.log("ready to search eligibility", phoneNumber);
                 await addToSelected(phoneNumber.toString());
+
             } else if (inputStrategy === 0 && memberNumber) {
                 console.log("ready to search eligibility", memberNumber);
                 await addToSelected(`${memberNumber}`);
             }
+
+            return
         }
 
         if (ctx === 'employment') {
@@ -421,9 +437,23 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 setBusinessPayload(payload)
                 console.log(payload)
             }
+            onPress(ctx);
+
+            return
         }
 
-        onPress('search');
+        if (ctx === 'amount') {
+            let amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
+            amountsToG.push(amountToGuarantee);
+            setAllGuaranteedAmounts(amountsToG);
+            console.log("amountToGuarantee", amountToGuarantee);
+            setValue('amountToGuarantee', '');
+            let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
+            newDeserializedCopy.push(currentGuarantor);
+            setSelectedContacts(newDeserializedCopy);
+            onPress(ctx);
+            return
+        }
     }
 
     useEffect(() => {
@@ -549,10 +579,9 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 onPress={() => {
                     if (item.context === 'self-guarantee') {
                         // submit self as guarantor
-                        if (member) {
+                        if (member && member.memberNumber) {
                             (async () => {
                                 await addToSelected(member.memberNumber);
-                                onPress('');
                             })()
                         }
                         return
@@ -568,19 +597,36 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         );
     };
 
-    const calculateGuarantorship = (amount: string): string => {
+    const calculateGuarantorship = useCallback((amount: string): any => {
         if (settings && settings.guarantors) {
             if (settings.guarantors === 'value') {
                 // sum all guarantors amount inputs until they equal amount
                 // when sum === amount stop ability to add guarantors
+                let summation = allGuaranteedAmounts.reduce((a, b) => {
+                    return a + parseInt(b)
+                }, 0);
+
+                return `${summation}`
             }
             if (settings.guarantors === 'count') {
                 // split requiredGuarantors to amount
                 // when sum === amount stop ability to add guarantors
+                let amountPerGuarantor = route.params?.loanDetails.desiredAmount/requiredGuarantors();
+                let result = selectedContacts.length * amountPerGuarantor;
+                return `${result}`
             }
             return "0"
         }
         return amount
+    },[allGuaranteedAmounts]);
+
+    const isDisabled = () => {
+        let reminder = route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount);
+        console.log(reminder > 0);
+        if (reminder > 0) {
+            return true
+        }
+        return selectedContacts.length < requiredGuarantors();
     }
 
     return (
@@ -679,7 +725,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     </SafeAreaView>
 
                     <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <TouchableOpacity disabled={selectedContacts.length < requiredGuarantors() || loading} onPress={verifyGuarantors} style={{ display: 'flex', alignItems: 'center', backgroundColor: selectedContacts.length < requiredGuarantors() || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                        <TouchableOpacity disabled={ isDisabled() || loading } onPress={verifyGuarantors} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                             <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                         </TouchableOpacity>
                     </View>
@@ -702,10 +748,12 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                 render={( {field: {onChange, onBlur, value}}) => (
                                     <View style={styles.input0}>
                                         <Picker
-                                            style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14,}}
+                                            itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14 }}
+                                            style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14 }}
                                             onBlur={onBlur}
                                             selectedValue={value}
                                             onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+                                            mode="dropdown"
                                         >
                                             {[
                                                 {
@@ -717,7 +765,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                                     value: 1
                                                 }
                                             ].map((p, i) =>(
-                                                <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
+                                                <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_400Regular' />
                                             ))}
                                         </Picker>
                                     </View>
@@ -760,6 +808,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     {
                         context === "amount" &&
                         <View style={{display: 'flex', alignItems: 'center', width}}>
+                            <Text allowFontScaling={false} style={styles.subtitle}>Add {currentGuarantor?.name}'s Guarantorship Amount</Text>
+                            <Text allowFontScaling={false} style={{ alignSelf: 'flex-start', textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, marginBottom: 10, paddingHorizontal: 30 }}>Un-guaranteed Amount <Text style={{textDecorationLine: 'underline'}}>{toMoney(`${route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount)}` )}</Text></Text>
                             <Controller
                                 control={control}
                                 render={({field: {onChange, onBlur, value}}) => (
@@ -769,25 +819,27 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                         onBlur={onBlur}
                                         onChangeText={onChange}
                                         value={value}
-                                        placeholder="Amount Guaranteed"
+                                        placeholder="Amount to guarantee"
                                         keyboardType="numeric"
                                     />
                                 )}
                                 name="amountToGuarantee"
                             />
+
+
                         </View>
                     }
                     { context === "employment" &&
                         <View style={{display: 'flex', alignItems: 'center', width}}>
                             <View style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', width: width-50, paddingBottom: 15 }}>
                                 <TouchableOpacity onPress={() => {
-                                    setMemberSearching(true)
+                                    setMemberSearching(false)
                                     setTab(0)
                                 }} style={{ display: 'flex', borderBottomWidth: tab === 0 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
                                     <Text allowFontScaling={false} style={[{color: tab === 0 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Employed</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => {
-                                    setMemberSearching(true)
+                                    setMemberSearching(false)
                                     setTab(1)
                                 }} style={{ display: 'flex', borderBottomWidth: tab === 1 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
                                     <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
@@ -890,7 +942,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                             </> }
                         </View>
                     }
-                    {   context !== 'search-phone-book' &&
+                    {
+                        context !== 'amount' &&
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width, paddingHorizontal: 30, marginHorizontal: 20 }}>
                             <Controller
                                 control={control}
@@ -946,7 +999,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_600SemiBold',
         fontSize: 14,
         paddingHorizontal: 30,
-        marginBottom: 10
+        marginBottom: 5
     },
     tabTitle: {
         textAlign: 'left',

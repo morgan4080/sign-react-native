@@ -79,9 +79,9 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                         memberRefId: payload?.refId
                     });
                 }
-                if (!res && !newValue) {
+                /*if (!res && !newValue) {
                     CSTM.showToast("Already added contact");
-                }
+                }*/
                 setSelectedContact(res)
             }
         } catch (e: any) {

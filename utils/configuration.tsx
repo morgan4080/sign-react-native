@@ -6,6 +6,7 @@ const config = [
         witness: true,
         repaymentDisbursementModes: false,
         amounts: false,
+        selfGuarantee: false
     },
     {
         tenantId: 't74411',
@@ -13,7 +14,8 @@ const config = [
         guarantors: 'value',
         witness: false,
         repaymentDisbursementModes: true,
-        amounts: true
+        amounts: true,
+        selfGuarantee: true
     }
 ]
 

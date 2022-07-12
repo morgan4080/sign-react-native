@@ -40,7 +40,7 @@ const PinLogin = ({ navigation }: NavigationProps) => {
                 const { type, error }: any = await dispatch(loginUser(payload))
                 if (type === 'loginUser/rejected' && error) {
                     if (error.message === "Network request failed") {
-                        CSTM.showToast(error.message);
+                        CSTM.showToast('No Internet');
                     } else {
                         CSTM.showToast(error.message);
                     }

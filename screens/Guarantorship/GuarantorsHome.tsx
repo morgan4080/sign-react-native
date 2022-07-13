@@ -286,7 +286,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             if (identifier[0] === '+') {
                 let number = identifier.substring(1);
                 phone = `${number.replace(/ /g, "")}`;
-                console.log('starts @+' ,phone);
             } else if (identifier[0] === '0') {
                 let number = identifier.substring(1);
                 phone = `254${number.replace(/ /g, "")}`;
@@ -297,24 +296,37 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             const {payload, type}: {payload: any, type: string} = result;
 
             if (type === 'validateNumber/rejected') {
-                console.log(`${phone} ${result.error.message}`)
                 CSTM.showToast(`${phone} ${result.error.message}`);
                 return
             }
 
-            if (type === "validateNumber/fulfilled") {
+            if (type === "validateNumber/fulfilled" && member) {
                 // add this guy to contact table
                 // result added, add to contact list
-                console.log(payload)
 
-                let member = {
-                    contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
-                    memberNumber: `${payload.memberNumber}`,
-                    memberRefId: `${payload.refId}`,
-                    name: `${payload.firstName}`,
-                    phone: `${payload.phoneNumber}`
+                type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number, guaranteeAmount: number}
+                let payloadOut: validateGuarantorType = {
+                    applicantMemberRefId: member?.refId,
+                    memberRefIds: [
+                        `${payload.refId}`
+                    ],
+                    loanProductRefId: route.params?.loanProduct.refId,
+                    loanAmount: parseInt(route.params?.loanDetails.desiredAmount),
+                    guaranteeAmount: 0
                 }
-                addContactToList(member);
+
+                const {type}: any = await dispatch(validateGuarantorship(payloadOut));
+
+                if (type === 'validateGuarantorship/fulfilled') {
+                    let memberCustom = {
+                        contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
+                        memberNumber: `${payload.memberNumber}`,
+                        memberRefId: `${payload.refId}`,
+                        name: `${payload.firstName}`,
+                        phone: `${payload.phoneNumber}`
+                    }
+                    addContactToList(memberCustom);
+                }
             }
         }
 
@@ -328,28 +340,41 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 return
             }
 
-            if (type === "searchByMemberNo/fulfilled") {
+            if (type === "searchByMemberNo/fulfilled" && member) {
                 // add this guy to contact table
                 // result added, add to contact list
-                console.log(payload);
+
                 if (payload.length < 1) {
                     CSTM.showToast(`${identifier}: is not a member.`);
-
                     return
                 }
 
-                let member = {
-                    contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
-                    memberNumber: `${payload[0].memberNumber}`,
-                    memberRefId: `${payload[0].refId}`,
-                    name: `${payload[0].firstName}`,
-                    phone: `${payload[0].phoneNumber}`
+                type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number, guaranteeAmount: number}
+
+                let payloadOut: validateGuarantorType = {
+                    applicantMemberRefId: member?.refId,
+                    memberRefIds: [
+                        `${payload[0].refId}`
+                    ],
+                    loanProductRefId: route.params?.loanProduct.refId,
+                    loanAmount: parseInt(route.params?.loanDetails.desiredAmount),
+                    guaranteeAmount: 0
                 }
 
-                addContactToList(member);
+                const {type}: any = await dispatch(validateGuarantorship(payloadOut))
 
+                if (type === 'validateGuarantorship/fulfilled') {
+                    let memberCustom = {
+                        contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
+                        memberNumber: `${payload[0].memberNumber}`,
+                        memberRefId: `${payload[0].refId}`,
+                        name: `${payload[0].firstName}`,
+                        phone: `${payload[0].phoneNumber}`
+                    }
+
+                    addContactToList(memberCustom);
+                }
             }
-
         }
     }
 
@@ -376,11 +401,11 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const onPress = useCallback((ctx: string) => {
         setContext(ctx);
-        if (ctx === 'amount') {
+        /*if (ctx === 'amount') {
             ref?.current?.scrollTo(MAX_TRANSLATE_Y);
             setMemberSearching(false);
             return
-        }
+        }*/
         const isActive = ref?.current?.isActive();
         if (isActive) {
             ref?.current?.scrollTo(0);
@@ -402,16 +427,15 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         businessType: string | undefined;
     }
     const [employerPayload, setEmployerPayload] = useState<employerPayloadType>();
+
     const [businessPayload, setBusinessPayload] = useState<businessPayloadType>();
 
     const submitSearch = async (ctx: string) => {
         if (ctx === 'search') {
             if (inputStrategy === 1 && phoneNumber) {
-                console.log("ready to search eligibility", phoneNumber);
                 await addToSelected(phoneNumber.toString());
 
             } else if (inputStrategy === 0 && memberNumber) {
-                console.log("ready to search eligibility", memberNumber);
                 await addToSelected(`${memberNumber}`);
             }
 
@@ -426,17 +450,15 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     serviceNo,
                     grossSalary,
                     netSalary
-                }
-                setEmployerPayload(payload)
-                console.log(payload)
+                };
+                setEmployerPayload(payload);
             } else if (tab === 1) {
                 // set payload for business
                 let payload = {
                     businessLocation,
                     businessType
-                }
-                setBusinessPayload(payload)
-                console.log(payload)
+                };
+                setBusinessPayload(payload);
             }
             onPress(ctx);
 
@@ -447,7 +469,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             let amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
             amountsToG.push(amountToGuarantee);
             setAllGuaranteedAmounts(amountsToG);
-            console.log("amountToGuarantee", amountToGuarantee);
             setValue('amountToGuarantee', '');
             let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
             newDeserializedCopy.push(currentGuarantor);
@@ -458,7 +479,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     }
 
     useEffect(() => {
-        console.log(route.params)
         let authenticating = true;
         if (authenticating) {
             (async () => {
@@ -483,46 +503,31 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     });
 
     const verifyGuarantors = async () => {
-        type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number}
         if (member && route.params && route.params.loanProduct && route.params.loanDetails && selectedContacts.length > 0) {
-            let payloadOut: validateGuarantorType = {
-                applicantMemberRefId: member?.refId,
-                memberRefIds: selectedContacts.reduce((acc,contact) => {
-                    acc.push(contact.memberRefId);
-                    return acc;
-                },[]),
-                loanProductRefId: route.params?.loanProduct.refId,
-                loanAmount: route.params?.loanDetails.desiredAmount // to int
-            }
-
-            console.log('validate loan', payloadOut);
-
-            const {type, error, payload}: any = await dispatch(validateGuarantorship(payloadOut))
-
-            console.log('validate loan response', type, error, payload);
-
             if (settings && settings.employerInfo  && !(employerPayload || businessPayload)) {
                 setEmployerDetailsEnabled(true);
                 onPress("employment");
                 return;
             }
-        }
 
-        if (settings && settings.witness && (employerPayload || businessPayload)) {
-            navigation.navigate('WitnessesHome', {
-                guarantors: selectedContacts,
-                employerPayload,
-                businessPayload,
-                ...route.params
-            })
-        } else if (settings && !settings.witness) {
-            navigation.navigate('LoanConfirmation', {
-                witnesses: [],
-                guarantors: selectedContacts,
-                employerPayload,
-                businessPayload,
-                ...route.params
-            })
+            if (settings && settings.witness && (employerPayload || businessPayload)) {
+                navigation.navigate('WitnessesHome', {
+                    guarantors: selectedContacts,
+                    employerPayload,
+                    businessPayload,
+                    ...route.params
+                })
+            } else if (settings && !settings.witness) {
+                navigation.navigate('LoanConfirmation', {
+                    witnesses: [],
+                    guarantors: selectedContacts,
+                    employerPayload,
+                    businessPayload,
+                    ...route.params
+                })
+            }
+        } else {
+            CSTM.showToast(`CANNOT VALIDATE GUARANTORS`);
         }
     }
 
@@ -615,7 +620,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const isDisabled = () => {
         let reminder = route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount);
-        console.log(reminder > 0);
         if (reminder > 0) {
             return true
         }

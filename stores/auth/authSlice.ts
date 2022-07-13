@@ -375,7 +375,7 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
     }
 });
 
-type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number}
+type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number, guaranteeAmount: number}
 
 export const validateGuarantorship = createAsyncThunk('validateGuarantorship', async (payload:validateGuarantorType) => {
     try {
@@ -390,7 +390,7 @@ export const validateGuarantorship = createAsyncThunk('validateGuarantorship', a
         myHeaders.append("Authorization", `Bearer ${key}`);
         myHeaders.append("Content-Type", 'application/json');
 
-        const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/loan-request/guarantor-status', {
+        const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/loan-request/guarantors-status', {
             method: 'POST',
             headers: myHeaders,
             body: JSON.stringify(payload)

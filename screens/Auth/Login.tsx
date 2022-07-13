@@ -328,7 +328,7 @@ export default function Login({ navigation }: NavigationProps) {
                                             <Animated.View style={{ opacity: animatedOpacity.current }}>
                                                 <TextInput
                                                     allowFontScaling={false}
-                                                    style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB' }}
+                                                    style={{...styles.input, color: isLoggedIn ? 'rgba(127,231,117,0.99)' : '#489AAB' }}
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}

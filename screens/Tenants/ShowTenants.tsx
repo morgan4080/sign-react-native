@@ -44,7 +44,7 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
         Poppins_300Light
     });
 
-    const { isJWT, selectedTenantId, isLoggedIn, loading, tenants } = useSelector((state: { auth: storeState }) => state.auth);
+    const { selectedTenantId, isLoggedIn, tenants } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
@@ -95,6 +95,7 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
         };
     }, [isLoggedIn]);
 
+
     const renderItem = ({ item }: any) => {
         const backgroundColor = item.id === selectedTenantId ? "#489AAB" : "#FFFFFF";
         const color = item.id === selectedTenantId ? 'white' : 'black';
@@ -102,7 +103,10 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
         return (
             <Item
                 item={item}
-                onPress={() => dispatch(setSelectedTenantId(item.id))}
+                onPress={() => {
+                    dispatch(setSelectedTenantId(item.id));
+                    navigation.navigate('Login');
+                }}
                 backgroundColor={{ backgroundColor }}
                 textColor={{ color }}
             />
@@ -121,27 +125,6 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
                     keyExtractor={item => item.id}
                 />
             </SafeAreaView>
-            <View style={{ backgroundColor: '#489AAB', width, display: 'flex', flexDirection: 'row', justifyContent: 'center', position: 'relative' }}>
-                {!loading && <TouchableOpacity onPress={() => (selectedTenantId && navigation.navigate('Login'))} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    borderColor: '#FFFFFF',
-                    borderWidth: 1,
-                    width: width / 2,
-                    paddingHorizontal: 20,
-                    paddingVertical: 15,
-                    borderRadius: 25,
-                    marginTop: 45,
-                    marginBottom: 25
-                }}>
-                    <Text allowFontScaling={false} style={styles.buttonText}>Proceed</Text>
-                </TouchableOpacity>}
-                {loading &&
-                    <View style={{marginTop: 45, marginBottom: 25}}>
-                        <RotateView/>
-                    </View>
-                }
-            </View>
         </View>
     )
 }

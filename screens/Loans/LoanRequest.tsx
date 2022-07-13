@@ -7,7 +7,7 @@ import {
     Text,
     TouchableOpacity,
     View,
-    Image
+    Image, NativeModules
 } from "react-native";
 import {
     Poppins_300Light,
@@ -68,6 +68,7 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
     const loanRequest = route.params;
+    const CSTM = NativeModules.CSTM;
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -92,9 +93,16 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
 
         if (type === 'requestSignURL/fulfilled') {
             console.log(type, payload);
+            if (!payload.success) {
+                CSTM.showToast(payload.message);
+            }
         } else {
             console.log(type, error);
+            CSTM.showToast(error);
         }
+
+        console.log("zohoSignPayloadType", payloadOut);
+        console.log(loanRequest);
     }
 
     return (
@@ -127,7 +135,7 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
                         </ScrollView>
                     </SafeAreaView>
                     <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <TouchableOpacity onPress={() => makeSigningRequest()} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                        <TouchableOpacity disabled={loading} onPress={() => makeSigningRequest()} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                             {loading && <RotateView/>}
                             <Text allowFontScaling={false} style={styles.buttonText}>SIGN DOCUMENT</Text>
                         </TouchableOpacity>

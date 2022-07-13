@@ -168,6 +168,12 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                         }
                     } catch (e: any) {
                         console.log(e.message);
+                    } finally {
+                        setValue('otpChar1', undefined);
+                        setValue('otpChar2', undefined);
+                        setValue('otpChar3', undefined);
+                        setValue('otpChar4', undefined);
+                        setValueInput("");
                     }
                 })()
             } else {

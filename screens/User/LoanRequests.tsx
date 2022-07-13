@@ -25,7 +25,6 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import { Pie as ProgressPie, CircleSnail as ProgressCircleSnail  } from 'react-native-progress';
 import {useEffect} from "react";
 import LoanRequest from "./Components/LoanRequest";
 import {RotateView} from "../Auth/VerifyOTP";
@@ -35,29 +34,28 @@ type NavigationProps = NativeStackScreenProps<any>
 const { width, height } = Dimensions.get("window");
 
 export default function LoanRequests ({ navigation }: NavigationProps) {
-    const { isLoggedIn, loading, user, member, loanRequests } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, user, member, loanRequests } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
 
     useEffect(() => {
         let isMounted = true;
-        if (!isLoggedIn) {
-            if (isMounted) navigation.navigate('GetTenants')
-        } else {
-            if (user) {
-                dispatch(fetchLoanRequests(member?.refId as string)).then((response: any) => {
-                    if (response.type === 'fetchLoanRequests/rejected' && response.error) {
-                        return
-                    }
-                    if (response.type === 'fetchLoanRequests/fulfilled') {
-                        return
-                    }
-                })
-            }
+        if (user) {
+            (async () => {
+                const {type, error}: any = await dispatch(fetchLoanRequests(member?.refId as string));
+                if (type === 'fetchLoanRequests/rejected' && error) {
+                    return
+                }
+                if (type === 'fetchLoanRequests/fulfilled') {
+                    return
+                }
+            })()
         }
-        return () => { isMounted = false };
-    }, [isLoggedIn]);
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
 
     let [fontsLoaded] = useFonts({

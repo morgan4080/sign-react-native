@@ -356,7 +356,7 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
             loanRequestRefId,
             actorRefId,
             actorType
-        }
+        };
 
         const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/zoho/get-sign-url', {
             method: 'POST',

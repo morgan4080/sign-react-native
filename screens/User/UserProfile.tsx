@@ -24,9 +24,8 @@ import {
     logoutUser,
     saveContactsToDb,
     setLoanCategories,
-    fetchGuarantorshipRequests,
-    fetchWitnessRequests,
-    authenticate, fetchMemberDetails
+    authenticate,
+    fetchLoanProducts
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
@@ -78,6 +77,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                         await Promise.all([
                             dispatch(fetchMember(payload.username)),
                             dispatch(saveContactsToDb()),
+                            dispatch(fetchLoanProducts()),
                             dispatch(setLoanCategories(signal))
                         ]);
                     } catch (e: any) {
@@ -101,11 +101,6 @@ export default function UserProfile({ navigation }: NavigationProps) {
         Poppins_400Regular,
         Poppins_300Light
     });
-
-    const logout = async () => {
-        await dispatch(setLoading(true))
-        await dispatch(logoutUser())
-    }
 
     if (fontsLoaded) {
         return (

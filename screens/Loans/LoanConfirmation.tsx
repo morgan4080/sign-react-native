@@ -42,7 +42,6 @@ type NavigationProps = NativeStackScreenProps<any>
 
 export default function LoanConfirmation({navigation, route}: NavigationProps) {
     const { loading, user, member, tenants, selectedTenantId } = useSelector((state: { auth: storeState }) => state.auth);
-    console.log("route params", route.params)
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
 
@@ -214,25 +213,25 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                     value: route.params?.loanDetails.desiredAmount
                 },
                 employer_name: {
-                    value: route.params?.employerPayload.employerName
+                    value: route.params?.employerPayload?.employerName
                 },
                 employment_type: {
                     value: '' // employment type if any
                 },
                 employment_number: {
-                    value: route.params?.employerPayload.serviceNo
+                    value: route.params?.employerPayload?.serviceNo
                 },
                 business_location: {
-                    value: route.params?.businessPayload.businessLocation
+                    value: route.params?.businessPayload?.businessLocation
                 },
                 business_type: {
-                    value: route.params?.businessPayload.businessType
+                    value: route.params?.businessPayload?.businessType
                 },
                 net_salary: {
-                    value: route.params?.employerPayload.netSalary
+                    value: route.params?.employerPayload?.netSalary
                 },
                 gross_salary: {
-                    value: route.params?.employerPayload.grossSalary
+                    value: route.params?.employerPayload?.grossSalary
                 },
                 disbursement_mode: {
                     value: disbursement_mode // disbursement mode { cheque, my account , EFT}

@@ -1,5 +1,4 @@
 import * as SecureStore from 'expo-secure-store';
-import {deleteItemAsync} from "expo-secure-store";
 
 export async function saveSecureKey(key: string, value: any) {
     await SecureStore.setItemAsync(key, value);

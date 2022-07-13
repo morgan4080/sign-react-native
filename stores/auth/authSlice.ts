@@ -1387,7 +1387,7 @@ const authSlice = createSlice({
         })
         builder.addCase(validateNumber.fulfilled, (state, action: any) => {
             // state.contacts = action.payload
-            console.log('successfully validated number ', action.payload);
+            // console.log('successfully validated number ', action.payload);
             state.loading = false
         })
         builder.addCase(validateNumber.rejected, (state, action) => {

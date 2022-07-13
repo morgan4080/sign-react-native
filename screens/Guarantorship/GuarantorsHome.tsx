@@ -281,6 +281,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     }
 
     const addToSelected = async (identifier: string) => {
+        const amount: string | undefined = allGuaranteedAmounts.at(-1);
+
         if (inputStrategy === 1) {
             let phone: string = ''
             if (identifier[0] === '+') {
@@ -312,8 +314,10 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     ],
                     loanProductRefId: route.params?.loanProduct.refId,
                     loanAmount: parseInt(route.params?.loanDetails.desiredAmount),
-                    guaranteeAmount: 0
+                    guaranteeAmount: amount ? parseInt(amount) : 0
                 }
+
+                console.log('guarantorship payload', payloadOut);
 
                 const {type}: any = await dispatch(validateGuarantorship(payloadOut));
 
@@ -358,8 +362,10 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     ],
                     loanProductRefId: route.params?.loanProduct.refId,
                     loanAmount: parseInt(route.params?.loanDetails.desiredAmount),
-                    guaranteeAmount: 0
+                    guaranteeAmount: amount ? parseInt(amount) : 0
                 }
+
+                console.log('guarantorship payload', payloadOut);
 
                 const {type}: any = await dispatch(validateGuarantorship(payloadOut))
 
@@ -465,15 +471,34 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             return
         }
 
-        if (ctx === 'amount') {
+        if (ctx === 'amount' && member && currentGuarantor) {
             let amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
             amountsToG.push(amountToGuarantee);
             setAllGuaranteedAmounts(amountsToG);
             setValue('amountToGuarantee', '');
             let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
             newDeserializedCopy.push(currentGuarantor);
-            setSelectedContacts(newDeserializedCopy);
-            onPress(ctx);
+            type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number, guaranteeAmount: number}
+            let payloadOut: validateGuarantorType = {
+                applicantMemberRefId: member?.refId,
+                memberRefIds: [
+                    `${currentGuarantor.memberRefId}`
+                ],
+                loanProductRefId: route.params?.loanProduct.refId,
+                loanAmount: parseInt(route.params?.loanDetails.desiredAmount),
+                guaranteeAmount: amountToGuarantee ? parseInt(amountToGuarantee) : 0
+            }
+
+            console.log('guarantorship payload', payloadOut);
+
+            const {type}: any = await dispatch(validateGuarantorship(payloadOut));
+
+            if (type === 'validateGuarantorship/fulfilled') {
+                setSelectedContacts(newDeserializedCopy);
+                onPress(ctx);
+            } else {
+                CSTM.showToast(`Member Cannot Guarantee This Amount`);
+            }
             return
         }
     }

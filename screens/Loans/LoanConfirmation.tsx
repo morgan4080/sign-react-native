@@ -214,25 +214,25 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                     value: route.params?.loanDetails.desiredAmount
                 },
                 employer_name: {
-                    value: '' // // employer name if any
+                    value: route.params?.employerPayload.employerName
                 },
                 employment_type: {
                     value: '' // employment type if any
                 },
                 employment_number: {
-                    value: '' // employment number if any
+                    value: route.params?.employerPayload.serviceNo
                 },
                 business_location: {
-                    value: '' // business location if any
+                    value: route.params?.businessPayload.businessLocation
                 },
                 business_type: {
-                    value: '' // business type if any
+                    value: route.params?.businessPayload.businessType
                 },
                 net_salary: {
-                    value: '' // net salary if any
+                    value: route.params?.employerPayload.netSalary
                 },
                 gross_salary: {
-                    value: '' // gross salary if any
+                    value: route.params?.employerPayload.grossSalary
                 },
                 disbursement_mode: {
                     value: disbursement_mode // disbursement mode { cheque, my account , EFT}

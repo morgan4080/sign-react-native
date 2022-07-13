@@ -23,7 +23,7 @@ import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
-import {storeState} from "../../stores/auth/authSlice";
+import {requestSignURL, storeState} from "../../stores/auth/authSlice";
 import {toMoney} from "../User/Account";
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
@@ -79,8 +79,24 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
     });
     const makeSigningRequest = async () => {
       // ready to redirect to zoho
+        type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
+        type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
+        const payloadOut: zohoSignPayloadType = {
+            loanRequestRefId: loanRequest?.refId,
+            actorRefId: loanRequest?.memberRefId,
+            actorType:  "APPLICANT"
+        }
+        console.log("zohoSignPayloadType", payloadOut);
 
-    };
+        const {type, error, payload}: any = await dispatch(requestSignURL(payloadOut))
+
+        if (type === 'requestSignURL/fulfilled') {
+            console.log(type, payload);
+        } else {
+            console.log(type, error);
+        }
+    }
+
     return (
         <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
             <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />

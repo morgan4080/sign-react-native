@@ -335,6 +335,79 @@ export const initializeDB = createAsyncThunk('initializeDB', async (): Promise<a
     })
 });
 
+type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
+
+type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
+
+export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanRequestRefId,actorRefId,actorType}: zohoSignPayloadType) => {
+    try {
+        const key = await getSecureKey('jwt');
+
+        if (!key) {
+            return Promise.reject('You are not authenticated');
+        }
+
+        const myHeaders = new Headers();
+
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        myHeaders.append("Content-Type", 'application/json');
+
+        const payload: zohoSignPayloadType = {
+            loanRequestRefId,
+            actorRefId,
+            actorType
+        }
+
+        const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/zoho/get-sign-url', {
+            method: 'POST',
+            headers: myHeaders,
+            body: JSON.stringify(payload)
+        });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            return Promise.resolve(data);
+        } else {
+            return Promise.reject(`Http Status: ${response.status}`);
+        }
+    } catch (e: any) {
+        return Promise.reject(e.message);
+    }
+});
+
+type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number}
+
+export const validateGuarantorship = createAsyncThunk('validateGuarantorship', async (payload:validateGuarantorType) => {
+    try {
+        const key = await getSecureKey('jwt');
+
+        if (!key) {
+            return Promise.reject('You are not authenticated');
+        }
+
+        const myHeaders = new Headers();
+
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        myHeaders.append("Content-Type", 'application/json');
+
+        const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/loan-request/guarantor-status', {
+            method: 'POST',
+            headers: myHeaders,
+            body: JSON.stringify(payload)
+        });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            return Promise.resolve(data);
+        } else {
+            return Promise.reject(`Http Status: ${response.status}`);
+        }
+
+    } catch (e: any) {
+        return Promise.reject(e.message);
+    }
+});
+
 export const saveContactsToDb = createAsyncThunk('saveContactsToDb', async() => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -1252,6 +1325,28 @@ const authSlice = createSlice({
             state.loading = false
         })
         builder.addCase(logoutUser.rejected, state => {
+            state.loading = false
+        })
+
+        builder.addCase(requestSignURL.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(requestSignURL.fulfilled, (state, action: any) => {
+            console.log("requestSignURL", action.payload)
+            state.loading = false
+        })
+        builder.addCase(requestSignURL.rejected, (state, action) => {
+            state.loading = false
+        })
+
+        builder.addCase(validateGuarantorship.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(validateGuarantorship.fulfilled, (state, action: any) => {
+            console.log("validateGuarantorship", action.payload)
+            state.loading = false
+        })
+        builder.addCase(validateGuarantorship.rejected, (state, action) => {
             state.loading = false
         })
 

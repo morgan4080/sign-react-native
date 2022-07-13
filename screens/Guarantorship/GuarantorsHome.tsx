@@ -32,6 +32,7 @@ import {
     searchContactsInDB,
     setLoading,
     storeState,
+    validateGuarantorship,
     validateNumber
 } from "../../stores/auth/authSlice";
 
@@ -482,37 +483,29 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     });
 
     const verifyGuarantors = async () => {
-        if (tenant?.tenantId === 't74411') {
-            let payload = {
-                "applicantMemberRefId": "string",
-                "memberRefId": "string",
-                "loanProductRefId": "string",
-                "guaranteeAmount": 0
+        type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number}
+        if (member && route.params && route.params.loanProduct && route.params.loanDetails && selectedContacts.length > 0) {
+            let payloadOut: validateGuarantorType = {
+                applicantMemberRefId: member?.refId,
+                memberRefIds: selectedContacts.reduce((acc,contact) => {
+                    acc.push(contact.memberRefId);
+                    return acc;
+                },[]),
+                loanProductRefId: route.params?.loanProduct.refId,
+                loanAmount: route.params?.loanDetails.desiredAmount // to int
             }
 
-            let url = "https://eguarantorship-api.presta.co.ke/api/v1/loan-request/guarantors-status"
-        }
+            console.log('validate loan', payloadOut);
 
-        if (tenant?.tenantId === 't72767') {
-            let payload = {
-                "applicantMemberRefId": "mgxb6WeCjEatLkCh",
-                "memberRefIds": [
-                    "3L1mPsDTaPVzGUT1",
-                    "6VDXgAA0XVH9B7Ip",
-                    "8WyHlj18STVKoFer",
-                    "nq64UuTssU8cIHPu"
-                ],
-                "loanProductRefId": "zN9x5MBI5x559icx",
-                "loanAmount": 1000000
+            const {type, error, payload}: any = await dispatch(validateGuarantorship(payloadOut))
+
+            console.log('validate loan response', type, error, payload);
+
+            if (settings && settings.employerInfo  && !(employerPayload || businessPayload)) {
+                setEmployerDetailsEnabled(true);
+                onPress("employment");
+                return;
             }
-
-            let url = "https://eguarantorship-api.presta.co.ke/api/v1/loan-request/guarantor-status"
-        }
-
-        if (settings && settings.employerInfo  && !(employerPayload || businessPayload)) {
-            setEmployerDetailsEnabled(true);
-            onPress("employment");
-            return;
         }
 
         if (settings && settings.witness && (employerPayload || businessPayload)) {

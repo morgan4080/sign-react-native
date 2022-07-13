@@ -244,7 +244,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const [currentGuarantor, setCurrentGuarantor] = useState<{contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}>()
 
-    const addContactToList = (contact2Add: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}): boolean => {
+    const addContactToList = (contact2Add: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}, press: boolean = true): boolean => {
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
         let phone: string = '';
         if (contact2Add.phone[0] === '+') {
@@ -253,7 +253,10 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         } else if (contact2Add.phone[0] === '0') {
             let number = contact2Add.phone.substring(1);
             phone = `254${number.replace(/ /g, "")}`;
+        } else if (contact2Add.phone[0] === '2') {
+            phone = `${contact2Add.phone}`;
         }
+
         const isDuplicate = newDeserializedCopy.some((contact) => {
             let phone0: string = '';
             if (contact.phone[0] === '+') {
@@ -262,6 +265,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             } else if (contact.phone[0] === '0') {
                 let number = contact.phone.substring(1);
                 phone0 = `254${number.replace(/ /g, "")}`;
+            } else if (contact2Add.phone[0] === '2') {
+                phone = `${contact2Add.phone}`;
             }
 
             return phone0 === phone;
@@ -270,7 +275,11 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         if (!isDuplicate) {
             if (settings && settings.guarantors === 'value' && settings.amounts) {
                 setCurrentGuarantor(contact2Add)
-                onPress('amount');
+                if (press) {
+                    onPress('amount')
+                } else {
+                    setContext('amount');
+                }
             } else {
                 newDeserializedCopy.push(contact2Add);
                 setSelectedContacts(newDeserializedCopy);
@@ -281,8 +290,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     }
 
     const addToSelected = async (identifier: string) => {
-        const amount: string | undefined = allGuaranteedAmounts.at(-1);
-
         if (inputStrategy === 1) {
             let phone: string = ''
             if (identifier[0] === '+') {
@@ -291,6 +298,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             } else if (identifier[0] === '0') {
                 let number = identifier.substring(1);
                 phone = `254${number.replace(/ /g, "")}`;
+            } else if (identifier[0] === '2') {
+                phone = `${identifier}`;
             }
 
             const result: any = await dispatch(validateNumber(phone));
@@ -306,31 +315,14 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 // add this guy to contact table
                 // result added, add to contact list
 
-                type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number, guaranteeAmount: number}
-                let payloadOut: validateGuarantorType = {
-                    applicantMemberRefId: member?.refId,
-                    memberRefIds: [
-                        `${payload.refId}`
-                    ],
-                    loanProductRefId: route.params?.loanProduct.refId,
-                    loanAmount: parseInt(route.params?.loanDetails.desiredAmount),
-                    guaranteeAmount: amount ? parseInt(amount) : 0
+                let memberCustom = {
+                    contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
+                    memberNumber: `${payload.memberNumber}`,
+                    memberRefId: `${payload.refId}`,
+                    name: `${payload.firstName}`,
+                    phone: `${payload.phoneNumber}`
                 }
-
-                console.log('guarantorship payload', payloadOut);
-
-                const {type}: any = await dispatch(validateGuarantorship(payloadOut));
-
-                if (type === 'validateGuarantorship/fulfilled') {
-                    let memberCustom = {
-                        contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
-                        memberNumber: `${payload.memberNumber}`,
-                        memberRefId: `${payload.refId}`,
-                        name: `${payload.firstName}`,
-                        phone: `${payload.phoneNumber}`
-                    }
-                    addContactToList(memberCustom);
-                }
+                addContactToList(memberCustom, false);
             }
         }
 
@@ -353,33 +345,15 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     return
                 }
 
-                type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number, guaranteeAmount: number}
-
-                let payloadOut: validateGuarantorType = {
-                    applicantMemberRefId: member?.refId,
-                    memberRefIds: [
-                        `${payload[0].refId}`
-                    ],
-                    loanProductRefId: route.params?.loanProduct.refId,
-                    loanAmount: parseInt(route.params?.loanDetails.desiredAmount),
-                    guaranteeAmount: amount ? parseInt(amount) : 0
+                let memberCustom = {
+                    contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
+                    memberNumber: `${payload[0].memberNumber}`,
+                    memberRefId: `${payload[0].refId}`,
+                    name: `${payload[0].firstName}`,
+                    phone: `${payload[0].phoneNumber}`
                 }
 
-                console.log('guarantorship payload', payloadOut);
-
-                const {type}: any = await dispatch(validateGuarantorship(payloadOut))
-
-                if (type === 'validateGuarantorship/fulfilled') {
-                    let memberCustom = {
-                        contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
-                        memberNumber: `${payload[0].memberNumber}`,
-                        memberRefId: `${payload[0].refId}`,
-                        name: `${payload[0].firstName}`,
-                        phone: `${payload[0].phoneNumber}`
-                    }
-
-                    addContactToList(memberCustom);
-                }
+                addContactToList(memberCustom, false);
             }
         }
     }
@@ -439,9 +413,12 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const submitSearch = async (ctx: string) => {
         if (ctx === 'search') {
             if (inputStrategy === 1 && phoneNumber) {
+                // prevent until amount
+
                 await addToSelected(phoneNumber.toString());
 
             } else if (inputStrategy === 0 && memberNumber) {
+                // prevent until amount
                 await addToSelected(`${memberNumber}`);
             }
 
@@ -474,7 +451,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         if (ctx === 'amount' && member && currentGuarantor) {
             let amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
             amountsToG.push(amountToGuarantee);
-            setAllGuaranteedAmounts(amountsToG);
             setValue('amountToGuarantee', '');
             let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
             newDeserializedCopy.push(currentGuarantor);
@@ -491,10 +467,11 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
             console.log('guarantorship payload', payloadOut);
 
-            const {type}: any = await dispatch(validateGuarantorship(payloadOut));
+            const {type, payload}: any = await dispatch(validateGuarantorship(payloadOut));
 
-            if (type === 'validateGuarantorship/fulfilled') {
+            if (type === 'validateGuarantorship/fulfilled' && payload.length > 0 && payload[0].isAccepted) {
                 setSelectedContacts(newDeserializedCopy);
+                setAllGuaranteedAmounts(amountsToG);
                 onPress(ctx);
             } else {
                 CSTM.showToast(`Member Cannot Guarantee This Amount`);
@@ -770,8 +747,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                 render={( {field: {onChange, onBlur, value}}) => (
                                     <View style={styles.input0}>
                                         <Picker
-                                            itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14 }}
-                                            style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14 }}
+                                            itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
+                                            style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
                                             onBlur={onBlur}
                                             selectedValue={value}
                                             onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}

@@ -58,7 +58,6 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
     const [disbursement_mode, set_disbursement_mode] = useState<string>();
     const [repayment_mode, set_repayment_mode] = useState<string>();
     const [context, setContext] = useState<string>("");
-    const [allowDisbursmentSelect, setAllowDisbursmentSelect] = useState<boolean>(false)
 
     useEffect(() => {
         const subscription = watch((value, { name, type }) => {
@@ -271,6 +270,11 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
         }
     }
 
+    const submitModes = async () => {
+        // set modes
+        await makeLoanRequest()
+    }
+
     if (fontsLoaded) {
         return (
             <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
@@ -291,7 +295,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                 <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                             </TouchableOpacity>
                         </View>
-                        <SafeAreaView style={{ flex: 1, width, height: 11/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+                        <SafeAreaView style={{ flex: 1, width, height: 11/12 * height, backgroundColor: 'rgba(50,52,146,0.12)', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', flexDirection: 'column', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
                                 <Text allowFontScaling={false} style={styles.headTitle}>Confirm</Text>
                                 <Text allowFontScaling={false} style={styles.subtitle}>Loan Request to <Text allowFontScaling={false} style={{color: '#489AAB', textDecorationStyle: 'dotted', textDecorationLine: 'underline'}}>{ `${user?.companyName}` }</Text></Text>
@@ -349,20 +353,23 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                     </View>
                 </View>
                 <BottomSheet ref={ref}>
-                    <View style={{display: 'flex', zIndex: 4, alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
+                    <SafeAreaView style={{display: 'flex', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
                         {
                             context === "repaymentDisbursement" &&
-                            <View style={{display: 'flex', alignItems: 'flex-start', width}}>
-                                <Text style={{fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular' }} allowFontScaling={false}>Disbursement Mode</Text>
+                            <View style={{display: 'flex', alignItems: 'center', width}}>
+                                <Text allowFontScaling={false} style={[{ paddingHorizontal: 30, marginTop: 20 } ,styles.subtitle]}>Add Disbursement/Repayment Modes</Text>
+                                <Text style={{ fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 5, textAlign: 'left', alignSelf: 'flex-start', paddingHorizontal: 30 }} allowFontScaling={false}>Disbursement Mode</Text>
                                 <Controller
                                     control={control}
                                     render={( {field: {onChange, onBlur, value}}) => (
                                         <View style={styles.input0}>
                                             <Picker
-                                                style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14,}}
+                                                itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
+                                                style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
                                                 onBlur={onBlur}
                                                 selectedValue={value}
                                                 onValueChange={(itemValue, itemIndex) => setValue('disbursement_mode', itemValue)}
+                                                mode="dropdown"
                                             >
                                                 {[
                                                     {
@@ -385,14 +392,16 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                     )}
                                     name="disbursement_mode"
                                 />
-                                <Text allowFontScaling={false} style={{ fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular' }}>Repayment Mode</Text>
+                                <Text allowFontScaling={false} style={{ fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 5, textAlign: 'left', alignSelf: 'flex-start', paddingHorizontal: 30 }}>Repayment Mode</Text>
                                 <Controller
                                     control={control}
                                     render={( {field: {onChange, onBlur, value}}) => (
                                         <View style={styles.input0}>
                                             <Picker
-                                                style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14,}}
+                                                itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
+                                                style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
                                                 onBlur={onBlur}
+                                                mode="dropdown"
                                                 selectedValue={value}
                                                 onValueChange={(itemValue, itemIndex) => setValue('repayment_mode', itemValue)}
                                             >
@@ -419,14 +428,13 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                 />
                             </View>
                         }
-
-                        <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity disabled={loading} onPress={() => makeLoanRequest()} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                            <TouchableOpacity disabled={loading} onPress={() => submitModes()} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                 {loading && <RotateView/>}
-                                <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
+                                <Text allowFontScaling={false} style={styles.buttonText}>Save</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
+                    </SafeAreaView>
                 </BottomSheet>
             </GestureHandlerRootView>
         )
@@ -445,21 +453,22 @@ const styles = StyleSheet.create({
         position: 'relative'
     },
     headTitle: {
-        textAlign: 'center',
+        textAlign: 'left',
         color: '#489AAB',
         fontFamily: 'Poppins_700Bold',
         fontSize: 22,
         marginTop: 22,
     },
     subtitle: {
-        textAlign: 'center',
-        color: '#747474',
-        fontFamily: 'Poppins_400Regular',
-        fontSize: 15,
-        marginTop: 2,
+        textAlign: 'left',
+        alignSelf: 'flex-start',
+        color: '#489AAB',
+        fontFamily: 'Poppins_600SemiBold',
+        fontSize: 14,
+        marginBottom: 5
     },
     buttonText: {
-        fontSize: 18,
+        fontSize: 15,
         marginLeft: 5,
         textAlign: 'center',
         color: '#FFFFFF',

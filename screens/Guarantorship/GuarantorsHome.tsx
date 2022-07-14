@@ -169,7 +169,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const [businessLocation, setBusinessLocation] = useState<string | undefined>(undefined);
     const [amountToGuarantee, setAmountToGuarantee] = useState<string | undefined>(undefined);
     const [allGuaranteedAmounts, setAllGuaranteedAmounts] = useState<string[]>([]);
-    const [amountCertified, setAmountCertified] = useState<boolean>(false);
 
     useEffect(() => {
         const subscription = watch((value, { name, type }) => {
@@ -244,7 +243,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const [currentGuarantor, setCurrentGuarantor] = useState<{contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}>()
 
-    const addContactToList = (contact2Add: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}, press: boolean = true): boolean => {
+    const addContactToList = async (contact2Add: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}, press: boolean = true): Promise<boolean> => {
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
         let phone: string = '';
         if (contact2Add.phone[0] === '+') {
@@ -258,6 +257,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         }
 
         const isDuplicate = newDeserializedCopy.some((contact) => {
+            console.log("newDeserializedCopy", contact, contact2Add);
             let phone0: string = '';
             if (contact.phone[0] === '+') {
                 let number = contact.phone.substring(1);
@@ -269,24 +269,65 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 phone = `${contact2Add.phone}`;
             }
 
-            return phone0 === phone;
+            return (phone0 === phone || contact2Add.phone === contact.phone || contact2Add.memberRefId === contact.memberRefId);
         });
 
         if (!isDuplicate) {
             if (settings && settings.guarantors === 'value' && settings.amounts) {
-                setCurrentGuarantor(contact2Add)
                 if (press) {
                     onPress('amount')
                 } else {
                     setContext('amount');
                 }
-            } else {
-                newDeserializedCopy.push(contact2Add);
-                setSelectedContacts(newDeserializedCopy);
+
+
+                return Promise.resolve(true);
+            } else if (settings && settings.guarantors === 'count' && member) {
+                // calculate amount to guarantee
+                let theAmount = (selectedContacts.length <= 4) ? route.params?.loanDetails.desiredAmount/requiredGuarantors() : route.params?.loanDetails.desiredAmount/selectedContacts.length;
+
+                // validate guarantor and amount calculated
+
+                type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number, guaranteeAmount?: number}
+
+                let payloadOut: validateGuarantorType = {
+                    applicantMemberRefId: member?.refId,
+                    memberRefIds: [
+                        `${contact2Add.memberRefId}`
+                    ],
+                    loanProductRefId: route.params?.loanProduct.refId,
+                    loanAmount: parseInt(route.params?.loanDetails.desiredAmount),
+                    // guaranteeAmount: theAmount
+                }
+
+                console.log('guarantorship payloadout', payloadOut);
+
+
+
+                return dispatch(validateGuarantorship(payloadOut)).then(({type, payload}: any) => {
+                    console.log('guarantorship response', payload);
+
+                    if (type === 'validateGuarantorship/fulfilled' && payload.length > 0 && payload[0].isAccepted) {
+                        let amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
+                        amountsToG.push(theAmount);
+                        setAllGuaranteedAmounts(amountsToG);
+                        newDeserializedCopy.push(contact2Add);
+                        setSelectedContacts(newDeserializedCopy);
+                        setValue('searchTerm', '');
+                        return payload[0].isAccepted;
+                    } else {
+                        CSTM.showToast('Member Cannot Guarantee Amount: ' + theAmount);
+                        return false;
+                    }
+                })
             }
-            return true;
+
+            return Promise.resolve(false);
+        } else {
+            CSTM.showToast('Cannot add duplicate guarantors');
         }
-        return false;
+
+        return Promise.resolve(false);
     }
 
     const addToSelected = async (identifier: string) => {
@@ -322,7 +363,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     name: `${payload.firstName}`,
                     phone: `${payload.phoneNumber}`
                 }
-                addContactToList(memberCustom, false);
+                await addContactToList(memberCustom, false);
             }
         }
 
@@ -353,7 +394,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     phone: `${payload[0].phoneNumber}`
                 }
 
-                addContactToList(memberCustom, false);
+                await addContactToList(memberCustom, false);
             }
         }
     }
@@ -381,11 +422,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const onPress = useCallback((ctx: string) => {
         setContext(ctx);
-        /*if (ctx === 'amount') {
-            ref?.current?.scrollTo(MAX_TRANSLATE_Y);
-            setMemberSearching(false);
-            return
-        }*/
         const isActive = ref?.current?.isActive();
         if (isActive) {
             ref?.current?.scrollTo(0);
@@ -504,7 +540,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         return !previousState
     });
 
-    const verifyGuarantors = async () => {
+    const navigateUser = async () => {
         if (member && route.params && route.params.loanProduct && route.params.loanDetails && selectedContacts.length > 0) {
             if (settings && settings.employerInfo  && !(employerPayload || businessPayload)) {
                 setEmployerDetailsEnabled(true);
@@ -512,7 +548,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 return;
             }
 
-            if (settings && settings.witness && (employerPayload || businessPayload)) {
+            if (settings && settings.witness) {
                 navigation.navigate('WitnessesHome', {
                     guarantors: selectedContacts,
                     employerPayload,
@@ -532,14 +568,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             CSTM.showToast(`CANNOT VALIDATE GUARANTORS`);
         }
     }
-
-    useEffect(() => {
-        if (settings && settings.employerInfo) {
-            toggleEmployerDetailsEnabled();
-            setTimeout(() => onPress('employment'), 1000);
-        }
-    }, []);
-
 
     const [guarantorshipOptions, setGuarantorshipOptions] = useState([
         {
@@ -561,6 +589,17 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             icon: "self-improvement"
         }
     ]);
+
+    useEffect(() => {
+        if (settings && settings.employerInfo) {
+            toggleEmployerDetailsEnabled();
+            setTimeout(() => onPress('employment'), 1000);
+        }
+        if (settings && !settings.selfGuarantee) {
+            const newOptions = guarantorshipOptions.filter(option => option.context !== "self-guarantee");
+            setGuarantorshipOptions(newOptions);
+        }
+    }, []);
 
     const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
         <TouchableOpacity onPress={onPress} style={[styles.option, backgroundColor]}>
@@ -611,9 +650,12 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             if (settings.guarantors === 'count') {
                 // split requiredGuarantors to amount
                 // when sum === amount stop ability to add guarantors
-                let amountPerGuarantor = route.params?.loanDetails.desiredAmount/requiredGuarantors();
-                let result = selectedContacts.length * amountPerGuarantor;
-                return `${result}`
+
+                let summation = allGuaranteedAmounts.reduce((a, b) => {
+                    return a + parseInt(b)
+                }, 0);
+
+                return `${summation}`
             }
             return "0"
         }
@@ -676,7 +718,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         <View style={{paddingHorizontal: 20, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                             <ScrollView horizontal>
                                 {selectedContacts && selectedContacts.map((co,i) => (
-                                    <View key={i} style={{
+                                    <TouchableOpacity onPress={() => removeContactFromList(co)} key={i} style={{
                                         backgroundColor: 'rgba(50,52,146,0.31)',
                                         width: width / 7,
                                         height: width / 7,
@@ -687,9 +729,9 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                         marginRight: 10,
                                         position: 'relative'
                                     }}>
-                                        <TouchableOpacity onPress={() => removeContactFromList(co)} style={{ position: 'absolute', top: 0, right: -1 }}>
+                                        <View style={{ position: 'absolute', top: 0, right: -1 }}>
                                             <FontAwesome5 name="minus-circle" size={14} color="black" />
-                                        </TouchableOpacity>
+                                        </View>
                                         <Text allowFontScaling={false} style={{
                                             color: '#363D7D',
                                             fontSize: 8,
@@ -697,7 +739,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                             textAlign: 'center',
                                             zIndex: 2
                                         }}>{co.name}</Text>
-                                    </View>
+                                    </TouchableOpacity>
                                 ))}
                             </ScrollView>
                         </View>
@@ -724,7 +766,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     </SafeAreaView>
 
                     <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <TouchableOpacity disabled={ isDisabled() || loading } onPress={verifyGuarantors} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                        <TouchableOpacity disabled={ isDisabled() || loading } onPress={navigateUser} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                             <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                         </TouchableOpacity>
                     </View>

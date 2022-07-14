@@ -52,7 +52,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                 } else {
                     console.log("Authentication", payload);
                     try {
-                        await Promise.all([dispatch(fetchLoanProducts())]);
+                        if (!loanProducts || loanProducts.length === 0) await Promise.all([dispatch(fetchLoanProducts())]);
                     } catch (e: any) {
                         console.log('promise rejection', e);
                     }

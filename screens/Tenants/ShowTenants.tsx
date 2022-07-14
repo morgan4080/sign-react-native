@@ -25,6 +25,7 @@ import {useEffect} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RotateView} from "../Auth/VerifyOTP";
 import {getSecureKey} from "../../utils/secureStore";
+import configuration from "../../utils/configuration";
 const { width, height } = Dimensions.get("window");
 type NavigationProps = NativeStackScreenProps<any>;
 
@@ -104,8 +105,17 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
             <Item
                 item={item}
                 onPress={() => {
-                    dispatch(setSelectedTenantId(item.id));
-                    navigation.navigate('Login');
+                    // if item doesnt exist in configuration
+                    // communicate that it's not yet supported
+
+                    const settings = configuration.find(config => config.tenantId === item.tenantId);
+
+                    if (settings) {
+                        dispatch(setSelectedTenantId(item.id));
+                        navigation.navigate('Login');
+                    } else {
+                        CSTM.showToast(`${item.tenantName} is not yet supported`);
+                    }
                 }}
                 backgroundColor={{ backgroundColor }}
                 textColor={{ color }}

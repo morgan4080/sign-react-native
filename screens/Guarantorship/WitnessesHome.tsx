@@ -120,7 +120,7 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
         return contact2Remove.contact_id;
     }
 
-    const addContactToList = (contact2Add: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): boolean => {
+    const addContactToList = async (contact2Add: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): Promise<boolean> => {
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
         let phone: string = '';
         if (contact2Add.phone[0] === '+') {
@@ -146,9 +146,9 @@ export default function WitnessesHome({ navigation, route }: NavigationProps) {
         if (!isDuplicate) {
             newDeserializedCopy.push(contact2Add);
             setSelectedContacts(newDeserializedCopy);
-            return true;
+            return Promise.resolve(true);
         }
-        return false;
+        return Promise.resolve(false);
     }
 
     Keyboard.addListener('keyboardDidHide', () => {

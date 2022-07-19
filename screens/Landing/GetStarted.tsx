@@ -6,7 +6,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import {useEffect} from "react";
 import {store} from "../../stores/store";
-import {initializeDB, saveContactsToDb, setLoading} from "../../stores/auth/authSlice"
+import {initializeDB} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
 import {getSecureKey} from "../../utils/secureStore";
@@ -31,7 +31,7 @@ export default function GetStarted({ navigation }: NavigationProps) {
             if (initializing) {
                 console.log('initializing...');
                 try {
-                    const oldBoy = await getSecureKey('oldBoy');
+                    const oldBoy = await getSecureKey('existing');
 
                     if (oldBoy === 'true') {
                         navigation.navigate('GetTenants');

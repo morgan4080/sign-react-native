@@ -19,7 +19,7 @@ const PinLogin = ({ navigation }: NavigationProps) => {
     const dispatch : AppDispatch = useDispatch();
     useEffect(() => {
         (async () => {
-            const phoneNo = await getSecureKey('PhoneNumber');
+            const phoneNo = await getSecureKey('phone_number');
             if (phoneNo) {
                 setPhoneNumber(phoneNo);
             } else {

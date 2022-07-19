@@ -341,7 +341,7 @@ type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorTyp
 
 export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanRequestRefId,actorRefId,actorType}: zohoSignPayloadType) => {
     try {
-        const key = await getSecureKey('jwt');
+        const key = await getSecureKey('access_token');
 
         if (!key) {
             return Promise.reject('You are not authenticated');
@@ -379,7 +379,7 @@ type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: strin
 
 export const validateGuarantorship = createAsyncThunk('validateGuarantorship', async (payload:validateGuarantorType) => {
     try {
-        const key = await getSecureKey('jwt');
+        const key = await getSecureKey('access_token');
 
         if (!key) {
             return Promise.reject('You are not authenticated');
@@ -475,7 +475,7 @@ export const getContactsFromDB = createAsyncThunk('getContactsFromDB', async ({s
 })
 
 export const checkForJWT = createAsyncThunk('checkForJWT', async () => {
-    return await getSecureKey('jwt')
+    return await getSecureKey('access_token')
 })
 
 export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin, tenant, clientSecret }: Pick<loginUserType, "phoneNumber" | "pin" | "tenant" | "clientSecret">) => {
@@ -524,7 +524,7 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
 export const logoutUser = createAsyncThunk('logoutUser', async () => {
     return await Promise.all([
         deleteSecureKey('otpVerified'),
-        deleteSecureKey('jwt'),
+        deleteSecureKey('access_token'),
     ]);
 });
 
@@ -533,16 +533,20 @@ export const setLoading = createAsyncThunk('setLoading', async (loading: boolean
 })
 
 const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token, phoneNumber }: any) => {
-    await saveSecureKey('jwt', access_token);
-    await saveSecureKey('jwtRefresh', refresh_token);
-    await saveSecureKey('phoneNumber', `${phoneNumber}`);
-    await saveSecureKey('oldBoy', 'true');
-    return Promise.resolve(true);
+    try {
+        await saveSecureKey('access_token', access_token);
+        await saveSecureKey('refresh_token', refresh_token);
+        await saveSecureKey('phone_number', `${phoneNumber}`);
+        await saveSecureKey('existing', 'true');
+        return Promise.resolve(true);
+    } catch(e: any) {
+        return Promise.reject(e);
+    }
 }
 
 export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
     try {
-        const key = await getSecureKey('jwt');
+        const key = await getSecureKey('access_token');
 
         if (!phoneNumber) {
             return Promise.reject('User not available')
@@ -580,7 +584,7 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
 
 export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memberNo: string) => {
     try {
-        const key = await getSecureKey('jwt');
+        const key = await getSecureKey('access_token');
 
         if (!key) {
             return Promise.reject('You are not authenticated');
@@ -612,7 +616,7 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
 
 export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, OTP }: { requestMapper: string, OTP: string }) => {
     try {
-        const key = await getSecureKey('jwt');
+        const key = await getSecureKey('access_token');
 
         if (!key) {
             return Promise.reject('You are not authenticated');
@@ -648,7 +652,7 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
 export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( payload: any) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const key = await getSecureKey('jwt');
+            const key = await getSecureKey('access_token');
 
             if (!key) {
                 reject('You are not authenticated');
@@ -679,7 +683,7 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
 
 export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRequests', ({memberRefId}: {memberRefId: string | undefined }) => {
     return new Promise(async (resolve, reject) => {
-        const key = await getSecureKey('jwt');
+        const key = await getSecureKey('access_token');
         if (!memberRefId) {
             reject('No Member Ref Id Provided');
         }
@@ -706,7 +710,7 @@ export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRe
 
 export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuarantors', ({memberRefId, setFaveGuarantors}: {memberRefId: string | undefined, setFaveGuarantors: any}) => {
     return new Promise(async (resolve, reject) => {
-        const key = await getSecureKey('jwt');
+        const key = await getSecureKey('access_token');
         if (!memberRefId) {
             reject('No Member Ref Id Provided');
         }
@@ -742,7 +746,7 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
 export const validateNumber = createAsyncThunk('validateNumber', async (phone: string) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const key = await getSecureKey('jwt')
+            const key = await getSecureKey('access_token')
             if (!key) {
                 reject("You are not authenticated")
             }
@@ -771,7 +775,7 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
 export const authenticate = createAsyncThunk('authenticate', async () => {
     return new Promise(async (resolve, reject) => {
        try {
-           const key = await getSecureKey('jwt')
+           const key = await getSecureKey('access_token')
 
            if (!key) {
                reject("You are not authenticated")
@@ -852,7 +856,7 @@ export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: str
 export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: string | undefined) => {
     return new Promise(async (resolve, reject) => {
        try {
-           const key = await getSecureKey('jwt');
+           const key = await getSecureKey('access_token');
            if (!key) {
                reject("You are not authenticated");
            }
@@ -883,7 +887,7 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
 
     return new Promise(async (resolve, reject) => {
         try {
-            const key = await getSecureKey('jwt')
+            const key = await getSecureKey('access_token')
             if (!key) {
                 reject("You are not authenticated")
             }
@@ -912,7 +916,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request?memberRefId=${memberRefId}`
     return new Promise(async (resolve, reject) => {
         try {
-            const key = await getSecureKey('jwt')
+            const key = await getSecureKey('access_token')
             if (!key) {
                 reject("You are not authenticated")
             }
@@ -973,7 +977,7 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${refId}`
     return new Promise(async (resolve, reject) => {
         try {
-            const key = await getSecureKey('jwt')
+            const key = await getSecureKey('access_token')
             if (!key) {
                 reject("You are not authenticated")
             }
@@ -1002,7 +1006,7 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async () 
 
     return new Promise(async (resolve, reject) => {
         try {
-            const key = await getSecureKey('jwt')
+            const key = await getSecureKey('access_token')
             if (!key) {
                 reject("You are not authenticated")
             }
@@ -1026,7 +1030,7 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async () 
 })
 
 export const setLoanCategories = createAsyncThunk('setLoanCategories', async(signal: any) => {
-    const key = await getSecureKey('jwt')
+    const key = await getSecureKey('access_token')
     if (!key) {
         console.log("You are not authenticated")
     }
@@ -1128,7 +1132,7 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
 
 export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string | undefined, signal: any}) => {
     try {
-        const key = await getSecureKey('jwt')
+        const key = await getSecureKey('access_token')
         if (!key) {
             console.log("You are not authenticated")
         }

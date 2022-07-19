@@ -71,7 +71,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
     const dispatch : AppDispatch = useDispatch();
     const resendOtp = async (): Promise<any> => {
         if (user) {
-            const phoneNumber = await getSecureKey('phoneNumber');
+            const phoneNumber = await getSecureKey('phone_number');
             const {type, error, payload}: any = await dispatch(sendOtp(phoneNumber));
             if (type === "sendOtp/rejected") {
                 console.log(error.message);
@@ -93,7 +93,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                 if (response.type === 'authenticate/rejected') {
                     console.log("500: Internal Server Error");
                 } else {
-                    const phoneNumber = await getSecureKey('phoneNumber');
+                    const phoneNumber = await getSecureKey('phone_number');
                     const {type, error, payload}: any = await dispatch(sendOtp(phoneNumber));
                     if (type === "sendOtp/rejected") {
                         console.log(error.message);

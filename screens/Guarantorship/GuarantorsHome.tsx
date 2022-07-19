@@ -89,7 +89,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const dispatch : AppDispatch = useDispatch();
 
-    const { loading, tenants, selectedTenantId, user, member } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, tenants, selectedTenantId, user, member, isLoggedIn } = useSelector((state: { auth: storeState }) => state.auth);
 
     const [contacts, setContacts] = useState([]);
 
@@ -529,7 +529,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         return () => {
             authenticating = false
         }
-    }, []);
+    }, [isLoggedIn]);
 
     const toggleEmployerDetailsEnabled = () => setEmployerDetailsEnabled((previousState: boolean) => {
         if (!previousState) {

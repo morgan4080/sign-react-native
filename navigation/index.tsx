@@ -71,37 +71,35 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function RootNavigator() {
   return (
     <Stack.Navigator initialRouteName="GetStarted">
+
+        {/*<Stack.Screen name="PinLogin" component={PinLogin} options={{ headerShown: false }} />
+        <Stack.Screen name="SetPin" component={SetPin} options={{ headerShown: false }} />
+        <Stack.Screen name="Forgot" component={Forgot} options={{ headerShown: false }} />*/}
+
+        {/*Before login*/}
       <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
       <Stack.Screen name="UserEducation" component={UserEducation} options={{ headerShown: false }} />
-      <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-      <Stack.Screen name="PinLogin" component={PinLogin} options={{ headerShown: false }} />
-      <Stack.Screen name="SetPin" component={SetPin} options={{ headerShown: false }} />
       <Stack.Screen name="GetTenants" component={GetTenants} options={{ headerShown: false }} />
       <Stack.Screen name="ShowTenants" component={ShowTenants} options={{
-          headerShown: true,
-          title: 'Select Organization',
-          headerShadowVisible: false,
-          headerStyle: {
-              backgroundColor: 'rgba(204,204,204,0.28)',
-          },
-          headerTintColor: '#489AAB',
-          headerTitleStyle: {
-              fontSize: 20,
-              fontFamily: 'Poppins_600SemiBold'
-          }
-      }} />
-      <Stack.Screen name="VerifyOTP" component={VerifyOTP} options={{ headerShown: false }} />
-      <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
-      <Stack.Group screenOptions={{ presentation: 'modal' }}>
-        <Stack.Screen name="Modal" component={ModalScreen} options={{
-            title: 'User Profile',
+            headerShown: true,
+            title: 'Select Organization',
+            headerShadowVisible: false,
             headerStyle: {
-                backgroundColor: 'rgba(50,52,146,0.12)',
+                backgroundColor: 'rgba(204,204,204,0.28)',
             },
             headerTintColor: '#489AAB',
-            headerShadowVisible: false
-        }}/>
-      </Stack.Group>
+            headerTitleStyle: {
+                fontSize: 20,
+                fontFamily: 'Poppins_600SemiBold'
+            }
+        }} />
+      <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+      <Stack.Screen name="VerifyOTP" component={VerifyOTP} options={{ headerShown: false }} />
+
+
+        {/*After login*/}
+
+
       <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{ headerShown: false }} />
       <Stack.Screen name="LoanProducts" component={LoanProducts} options={{ headerShown: false }} />
       <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
@@ -188,7 +186,18 @@ function RootNavigator() {
               fontFamily: 'Poppins_600SemiBold'
           }
       }} />
-      <Stack.Screen name="Forgot" component={Forgot} options={{ headerShown: false }} />
+      <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
+      <Stack.Group screenOptions={{ presentation: 'modal' }}>
+            <Stack.Screen name="Modal" component={ModalScreen} options={{
+                title: 'User Profile',
+                headerStyle: {
+                    backgroundColor: 'rgba(50,52,146,0.12)',
+                },
+                headerTintColor: '#489AAB',
+                headerShadowVisible: false
+            }}/>
+        </Stack.Group>
+
     </Stack.Navigator>
   );
 }

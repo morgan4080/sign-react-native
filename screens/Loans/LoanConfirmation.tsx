@@ -114,69 +114,6 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
         Linking.openURL('content://com.android.contacts/data/callables')
     }
 
-    // Browser Linking to zoho sign
-
-    const redirectUrl = Linking.createURL('e_guarantor_ship/imarisha', {
-        queryParams: { hello: 'world' },
-    });
-
-    const handleRedirect = (event: any) => {
-        if (Platform.OS === 'ios') {
-            WebBrowser.dismissBrowser();
-        } else {
-            removeLinkingListener();
-        }
-
-        let { hostname, path, queryParams } = Linking.parse(event.url);
-
-        console.log('handleRedirect', hostname, path, queryParams)
-    };
-
-    const addLinkingListener = () => {
-        Linking.addEventListener("url", handleRedirect);
-    };
-
-    const removeLinkingListener = () => {
-        Linking.removeEventListener("url", handleRedirect);
-    };
-
-    const openBrowserAsync = async () => {
-        try {
-            addLinkingListener()
-
-            let url = `https://expo.dev?linkingUri=${redirectUrl}`
-
-            const result = await WebBrowser.openBrowserAsync(
-                url
-            )
-
-            if (Platform.OS === 'ios') {
-                removeLinkingListener();
-            }
-
-            console.log('openBrowserAsync', result)
-        } catch(error: any) {
-            console.log(error);
-        }
-    };
-
-    const openAuthSessionAsync = async () => {
-        try {
-            let result: any = await WebBrowser.openAuthSessionAsync(
-                `https://expo.dev`,
-                redirectUrl
-            );
-            let redirectData;
-            if (result.url) {
-                redirectData = Linking.parse(result.url);
-            }
-           console.log("openAuthSessionAsync", result, redirectData)
-        } catch (error) {
-            alert(error);
-            console.log(error);
-        }
-    };
-
     const makeLoanRequest = async () => {
         let code = route.params?.category.options.filter((op: any) => op.selected)[0].options.filter((o: any) => o.selected)[0];
         const { witnessRefId, witnessMemberNo } = route.params?.witnesses.reduce((acc: any, current: any) => {

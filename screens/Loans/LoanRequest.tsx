@@ -7,7 +7,7 @@ import {
     Text,
     TouchableOpacity,
     View,
-    Image, NativeModules
+    Image, NativeModules, Platform
 } from "react-native";
 import {
     Poppins_300Light,
@@ -25,6 +25,8 @@ import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
 import {requestSignURL, storeState} from "../../stores/auth/authSlice";
 import {toMoney} from "../User/Account";
+import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
 
@@ -78,6 +80,72 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
         Poppins_400Regular,
         Poppins_300Light
     });
+    // Browser Linking to zoho sign
+
+    const handleRedirect = (event: any) => {
+        if (Platform.OS === 'ios') {
+            WebBrowser.dismissBrowser();
+        } else {
+            removeLinkingListener();
+        }
+
+        let { hostname, path, queryParams } = Linking.parse(event.url);
+
+        console.log('handleRedirect', hostname, path, queryParams)
+    };
+
+    const addLinkingListener = () => {
+        Linking.addEventListener("url", handleRedirect);
+    };
+
+    const removeLinkingListener = () => {
+        Linking.removeEventListener("url", handleRedirect);
+    };
+
+    const openBrowserAsync = async () => {
+        try {
+            addLinkingListener()
+
+            let url = ``
+
+            const result = await WebBrowser.openBrowserAsync(
+                url
+            )
+
+            if (Platform.OS === 'ios') {
+                removeLinkingListener();
+            }
+
+            console.log('openBrowserAsync', result)
+        } catch(error: any) {
+            console.log(error);
+        }
+    };
+
+    const openAuthSessionAsync = async (url: string) => {
+        try {
+            let result: any = await WebBrowser.openAuthSessionAsync(
+                `${url}`,
+                'presta-sign://app/loan-request'
+            );
+            let redirectData;
+            if (result.url) {
+                redirectData = Linking.parse(result.url);
+            }
+            console.log("openAuthSessionAsync", result, redirectData)
+
+            //Object {
+            //   "type": "dismiss",
+            // } undefined
+
+            // navigate to success page
+
+        } catch (error) {
+            alert(error);
+            console.log(error);
+        }
+    };
+
     const makeSigningRequest = async () => {
       // ready to redirect to zoho
         type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
@@ -96,6 +164,8 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
             if (!payload.success) {
                 CSTM.showToast(payload.message);
             }
+
+            if (payload.signURL) await openAuthSessionAsync(payload.signURL)
         } else {
             console.log(type, error);
             CSTM.showToast(error);

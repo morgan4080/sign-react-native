@@ -523,6 +523,9 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 CSTM.showToast(`Member Cannot Guarantee This Amount`);
             }
             return
+        } else {
+            console.log('member', member)
+            console.log('current guarantor', currentGuarantor)
         }
     }
 

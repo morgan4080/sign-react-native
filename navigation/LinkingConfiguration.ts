@@ -10,25 +10,58 @@ import * as Linking from 'expo-linking';
 import { RootStackParamList } from '../types';
 
 const linking: LinkingOptions<RootStackParamList> = {
-  prefixes: [Linking.createURL('/')],
+  prefixes: [Linking.createURL('presta-sign://app')],
   config: {
     screens: {
       Root: {
         screens: {
-          TabOne: {
+          UserProfile: {
             screens: {
-              TabOneScreen: 'one',
+              UserProfile: 'user-profile',
             },
           },
-          TabTwo: {
+          LoanRequests: {
             screens: {
-              TabTwoScreen: 'two',
+              LoanRequests: 'loan-requests',
+            },
+          },
+          History: {
+            screens: {
+              History: 'history',
+            },
+          },
+          Account: {
+            screens: {
+              Account: 'account',
             },
           },
         },
       },
       Modal: 'modal',
       NotFound: '*',
+      GetStarted: 'get-started',
+      UserEducation: 'user-education',
+      LoanProducts: 'loan-products',
+      LoanProduct: 'loan-product',
+      GuarantorsHome: 'guarantors-home',
+      WitnessesHome: 'witnesses-home',
+      LoanConfirmation: 'loan-confirmation',
+      LoanRequest: 'loan-request',
+      Login: 'login',
+      ShowTenants: 'Show-tenants',
+      GetTenants: 'get-tenants',
+      PinLogin: 'pin-login',
+      SetPin: 'set-pin',
+      LoanPurpose: 'loan-purpose',
+      Forgot: 'forgot',
+      ProfileMain: 'profile-main',
+      GuarantorshipRequests: 'guarantorship-requests',
+      WitnessRequests: 'witness-requests',
+      GuarantorshipStatus: 'guarantorship-status',
+      WitnessStatus: 'witness-status',
+      SignDocumentRequest: 'signDocument-request',
+      FavouriteGuarantors: 'favourite-guarantors',
+      VerifyOTP: 'verifyotp',
     },
   },
 };

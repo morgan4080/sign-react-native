@@ -604,7 +604,7 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
             const { list } = await response.json();
             return Promise.resolve(list);
         } else if (response.status > 400) {
-            return Promise.reject(`Authentication Error`);
+            return Promise.reject(response.status);
         } else {
             return Promise.reject(`is not a member.`);
         }

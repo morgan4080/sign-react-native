@@ -45,7 +45,7 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 
-import {FontAwesome5, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {AntDesign, FontAwesome5, Ionicons, MaterialIcons} from "@expo/vector-icons";
 
 import {useCallback, useEffect, useRef, useState} from "react";
 
@@ -232,6 +232,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         });
 
         if (!isDuplicate) {
+            newDeserializedCopy.push(contact2Add);
+            setSelectedContacts(newDeserializedCopy);
             return Promise.resolve(true);
         } else {
             CSTM.showToast('Cannot add duplicate guarantors');
@@ -526,7 +528,12 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 </View>
             </View>
             <BottomSheet ref={ref}>
-                <SafeAreaView style={{display: 'flex', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
+                <SafeAreaView style={{position: 'relative',display: 'flex', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
+                    <TouchableOpacity style={{position: 'absolute', top: -25, right: 12}} onPress={() => {
+                        onPress('options');
+                    }}>
+                        <AntDesign name="closecircleo" size={15} color="#767577" />
+                    </TouchableOpacity>
                     {context === "options" &&
                         <FlatList
                             data={witnessOptions}

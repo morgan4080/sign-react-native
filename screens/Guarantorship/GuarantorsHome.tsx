@@ -47,7 +47,7 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 
-import {FontAwesome5, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {AntDesign, FontAwesome5, Ionicons, MaterialIcons} from "@expo/vector-icons";
 
 import {useCallback, useEffect, useRef, useState} from "react";
 
@@ -314,6 +314,11 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         newDeserializedCopy.push(contact2Add);
                         setSelectedContacts(newDeserializedCopy);
                         setValue('searchTerm', '');
+                        setMemberNumber('');
+                        setPhoneNumber('');
+                        setMemberSearching(false);
+                        setValue('phoneNumber', '');
+                        setValue('memberNumber', '');
                         return payload[0].isAccepted;
                     } else {
                         CSTM.showToast('Member Cannot Guarantee Amount: ' + theAmount);
@@ -509,6 +514,11 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 setSelectedContacts(newDeserializedCopy);
                 setAllGuaranteedAmounts(amountsToG);
                 onPress(ctx);
+                setMemberNumber('');
+                setPhoneNumber('');
+                setValue('phoneNumber', '');
+                setValue('memberNumber', '');
+                setMemberSearching(false);
             } else {
                 CSTM.showToast(`Member Cannot Guarantee This Amount`);
             }
@@ -773,7 +783,13 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 </View>
             </View>
             <BottomSheet ref={ref}>
-                <SafeAreaView style={{display: 'flex', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
+                <SafeAreaView style={{display: 'flex', position: 'relative', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
+                    <TouchableOpacity style={{position: 'absolute', top: -25, right: 12}} onPress={() => {
+                        setEmployerDetailsEnabled(false);
+                        onPress('options');
+                    }}>
+                        <AntDesign name="closecircleo" size={15} color="#767577" />
+                    </TouchableOpacity>
                     {context === "options" &&
                         <FlatList
                             data={guarantorshipOptions}

@@ -97,7 +97,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, marginBottom: 20}}>
                                     <View>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>ACTIVE LOANS</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>{ memberDetails?.activeLoans.length }</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>{ memberDetails?.activeLoans?.length }</Text>
                                     </View>
                                     <View>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>SHARES AMOUNT</Text>
@@ -112,7 +112,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                                             <Ionicons name="ios-wallet-outline" size={40} color="#ffffff" />
                                             <View style={{paddingLeft: 10}}>
-                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {member ? toMoney(`${memberDetails?.totalDeposits}`) : ``}</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {member ? memberDetails?.totalDeposits ? toMoney(`${memberDetails?.totalDeposits}`) : `0` : `0`}</Text>
                                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10, maxWidth: 80 }}>Available for guarantee</Text>
                                             </View>
                                         </View>

@@ -9,7 +9,7 @@ import {
     View
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
-import {Ionicons} from "@expo/vector-icons";
+import {AntDesign, Ionicons} from "@expo/vector-icons";
 import AppLoading from "expo-app-loading";
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
@@ -63,20 +63,20 @@ export default function History ({ navigation }: NavigationProps) {
                     <View style={{flex: 1, alignItems: 'center',}}>
                         <View style={{
                             display: 'flex',
-                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            justifyContent: 'flex-start',
                             alignItems: 'center',
                             width,
-                            height: 1/12 * height,
-                            position: 'relative'
+                            height: 1/12 * height
                         }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
-                                <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
+                            <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ marginRight: 20, marginLeft: 15 }}>
+                                <AntDesign name="arrowleft" size={24} color="#489AAB" />
                             </TouchableOpacity>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_700Bold', fontSize: 18 }}>Account History</Text>
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 11/12 * height }}>
 
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50  }}>
-                                <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_700Bold', fontSize: 20, marginTop: 30 }}>My History</Text>
                                 {
                                     accountHistory.map((history, i) => (
                                         <HistoryTile key={i} history={history}  />

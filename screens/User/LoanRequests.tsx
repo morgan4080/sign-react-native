@@ -10,7 +10,7 @@ import {
     Text
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
-import {Ionicons} from "@expo/vector-icons";
+import {AntDesign, Ionicons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchLoanRequests, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -75,19 +75,19 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                     <View style={{flex: 1, alignItems: 'center',}}>
                         <View style={{
                             display: 'flex',
-                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            justifyContent: 'flex-start',
                             alignItems: 'center',
                             width,
-                            height: 1/12 * height,
-                            position: 'relative'
+                            height: 1/12 * height
                         }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
-                                <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
+                            <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ marginRight: 20, marginLeft: 15 }}>
+                                <AntDesign name="arrowleft" size={24} color="#489AAB" />
                             </TouchableOpacity>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_700Bold', fontSize: 18 }}>Your Loan Requests</Text>
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 11/12 * height }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>
-                                <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_700Bold', fontSize: 18, marginTop: 30 }}>Your Loan Requests</Text>
                                 {
                                     loanRequests && loanRequests.map((loan, i) => (
                                         <LoanRequest key={i} loan={loan}  />

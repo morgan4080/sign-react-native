@@ -1149,7 +1149,11 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
         });
         if (response.status === 200) {
             const data = await response.json();
-            return Promise.resolve(data)
+            if (Array.isArray(data)) {
+                return Promise.resolve(data[0])
+            } else {
+                return Promise.resolve(data)
+            }
         } else {
             return Promise.reject(response.status + ": API Error");
         }

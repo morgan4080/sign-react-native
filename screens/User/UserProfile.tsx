@@ -118,8 +118,9 @@ export default function UserProfile({ navigation }: NavigationProps) {
                 <View style={styles.container}>
                     <View style={{ flex: 1, alignItems: 'center', }}>
                         <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width, height: height/2, position: 'relative' }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
+                            <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(51,109,255,0.4)', borderRadius: 100, top: 10, left: 10 }}>
                                 <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
+                                <Text allowFontScaling={false} style={[styles.subTitleText, {fontSize: 12, color: '#FFFFFF', paddingRight: 10, fontFamily: 'Poppins_300Light'}]}>PROFILE</Text>
                             </TouchableOpacity>
                             <View>
                                 <Text allowFontScaling={false} style={styles.titleText}>{ `Good ${ greeting() } ${ user?.firstName }` }</Text>
@@ -134,7 +135,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             </View>
                             <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center' }}>
                                 <View style={{ display: 'flex', flexDirection: 'row', marginTop: 50, justifyContent: 'space-between' }}>
-                                    <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: 'rgba(51,109,255,0.8)', position: 'relative'  }}>
+                                    <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#336DFFFF', position: 'relative'  }}>
                                         <Text allowFontScaling={false} style={{ flex: 3, color: '#ffffff', fontSize: 11.5, marginLeft: 10, marginRight: 10, fontFamily: 'Poppins_600SemiBold' }}>
                                             Apply For A Loan
                                         </Text>

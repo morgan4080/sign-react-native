@@ -1,29 +1,24 @@
 import * as SecureStore from 'expo-secure-store';
 
-export async function saveSecureKey(key: string, value: any) {
+export function saveSecureKey(key: string, value: any): Promise<any> {
     try {
-        await SecureStore.setItemAsync(key, value);
+        return Promise.resolve(SecureStore.setItemAsync(key, value));
     } catch (e: any) {
         return Promise.reject(e);
     }
 }
 
-export async function deleteSecureKey(key: string) {
+export function deleteSecureKey(key: string): Promise<any> {
     try {
-        await SecureStore.deleteItemAsync(key);
+        return Promise.resolve(SecureStore.deleteItemAsync(key));
     } catch (e: any) {
         return Promise.reject(e);
     }
 }
 
-export async function getSecureKey(key: string) {
+export function getSecureKey(key: string): Promise<any> {
     try {
-        let result = await SecureStore.getItemAsync(key);
-        if (result) {
-            return result
-        } else {
-            return undefined
-        }
+        return Promise.resolve(SecureStore.getItemAsync(key));
     } catch (e: any) {
         return Promise.reject(e);
     }

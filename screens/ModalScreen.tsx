@@ -48,27 +48,33 @@ export default function ModalScreen({ navigation }: NavigationProps) {
   const [hasPermission, setHasPermission] = useState<any>(null);
 
   useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
+    let permCheck = true
+    if (permCheck) {
+      (async () => {
+        const { status } = await Camera.requestCameraPermissionsAsync();
+        setHasPermission(status === 'granted');
+      })();
+    }
+    return () => {
+      permCheck = false
+    }
   }, []);
 
-  const logout = async () => {
-    await Promise.all([
-      dispatch(logoutUser())
-    ])
-  };
-
   useEffect(() => {
-    if (!isLoggedIn) {
+    let authCheck = true
+    if (!isLoggedIn && authCheck) {
       navigation.navigate('GetTenants')
+    }
+    return () => {
+      authCheck = false
     }
   }, [isLoggedIn]);
 
   const getPic = () => {
     // console.log("pull up camera")
+
   }
+
   const {
     control,
     handleSubmit,
@@ -199,7 +205,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => logout()} style={styles.helpLink}>
+          <TouchableOpacity onPress={() => dispatch(logoutUser())} style={styles.helpLink}>
             <Text allowFontScaling={false} style={{ fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium' }} >
               Log Out
             </Text>

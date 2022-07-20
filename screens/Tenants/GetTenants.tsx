@@ -26,7 +26,7 @@ import {Controller, useForm} from "react-hook-form";
 import {authenticate, getTenants, storeState} from "../../stores/auth/authSlice";
 import {useDispatch, useSelector} from "react-redux";
 import {store} from "../../stores/store";
-import {useEffect, useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 import {getSecureKey} from "../../utils/secureStore";
 
 type NavigationProps = NativeStackScreenProps<any>
@@ -52,6 +52,17 @@ const GetTenants = ({ navigation }: NavigationProps) => {
 
     const CSTM = NativeModules.CSTM;
 
+    const [otpVerified, setOtpVerified] = useState(undefined);
+
+    (async () => {
+        try {
+            let otpV = await getSecureKey('otp_verified');
+            setOtpVerified(otpV);
+        } catch (e:any) {
+            console.log("getSecureKey otpVerified", e)
+        }
+    })()
+
     useEffect(() => {
         let authenticating = true;
         if (authenticating) {
@@ -61,7 +72,6 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                     return
                 }
                 if (response.type === 'authenticate/fulfilled') {
-                    let otpVerified = await getSecureKey('otpVerified');
                     if (otpVerified === 'true') {
                         navigation.navigate('ProfileMain')
                     } else {
@@ -80,7 +90,6 @@ const GetTenants = ({ navigation }: NavigationProps) => {
         let isLoggedInSubscribed = true;
         if (isLoggedIn) {
             (async () => {
-                let otpVerified = await getSecureKey('otpVerified');
                 if (otpVerified === 'true') {
                     navigation.navigate('ProfileMain')
                 } else {

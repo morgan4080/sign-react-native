@@ -13,7 +13,7 @@ const config = [
         employerInfo: true,
         guarantors: 'value',
         witness: false,
-        repaymentDisbursementModes: true,
+        repaymentDisbursementModes: false,
         amounts: true,
         selfGuarantee: true
     }

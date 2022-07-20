@@ -13,7 +13,7 @@ import {
 import AppLoading from 'expo-app-loading';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import { sendOtp, authenticate, setLoading, verifyOtp } from "../../stores/auth/authSlice";
+import { sendOtp, authenticate, verifyOtp } from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
@@ -64,19 +64,30 @@ export const RotateView = () => {
 
 export default function VerifyOTP({ navigation }: NavigationProps) {
 
+    const [phoneNumber, setPhoneNumber] = useState(undefined);
+
+    (async () => {
+        try {
+            let phone = await getSecureKey('phone_number');
+            setPhoneNumber(phone);
+        } catch (e: any) {
+            console.log("getSecureKey phone_number", e)
+        }
+    })()
+
     const { isLoggedIn, user, loading, otpResponse, optVerified } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
+
     const resendOtp = async (): Promise<any> => {
         if (user) {
-            const phoneNumber = await getSecureKey('phone_number');
             const {type, error, payload}: any = await dispatch(sendOtp(phoneNumber));
             if (type === "sendOtp/rejected") {
                 console.log(error.message);
             } else {
-                console.log(payload.message);
+                console.log(payload);
             }
             return Promise.resolve(true)
         } else {
@@ -93,13 +104,12 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                 if (response.type === 'authenticate/rejected') {
                     console.log("500: Internal Server Error");
                 } else {
-                    const phoneNumber = await getSecureKey('phone_number');
-                    const {type, error, payload}: any = await dispatch(sendOtp(phoneNumber));
-                    if (type === "sendOtp/rejected") {
-                        console.log(error.message);
-                    } else {
-                        console.log(payload.message);
-                    }
+                    getSecureKey('phone_number').then(phone => {
+                        setPhoneNumber(phone);
+                        return Promise.resolve(true);
+                    }).then(() => {
+                        resendOtp()
+                    })
                 }
             })()
         }

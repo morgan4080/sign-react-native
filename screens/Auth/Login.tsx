@@ -40,6 +40,17 @@ type FormData = {
 export default function Login({ navigation }: NavigationProps) {
     const { isJWT, tenants, selectedTenantId, isLoggedIn, loading, optVerified } = useSelector((state: { auth: storeState }) => state.auth);
 
+    const [otpVerified, setOtpVerified] = useState(undefined);
+
+    (async () => {
+        try {
+            let otpV = await getSecureKey('otp_verified');
+            setOtpVerified(otpV);
+        } catch (e:any) {
+            console.log("getSecureKey otpVerified", e)
+        }
+    })()
+
     type AppDispatch = typeof store.dispatch;
 
     const CUSTOM = NativeModules.CSTM;
@@ -68,7 +79,6 @@ export default function Login({ navigation }: NavigationProps) {
                     return
                 }
                 if (response.type === 'authenticate/fulfilled') {
-                    let otpVerified = await getSecureKey('otpVerified');
                     if (otpVerified === 'true') {
                         navigation.navigate('ProfileMain')
                     } else {
@@ -86,7 +96,6 @@ export default function Login({ navigation }: NavigationProps) {
         let isLoggedInSubscribed = true;
         if (isLoggedIn && isLoggedInSubscribed) {
             (async () => {
-                let otpVerified = await getSecureKey('otpVerified');
                 if (otpVerified === 'true') {
                     navigation.navigate('ProfileMain')
                 } else {

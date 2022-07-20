@@ -101,7 +101,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const [from, setFrom] = useState(0);
 
-    const [to, setTo] = useState(100);
+    const [to, setTo] = useState(30);
 
     const [employerDetailsEnabled, setEmployerDetailsEnabled] = useState(false);
 
@@ -275,11 +275,11 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         if (!isDuplicate) {
             if (settings && settings.guarantors === 'value' && settings.amounts) {
                 if (press) {
+                    setCurrentGuarantor(contact2Add);
                     onPress('amount')
                 } else {
                     setContext('amount');
                 }
-
 
                 return Promise.resolve(true);
             } else if (settings && settings.guarantors === 'count' && member) {

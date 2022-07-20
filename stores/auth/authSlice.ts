@@ -367,6 +367,8 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
         if (response.status === 200) {
             const data = await response.json();
             return Promise.resolve(data);
+        } else if (response.status === 401) {
+            return Promise.reject(response.status);
         } else {
             return Promise.reject(`Http Status: ${response.status}`);
         }
@@ -399,6 +401,8 @@ export const validateGuarantorship = createAsyncThunk('validateGuarantorship', a
         if (response.status === 200) {
             const data = await response.json();
             return Promise.resolve(data);
+        } else if (response.status === 401) {
+            return Promise.reject(response.status);
         } else {
             return Promise.reject(`Http Status: ${response.status}`);
         }
@@ -514,6 +518,10 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
                 const data = await response.json();
                 const result: any = await saveKeys({...data, phoneNumber})
                 resolve(result)
+            } else if (response.status === 401) {
+                reject(response.status);
+            } else {
+                reject(response.status)
             }
         } catch (e: any) {
             reject(e.message)
@@ -523,8 +531,11 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
 
 export const logoutUser = createAsyncThunk('logoutUser', async () => {
     return await Promise.all([
-        deleteSecureKey('otpVerified'),
+        deleteSecureKey('otp_verified'),
         deleteSecureKey('access_token'),
+        deleteSecureKey('refresh_token'),
+        deleteSecureKey('phone_number'),
+        deleteSecureKey('existing')
     ]);
 });
 
@@ -534,12 +545,15 @@ export const setLoading = createAsyncThunk('setLoading', async (loading: boolean
 
 const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token, phoneNumber }: any) => {
     try {
-        await saveSecureKey('access_token', access_token);
-        await saveSecureKey('refresh_token', refresh_token);
-        await saveSecureKey('phone_number', `${phoneNumber}`);
-        await saveSecureKey('existing', 'true');
+        await Promise.all([
+            saveSecureKey('access_token', access_token),
+            saveSecureKey('refresh_token', refresh_token),
+            saveSecureKey('phone_number', `${phoneNumber}`),
+            saveSecureKey('existing', 'true')
+        ]);
         return Promise.resolve(true);
     } catch(e: any) {
+        console.log("saveKeys", e);
         return Promise.reject(e);
     }
 }
@@ -574,6 +588,8 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
             } else {
                 return Promise.reject(data.message);
             }
+        } else if (response.status === 401) {
+            return Promise.reject(response.status);
         } else {
             return Promise.reject(`API error code: ${response.status}`);
         }
@@ -603,7 +619,7 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
         if (response.status === 200) {
             const { list } = await response.json();
             return Promise.resolve(list);
-        } else if (response.status > 400) {
+        } else if (response.status === 401) {
             return Promise.reject(response.status);
         } else {
             return Promise.reject(`is not a member.`);
@@ -635,12 +651,14 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
         if (response.status === 200) {
             const data = await response.json();
             if (data.validated) {
-                await saveSecureKey('otpVerified', 'true');
+                await saveSecureKey('otp_verified', 'true');
                 return Promise.resolve(data);
             } else {
                 return Promise.reject("OTP Invalid");
             }
 
+        } else if (response.status === 401) {
+            return Promise.reject(response.status);
         } else {
             return Promise.reject(`API error code: ${response.status}`);
         }
@@ -672,6 +690,8 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
             if (response.status === 200) {
                 const data = await response.json();
                 resolve(data);
+            } else if (response.status === 401) {
+                reject(response.status);
             } else {
                 reject(response);
             }
@@ -702,6 +722,8 @@ export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRe
             const data = await result.json();
             console.log('all guarantorship requests', data);
             resolve(data);
+        } else if (result.status === 401) {
+            reject(result.status);
         } else {
             reject(`is not a member.`);
         }
@@ -737,6 +759,8 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
             console.log("favourite guarantors", data);
             setFaveGuarantors(data);
             resolve(data);
+        } else if (result.status === 401) {
+            reject(result.status);
         } else {
             reject(`is not a member.`);
         }
@@ -757,12 +781,11 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
                     'Authorization': `Bearer ${key}`,
                 }
             });
-            console.log(result.status)
             if (result.status === 200) {
                 const data = await result.json();
                 resolve(data);
-            } else if (result.status > 400) {
-                reject(`Authentication Error`);
+            } else if (result.status === 401) {
+                reject(result.status);
             } else {
                 reject(`is not a member of this organisation`);
             }
@@ -818,6 +841,8 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
                    })
                }
 
+           }  else if (response.status === 401) {
+               reject(response.status);
            } else {
                reject("Authentication Failed")
            }
@@ -842,6 +867,8 @@ export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: str
             console.log("successful");
             const data = await response.json()
             return Promise.resolve(data)
+        } else if (response.status === 401) {
+            return Promise.reject(response.status);
         } else {
             console.log("Failure");
             return Promise.reject("API response code: "+response.status)
@@ -872,6 +899,8 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
                const data = await response.json();
                console.log("Fetch Member Data", data);
                resolve(data);
+           }  else if (response.status === 401) {
+               reject(response.status);
            } else {
                console.log("Fetch Member Failed");
                reject("Fetch Member Failed");
@@ -903,6 +932,8 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
                 const data = await response.json();
                 console.log("witness data", data);
                 resolve(data);
+            } else if (response.status === 401) {
+                reject(response.status);
             } else {
                 reject("Witness Requests not found!");
             }
@@ -961,9 +992,13 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                             "witnessName": data0.witnessName,
                             "guarantorList": data0.guarantorList,
                         }
+                    } else if (response.status === 401) {
+                        reject(response.status);
                     }
                 }))
                 resolve(result)
+            } else if (response.status === 401) {
+                reject(response.status);
             } else {
                 reject("Fetch Member Failed")
             }
@@ -992,6 +1027,8 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
                 const data = await response.json()
                 console.log("fetchLoanRequest", data);
                 resolve(data)
+            } else if (response.status === 401) {
+                reject(response.status);
             } else {
                 reject("Fetch Loan Request Failed")
             }
@@ -1020,6 +1057,8 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async () 
             if (response.status === 200) {
                 const data = await response.json()
                 resolve(data.list)
+            } else if (response.status === 401) {
+                reject(response.status);
             } else {
                 reject("fetch loan products failed")
             }
@@ -1125,6 +1164,8 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
             console.log('errors not resolving purpose', e);
             return Promise.reject('Cant resolve sasra');
         }
+    } else if (response.status === 401) {
+        return Promise.reject(response.status);
     } else {
         return Promise.reject('Cant resolve sasra');
     }
@@ -1154,6 +1195,8 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
             } else {
                 return Promise.resolve(data)
             }
+        } else if (response.status === 401) {
+            return Promise.reject(response.status);
         } else {
             return Promise.reject(response.status + ": API Error");
         }
@@ -1258,9 +1301,9 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(authenticate.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
-            state.user = payload
-            state.isLoggedIn = true
-            state.loading = false
+            state.user = payload;
+            state.isLoggedIn = true;
+            state.loading = false;
         })
         builder.addCase(authenticate.rejected, state => {
             state.isJWT = false

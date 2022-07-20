@@ -21,7 +21,7 @@ import {
     TouchableOpacity,
     StatusBar as Bar, Dimensions
 } from "react-native";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RotateView} from "../Auth/VerifyOTP";
 import {getSecureKey} from "../../utils/secureStore";
@@ -45,6 +45,17 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
         Poppins_300Light
     });
 
+    const [otpVerified, setOtpVerified] = useState(undefined);
+
+    (async () => {
+        try {
+            let otpV = await getSecureKey('otp_verified');
+            setOtpVerified(otpV);
+        } catch (e:any) {
+            console.log("getSecureKey otpVerified", e)
+        }
+    })()
+
     const { selectedTenantId, isLoggedIn, tenants } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
@@ -62,7 +73,6 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
                     return
                 }
                 if (response.type === 'authenticate/fulfilled') {
-                    let otpVerified = await getSecureKey('otpVerified');
                     if (otpVerified === 'true') {
                         navigation.navigate('ProfileMain')
                     } else {
@@ -81,7 +91,6 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
         if (isLoggedIn) {
             if (isLoggedInSubscribed) {
                 (async () => {
-                    let otpVerified = await getSecureKey('otpVerified');
                     if (otpVerified === 'true') {
                         navigation.navigate('ProfileMain')
                     } else {

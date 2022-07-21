@@ -1,5 +1,5 @@
 import {
-    Dimensions,
+    Dimensions, NativeModules,
     Platform,
     SafeAreaView,
     ScrollView, StatusBar,
@@ -108,12 +108,6 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
         Poppins_300Light
     });
 
-    // opening android contacts
-
-    const openPhoneContacts = () => {
-        Linking.openURL('content://com.android.contacts/data/callables')
-    }
-
     const makeLoanRequest = async () => {
         let code = route.params?.category.options.filter((op: any) => op.selected)[0].options.filter((o: any) => o.selected)[0];
         const { witnessRefId, witnessMemberNo } = route.params?.witnesses.reduce((acc: any, current: any) => {
@@ -144,40 +138,40 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                     value: code.code
                 },
                 loanPeriod: {
-                    value: route.params?.loanDetails.desiredAmount
+                    value: route.params?.loanDetails.desiredAmount ? route.params?.loanDetails.desiredPeriod : ""
                 },
                 repayment_period: {
-                    value: route.params?.loanDetails.desiredAmount
+                    value: route.params?.loanDetails.desiredAmount ? route.params?.loanDetails.desiredPeriod : ""
                 },
                 employer_name: {
-                    value: route.params?.employerPayload?.employerName
+                    value: route.params?.employerPayload?.employerName ? route.params?.employerPayload?.employerName : ""
                 },
                 employment_type: {
                     value: '' // employment type if any
                 },
                 employment_number: {
-                    value: route.params?.employerPayload?.serviceNo
+                    value: route.params?.employerPayload?.serviceNo ? route.params?.employerPayload?.serviceNo : ""
                 },
                 business_location: {
-                    value: route.params?.businessPayload?.businessLocation
+                    value: route.params?.businessPayload?.businessLocation ? route.params?.businessPayload?.businessLocation : ""
                 },
                 business_type: {
-                    value: route.params?.businessPayload?.businessType
+                    value: route.params?.businessPayload?.businessType ? route.params?.businessPayload?.businessType : ""
                 },
                 net_salary: {
-                    value: route.params?.employerPayload?.netSalary
+                    value: route.params?.employerPayload?.netSalary ? route.params?.employerPayload?.netSalary : ""
                 },
                 gross_salary: {
-                    value: route.params?.employerPayload?.grossSalary
+                    value: route.params?.employerPayload?.grossSalary ? route.params?.employerPayload?.grossSalary : ""
                 },
                 disbursement_mode: {
-                    value: disbursement_mode // disbursement mode { cheque, my account , EFT}
+                    value: disbursement_mode ? disbursement_mode : "" // disbursement mode { cheque, my account , EFT}
                 },
                 repayment_mode: {
-                    value: repayment_mode // repayment mode {checkoff, cash pay bill, standing offer}
+                    value: repayment_mode ? repayment_mode : "" // repayment mode {checkoff, cash pay bill, standing offer}
                 },
                 loan_type: {
-                    value: route.params?.loanProduct.name
+                    value: route.params?.loanProduct.name ? route.params?.loanProduct.name : ""
                 }
             },
             "loanProductName": route.params?.loanProduct.name,
@@ -192,17 +186,30 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
             "guarantorList": guarantorList
         };
 
-        // console.log("loan request payload", payload);
+        console.log(JSON.stringify(payload));
+
+        const CSTM = NativeModules.CSTM;
 
         try {
             const response = await dispatch(submitLoanRequest(payload));
             if (response.type === 'submitLoanRequest/fulfilled') {
-                navigation.navigate('LoanRequest', response.payload)
+                const newPayload: any = response.payload
+                if (newPayload) {
+                    if (newPayload.hasOwnProperty('pdfThumbNail')) {
+                        navigation.navigate('LoanRequest', response.payload)
+                    } else {
+                        CSTM.showToast('Loan Request failed');
+                    }
+                } else {
+                    CSTM.showToast('Loan Request failed');
+                }
             } else {
                 console.log('loan request error', response)
+                CSTM.showToast('Loan Request failed');
             }
         } catch (error: any) {
             console.log('loan request error', error)
+            CSTM.showToast('Loan Request failed');
         }
     }
 

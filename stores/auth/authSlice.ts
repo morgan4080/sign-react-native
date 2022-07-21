@@ -681,7 +681,7 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
             myHeaders.append("Authorization", `Bearer ${key}`);
             myHeaders.append("Content-Type", 'application/json');
 
-            const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/loan-request', {
+            const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v2/loan-request', {
                 method: 'POST',
                 headers: myHeaders,
                 body: JSON.stringify(payload)

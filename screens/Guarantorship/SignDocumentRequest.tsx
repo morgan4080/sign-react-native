@@ -1,19 +1,32 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {
+    Dimensions,
+    Image,
+    NativeModules,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
 import {RotateView} from "../Auth/VerifyOTP";
 import {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {fetchLoanRequest, storeState} from "../../stores/auth/authSlice";
+import {fetchLoanRequest, requestSignURL, storeState} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {toMoney} from "../User/Account";
+import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
 
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
 const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
     // fetchLoanRequest
-    const { loading, loanRequest } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, loanRequest, member } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
+    const CSTM = NativeModules.CSTM;
 
     useEffect(() => {
         let fetching = true;
@@ -29,9 +42,90 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
         };
     },[])
 
+    const openAuthSessionAsync = async (url: string) => {
+        try {
+            let result: any = await WebBrowser.openAuthSessionAsync(
+                `${url}`,
+                'presta-sign://app/loan-request'
+            );
+            let redirectData;
+            if (result.url) {
+                redirectData = Linking.parse(result.url);
+            }
+            console.log("openAuthSessionAsync", result, redirectData)
+
+            //Object {
+            //   "type": "dismiss",
+            // } undefined
+
+            // navigate to success page
+
+        } catch (error) {
+            alert(error);
+            console.log(error);
+        }
+    };
+
     const makeSigningRequest = async () => {
         // ready to redirect to zoho
+        console.log("terror blade", route.params)
+        if (route.params?.witness && member) {
+            console.log("witness")
+            type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
+            type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
+            const payloadOut: zohoSignPayloadType = {
+                loanRequestRefId: route.params?.guarantorshipRequest.loanRequest.refId,
+                actorRefId: member.refId,
+                actorType:  "WITNESS"
+            }
+            console.log("zohoSignPayloadType", payloadOut);
 
+            const {type, error, payload}: any = await dispatch(requestSignURL(payloadOut))
+
+            if (type === 'requestSignURL/fulfilled') {
+                console.log(type, payload);
+                if (!payload.success) {
+                    CSTM.showToast(payload.message);
+                }
+
+                if (payload.signURL) await openAuthSessionAsync(payload.signURL)
+            } else {
+                console.log(type, error);
+                CSTM.showToast(error.message);
+            }
+
+            console.log("zohoSignPayloadType", payloadOut);
+            console.log(loanRequest);
+        }
+
+        if (route.params?.guarantor && member) {
+            console.log("guarantor")
+            type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
+            type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
+            const payloadOut: zohoSignPayloadType = {
+                loanRequestRefId: route.params?.guarantorshipRequest.loanRequest.refId,
+                actorRefId: member.refId,
+                actorType:  "GUARANTOR"
+            }
+            console.log("zohoSignPayloadType", payloadOut);
+
+            const {type, error, payload}: any = await dispatch(requestSignURL(payloadOut))
+
+            if (type === 'requestSignURL/fulfilled') {
+                console.log(type, payload);
+                if (!payload.success) {
+                    CSTM.showToast(payload.message);
+                }
+
+                if (payload.signURL) await openAuthSessionAsync(payload.signURL)
+            } else {
+                console.log(type, error);
+                CSTM.showToast(error.message);
+            }
+
+            console.log("zohoSignPayloadType", payloadOut);
+            console.log(loanRequest);
+        }
     };
     return(
         <View style={{flex: 1, alignItems: 'center', position: 'relative'}}>

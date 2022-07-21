@@ -27,7 +27,7 @@ const GuarantorshipStatus = ({ navigation, route }: NavigationProps) => {
                     <Text allowFontScaling={false} style={{...styles.buttonText, color: '#797979'}}>REVIEW</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => route.params?.accepted ? navigation.navigate('SignDocumentRequest', {guarantorshipRequest: route.params?.loanRequest}) : navigation.navigate('GuarantorshipRequests')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
+                <TouchableOpacity onPress={() => route.params?.accepted ? navigation.navigate('SignDocumentRequest', {guarantorshipRequest: route.params?.loanRequest, guarantor: true}) : navigation.navigate('GuarantorshipRequests')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
                     <Text allowFontScaling={false} style={styles.buttonText}>{route.params?.accepted ? 'CONTINUE' : 'DONE'}</Text>
                 </TouchableOpacity>
             </View>

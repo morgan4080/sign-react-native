@@ -79,11 +79,8 @@ export default function GuarantorTiles ({guarantor, setPressed, pressed, setRequ
                             { guarantor.subject }
                         </Text>
                     </Text>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 12 }}>{ guarantor.time }</Text>
+                    {/*<Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#9a9a9a', fontSize: 12 }}>{ guarantor.time }</Text>*/}
                 </View>
-                <TouchableOpacity onPress={() => setPressed(!pressed)}>
-                    <Ionicons style={{ width: width/5 }} name="ellipsis-vertical" size={20} color="#ADADAD" />
-                </TouchableOpacity>
             </TouchableOpacity>
         </View>
     )

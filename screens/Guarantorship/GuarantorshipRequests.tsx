@@ -128,11 +128,27 @@ export default function GuarantorshipRequests ({ navigation }: NavigationProps) 
                             </Text>
                         </View>
                         <View style={{height: (height/6), display: 'flex', flexDirection: 'row', marginTop:  (height/1.5)/20 }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipStatus', { accepted: true, guarantor: request, loanRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId) })}>
+                            <TouchableOpacity onPress={() => {
+                                setPressed(false);
+                                setRequest(null);
+                                navigation.navigate('GuarantorshipStatus', {
+                                    accepted: true,
+                                    guarantor: request,
+                                    loanRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId)
+                                })
+                            }}>
                                 <MaterialIcons name="check-circle" size={80} color="#78E49D" />
                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', textAlign: 'center', color: '#78E49D'}}>Accept</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipStatus', { accepted: false, guarantor: request, loanRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId) })}>
+                            <TouchableOpacity onPress={() => {
+                                setPressed(false);
+                                setRequest(null);
+                                navigation.navigate('GuarantorshipStatus', {
+                                    accepted: false,
+                                    guarantor: request,
+                                    loanRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId)
+                                })
+                            }}>
                                 <MaterialIcons name="cancel" size={80} color="#FF927A" />
                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', textAlign: 'center', color: '#FF927A'}}>Decline</Text>
                             </TouchableOpacity>

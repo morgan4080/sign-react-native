@@ -23,11 +23,7 @@ const WitnessStatus = ({ navigation, route }: NavigationProps) => {
                     </View>
                 </ScrollView>
             </SafeAreaView>
-            <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.6)', width, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 50 }}>
-                <TouchableOpacity onPress={() => alert('Done')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#ffffff', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
-                    <Text allowFontScaling={false} style={{...styles.buttonText, color: '#797979'}}>REVIEW</Text>
-                </TouchableOpacity>
-
+            <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.6)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center', paddingHorizontal: 50 }}>
                 <TouchableOpacity onPress={() => route.params?.accepted ? navigation.navigate('SignDocumentRequest', {guarantorshipRequest: route.params?.loanRequest, witness: true}) : navigation.navigate('WitnessRequests')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
                     <Text allowFontScaling={false} style={styles.buttonText}>{route.params?.accepted ? 'CONTINUE' : 'DONE'}</Text>
                 </TouchableOpacity>

@@ -710,7 +710,7 @@ export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRe
         if (!key) {
             reject("You are not authenticated")
         }
-        const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/guarantorship-request?acceptanceStatus=ANY&memberRefId=${memberRefId}`,{
+        const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/guarantorship-request?acceptanceStatus=INPROGRESS&memberRefId=${memberRefId}`,{
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

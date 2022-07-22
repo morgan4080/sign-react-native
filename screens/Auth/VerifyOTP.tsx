@@ -106,9 +106,15 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                 } else {
                     getSecureKey('phone_number').then(phone => {
                         setPhoneNumber(phone);
-                        return Promise.resolve(true);
-                    }).then(() => {
-                        resendOtp()
+                        return dispatch(sendOtp(phone));
+                    }).then(({type, error, payload}: any) => {
+                        if (type === "sendOtp/rejected") {
+                            console.log(error.message);
+                        } else {
+                            console.log(payload);
+                        }
+                    }).catch((e: any) => {
+                        console.log(e.message)
                     })
                 }
             })()

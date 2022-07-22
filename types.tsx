@@ -38,6 +38,7 @@ export type RootStackParamList = {
   GuarantorshipStatus: NavigatorScreenParams<RootTabParamList> | undefined;
   WitnessStatus: NavigatorScreenParams<RootTabParamList> | undefined;
   SignDocumentRequest: NavigatorScreenParams<RootTabParamList> | undefined;
+  SignStatus: NavigatorScreenParams<RootTabParamList> | undefined;
   FavouriteGuarantors: NavigatorScreenParams<RootTabParamList> | undefined;
   VerifyOTP: NavigatorScreenParams<RootTabParamList> | undefined;
 };

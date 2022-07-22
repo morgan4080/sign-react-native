@@ -53,9 +53,9 @@ const BottomSheet = React.forwardRef<BottomSheetRefProps, BottomSheetProps>(
                 translateY.value = Math.max(translateY.value, MAX_TRANSLATE_Y);
             })
             .onEnd(() => {
-                if (translateY.value > -SCREEN_HEIGHT / 3) {
+                if (translateY.value > -SCREEN_HEIGHT / 2) {
                     scrollTo(0);
-                } else if (translateY.value < -SCREEN_HEIGHT/ 3) {
+                } else if (translateY.value < -SCREEN_HEIGHT/ 2) {
                     scrollTo(MAX_TRANSLATE_Y);
                 }
             });
@@ -93,7 +93,12 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: SCREEN_HEIGHT,
         borderRadius: 25,
-        zIndex: 3
+        zIndex: 123,
+        shadowColor: 'rgba(0,0,0,0.7)', // IOS
+        shadowOffset: { height: 1, width: 1 }, // IOS
+        shadowOpacity: 1, // IOS
+        shadowRadius: 1, // IOS
+        elevation: 5, // Android
     },
     line: {
         width: 75,

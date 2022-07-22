@@ -83,7 +83,7 @@ export default function History ({ navigation }: NavigationProps) {
                                     ))
                                 }
                                 {
-                                    accountHistory.length === 0 && <View><Text style={{fontFamily: 'Poppins_600SemiBold', fontSize: 16}}>Coming Soon</Text></View>
+                                    accountHistory.length === 0 && <View><Text style={{fontFamily: 'Poppins_600SemiBold', fontSize: 16, marginTop: 20}}>Coming Soon</Text></View>
                                 }
                             </ScrollView>
 

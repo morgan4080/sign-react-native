@@ -61,7 +61,8 @@ const linking: LinkingOptions<RootStackParamList> = {
       WitnessStatus: 'witness-status',
       SignDocumentRequest: 'signDocument-request',
       FavouriteGuarantors: 'favourite-guarantors',
-      VerifyOTP: 'verifyotp',
+      VerifyOTP: 'verify-otp',
+      SignStatus: 'sign-status',
     },
   },
 };

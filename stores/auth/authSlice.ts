@@ -370,7 +370,7 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
         } else if (response.status === 401) {
             return Promise.reject(response.status);
         } else {
-            return Promise.reject(`Http Status: ${response.status}`);
+            return Promise.reject(`Document Expired`);
         }
     } catch (e: any) {
         return Promise.reject(e.message);

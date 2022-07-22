@@ -48,17 +48,19 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
                 `${url}`,
                 'presta-sign://app/loan-request'
             );
-            let redirectData;
-            if (result.url) {
-                redirectData = Linking.parse(result.url);
+
+            if (result.type === "dismiss") {
+                const {type, error, payload}: any  = await dispatch(fetchLoanRequest(route.params?.guarantorshipRequest.loanRequest.refId))
+
+                if (type === 'fetchLoanRequest/fulfilled') {
+                    // if status is signed
+                    // navigate to success page else failed page/ with retry
+                    navigation.navigate('SignStatus', payload);
+                } else {
+                    // navigate to success error page
+                    console.log(error.message)
+                }
             }
-            console.log("openAuthSessionAsync", result, redirectData)
-
-            //Object {
-            //   "type": "dismiss",
-            // } undefined
-
-            // navigate to success page
 
         } catch (error) {
             alert(error);
@@ -95,7 +97,6 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
             }
 
             console.log("zohoSignPayloadType", payloadOut);
-            console.log(loanRequest);
         }
 
         if (route.params?.guarantor && member) {
@@ -124,7 +125,6 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
             }
 
             console.log("zohoSignPayloadType", payloadOut);
-            console.log(loanRequest);
         }
     };
     return(

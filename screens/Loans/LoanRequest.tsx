@@ -23,7 +23,7 @@ import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
-import {requestSignURL, storeState} from "../../stores/auth/authSlice";
+import {fetchLoanRequest, requestSignURL, storeState} from "../../stores/auth/authSlice";
 import {toMoney} from "../User/Account";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
@@ -128,17 +128,22 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
                 `${url}`,
                 'presta-sign://app/loan-request'
             );
-            let redirectData;
-            if (result.url) {
-                redirectData = Linking.parse(result.url);
+
+            if (result.type === "dismiss") {
+                const {type, error, payload}: any  = await dispatch(fetchLoanRequest(loanRequest?.refId))
+
+                if (type === 'fetchLoanRequest/fulfilled') {
+                    // if status is signed
+                    // navigate to success page else failed page/ with retry
+                    navigation.navigate('SignStatus', {
+                        ...payload,
+                        applicant: true
+                    });
+                } else {
+                    // navigate to success error page
+                    console.log(error.message)
+                }
             }
-            console.log("openAuthSessionAsync", result, redirectData)
-
-            //Object {
-            //   "type": "dismiss",
-            // } undefined
-
-            // navigate to success page
 
         } catch (error) {
             alert(error);

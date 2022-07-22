@@ -39,6 +39,7 @@ import GuarantorshipStatus from "../screens/Guarantorship/GuarantorshipStatus";
 import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";
 import WitnessRequests from "../screens/Guarantorship/WitnessRequests";
 import WitnessStatus from "../screens/Guarantorship/WitnessStatus";
+import SignStatus from "../screens/Guarantorship/SignStatus";
 
 const Navigation = () => {
   const MyTheme = {
@@ -108,6 +109,7 @@ function RootNavigator() {
       <Stack.Screen name="WitnessesHome" component={WitnessesHome} options={{ headerShown: false }} />
       <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={{ headerShown: false }} />
       <Stack.Screen name="LoanRequest" component={LoanRequest} options={{ headerShown: false }} />
+      <Stack.Screen name="SignStatus" component={SignStatus} options={{ headerShown: false }} />
       <Stack.Screen name="GuarantorshipRequests" component={GuarantorshipRequests} options={{
           headerShown: true,
           title: 'Guarantorship Requests',

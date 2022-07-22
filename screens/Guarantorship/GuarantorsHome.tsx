@@ -241,6 +241,19 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         return true;
     }
 
+    const requiredGuarantors = () => {
+
+        if (tenant && tenant.tenantId === 't74411') {
+            return 1
+        }
+
+        if (tenant && tenant.tenantId === 't72767') {
+            return 4
+        }
+
+        return 1
+    }
+
     const [currentGuarantor, setCurrentGuarantor] = useState<{contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}>()
 
     const addContactToList = async (contact2Add: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}, press: boolean = true): Promise<boolean> => {
@@ -407,21 +420,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const setSelectedValue = (itemValue: string | number) => {
         setValue('inputStrategy', itemValue)
     }
-
-    const requiredGuarantors = () => {
-
-        if (tenant && tenant.tenantId === 't74411') {
-            return 1
-        }
-
-        if (tenant && tenant.tenantId === 't72767') {
-            return 4
-        }
-
-        return 1
-    }
-
-
 
     const ref = useRef<BottomSheetRefProps>(null);
 

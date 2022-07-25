@@ -13,14 +13,14 @@ import {
 import AppLoading from 'expo-app-loading';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import { sendOtp, authenticate, verifyOtp } from "../../stores/auth/authSlice";
+import {sendOtp, authenticate, verifyOtp, setAuthState} from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import {useEffect, useRef, useState} from "react";
 // import types
 import { storeState } from "../../stores/auth/authSlice"
-import {getSecureKey} from "../../utils/secureStore";
+import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -99,52 +99,24 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         let setupUser = true;
 
         if (setupUser) {
-            (async () => {
-                const response = await dispatch(authenticate());
-                if (response.type === 'authenticate/rejected') {
-                    console.log("500: Internal Server Error");
+            getSecureKey('phone_number').then(phone => {
+                setPhoneNumber(phone);
+                return dispatch(sendOtp(phone));
+            }).then(({type, error, payload}: any) => {
+                if (type === "sendOtp/rejected") {
+                    console.log(error.message);
                 } else {
-                    getSecureKey('phone_number').then(phone => {
-                        setPhoneNumber(phone);
-                        return dispatch(sendOtp(phone));
-                    }).then(({type, error, payload}: any) => {
-                        if (type === "sendOtp/rejected") {
-                            console.log(error.message);
-                        } else {
-                            console.log(payload);
-                        }
-                    }).catch((e: any) => {
-                        console.log(e.message)
-                    })
+                    console.log(payload);
                 }
-            })()
+            }).catch((e: any) => {
+                console.log(e.message)
+            })
         }
         return (() => {
             Keyboard.removeAllListeners('keyboardDidShow');
             setupUser = false;
         })
     }, []);
-
-    useEffect(() => {
-        if (!isLoggedIn) {
-            navigation.navigate('GetTenants')
-        }
-    }, [isLoggedIn]);
-
-    useEffect(() => {
-        let determineRedirect = true;
-
-        if (determineRedirect) {
-            if (optVerified) {
-                navigation.navigate('ProfileMain');
-            }
-        }
-
-        return (() => {
-            determineRedirect = false
-        })
-    }, [optVerified]);
-
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -213,7 +185,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         scrollViewRef.current.scrollToEnd({ animated: true });
     });
 
-    if (isLoggedIn && fontsLoaded) {
+    if (fontsLoaded) {
         return(
             <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#489AAB' }}>
                 <ScrollView ref={scrollViewRef} contentContainerStyle={styles.container}>

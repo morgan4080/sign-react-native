@@ -80,6 +80,7 @@ type FormData = {
     serviceNo: string;
     grossSalary: string;
     netSalary: string;
+    kraPin: string;
     businessLocation: string;
     businessType: string;
 };
@@ -165,6 +166,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const [serviceNo, setServiceNo] = useState<string | undefined>(undefined);
     const [grossSalary, setGrossSalary] = useState<string | undefined>(undefined);
     const [netSalary, setNetSalary] = useState<string | undefined>(undefined);
+    const [kraPin, setKraPin] = useState<string | undefined>(undefined);
     const [businessType, setBusinessType] = useState<string | undefined>(undefined);
     const [businessLocation, setBusinessLocation] = useState<string | undefined>(undefined);
     const [amountToGuarantee, setAmountToGuarantee] = useState<string | undefined>(undefined);
@@ -198,23 +200,31 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         break;
                     case  'employerName':
                         setEmployerName(value.employerName);
+                        setMemberSearching(true);
                         break;
                     case  'serviceNo':
                         setServiceNo(value.serviceNo);
+                        setMemberSearching(true);
                         break;
                     case  'grossSalary':
                         setGrossSalary(value.grossSalary);
+                        setMemberSearching(true);
                         break;
                     case  'netSalary':
                         setNetSalary(value.netSalary);
-                        setMemberSearching(true)
+                        setMemberSearching(true);
+                        break;
+                    case  'kraPin':
+                        setKraPin(value.kraPin);
+                        setMemberSearching(true);
                         break;
                     case  'businessType':
                         setBusinessType(value.businessType);
+                        setMemberSearching(true);
                         break;
                     case  'businessLocation':
                         setBusinessLocation(value.businessLocation);
-                        setMemberSearching(true)
+                        setMemberSearching(true);
                         break;
                     case  'amountToGuarantee':
                         if (value.amountToGuarantee !== '') {
@@ -440,10 +450,12 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         serviceNo: string | undefined;
         grossSalary: string | undefined;
         netSalary: string | undefined;
+        kraPin: string | undefined;
     }
     type businessPayloadType = {
         businessLocation: string | undefined;
         businessType: string | undefined;
+        kraPin: string | undefined;
     }
     const [employerPayload, setEmployerPayload] = useState<employerPayloadType>();
 
@@ -471,14 +483,16 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     employerName,
                     serviceNo,
                     grossSalary,
-                    netSalary
+                    netSalary,
+                    kraPin
                 };
                 setEmployerPayload(payload);
             } else if (tab === 1) {
                 // set payload for business
                 let payload = {
                     businessLocation,
-                    businessType
+                    businessType,
+                    kraPin
                 };
                 setBusinessPayload(payload);
             }
@@ -791,242 +805,274 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     }}>
                         <AntDesign name="closecircleo" size={15} color="#767577" />
                     </TouchableOpacity>
-                    {context === "options" &&
+                    {context === "options" ?
                         <FlatList
                             data={guarantorshipOptions}
                             renderItem={renderItem}
                             keyExtractor={item => item.id}
                         />
-                    }
-                    { context === "search" &&
-                        <View style={{display: 'flex', alignItems: 'center', width}}>
-                            <Text allowFontScaling={false} style={styles.subtitle}>Search Member</Text>
-                            <Controller
-                                control={control}
-                                render={( {field: {onChange, onBlur, value}}) => (
-                                    <View style={styles.input0}>
-                                        <Picker
-                                            itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                            style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                            onBlur={onBlur}
-                                            selectedValue={value}
-                                            onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-                                            mode="dropdown"
-                                        >
-                                            {[
-                                                {
-                                                    name: "Member Number",
-                                                    value: 0
-                                                },
-                                                {
-                                                    name: "Phone Number",
-                                                    value: 1
-                                                }
-                                            ].map((p, i) =>(
-                                                <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_400Regular' />
-                                            ))}
-                                        </Picker>
+                        :
+                        <ScrollView contentContainerStyle={{height: 1000}}>
+                            { context === "search" &&
+                                <View style={{display: 'flex', alignItems: 'center', width}}>
+                                    <Text allowFontScaling={false} style={styles.subtitle}>Search Member</Text>
+                                    <Controller
+                                        control={control}
+                                        render={( {field: {onChange, onBlur, value}}) => (
+                                            <View style={styles.input0}>
+                                                <Picker
+                                                    itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
+                                                    style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
+                                                    onBlur={onBlur}
+                                                    selectedValue={value}
+                                                    onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+                                                    mode="dropdown"
+                                                >
+                                                    {[
+                                                        {
+                                                            name: "Member Number",
+                                                            value: 0
+                                                        },
+                                                        {
+                                                            name: "Phone Number",
+                                                            value: 1
+                                                        }
+                                                    ].map((p, i) =>(
+                                                        <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_400Regular' />
+                                                    ))}
+                                                </Picker>
+                                            </View>
+                                        )}
+                                        name="inputStrategy"
+                                    />
+
+                                    { inputStrategy === 1 && <Controller
+                                        control={control}
+                                        render={({field: {onChange, onBlur, value}}) => (
+                                            <TextInput
+                                                allowFontScaling={false}
+                                                style={styles.input0}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                value={value}
+                                                placeholder="0720000000"
+                                                keyboardType="numeric"
+                                            />
+                                        )}
+                                        name="phoneNumber"
+                                    />}
+
+                                    {inputStrategy === 0 && <Controller
+                                        control={control}
+                                        render={({field: {onChange, onBlur, value}}) => (
+                                            <TextInput
+                                                allowFontScaling={false}
+                                                style={styles.input0}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                value={value}
+                                                placeholder="Enter member number"
+                                            />
+                                        )}
+                                        name="memberNumber"
+                                    />}
+                                </View>
+                            }
+                            {
+                                context === "amount" &&
+                                <View style={{display: 'flex', alignItems: 'center', width}}>
+                                    <Text allowFontScaling={false} style={styles.subtitle}>Add {currentGuarantor?.name}'s Guarantorship Amount</Text>
+                                    <Text allowFontScaling={false} style={{ alignSelf: 'flex-start', textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, marginBottom: 10, paddingHorizontal: 30 }}>Un-guaranteed Amount <Text style={{textDecorationLine: 'underline'}}>{toMoney(`${route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount)}` )}</Text></Text>
+                                    <Controller
+                                        control={control}
+                                        render={({field: {onChange, onBlur, value}}) => (
+                                            <TextInput
+                                                allowFontScaling={false}
+                                                style={styles.input0}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                value={value}
+                                                placeholder="Amount to guarantee"
+                                                keyboardType="numeric"
+                                            />
+                                        )}
+                                        name="amountToGuarantee"
+                                    />
+
+
+                                </View>
+                            }
+                            { context === "employment" &&
+                                <View style={{display: 'flex', alignItems: 'center', width}}>
+                                    <View style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', width: width-50, paddingBottom: 15 }}>
+                                        <TouchableOpacity onPress={() => {
+                                            setMemberSearching(false)
+                                            setTab(0)
+                                        }} style={{ display: 'flex', borderBottomWidth: tab === 0 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
+                                            <Text allowFontScaling={false} style={[{color: tab === 0 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Employed</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => {
+                                            setMemberSearching(false)
+                                            setTab(1)
+                                        }} style={{ display: 'flex', borderBottomWidth: tab === 1 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
+                                            <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
+                                        </TouchableOpacity>
                                     </View>
-                                )}
-                                name="inputStrategy"
-                            />
+                                    { tab === 0 ?
+                                        <>
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Employer name"
+                                                    />
+                                                )}
+                                                name="employerName"
+                                            />
 
-                            { inputStrategy === 1 && <Controller
-                                control={control}
-                                render={({field: {onChange, onBlur, value}}) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input0}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="0720000000"
-                                        keyboardType="numeric"
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Employment/Service No."
+                                                    />
+                                                )}
+                                                name="serviceNo"
+                                            />
+
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Gross Salary"
+                                                        keyboardType="numeric"
+                                                    />
+                                                )}
+                                                name="grossSalary"
+                                            />
+
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Net Salary"
+                                                        keyboardType="numeric"
+                                                    />
+                                                )}
+                                                name="netSalary"
+                                            />
+
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="KRA Pin"
+                                                    />
+                                                )}
+                                                name="kraPin"
+                                            />
+                                        </>
+                                        :
+                                        <>
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Business Location"
+                                                    />
+                                                )}
+                                                name="businessLocation"
+                                            />
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Business Type"
+                                                    />
+                                                )}
+                                                name="businessType"
+                                            />
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="KRA Pin"
+                                                    />
+                                                )}
+                                                name="kraPin"
+                                            />
+                                        </> }
+                                </View>
+                            }
+                            {
+                                context !== 'amount' &&
+                                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width, marginHorizontal: 20 }}>
+                                    <Controller
+                                        control={control}
+                                        rules={{
+                                            required: true,
+                                        }}
+                                        render={( { field: { onChange, onBlur, value } }) => (
+                                            <Switch
+                                                trackColor={{ false: "#767577", true: "#489AAB" }}
+                                                thumbColor={employerDetailsEnabled ? "#FFFFFF" : "#f4f3f4"}
+                                                onValueChange={toggleEmployerDetailsEnabled}
+                                                value={employerDetailsEnabled}
+                                            />
+                                        )}
+                                        name="employerDetails"
                                     />
-                                )}
-                                name="phoneNumber"
-                            />}
-
-                            {inputStrategy === 0 && <Controller
-                                control={control}
-                                render={({field: {onChange, onBlur, value}}) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input0}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="Enter member number"
-                                    />
-                                )}
-                                name="memberNumber"
-                            />}
-                        </View>
-                    }
-                    {
-                        context === "amount" &&
-                        <View style={{display: 'flex', alignItems: 'center', width}}>
-                            <Text allowFontScaling={false} style={styles.subtitle}>Add {currentGuarantor?.name}'s Guarantorship Amount</Text>
-                            <Text allowFontScaling={false} style={{ alignSelf: 'flex-start', textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, marginBottom: 10, paddingHorizontal: 30 }}>Un-guaranteed Amount <Text style={{textDecorationLine: 'underline'}}>{toMoney(`${route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount)}` )}</Text></Text>
-                            <Controller
-                                control={control}
-                                render={({field: {onChange, onBlur, value}}) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input0}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="Amount to guarantee"
-                                        keyboardType="numeric"
-                                    />
-                                )}
-                                name="amountToGuarantee"
-                            />
-
-
-                        </View>
-                    }
-                    { context === "employment" &&
-                        <View style={{display: 'flex', alignItems: 'center', width}}>
-                            <View style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', width: width-50, paddingBottom: 15 }}>
-                                <TouchableOpacity onPress={() => {
-                                    setMemberSearching(false)
-                                    setTab(0)
-                                }} style={{ display: 'flex', borderBottomWidth: tab === 0 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
-                                    <Text allowFontScaling={false} style={[{color: tab === 0 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Employed</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => {
-                                    setMemberSearching(false)
-                                    setTab(1)
-                                }} style={{ display: 'flex', borderBottomWidth: tab === 1 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
-                                    <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
+                                    <Text allowFontScaling={false} style={{ fontSize: 12, color: '#CCCCCC', fontFamily: 'Poppins_400Regular' }}>Enter Employer details</Text>
+                                </View>
+                            }
+                            <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                                <TouchableOpacity disabled={!memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                                    {loading && <RotateView/>}
+                                    <Text allowFontScaling={false} style={styles.buttonText}>{context === 'search' ? 'Search' : 'Submit'}</Text>
                                 </TouchableOpacity>
                             </View>
-                            { tab === 0 ?
-                            <>
-                                <Controller
-                                    control={control}
-                                    render={({field: {onChange, onBlur, value}}) => (
-                                        <TextInput
-                                            allowFontScaling={false}
-                                            style={styles.input0}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            placeholder="Employer name"
-                                        />
-                                    )}
-                                    name="employerName"
-                                />
-
-                                <Controller
-                                    control={control}
-                                    render={({field: {onChange, onBlur, value}}) => (
-                                        <TextInput
-                                            allowFontScaling={false}
-                                            style={styles.input0}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            placeholder="Employment/Service No."
-                                        />
-                                    )}
-                                    name="serviceNo"
-                                />
-
-                                <Controller
-                                    control={control}
-                                    render={({field: {onChange, onBlur, value}}) => (
-                                        <TextInput
-                                            allowFontScaling={false}
-                                            style={styles.input0}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            placeholder="Gross Salary"
-                                            keyboardType="numeric"
-                                        />
-                                    )}
-                                    name="grossSalary"
-                                />
-
-                                <Controller
-                                    control={control}
-                                    render={({field: {onChange, onBlur, value}}) => (
-                                        <TextInput
-                                            allowFontScaling={false}
-                                            style={styles.input0}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            placeholder="Net Salary"
-                                            keyboardType="numeric"
-                                        />
-                                    )}
-                                    name="netSalary"
-                                />
-                            </>
-                            :
-                            <>
-                                <Controller
-                                    control={control}
-                                    render={({field: {onChange, onBlur, value}}) => (
-                                        <TextInput
-                                            allowFontScaling={false}
-                                            style={styles.input0}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            placeholder="Business Location"
-                                        />
-                                    )}
-                                    name="businessLocation"
-                                />
-                                <Controller
-                                    control={control}
-                                    render={({field: {onChange, onBlur, value}}) => (
-                                        <TextInput
-                                            allowFontScaling={false}
-                                            style={styles.input0}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            placeholder="Business Type"
-                                        />
-                                    )}
-                                    name="businessType"
-                                />
-                            </> }
-                        </View>
+                        </ScrollView>
                     }
-                    {
-                        context !== 'amount' &&
-                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width, paddingHorizontal: 30, marginHorizontal: 20 }}>
-                            <Controller
-                                control={control}
-                                rules={{
-                                    required: true,
-                                }}
-                                render={( { field: { onChange, onBlur, value } }) => (
-                                    <Switch
-                                        trackColor={{ false: "#767577", true: "#489AAB" }}
-                                        thumbColor={employerDetailsEnabled ? "#FFFFFF" : "#f4f3f4"}
-                                        onValueChange={toggleEmployerDetailsEnabled}
-                                        value={employerDetailsEnabled}
-                                    />
-                                )}
-                                name="employerDetails"
-                            />
-                            <Text allowFontScaling={false} style={{ fontSize: 12, color: '#CCCCCC', fontFamily: 'Poppins_400Regular' }}>Enter employer/ business details</Text>
-                        </View>
-                    }
-                    <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <TouchableOpacity disabled={!memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                            {loading && <RotateView/>}
-                            <Text allowFontScaling={false} style={styles.buttonText}>{context === 'search' ? 'Search' : 'Submit'}</Text>
-                        </TouchableOpacity>
-                    </View>
                 </SafeAreaView>
             </BottomSheet>
         </GestureHandlerRootView>

@@ -18,13 +18,13 @@ import {useEffect, useRef, useState} from "react";
 import * as LocalAuthentication from 'expo-local-authentication';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import {loginUser, authenticate} from "../../stores/auth/authSlice";
+import {loginUser, authenticate, setAuthState} from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { storeState, loginUserType } from "../../stores/auth/authSlice"
 import {RotateView} from "./VerifyOTP";
 import {FontAwesome5} from "@expo/vector-icons";
-import {getSecureKey} from "../../utils/secureStore";
+import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 const { width, height } = Dimensions.get("window");
 
 type NavigationProps = NativeStackScreenProps<any>
@@ -80,7 +80,8 @@ export default function Login({ navigation }: NavigationProps) {
                 }
                 if (response.type === 'authenticate/fulfilled') {
                     if (otpVerified === 'true') {
-                        navigation.navigate('ProfileMain')
+                        console.log("supposed to go to profile");
+                        dispatch(setAuthState(true));
                     } else {
                         navigation.navigate('VerifyOTP')
                     }
@@ -97,9 +98,10 @@ export default function Login({ navigation }: NavigationProps) {
         if (isLoggedIn && isLoggedInSubscribed) {
             (async () => {
                 if (otpVerified === 'true') {
-                    navigation.navigate('ProfileMain')
+                    console.log("supposed to go to profile")
+                    dispatch(setAuthState(true));
                 } else {
-                    navigation.navigate('VerifyOTP')
+                    navigation.navigate('VerifyOTP');
                 }
             })()
         }
@@ -289,6 +291,13 @@ export default function Login({ navigation }: NavigationProps) {
                                 } else {
                                     setError('phoneNumber', {type: 'custom', message: error.message});
                                     CUSTOM.showToast(error.message);
+                                }
+                            } else {
+                                if (otpVerified === 'true') {
+                                    console.log("supposed to go to profile");
+                                    dispatch(setAuthState(true));
+                                } else {
+                                    navigation.navigate('VerifyOTP');
                                 }
                             }
                         } catch (e: any) {

@@ -97,11 +97,11 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, marginBottom: 20}}>
                                     <View>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>ACTIVE LOANS</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>{ memberDetails?.activeLoans?.length }</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>{ memberDetails?.activeLoans ? memberDetails?.activeLoans?.length : 0 }</Text>
                                     </View>
                                     <View>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>SHARES AMOUNT</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {toMoney(`${memberDetails?.totalShares}`)}</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {memberDetails?.totalShares ? toMoney(`${memberDetails?.totalShares}`) : 0}</Text>
                                     </View>
                                 </View>
                             </View>

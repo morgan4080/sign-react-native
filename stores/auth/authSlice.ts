@@ -368,6 +368,7 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
             const data = await response.json();
             return Promise.resolve(data);
         } else if (response.status === 401) {
+            setAuthState(false);
             return Promise.reject(response.status);
         } else {
             return Promise.reject(`Document Expired`);
@@ -402,6 +403,8 @@ export const validateGuarantorship = createAsyncThunk('validateGuarantorship', a
             const data = await response.json();
             return Promise.resolve(data);
         } else if (response.status === 401) {
+            console.log('setting to false');
+            setAuthState(false);
             return Promise.reject(response.status);
         } else {
             return Promise.reject(`Http Status: ${response.status}`);
@@ -510,6 +513,7 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
             });
 
             if (response.status === 401) {
+                setAuthState(false);
                 // console.log("Incorrect phone number or password");
                 reject("Incorrect phone number or password");
             }
@@ -519,6 +523,7 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
                 const result: any = await saveKeys({...data, phoneNumber})
                 resolve(result)
             } else if (response.status === 401) {
+                setAuthState(false);
                 reject(response.status);
             } else {
                 reject(response.status)
@@ -541,7 +546,50 @@ export const logoutUser = createAsyncThunk('logoutUser', async () => {
 
 export const setLoading = createAsyncThunk('setLoading', async (loading: boolean) => {
     return Promise.resolve(loading)
-})
+});
+
+type memberPayloadType = {firstName: string, lastName: string, phoneNumber: string, idNumber: string, email: string, memberRefId?: string}
+
+export const editMember = createAsyncThunk('editMember', async (payload: memberPayloadType) => {
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/members/${payload.memberRefId}`;
+
+    try {
+        const key = await getSecureKey('access_token');
+
+        if (!key) {
+            return Promise.reject('You are not authenticated');
+        }
+
+        const myHeaders = new Headers();
+
+        myHeaders.append("Authorization", `Bearer ${key}`);
+
+        myHeaders.append("Content-Type", 'application/json');
+
+        delete payload.memberRefId
+
+        console.log(payload)
+
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: myHeaders,
+            body: JSON.stringify(payload)
+        });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            return Promise.resolve(data);
+        } else if (response.status === 401) {
+            setAuthState(false);
+            return Promise.reject(response.status);
+        } else {
+            return Promise.reject(`API error code: ${response.status}`);
+        }
+
+    } catch (e: any) {
+        return Promise.reject(e.message)
+    }
+});
 
 const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token, phoneNumber }: any) => {
     try {
@@ -589,6 +637,7 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
                 return Promise.reject(data.message);
             }
         } else if (response.status === 401) {
+            setAuthState(false);
             return Promise.reject(response.status);
         } else {
             return Promise.reject(`API error code: ${response.status}`);
@@ -620,6 +669,7 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
             const { list } = await response.json();
             return Promise.resolve(list);
         } else if (response.status === 401) {
+            setAuthState(false);
             return Promise.reject(response.status);
         } else {
             return Promise.reject(`is not a member.`);
@@ -658,6 +708,7 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
             }
 
         } else if (response.status === 401) {
+            setAuthState(false);
             return Promise.reject(response.status);
         } else {
             return Promise.reject(`API error code: ${response.status}`);
@@ -691,6 +742,7 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
                 const data = await response.json();
                 resolve(data);
             } else if (response.status === 401) {
+                setAuthState(false);
                 reject(response.status);
             } else {
                 reject(response);
@@ -723,6 +775,7 @@ export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRe
             console.log('all guarantorship requests', data);
             resolve(data);
         } else if (result.status === 401) {
+            setAuthState(false);
             reject(result.status);
         } else {
             reject(`is not a member.`);
@@ -760,6 +813,7 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
             setFaveGuarantors(data);
             resolve(data);
         } else if (result.status === 401) {
+            setAuthState(false);
             reject(result.status);
         } else {
             reject(`is not a member.`);
@@ -785,6 +839,7 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
                 const data = await result.json();
                 resolve(data);
             } else if (result.status === 401) {
+                setAuthState(false);
                 reject(result.status);
             } else {
                 reject(`is not a member of this organisation`);
@@ -842,6 +897,7 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
                }
 
            }  else if (response.status === 401) {
+               setAuthState(false);
                reject(response.status);
            } else {
                reject("Authentication Failed")
@@ -868,6 +924,7 @@ export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: str
             const data = await response.json()
             return Promise.resolve(data)
         } else if (response.status === 401) {
+            setAuthState(false);
             return Promise.reject(response.status);
         } else {
             console.log("Failure");
@@ -900,6 +957,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
                console.log("Fetch Member Data", data);
                resolve(data);
            }  else if (response.status === 401) {
+               setAuthState(false);
                reject(response.status);
            } else {
                console.log("Fetch Member Failed");
@@ -933,6 +991,7 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
                 console.log("witness data", data);
                 resolve(data);
             } else if (response.status === 401) {
+                setAuthState(false);
                 reject(response.status);
             } else {
                 reject("Witness Requests not found!");
@@ -993,11 +1052,13 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                             "guarantorList": data0.guarantorList,
                         }
                     } else if (response.status === 401) {
+                        setAuthState(false);
                         reject(response.status);
                     }
                 }))
                 resolve(result)
             } else if (response.status === 401) {
+                setAuthState(false);
                 reject(response.status);
             } else {
                 reject("Fetch Member Failed")
@@ -1028,6 +1089,7 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
                 console.log("fetchLoanRequest", data);
                 resolve(data)
             } else if (response.status === 401) {
+                setAuthState(false);
                 reject(response.status);
             } else {
                 reject("Fetch Loan Request Failed")
@@ -1058,6 +1120,7 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async () 
                 const data = await response.json()
                 resolve(data.list)
             } else if (response.status === 401) {
+                setAuthState(false);
                 reject(response.status);
             } else {
                 reject("fetch loan products failed")
@@ -1165,6 +1228,7 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
             return Promise.reject('Cant resolve sasra');
         }
     } else if (response.status === 401) {
+        setAuthState(false);
         return Promise.reject(response.status);
     } else {
         return Promise.reject('Cant resolve sasra');
@@ -1196,6 +1260,7 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
                 return Promise.resolve(data)
             }
         } else if (response.status === 401) {
+            setAuthState(false);
             return Promise.reject(response.status);
         } else {
             return Promise.reject(response.status + ": API Error");
@@ -1235,6 +1300,10 @@ const authSlice = createSlice({
         },
         setSelectedTenantId(state, action) {
             state.selectedTenantId = action.payload
+            return state
+        },
+        setAuthState(state, action) {
+            state.isLoggedIn = action.payload
             return state
         }
     },
@@ -1288,7 +1357,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(loginUser.fulfilled, (state,action) => {
-            state.isLoggedIn = true
+            // state.isLoggedIn = true
             state.loading = false
         })
         builder.addCase(loginUser.rejected, (state, error) => {
@@ -1334,6 +1403,17 @@ const authSlice = createSlice({
             state.loading = false
         })
 
+        builder.addCase(editMember.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(editMember.fulfilled, (state, { payload }: any) => {
+            console.log(payload);
+            state.loading = false
+        })
+        builder.addCase(editMember.rejected, state => {
+            state.loading = false
+        })
+
         builder.addCase(fetchLoanRequests.pending, state => {
             state.loading = true
         })
@@ -1371,9 +1451,9 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(logoutUser.fulfilled, (state, action) => {
-            state.isLoggedIn = false
             state.isJWT = false
             state.loading = false
+            state.isLoggedIn = false
         })
         builder.addCase(logoutUser.rejected, state => {
             state.loading = false
@@ -1509,6 +1589,7 @@ const authSlice = createSlice({
         })
         builder.addCase(verifyOtp.fulfilled, (state, action: any) => {
             state.optVerified = true;
+            state.isLoggedIn = true;
             state.loading = false;
         })
         builder.addCase(verifyOtp.rejected, (state, action) => {
@@ -1536,6 +1617,6 @@ const authSlice = createSlice({
 // Extract the action creators object and the reducer
 const { actions, reducer } = authSlice
 // Extract and export each action creator by name
-export const { createLoanProduct, setSelectedTenantId } = actions
+export const { createLoanProduct, setSelectedTenantId, setAuthState } = actions
 // Export the reducer, either as a default or named export
 export const authReducer = reducer

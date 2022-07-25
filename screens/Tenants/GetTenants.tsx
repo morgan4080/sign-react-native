@@ -72,11 +72,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                     return
                 }
                 if (response.type === 'authenticate/fulfilled') {
-                    if (otpVerified === 'true') {
-                        navigation.navigate('ProfileMain')
-                    } else {
-                        navigation.navigate('VerifyOTP')
-                    }
+                    navigation.navigate('ProfileMain')
                 }
             })()
         }
@@ -90,11 +86,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
         let isLoggedInSubscribed = true;
         if (isLoggedIn) {
             (async () => {
-                if (otpVerified === 'true') {
-                    navigation.navigate('ProfileMain')
-                } else {
-                    navigation.navigate('VerifyOTP')
-                }
+                navigation.navigate('ProfileMain')
             })()
         }
         return () => {

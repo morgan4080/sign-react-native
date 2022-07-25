@@ -40,6 +40,10 @@ import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";
 import WitnessRequests from "../screens/Guarantorship/WitnessRequests";
 import WitnessStatus from "../screens/Guarantorship/WitnessStatus";
 import SignStatus from "../screens/Guarantorship/SignStatus";
+import {useEffect, useState} from "react";
+import {getSecureKey} from "../utils/secureStore";
+import {useSelector} from "react-redux";
+import {storeState} from "../stores/auth/authSlice";
 
 const Navigation = () => {
   const MyTheme = {
@@ -68,140 +72,148 @@ export default Navigation;
  */
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+const NonAuthNaigation = () => {
+    return (
+        <Stack.Navigator initialRouteName="GetStarted">
 
-function RootNavigator() {
-  return (
-    <Stack.Navigator initialRouteName="GetStarted">
+            {/*<Stack.Screen name="PinLogin" component={PinLogin} options={{ headerShown: false }} />
+            <Stack.Screen name="SetPin" component={SetPin} options={{ headerShown: false }} />
+            <Stack.Screen name="Forgot" component={Forgot} options={{ headerShown: false }} />*/}
 
-        {/*<Stack.Screen name="PinLogin" component={PinLogin} options={{ headerShown: false }} />
-        <Stack.Screen name="SetPin" component={SetPin} options={{ headerShown: false }} />
-        <Stack.Screen name="Forgot" component={Forgot} options={{ headerShown: false }} />*/}
-
-        {/*Before login*/}
-      <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
-      <Stack.Screen name="UserEducation" component={UserEducation} options={{ headerShown: false }} />
-      <Stack.Screen name="GetTenants" component={GetTenants} options={{ headerShown: false }} />
-      <Stack.Screen name="ShowTenants" component={ShowTenants} options={{
-            headerShown: true,
-            title: 'Select Organization',
-            headerShadowVisible: false,
-            headerStyle: {
-                backgroundColor: 'rgba(204,204,204,0.28)',
-            },
-            headerTintColor: '#489AAB',
-            headerTitleStyle: {
-                fontSize: 20,
-                fontFamily: 'Poppins_600SemiBold'
-            }
-        }} />
-      <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-      <Stack.Screen name="VerifyOTP" component={VerifyOTP} options={{ headerShown: false }} />
-
-
-        {/*After login*/}
-
-
-      <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{ headerShown: false }} />
-      <Stack.Screen name="LoanProducts" component={LoanProducts} options={{ headerShown: false }} />
-      <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
-      <Stack.Screen name="LoanPurpose" component={LoanPurpose} options={{ headerShown: false }} />
-      <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={{ headerShown: false }} />
-      <Stack.Screen name="WitnessesHome" component={WitnessesHome} options={{ headerShown: false }} />
-      <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={{ headerShown: false }} />
-      <Stack.Screen name="LoanRequest" component={LoanRequest} options={{ headerShown: false }} />
-      <Stack.Screen name="SignStatus" component={SignStatus} options={{ headerShown: false }} />
-      <Stack.Screen name="GuarantorshipRequests" component={GuarantorshipRequests} options={{
-          headerShown: true,
-          title: 'Guarantorship Requests',
-          headerShadowVisible: false,
-          headerStyle: {
-              backgroundColor: 'rgba(204,204,204,0.28)',
-          },
-          headerTintColor: '#489AAB',
-          headerTitleStyle: {
-              fontSize: 20,
-              fontFamily: 'Poppins_600SemiBold'
-          }
-      }} />
-      <Stack.Screen name="WitnessRequests" component={WitnessRequests} options={{
-          headerShown: true,
-          title: 'Witness Requests',
-          headerShadowVisible: false,
-          headerStyle: {
-              backgroundColor: 'rgba(204,204,204,0.28)',
-          },
-          headerTintColor: '#489AAB',
-          headerTitleStyle: {
-              fontSize: 20,
-              fontFamily: 'Poppins_600SemiBold'
-          }
-      }} />
-      <Stack.Screen name="GuarantorshipStatus" component={GuarantorshipStatus} options={{
-          headerShown: true,
-          title: '',
-          headerShadowVisible: false,
-          headerStyle: {
-              backgroundColor: 'rgba(204,204,204,0.28)',
-          },
-          headerTintColor: '#489AAB',
-          headerTitleStyle: {
-              fontSize: 20,
-              fontFamily: 'Poppins_600SemiBold'
-          }
-      }} />
-      <Stack.Screen name="WitnessStatus" component={WitnessStatus} options={{
-          headerShown: true,
-          title: '',
-          headerShadowVisible: false,
-          headerStyle: {
-              backgroundColor: 'rgba(204,204,204,0.28)',
-          },
-          headerTintColor: '#489AAB',
-          headerTitleStyle: {
-              fontSize: 20,
-              fontFamily: 'Poppins_600SemiBold'
-          }
-      }} />
-      <Stack.Screen name="FavouriteGuarantors" component={FavouriteGuarantors} options={{
-          headerShown: true,
-          title: 'Favourite Guarantors',
-          headerShadowVisible: false,
-          headerStyle: {
-              backgroundColor: 'rgba(204,204,204,0.28)',
-          },
-          headerTintColor: '#489AAB',
-          headerTitleStyle: {
-              fontSize: 20,
-              fontFamily: 'Poppins_600SemiBold'
-          }
-      }} />
-      <Stack.Screen name="SignDocumentRequest" component={SignDocumentRequest} options={{
-          headerShown: true,
-          title: '',
-          headerShadowVisible: false,
-          headerStyle: {
-              backgroundColor: 'rgba(204,204,204,0.28)',
-          },
-          headerTintColor: '#489AAB',
-          headerTitleStyle: {
-              fontSize: 20,
-              fontFamily: 'Poppins_600SemiBold'
-          }
-      }} />
-      <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
-      <Stack.Group screenOptions={{ presentation: 'modal' }}>
-            <Stack.Screen name="Modal" component={ModalScreen} options={{
-                title: 'User Profile',
+            {/*Before login*/}
+            <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
+            <Stack.Screen name="UserEducation" component={UserEducation} options={{ headerShown: false }} />
+            <Stack.Screen name="GetTenants" component={GetTenants} options={{ headerShown: false }} />
+            <Stack.Screen name="ShowTenants" component={ShowTenants} options={{
+                headerShown: true,
+                title: 'Select Organization',
+                headerShadowVisible: false,
                 headerStyle: {
-                    backgroundColor: 'rgba(50,52,146,0.12)',
+                    backgroundColor: 'rgba(204,204,204,0.28)',
                 },
                 headerTintColor: '#489AAB',
-                headerShadowVisible: false
-            }}/>
-        </Stack.Group>
+                headerTitleStyle: {
+                    fontSize: 20,
+                    fontFamily: 'Poppins_600SemiBold'
+                }
+            }} />
+            <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+            <Stack.Screen name="VerifyOTP" component={VerifyOTP} options={{ headerShown: false }} />
+        </Stack.Navigator>
+    )
+}
 
-    </Stack.Navigator>
-  );
+const AuthNavigation = () => {
+    return (
+        <Stack.Navigator initialRouteName="ProfileMain">
+            {/*After login*/}
+
+            <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{ headerShown: false }} />
+            <Stack.Screen name="LoanProducts" component={LoanProducts} options={{ headerShown: false }} />
+            <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
+            <Stack.Screen name="LoanPurpose" component={LoanPurpose} options={{ headerShown: false }} />
+            <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={{ headerShown: false }} />
+            <Stack.Screen name="WitnessesHome" component={WitnessesHome} options={{ headerShown: false }} />
+            <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={{ headerShown: false }} />
+            <Stack.Screen name="LoanRequest" component={LoanRequest} options={{ headerShown: false }} />
+            <Stack.Screen name="SignStatus" component={SignStatus} options={{ headerShown: false }} />
+            <Stack.Screen name="GuarantorshipRequests" component={GuarantorshipRequests} options={{
+                headerShown: true,
+                title: 'Guarantorship Requests',
+                headerShadowVisible: false,
+                headerStyle: {
+                    backgroundColor: 'rgba(204,204,204,0.28)',
+                },
+                headerTintColor: '#489AAB',
+                headerTitleStyle: {
+                    fontSize: 20,
+                    fontFamily: 'Poppins_600SemiBold'
+                }
+            }} />
+            <Stack.Screen name="WitnessRequests" component={WitnessRequests} options={{
+                headerShown: true,
+                title: 'Witness Requests',
+                headerShadowVisible: false,
+                headerStyle: {
+                    backgroundColor: 'rgba(204,204,204,0.28)',
+                },
+                headerTintColor: '#489AAB',
+                headerTitleStyle: {
+                    fontSize: 20,
+                    fontFamily: 'Poppins_600SemiBold'
+                }
+            }} />
+            <Stack.Screen name="GuarantorshipStatus" component={GuarantorshipStatus} options={{
+                headerShown: true,
+                title: '',
+                headerShadowVisible: false,
+                headerStyle: {
+                    backgroundColor: 'rgba(204,204,204,0.28)',
+                },
+                headerTintColor: '#489AAB',
+                headerTitleStyle: {
+                    fontSize: 20,
+                    fontFamily: 'Poppins_600SemiBold'
+                }
+            }} />
+            <Stack.Screen name="WitnessStatus" component={WitnessStatus} options={{
+                headerShown: true,
+                title: '',
+                headerShadowVisible: false,
+                headerStyle: {
+                    backgroundColor: 'rgba(204,204,204,0.28)',
+                },
+                headerTintColor: '#489AAB',
+                headerTitleStyle: {
+                    fontSize: 20,
+                    fontFamily: 'Poppins_600SemiBold'
+                }
+            }} />
+            <Stack.Screen name="FavouriteGuarantors" component={FavouriteGuarantors} options={{
+                headerShown: true,
+                title: 'Favourite Guarantors',
+                headerShadowVisible: false,
+                headerStyle: {
+                    backgroundColor: 'rgba(204,204,204,0.28)',
+                },
+                headerTintColor: '#489AAB',
+                headerTitleStyle: {
+                    fontSize: 20,
+                    fontFamily: 'Poppins_600SemiBold'
+                }
+            }} />
+            <Stack.Screen name="SignDocumentRequest" component={SignDocumentRequest} options={{
+                headerShown: true,
+                title: '',
+                headerShadowVisible: false,
+                headerStyle: {
+                    backgroundColor: 'rgba(204,204,204,0.28)',
+                },
+                headerTintColor: '#489AAB',
+                headerTitleStyle: {
+                    fontSize: 20,
+                    fontFamily: 'Poppins_600SemiBold'
+                }
+            }} />
+            <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
+            <Stack.Group screenOptions={{ presentation: 'modal' }}>
+                <Stack.Screen name="Modal" component={ModalScreen} options={{
+                    title: 'User Profile',
+                    headerStyle: {
+                        backgroundColor: 'rgba(50,52,146,0.12)',
+                    },
+                    headerTintColor: '#489AAB',
+                    headerShadowVisible: false
+                }}/>
+            </Stack.Group>
+        </Stack.Navigator>
+    )
+}
+
+
+function RootNavigator() {
+  const {isLoggedIn} = useSelector((state: { auth: storeState }) => state.auth);
+  return isLoggedIn ? AuthNavigation() : NonAuthNaigation()
 }
 
 /**

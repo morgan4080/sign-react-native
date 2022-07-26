@@ -27,6 +27,7 @@ import {fetchLoanRequest, requestSignURL, storeState} from "../../stores/auth/au
 import {toMoney} from "../User/Account";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
+import {useEffect} from "react";
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
 
@@ -66,10 +67,20 @@ const styles = StyleSheet.create({
 });
 
 const LoanRequest = ({navigation, route}: NavigationProps) => {
-    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, loanRequest } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
-    const loanRequest = route.params;
+    // const loanRequest = route.params;
+    useEffect(() => {
+        let isFetching = true;
+        (async () => {
+            await dispatch(fetchLoanRequest(route.params?.refId))
+        })()
+        return () => {
+            isFetching = false
+        }
+    }, []);
+
     const CSTM = NativeModules.CSTM;
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -130,7 +141,7 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
             );
 
             if (result.type === "dismiss") {
-                const {type, error, payload}: any  = await dispatch(fetchLoanRequest(loanRequest?.refId))
+                const {type, error, payload}: any  = await dispatch(fetchLoanRequest(route.params?.refId))
 
                 if (type === 'fetchLoanRequest/fulfilled') {
                     // if status is signed
@@ -156,8 +167,8 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
         type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
         type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
         const payloadOut: zohoSignPayloadType = {
-            loanRequestRefId: loanRequest?.refId,
-            actorRefId: loanRequest?.memberRefId,
+            loanRequestRefId: route.params?.refId,
+            actorRefId: route.params?.memberRefId,
             actorType:  "APPLICANT"
         }
         console.log("zohoSignPayloadType", payloadOut);

@@ -540,7 +540,8 @@ export const logoutUser = createAsyncThunk('logoutUser', async () => {
         deleteSecureKey('access_token'),
         deleteSecureKey('refresh_token'),
         deleteSecureKey('phone_number'),
-        deleteSecureKey('existing')
+        deleteSecureKey('existing'),
+        deleteSecureKey('fingerPrint')
     ]);
 });
 
@@ -1235,6 +1236,34 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
     }
 })
 
+export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (refId: string) => {
+    try {
+        const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${refId}/sign`
+        const key = await getSecureKey('access_token')
+        if (!key) {
+            setAuthState(false);
+            return Promise.reject(401)
+        }
+        const myHeaders = new Headers();
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: myHeaders
+        });
+        if (response.status === 200) {
+            return Promise.resolve(true);
+        } else if (response.status === 401) {
+            setAuthState(false);
+            return Promise.reject(response.status);
+        } else {
+            return Promise.reject(response.status + ": API Error");
+        }
+    } catch(e: any) {
+        console.log(e.message);
+        return Promise.reject(e.message);
+    }
+})
+
 export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string | undefined, signal: any}) => {
     try {
         const key = await getSecureKey('access_token')
@@ -1304,6 +1333,7 @@ const authSlice = createSlice({
         },
         setAuthState(state, action) {
             state.isLoggedIn = action.payload
+            console.log('is logged in', state.isLoggedIn);
             return state
         }
     },
@@ -1327,6 +1357,16 @@ const authSlice = createSlice({
             state.loading = false
         })
         builder.addCase(fetchMemberDetails.rejected, (state) => {
+            state.loading = false
+        })
+
+        builder.addCase(resubmitForSigning.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(resubmitForSigning.fulfilled, (state, action) => {
+            state.loading = false
+        })
+        builder.addCase(resubmitForSigning.rejected, (state) => {
             state.loading = false
         })
 

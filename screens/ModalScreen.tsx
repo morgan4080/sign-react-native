@@ -288,7 +288,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
           <Text allowFontScaling={false} style={{...styles.subtitle, marginTop: 40}}>Account Settings</Text>
 
           <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 25 }}>
-            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium' }}>Enable Fingerprint Protection</Text>
+            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium' }}>Allow Witness requests</Text>
             <Controller
                 control={control}
                 rules={{

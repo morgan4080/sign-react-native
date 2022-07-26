@@ -12,7 +12,7 @@ import {
     TextInput,
     TouchableOpacity,
     TouchableHighlight,
-    View
+    View, Keyboard
 } from "react-native";
 
 import {Picker} from "@react-native-picker/picker";
@@ -89,6 +89,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
+
+    const scrollViewRef = useRef<any>();
 
     const { loading, tenants, selectedTenantId, user, member, isLoggedIn } = useSelector((state: { auth: storeState }) => state.auth);
 
@@ -462,6 +464,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const [businessPayload, setBusinessPayload] = useState<businessPayloadType>();
 
     const submitSearch = async (ctx: string) => {
+        scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: true });
+
         if (ctx === 'search') {
             if (inputStrategy === 1 && phoneNumber) {
                 // prevent until amount
@@ -575,7 +579,16 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
             if (settings && settings.witness) {
                 navigation.navigate('WitnessesHome', {
-                    guarantors: selectedContacts,
+                    guarantors: selectedContacts.map((cont, i) => {
+                        if (settings.amounts) {
+                            console.log(allGuaranteedAmounts[i])
+                            cont = {
+                                ...cont,
+                                committedAmount: allGuaranteedAmounts[i]
+                            }
+                        }
+                        return cont
+                    }),
                     employerPayload,
                     businessPayload,
                     ...route.params
@@ -583,7 +596,16 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             } else if (settings && !settings.witness) {
                 navigation.navigate('LoanConfirmation', {
                     witnesses: [],
-                    guarantors: selectedContacts,
+                    guarantors: selectedContacts.map((cont, i) => {
+                        if (settings.amounts) {
+                            console.log(allGuaranteedAmounts[i])
+                            cont = {
+                                ...cont,
+                                committedAmount: allGuaranteedAmounts[i]
+                            }
+                        }
+                        return cont
+                    }),
                     employerPayload,
                     businessPayload,
                     ...route.params
@@ -812,7 +834,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                             keyExtractor={item => item.id}
                         />
                         :
-                        <ScrollView contentContainerStyle={{height: 1000}}>
+                        <ScrollView ref={scrollViewRef} contentContainerStyle={{height: 1000}}>
                             { context === "search" &&
                                 <View style={{display: 'flex', alignItems: 'center', width}}>
                                     <Text allowFontScaling={false} style={styles.subtitle}>Search Member</Text>

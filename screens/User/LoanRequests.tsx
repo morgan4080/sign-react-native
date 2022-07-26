@@ -7,7 +7,7 @@ import {
     StyleSheet,
     TouchableOpacity,
     View,
-    Text, NativeModules
+    Text, NativeModules, Animated, Easing
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {AntDesign, Ionicons} from "@expo/vector-icons";
@@ -196,16 +196,38 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
         console.log("zohoSignPayloadType", payloadOut);
     }
 
-    if (fontsLoaded && !loading) {
+    const rotateAnim = useRef(new Animated.Value(0)).current
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.timing(
+                rotateAnim,
+                {
+                    toValue: 1,
+                    duration: 3000,
+                    easing: Easing.linear,
+                    useNativeDriver: true
+                }
+            )
+        ).start();
+    }, [rotateAnim])
+
+    const spin = rotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg']
+    })
+
+    if (fontsLoaded) {
         return (
             <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
                 <View style={styles.container}>
-                    <View style={{flex: 1, alignItems: 'center',}}>
+                    <View style={{flex: 1, alignItems: 'center'}}>
                         <View style={{
                             display: 'flex',
                             flexDirection: 'row',
                             justifyContent: 'flex-start',
                             alignItems: 'center',
+                            position: 'relative',
                             width,
                             height: 1/12 * height
                         }}>
@@ -213,6 +235,21 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                 <AntDesign name="arrowleft" size={24} color="#489AAB" />
                             </TouchableOpacity>
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_700Bold', fontSize: 18 }}>Your Loan Requests</Text>
+                            { loading ?
+                                <Animated.View
+                                    style={{ position: 'absolute', right: 20, top: 20, transform: [{rotate: spin}] }}>
+                                    <TouchableOpacity onPress={() => dispatch(fetchLoanRequest(loan?.refId as string))}>
+                                        <Ionicons name="reload" size={18} color="#489AAB"/>
+                                    </TouchableOpacity>
+                                </Animated.View>
+                                :
+                                <View
+                                    style={{ position: 'absolute', right: 20, top: 20 }}>
+                                    <TouchableOpacity onPress={() => dispatch(fetchLoanRequest(loan?.refId as string))}>
+                                        <Ionicons name="reload" size={18} color="#489AAB"/>
+                                    </TouchableOpacity>
+                                </View>
+                            }
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 11/12 * height }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>

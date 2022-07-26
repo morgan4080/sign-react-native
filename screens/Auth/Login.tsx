@@ -41,6 +41,20 @@ export default function Login({ navigation }: NavigationProps) {
     const { isJWT, tenants, selectedTenantId, isLoggedIn, loading, optVerified } = useSelector((state: { auth: storeState }) => state.auth);
 
     const [otpVerified, setOtpVerified] = useState(undefined);
+    const [fingerPrint, setFingerPrint] = useState<string | null>(null);
+
+    const organisations = [
+        {
+            name: 'Imarisha Sacco',
+            tenantId: 't72767',
+            clientSecret: '238c4949-4c0a-4ef2-a3de-fa39bae8d9ce',
+        },
+        {
+            name: 'Wanaanga Sacco',
+            tenantId: 't74411',
+            clientSecret: '25dd3083-d494-4af5-89a1-104fa02ef782',
+        }
+    ];
 
     (async () => {
         try {
@@ -74,6 +88,8 @@ export default function Login({ navigation }: NavigationProps) {
         let authenticating = true;
         if (authenticating) {
             (async () => {
+                const fP = await getSecureKey('fingerPrint');
+                setFingerPrint(fP);
                 const response = await dispatch(authenticate());
                 if (response.type === 'authenticate/rejected') {
                     return
@@ -93,7 +109,7 @@ export default function Login({ navigation }: NavigationProps) {
         }
     }, []);
 
-    useEffect(() => {
+    /*useEffect(() => {
         let isLoggedInSubscribed = true;
         if (isLoggedIn && isLoggedInSubscribed) {
             (async () => {
@@ -109,7 +125,7 @@ export default function Login({ navigation }: NavigationProps) {
             // cancel the subscription
             isLoggedInSubscribed = false;
         };
-    }, [isLoggedIn]);
+    }, [isLoggedIn]);*/
 
     useEffect(() => {
         (async () => {
@@ -160,7 +176,7 @@ export default function Login({ navigation }: NavigationProps) {
         ])
     }
 
-    const handleBiometricAuth = async () => {
+    const handleBiometricAuth = async (currentTenant?: {name: string, tenantId: string, clientSecret: string}, pin?: string) => {
         // check for support by hardware
         const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
 
@@ -205,7 +221,20 @@ export default function Login({ navigation }: NavigationProps) {
         // log the user in on success
 
         if (biometricAuth && !biometricAuth.hasOwnProperty('error')) {
-            TwoButtonAlert()
+            // Proceed to add your print
+            if (currentTenant && pin && tenant) {
+                await doLogin(currentTenant, pin);
+            } else {
+                const fP = fingerPrint ? JSON.parse(fingerPrint) : null;
+                const currentTenant = organisations.find(org => org.tenantId === tenant?.tenantId);
+                if (currentTenant && fingerPrint && fP && fP.phoneNumber === tenant?.phoneNumber) {
+                    // check in phone number provided is the phone number in secure store
+                    // use the password saved in the secureStore
+                    await doLogin(currentTenant, fP.pin)
+                }
+            }
+
+            return
         }
 
         console.log({isBiometricAvailable})
@@ -225,12 +254,21 @@ export default function Login({ navigation }: NavigationProps) {
                 console.log("activate finger print");
                 if (isBiometricSupported) {
                     // proceed
-                    // check db for biometrics activation and fill pin fields on success
-                    await handleBiometricAuth()
+                    // check secureStore for fingerPrint details
+                    if (fingerPrint) {
+                        await handleBiometricAuth()
+                    } else {
+                        return alertComponent(
+                            'Please Enter your pin',
+                            'Biometrics not activated on this application.',
+                            'Ok',
+                            () => fallBackToDefaultAuth()
+                        );
+                    }
                 } else {
                     return alertComponent(
                         'Please Enter your pin',
-                        'Biometric not supported',
+                        'Biometrics not supported on this application.',
                         'Ok',
                         () => fallBackToDefaultAuth()
                     );
@@ -260,53 +298,75 @@ export default function Login({ navigation }: NavigationProps) {
                         setValue(`pinChar3`, ``)
                         setValue(`pinChar4`, ``)
                     }, 2000);
-                    const organisations = [
-                        {
-                            name: 'Imarisha Sacco',
-                            tenantId: 't72767',
-                            clientSecret: '238c4949-4c0a-4ef2-a3de-fa39bae8d9ce',
-                        },
-                        {
-                            name: 'Wanaanga Sacco',
-                            tenantId: 't74411',
-                            clientSecret: '25dd3083-d494-4af5-89a1-104fa02ef782',
-                        }
-                    ];
-                    const pin = `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`;
                     const currentTenant = organisations.find(org => org.tenantId === tenant?.tenantId);
-                    console.log("the pin", pin);
-                    if (currentTenant && tenant) {
-                        const payload: loginUserType = {
-                            phoneNumber: parseInt(tenant.phoneNumber),
-                            pin,
-                            tenant: tenant.tenantId,
-                            clientSecret: currentTenant.clientSecret,
-                        };
-
-                        try {
-                            const {type, error}: any = await dispatch(loginUser(payload))
-                            if (type === 'loginUser/rejected' && error) {
-                                if (error.message === "Network request failed") {
-                                    CUSTOM.showToast(error.message);
-                                } else {
-                                    setError('phoneNumber', {type: 'custom', message: error.message});
-                                    CUSTOM.showToast(error.message);
+                    if (currentTenant) {
+                        // check if fingerprint exists
+                        const fP = fingerPrint ? JSON.parse(fingerPrint) : null
+                        if (!(fingerPrint && fP && fP.phoneNumber === tenant?.phoneNumber)) {
+                            // ask if fingerprint should be enabled
+                            // save pin/phoneNumber in secureStore fingerPrint
+                            return Alert.alert('Activate Biometrics', 'Proceed to add your print', [
+                                {
+                                    text: 'Cancel',
+                                    onPress: async () => await doLogin(currentTenant, `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`),
+                                    style: 'cancel'
+                                },
+                                {
+                                    text: 'Ok',
+                                    onPress: () => {
+                                        handleBiometricAuth(currentTenant, `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`)
+                                    }
                                 }
-                            } else {
-                                if (otpVerified === 'true') {
-                                    console.log("supposed to go to profile");
-                                    dispatch(setAuthState(true));
-                                } else {
-                                    navigation.navigate('VerifyOTP');
-                                }
-                            }
-                        } catch (e: any) {
-                            console.log('LOGIN ERROR', e);
-                        } finally {
-                            setInputDisabled(false);
+                            ])
+                        } else {
+                            await doLogin(currentTenant, `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`)
                         }
+                        //
+                    } else {
+                        CUSTOM.showToast("Tenant not Supported");
                     }
                 }
+            }
+        }
+    }
+
+    const doLogin = async (currentTenant: {name: string, tenantId: string, clientSecret: string}, pin: string) => {
+        console.log("pin", pin);
+        if (currentTenant && tenant) {
+            const payload: loginUserType = {
+                phoneNumber: parseInt(tenant.phoneNumber),
+                pin,
+                tenant: tenant.tenantId,
+                clientSecret: currentTenant.clientSecret,
+            };
+
+            try {
+                const {type, error}: any = await dispatch(loginUser(payload))
+                if (type === 'loginUser/rejected' && error) {
+                    if (error.message === "Network request failed") {
+                        CUSTOM.showToast(error.message);
+                    } else {
+                        setError('phoneNumber', {type: 'custom', message: error.message});
+                        CUSTOM.showToast(error.message);
+                    }
+                } else {
+                    const payload = {
+                        pin,
+                        phoneNumber: tenant?.phoneNumber
+                    }
+                    saveSecureKey('fingerPrint', JSON.stringify(payload)).then(() => {
+                        if (otpVerified === 'true') {
+                            console.log("supposed to go to profile");
+                            dispatch(setAuthState(true));
+                        } else {
+                            navigation.navigate('VerifyOTP');
+                        }
+                    });
+                }
+            } catch (e: any) {
+                console.log('LOGIN ERROR', e);
+            } finally {
+                setInputDisabled(false);
             }
         }
     }

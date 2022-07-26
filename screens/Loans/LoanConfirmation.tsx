@@ -22,7 +22,7 @@ import {
 } from "@expo-google-fonts/poppins";
 import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
-import {storeState, submitLoanRequest} from "../../stores/auth/authSlice";
+import {resubmitForSigning, storeState, submitLoanRequest} from "../../stores/auth/authSlice";
 import {Ionicons} from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from 'expo-linking';
@@ -118,11 +118,19 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
             return acc;
         }, {});
 
-        const guarantorList = route.params?.guarantors.reduce((acc: {memberNumber: string, memberRefId: string}[], current: { contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string }) => {
-            acc.push({
-                memberNumber: current.memberNumber,
-                memberRefId: current.memberRefId
-            });
+        const guarantorList = route.params?.guarantors.reduce((acc: {memberNumber: string, memberRefId: string, committedAmount?: string}[], current: { contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string, committedAmount?: string }) => {
+            if (current.committedAmount) {
+                acc.push({
+                    memberNumber: current.memberNumber,
+                    memberRefId: current.memberRefId,
+                    committedAmount: current.committedAmount
+                });
+            } else {
+                acc.push({
+                    memberNumber: current.memberNumber,
+                    memberRefId: current.memberRefId
+                });
+            }
             return acc;
         }, []);
 
@@ -191,14 +199,23 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
         const CSTM = NativeModules.CSTM;
 
         try {
-            const response = await dispatch(submitLoanRequest(payload));
+            const response: any = await dispatch(submitLoanRequest(payload));
             if (response.type === 'submitLoanRequest/fulfilled') {
                 const newPayload: any = response.payload
                 if (newPayload) {
                     if (newPayload.hasOwnProperty('pdfThumbNail')) {
                         navigation.navigate('LoanRequest', response.payload)
                     } else {
-                        CSTM.showToast('Loan Request failed');
+                        // resubmit for signing
+                        const refId: any = response.payload.refId
+                        console.log(refId)
+                        const res = await dispatch(resubmitForSigning(refId))
+                        if (res.type === 'resubmitForSigning/fulfilled') {
+                            navigation.navigate('LoanRequest', response.payload)
+                        } else {
+                            console.log(res)
+                            CSTM.showToast('Loan Request resubmit failed');
+                        }
                     }
                 } else {
                     CSTM.showToast('Loan Request failed');
@@ -300,7 +317,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                         {
                             context === "repaymentDisbursement" &&
                             <View style={{display: 'flex', alignItems: 'center', width}}>
-                                <Text allowFontScaling={false} style={[{ paddingHorizontal: 30, marginTop: 20 } ,styles.subtitle]}>Add Disbursement/Repayment Modes</Text>
+                                <Text allowFontScaling={false} style={[{ paddingHorizontal: 30, marginTop: 10 } ,styles.subtitle]}>Add Disbursement/Repayment Modes</Text>
                                 <Text style={{ fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 5, textAlign: 'left', alignSelf: 'flex-start', paddingHorizontal: 30 }} allowFontScaling={false}>Disbursement Mode</Text>
                                 <Controller
                                     control={control}

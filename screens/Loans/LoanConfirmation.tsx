@@ -180,6 +180,9 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                 },
                 loan_type: {
                     value: route.params?.loanProduct.name ? route.params?.loanProduct.name : ""
+                },
+                kra_pin: {
+                    value: route.params?.employerPayload?.kraPin ? route.params?.employerPayload?.kraPin : route.params?.businessPayload?.kraPin ? route.params?.businessPayload?.kraPin : ""
                 }
             },
             "loanProductName": route.params?.loanProduct.name,

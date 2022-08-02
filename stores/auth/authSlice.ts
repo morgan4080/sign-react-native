@@ -1365,6 +1365,7 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
         });
         if (response.status === 200) {
             const data = await response.json();
+
             if (Array.isArray(data)) {
                 return Promise.resolve(data[0])
             } else {

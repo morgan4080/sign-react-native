@@ -56,16 +56,6 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
         }
     }, []);
 
-    useEffect(() => {
-        let fetching = true;
-        if (fetching) {
-            console.log(memberDetails);
-        }
-        return () => {
-            fetching = false;
-        }
-    }, [memberDetails]);
-
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -75,6 +65,8 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
         Poppins_400Regular,
         Poppins_300Light
     });
+
+    // console.log("member details", memberDetails)
 
     if (fontsLoaded && !loading) {
         return (
@@ -101,7 +93,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                     </View>
                                     <View>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>SHARES AMOUNT</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {memberDetails?.totalShares ? toMoney(`${memberDetails?.totalShares}`) : 0}</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {toMoney(`${member?.totalShares}`)}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -112,7 +104,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                                             <Ionicons name="ios-wallet-outline" size={40} color="#ffffff" />
                                             <View style={{paddingLeft: 10}}>
-                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {member ? memberDetails?.totalDeposits ? toMoney(`${memberDetails?.totalDeposits}`) : `0` : `0`}</Text>
+                                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>KES {toMoney(`${member?.totalDeposits}`)}</Text>
                                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#ffffff', fontSize: 10, maxWidth: 80 }}>Available for guarantee</Text>
                                             </View>
                                         </View>

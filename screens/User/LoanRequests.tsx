@@ -32,6 +32,7 @@ import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../component
 import {Bar as ProgressBar} from "react-native-progress";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import * as WebBrowser from "expo-web-browser";
+import {getSecureKey} from "../../utils/secureStore";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -300,9 +301,9 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                     You are yet to sign the applicant form. Click on sign below to begin.
                                 </Text>
                                 <TouchableOpacity style={{marginTop: 5}} onPress={() => signDocument()}>
-                                    <Text allowFontScaling={false}
-                                          style={{fontFamily: 'Poppins_500Medium', color: '#489AAB', fontSize: 12}}>Sign
-                                        Applicant Form</Text>
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#489AAB', fontSize: 12, textDecorationLine: 'underline'}}>
+                                        Sign Applicant Form
+                                    </Text>
                                 </TouchableOpacity>
                             </View>
                         }

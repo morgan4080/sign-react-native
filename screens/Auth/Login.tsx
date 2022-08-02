@@ -134,6 +134,22 @@ export default function Login({ navigation }: NavigationProps) {
         })()
     });
 
+    useEffect(() => {
+        let launching = true;
+
+        if (isBiometricSupported && launching) {
+            if (fingerPrint) {
+                (async () => {
+                    await handleBiometricAuth()
+                })()
+            }
+        }
+
+        return () => {
+            launching = false;
+        }
+    }, [isBiometricSupported, fingerPrint])
+
     const {
         control,
         setError,

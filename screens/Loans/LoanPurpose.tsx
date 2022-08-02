@@ -27,10 +27,8 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import {CircleSnail as ProgressCircleSnail  } from 'react-native-progress';
 import {useEffect, useState} from "react";
 import LoanPurposeTile from './Components/LoanPurposeTile'
-import {getSecureKey} from "../../utils/secureStore";
 import {RotateView} from "../Auth/VerifyOTP";
 
 type NavigationProps = NativeStackScreenProps<any>
@@ -143,7 +141,7 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
     } else {
         return (
             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-                <ProgressCircleSnail size={50} color={['green', 'blue']} />
+                <RotateView/>
             </View>
         )
     }

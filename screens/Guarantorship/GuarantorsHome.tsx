@@ -27,11 +27,11 @@ import {useDispatch, useSelector} from "react-redux";
 
 import {
     authenticate,
-    getContactsFromDB,
+    getContactsFromDB, getUserFromDB, saveUser,
     searchByMemberNo,
     searchContactsInDB,
     setLoading,
-    storeState,
+    storeState, updateUser,
     validateGuarantorship,
     validateNumber
 } from "../../stores/auth/authSlice";
@@ -107,15 +107,69 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const [to, setTo] = useState(30);
 
     const [employerDetailsEnabled, setEmployerDetailsEnabled] = useState(false);
+    const [dbUser, setDbUser] = useState(false);
+    const [DBUser, setDBUser] = useState<{id: number, kraPin: string, employed: number, businessOwner: number, employerName: any, serviceNumber: any, grossSalary: any, netSalary: any, businessType: any, businessLocation: any}[]>([]);
 
     const [memberSearching, setMemberSearching] = useState<boolean>(false);
 
     const [context, setContext] = useState<string>("");
 
+    const [employerPayload, setEmployerPayload] = useState<employerPayloadType>();
+
+    const [businessPayload, setBusinessPayload] = useState<businessPayloadType>();
+
+    useEffect(() => {
+        (async() => {
+            try {
+                const {type, payload}: any = await dispatch(getUserFromDB({setDBUser}));
+
+                if (type === 'getUserFromDB/fulfilled') {
+                    console.log(payload);
+                    if (payload && payload.length > 0) {
+                        setDbUser(true)
+                        setValue("employerName", `${payload[0].employerName}`)
+                        setValue("serviceNo", `${payload[0].serviceNumber}`)
+                        setValue("grossSalary", `${payload[0].grossSalary}`)
+                        setValue("netSalary", `${payload[0].netSalary}`)
+                        setValue("kraPin", `${payload[0].kraPin}`)
+                        setValue("businessLocation", `${payload[0].businessLocation}`)
+                        setValue("businessType", `${payload[0].businessType}`)
+
+                        if (payload[0].businessOwner === 1) {
+                            let bsPayload = {
+                                businessLocation: payload[0].businessLocation,
+                                businessType: payload[0].businessType,
+                                kraPin: payload[0].kraPin
+                            }
+
+                            setBusinessPayload(bsPayload)
+                        }
+
+                        if (payload[0].employed === 1) {
+                            let emPayload = {
+                                employerName: payload[0].employerName,
+                                serviceNo: payload[0].serviceNumber,
+                                grossSalary: payload[0].grossSalary,
+                                netSalary: payload[0].netSalary,
+                                kraPin: payload[0].kraPin,
+                            }
+                            setEmployerPayload(emPayload)
+                        }
+
+                    } else {
+                        setDbUser(false)
+                    }
+                }
+            } catch (e) {
+                console.log(e)
+            }
+        })()
+    }, []);
+
     useEffect(() => {
         let syncContacts = true;
         (async () => {
-            await dispatch(getContactsFromDB({setContacts, from, to}));
+            await dispatch(getContactsFromDB({setContacts, from, to}))
         })()
         return () => {
             dispatch(setLoading(false));
@@ -301,8 +355,9 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             if (settings && settings.guarantors === 'value' && settings.amounts) {
                 if (press) {
                     setCurrentGuarantor(contact2Add);
-                    onPress('amount')
+                    onPress('amount');
                 } else {
+                    setCurrentGuarantor(contact2Add);
                     setContext('amount');
                 }
 
@@ -459,21 +514,14 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         businessType: string | undefined;
         kraPin: string | undefined;
     }
-    const [employerPayload, setEmployerPayload] = useState<employerPayloadType>();
-
-    const [businessPayload, setBusinessPayload] = useState<businessPayloadType>();
 
     const submitSearch = async (ctx: string) => {
         scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: true });
 
         if (ctx === 'search') {
             if (inputStrategy === 1 && phoneNumber) {
-                // prevent until amount
-
                 await addToSelected(phoneNumber.toString());
-
             } else if (inputStrategy === 0 && memberNumber) {
-                // prevent until amount
                 await addToSelected(`${memberNumber}`);
             }
 
@@ -483,22 +531,87 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         if (ctx === 'employment') {
             if (tab === 0) {
                 // set payload for employer
-                let payload = {
+                let payloadCode = {
                     employerName,
                     serviceNo,
                     grossSalary,
                     netSalary,
                     kraPin
                 };
-                setEmployerPayload(payload);
+                let dbPayload: {id: number, kraPin: string, employed: number, businessOwner: number, employerName: string | null, serviceNumber: string | null, grossSalary: number | null, netSalary: number | null, businessType: string | null, businessLocation: string | null} = {
+                    id: 1,
+                    kraPin: kraPin as string,
+                    employed: 1,
+                    businessOwner: 0,
+                    employerName: employerName ? employerName as string : null,
+                    serviceNumber: serviceNo ? serviceNo as string : null,
+                    grossSalary: grossSalary ? parseInt(grossSalary) : null,
+                    netSalary: netSalary ? parseInt(netSalary) : null,
+                    businessType: null,
+                    businessLocation: null
+                }
+                console.log(dbPayload)
+                if (dbUser) {
+                    const statement = `UPDATE user SET kraPin = '${dbPayload.kraPin}', employed = '${dbPayload.employed}', businessOwner = '${dbPayload.businessOwner}', employerName = '${dbPayload.employerName}', serviceNumber = '${dbPayload.serviceNumber}', grossSalary = '${dbPayload.grossSalary}', netSalary = '${dbPayload.netSalary}', businessType = '${dbPayload.businessType}', businessLocation = '${dbPayload.businessLocation}' WHERE id = ${dbPayload.id};`;
+
+                    const {type, payload} = await dispatch(updateUser(statement))
+
+                    if (type === 'updateUser/fulfilled') {
+                        setEmployerPayload(payloadCode)
+                    } else {
+                        console.log("submitSearch", payload)
+                    }
+
+                } else {
+                    const {type, payload} = await dispatch(saveUser(dbPayload))
+
+                    if (type === 'saveUser/fulfilled') {
+                        setEmployerPayload(payloadCode)
+                    } else {
+                        console.log("submitSearch", payload)
+                    }
+                }
+
             } else if (tab === 1) {
                 // set payload for business
-                let payload = {
+                let payloadCode = {
                     businessLocation,
                     businessType,
                     kraPin
                 };
-                setBusinessPayload(payload);
+                let dbPayload: {id: number, kraPin: string, employed: number, businessOwner: number, employerName: string | null, serviceNumber: string | null, grossSalary: number | null, netSalary: number | null, businessType: string | null, businessLocation: string | null} = {
+                    id: 1,
+                    kraPin: kraPin as string,
+                    employed: 1,
+                    businessOwner: 0,
+                    employerName: employerName ? employerName as string : null,
+                    serviceNumber: serviceNo ? serviceNo as string : null,
+                    grossSalary: grossSalary ? parseInt(grossSalary) : null,
+                    netSalary: netSalary ? parseInt(netSalary) : null,
+                    businessType: businessType ? businessType : null,
+                    businessLocation: businessLocation ? businessLocation : null
+                }
+                console.log(dbPayload)
+
+                if (dbUser) {
+                    const statement = `UPDATE user SET kraPin = '${dbPayload.kraPin}', employed = '${dbPayload.employed}', businessOwner = '${dbPayload.businessOwner}', employerName = '${dbPayload.employerName}', serviceNumber = '${dbPayload.serviceNumber}', grossSalary = '${dbPayload.grossSalary}', netSalary = '${dbPayload.netSalary}', businessType = '${dbPayload.businessType}', businessLocation = '${dbPayload.businessLocation}' WHERE id = ${dbPayload.id};`;
+
+                    const {type, payload} = await dispatch(updateUser(statement))
+
+                    if (type === 'updateUser/fulfilled') {
+                        setBusinessPayload(payloadCode);
+                    } else {
+                        console.log("submitSearch", payload)
+                    }
+
+                } else {
+                    const {type, payload} = await dispatch(saveUser(dbPayload))
+                    if (type === 'saveUser/fulfilled') {
+                        setBusinessPayload(payloadCode);
+                    } else {
+                        console.log("submitSearch", payload)
+                    }
+                }
             }
             onPress(ctx);
 
@@ -536,6 +649,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 setValue('memberNumber', '');
                 setMemberSearching(false);
             } else {
+                console.log(payload);
                 CSTM.showToast(`Member Cannot Guarantee This Amount`);
             }
             return
@@ -552,6 +666,11 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 const response = await dispatch(authenticate());
                 if (response.type === 'authenticate/rejected') {
                     navigation.navigate('GetTenants')
+                } else {
+                    if (settings && !settings.selfGuarantee) {
+                        const newOptions = guarantorshipOptions.filter(option => option.context !== "self-guarantee");
+                        setGuarantorshipOptions(newOptions);
+                    }
                 }
             })()
         }
@@ -571,7 +690,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const navigateUser = async () => {
         if (member && route.params && route.params.loanProduct && route.params.loanDetails && selectedContacts.length > 0) {
-            if (settings && settings.employerInfo  && !(employerPayload || businessPayload)) {
+            if (settings && settings.employerInfo  && !(employerPayload || businessPayload) && DBUser.length === 0) {
                 setEmployerDetailsEnabled(true);
                 onPress("employment");
                 return;
@@ -636,17 +755,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             icon: "self-improvement"
         }
     ]);
-
-    useEffect(() => {
-        if (settings && settings.employerInfo) {
-            toggleEmployerDetailsEnabled();
-            setTimeout(() => onPress('employment'), 1000);
-        }
-        if (settings && !settings.selfGuarantee) {
-            const newOptions = guarantorshipOptions.filter(option => option.context !== "self-guarantee");
-            setGuarantorshipOptions(newOptions);
-        }
-    }, []);
 
     const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
         <TouchableOpacity onPress={onPress} style={[styles.option, backgroundColor]}>
@@ -742,7 +850,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     }}>
                         <View style={{paddingHorizontal: 20, marginBottom: 5}}>
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 16 }}>
-                                Add Guarantors ({route.params?.loanProduct.requiredGuarantors} Required)
+                                Add Guarantors ({route.params?.loanProduct.requiredGuarantors} Required) {dbUser}
                             </Text>
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12 }}>
                                 Loan: {toMoney(route.params?.loanDetails.desiredAmount)} KSH - Guaranteed: {toMoney(calculateGuarantorship(route.params?.loanDetails.desiredAmount))}
@@ -799,7 +907,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                             }} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/3, height: 35, borderRadius: 50 }}>
                                 <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                                     <Ionicons name="options-outline" size={16} color="white" />
-                                    <Text allowFontScaling={false} style={styles.buttonText0}>Options</Text>
+                                    <Text allowFontScaling={false} style={styles.buttonText0}>OPTIONS</Text>
                                 </View>
                             </TouchableHighlight>
                         </View>
@@ -821,7 +929,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             </View>
             <BottomSheet ref={ref}>
                 <SafeAreaView style={{display: 'flex', position: 'relative', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
-                    <TouchableOpacity style={{position: 'absolute', top: -25, right: 12}} onPress={() => {
+                    <TouchableOpacity style={{position: 'absolute', top: -25, right: 12, width: 20, height: 20}} onPress={() => {
                         setEmployerDetailsEnabled(false);
                         onPress('options');
                     }}>
@@ -1088,7 +1196,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                 </View>
                             }
                             <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                                <TouchableOpacity disabled={!memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                                <TouchableOpacity disabled={ !memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                     {loading && <RotateView/>}
                                     <Text allowFontScaling={false} style={styles.buttonText}>{context === 'search' ? 'Search' : 'Submit'}</Text>
                                 </TouchableOpacity>

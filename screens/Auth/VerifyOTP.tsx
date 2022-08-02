@@ -21,6 +21,7 @@ import {useEffect, useRef, useState} from "react";
 // import types
 import { storeState } from "../../stores/auth/authSlice"
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
+import {Fontisto, Ionicons} from "@expo/vector-icons";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -56,9 +57,9 @@ export const RotateView = () => {
     })
 
     return (
-        <Animated.Image
-            style={{transform: [{rotate: spin}] }}
-            source={require('../../assets/images/OTPloader.png')} />
+        <Animated.View style={{transform: [{rotate: spin}] }}>
+            <Fontisto name="spinner" size={24} color="#489AAB" />
+        </Animated.View>
     );
 }
 

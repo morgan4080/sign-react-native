@@ -54,8 +54,8 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
         formState: { errors }
     } = useForm<FormData>();
 
-    const [disbursement_mode, set_disbursement_mode] = useState<string>();
-    const [repayment_mode, set_repayment_mode] = useState<string>();
+    const [disbursement_mode, set_disbursement_mode] = useState<string>('Cheque');
+    const [repayment_mode, set_repayment_mode] = useState<string>('Checkoff');
     const [context, setContext] = useState<string>("");
 
     useEffect(() => {
@@ -64,12 +64,12 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                 switch (name) {
                     case 'disbursement_mode':
                         if (type === 'change') {
-                            set_disbursement_mode(value.disbursement_mode)
+                            set_disbursement_mode(`${value.disbursement_mode}`)
                         }
                         break;
                     case 'repayment_mode':
                         if (type === 'change') {
-                            set_repayment_mode(value.repayment_mode)
+                            set_repayment_mode(`${value.repayment_mode}`)
                         }
                         break;
                 }
@@ -83,20 +83,6 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
     const settings = configuration.find(config => config.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
 
     const ref = useRef<BottomSheetRefProps>(null);
-
-    const onPress = useCallback(async (ctx: string) => {
-        if (settings && settings.repaymentDisbursementModes) {
-            setContext(ctx)
-            const isActive = ref?.current?.isActive();
-            if (isActive) {
-                ref?.current?.scrollTo(0);
-            } else {
-                ref?.current?.scrollTo(MAX_TRANSLATE_Y);
-            }
-        } else {
-            await makeLoanRequest()
-        }
-    }, []);
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -133,14 +119,32 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
             }
             return acc;
         }, []);
+        let loan_purpose_2: string[] = []
+
+        let loan_purpose_3: string[] = []
+
+        route.params?.category.options.map((op: any) => {
+            if (op.selected) {
+                op.options.map((o: any) => {
+                    if (o.selected) {
+                        return loan_purpose_3.push(o.name)
+                    }
+                })
+
+                loan_purpose_2.push(op.name)
+            }
+        })
 
         const payload = {
             "details": {
-                loan_purpose: {
-                    value: '' // loan purpose name
+                loan_purpose_1: {
+                    value: route.params?.category.name
                 },
-                purposeOneOfLoan: {
-                    value: '' // loan purpose one
+                loan_purpose_2: {
+                    value: loan_purpose_2.length > 0 ? loan_purpose_2[0] : ''
+                },
+                loan_purpose_3: {
+                    value: loan_purpose_3.length > 0 ? loan_purpose_3[0] : ''
                 },
                 loanPurposeCode: {
                     value: code.code
@@ -232,6 +236,20 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
             CSTM.showToast('Loan Request failed');
         }
     }
+
+    const onPress = useCallback(async (ctx: string) => {
+        if (settings && settings.repaymentDisbursementModes) {
+            setContext(ctx)
+            const isActive = ref?.current?.isActive();
+            if (isActive) {
+                ref?.current?.scrollTo(0);
+            } else {
+                ref?.current?.scrollTo(MAX_TRANSLATE_Y);
+            }
+        } else {
+            await makeLoanRequest()
+        }
+    }, []);
 
     const submitModes = async () => {
         // set modes

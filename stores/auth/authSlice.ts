@@ -287,6 +287,26 @@ export const initializeDB = createAsyncThunk('initializeDB', async (): Promise<a
                     }
                 )
 
+                tx.executeSql(`delete from user`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully deleted user')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('delete user error', error.message)
+                    }
+                )
+
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS user (id integer primary key, kraPin text not null, employed integer not null, businessOwner integer not null, employerName text default null, serviceNumber text default null, grossSalary integer default null, netSalary integer default null, businessType text default null, businessLocation text default null)`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully created user')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create user error', error.message)
+                    }
+                )
+
                 tx.executeSql(`CREATE TABLE IF NOT EXISTS groups ( group_id integer constraint groups_pk primary key autoincrement, name text not null)`, undefined,
                     (txObj: SQLTransaction, resultSet: SQLResultSet) => {
                         console.log('successfully created groups')
@@ -415,6 +435,32 @@ export const validateGuarantorship = createAsyncThunk('validateGuarantorship', a
     }
 });
 
+type userPayloadType = {id: number, kraPin: string, employed: number, businessOwner: number, employerName: any, serviceNumber: any, grossSalary: any, netSalary: any, businessType: any, businessLocation: any}
+
+export const saveUser = createAsyncThunk('saveUser', async (payload: userPayloadType) => {
+    try {
+        const {id, kraPin, employed, businessOwner, employerName, serviceNumber, grossSalary, netSalary, businessType, businessLocation} = payload
+        const contacts2D = await fetchContactsFromPB()
+
+        db.transaction((tx: SQLTransaction) => {
+            tx.executeSql('INSERT INTO user (id, kraPin, employed, businessOwner, employerName, serviceNumber, grossSalary, netSalary, businessType, businessLocation) values (?, ?, ?, ? , ?, ?, ?, ?, ?, ?)', [id, kraPin, employed, businessOwner, employerName, serviceNumber, grossSalary, netSalary, businessType, businessLocation],
+                // success callback which sends two things Transaction object and ResultSet Object
+                (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                    console.log("user written", resultSet.insertId)
+                    return Promise.resolve("user written")
+                },
+                // failure callback which sends two things Transaction object and Error
+                (txObj: SQLTransaction, error: SQLError): any => {
+                    console.log("user error",error.message);
+                    return Promise.reject(error.message)
+                }
+            )
+        })
+    } catch(e: any) {
+        return Promise.reject(e)
+    }
+})
+
 export const saveContactsToDb = createAsyncThunk('saveContactsToDb', async() => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -443,6 +489,26 @@ export const saveContactsToDb = createAsyncThunk('saveContactsToDb', async() => 
     })
 })
 
+export const updateUser = createAsyncThunk('updateUser', async (sql: string) => {
+    return new Promise((resolve, reject) => {
+        db.transaction((tx: any) => {
+            tx.executeSql(`${sql}`, undefined,
+                // success callback which sends two things Transaction object and ResultSet Object
+                (txObj: SQLTransaction, { rows: { _array } } : Pick<SQLResultSet, "rows">) => {
+                    let result: any = _array
+                    console.log(_array)
+                    resolve(result)
+                },
+                // failure callback which sends two things Transaction object and Error
+                (txObj: SQLTransaction, error: SQLError): any => {
+                    console.log('error updating', error.message);
+                    reject(error.message)
+                }
+            ) // end executeSQL
+        })
+    })
+})
+
 export const updateContact = createAsyncThunk('updateContact', async (sql: string) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
@@ -463,10 +529,30 @@ export const updateContact = createAsyncThunk('updateContact', async (sql: strin
     })
 })
 
+export const getUserFromDB = createAsyncThunk('getUserFromDB', async ({setDBUser}: {setDBUser: any}) => {
+    return new Promise((resolve, reject) => {
+        db.transaction((tx: any) => {
+            tx.executeSql(`SELECT * FROM user`, undefined,
+                // success callback which sends two things Transaction object and ResultSet Object
+                (txObj: any, { rows: { _array } } : any) => {
+                console.log("from user", _array)
+                    setDBUser(_array)
+                    resolve(_array)
+                },
+                // failure callback which sends two things Transaction object and Error
+                (txObj:any, error: any) => {
+                    console.log('getUserFromDB error')
+                    reject(error)
+                }
+            ) // end executeSQL
+        })
+    })
+})
+
 export const getContactsFromDB = createAsyncThunk('getContactsFromDB', async ({setContacts, from, to}: {setContacts: any, from: number, to: number}) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '100'`, undefined,
+            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '30'`, undefined,
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: any, { rows: { _array } } : any) => {
                     setContacts(_array)
@@ -887,10 +973,6 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
                        buffer = chars.indexOf(buffer);
                    }
                    const { phoneNumber }: { phoneNumber?: string } = JSON.parse(output);
-                   console.log("user data", {
-                       ...data,
-                       phoneNumber
-                   });
                    resolve({
                        ...data,
                        phoneNumber
@@ -1367,6 +1449,16 @@ const authSlice = createSlice({
             state.loading = false
         })
         builder.addCase(resubmitForSigning.rejected, (state) => {
+            state.loading = false
+        })
+
+        builder.addCase(saveUser.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(saveUser.fulfilled, (state, action) => {
+            state.loading = false
+        })
+        builder.addCase(saveUser.rejected, (state) => {
             state.loading = false
         })
 

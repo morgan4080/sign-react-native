@@ -19,7 +19,7 @@ const config = () => {
             employerInfo: false,
             guarantors: 'count',
             witness: true,
-            repaymentDisbursementModes: false,
+            repaymentDisbursementModes: true,
             amounts: false,
             selfGuarantee: false
         },

@@ -82,18 +82,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
         }
     }, []);
 
-    useEffect(() => {
-        let isLoggedInSubscribed = true;
-        if (isLoggedIn) {
-            (async () => {
-                navigation.navigate('ProfileMain')
-            })()
-        }
-        return () => {
-            // cancel the subscription
-            isLoggedInSubscribed = false;
-        };
-    }, [isLoggedIn]);
+    const [phn, setPhn] = useState('')
 
     useEffect(() => {
         let tenantsFetched = true;
@@ -113,12 +102,31 @@ const GetTenants = ({ navigation }: NavigationProps) => {
         control,
         handleSubmit,
         setError,
+        setValue,
         formState: { errors }
     } = useForm<FormData>({
         defaultValues: {
-            phoneNumber: '',
+            phoneNumber: phn,
         }
     })
+
+    useEffect(() => {
+        let isLoggedInSubscribed = true;
+
+        (async () => {
+            if (isLoggedIn) {
+                navigation.navigate('ProfileMain')
+            } else {
+                const ph = await getSecureKey('phone_number')
+                setValue('phoneNumber', ph)
+                setPhn(ph)
+            }
+        })()
+        return () => {
+            // cancel the subscription
+            isLoggedInSubscribed = false;
+        };
+    }, [isLoggedIn]);
 
     const onSubmit = async (value: any): Promise<void> => {
         if (value) {

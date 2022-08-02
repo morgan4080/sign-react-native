@@ -9,9 +9,10 @@ import {
   SafeAreaView,
   ScrollView,
   StatusBar as Bar,
-  NativeModules
+  NativeModules,
+  Image, Button
 } from 'react-native';
-import { Camera } from 'expo-camera';
+import {Camera, CameraCapturedPicture} from 'expo-camera';
 import { Text, View } from 'react-native';
 import {editMember, logoutUser, storeState} from "../stores/auth/authSlice";
 import {
@@ -28,7 +29,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {store} from "../stores/store";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
 import {Controller, useForm} from "react-hook-form";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RotateView} from "./Auth/VerifyOTP";
 
@@ -86,11 +87,6 @@ export default function ModalScreen({ navigation }: NavigationProps) {
       authCheck = false
     }
   }, [isLoggedIn]);
-
-  const getPic = () => {
-    // console.log("pull up camera")
-
-  }
 
   const {
     control,
@@ -174,194 +170,231 @@ export default function ModalScreen({ navigation }: NavigationProps) {
       console.log(e.message)
     }
   };
+  const [photo, setPhoto] = useState<any>()
+  const [takingPhoto, setTakingPhoto] = useState<boolean>(false)
 
-  return (
-    <View style={styles.container}>
-      <View style={{ position: 'absolute', top: -190, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 15, width: width, height: 200 }} />
-      <View style={{ position: 'absolute', left: -100, top: '25%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-      <View style={{ position: 'absolute', right: -80, top: '32%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
-      <TouchableOpacity onPress={() => getPic()} style={styles.userPicBtn}>
-        <MaterialCommunityIcons name="account" color="#FFFFFF" size={100}/>
-        <View style={{ position: 'absolute', left: '90%', bottom: 10, backgroundColor: '#336DFF', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100 }}>
-          <MaterialCommunityIcons name="camera" color="#FFFFFF" size={20} />
+  const cameraRef = useRef<any>()
+
+  const takePic = async () => {
+      setTakingPhoto(true)
+  }
+
+  if (takingPhoto) {
+    return (
+        <Camera ratio="16:9" type='front' style={{...styles.container, width, height}} ref={cameraRef}>
+          <View style={{position: 'absolute', bottom: 20, width, display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+            <TouchableOpacity
+              onPress={() => {
+                let options = {
+                  quality: 1,
+                  base64: true,
+                  exif: false
+                }
+
+                cameraRef.current.takePictureAsync(options).then((newPhoto: CameraCapturedPicture) => {
+                  setPhoto(newPhoto);
+                  setTakingPhoto(false);
+                })
+              }}
+              accessibilityLabel="Take Selfie"
+              style={{backgroundColor: '#FFFFFF', width: 75, height: 75, borderRadius: 50}}
+            />
+          </View>
+        </Camera>
+    );
+  } else {
+    return (
+        <View style={styles.container}>
+          <View style={{position: 'absolute', top: -190, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 15, width: width, height: 200}} />
+          <View style={{position: 'absolute', left: -100, top: '25%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200}} />
+          <View style={{position: 'absolute', right: -80, top: '32%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150}} />
+          {photo ? <TouchableOpacity onPress={() => takePic()} style={{...styles.userPicBtn, overflow: 'hidden'}}>
+            <Image style={{width: 108, height: 108, borderRadius: 50}} source={{ uri: "data:image/jpg;base64," + photo?.base64 }} />
+          </TouchableOpacity>
+          :
+          <TouchableOpacity onPress={() => takePic()} style={styles.userPicBtn}>
+            <MaterialCommunityIcons name="account" color="#FFFFFF" size={100}/>
+            <View style={{position: 'absolute', left: '90%', bottom: 10, backgroundColor: '#336DFF', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100}}>
+              <MaterialCommunityIcons name="camera" color="#FFFFFF" size={20} />
+            </View>
+          </TouchableOpacity>}
+          <Text allowFontScaling={false} style={styles.titleText}>{`${member?.fullName}`}</Text>
+          <Text allowFontScaling={false} style={styles.subTitleText}>{`Member NO: ${member?.memberNumber}`}</Text>
+          <Text allowFontScaling={false} style={styles.organisationText}>{`${user?.companyName}`}</Text>
+          <SafeAreaView style={{flex: 1, backgroundColor: '#ffffff', marginTop: 30, borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width-20, height: height/2}}>
+            <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', paddingBottom: 50}}>
+              <Text allowFontScaling={false} style={styles.subtitle}>Edit Profile</Text>
+              <Controller
+                  control={control}
+                  rules={{
+                    required: true,
+                  }}
+                  render={( {field: {onChange, onBlur, value}}) => (
+                      <TextInput
+                          allowFontScaling={false}
+                          style={styles.input}
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          value={value}
+                          placeholder="First Name"
+                      />
+                  )}
+                  name="firstName"
+              />
+              <Controller
+                  control={control}
+                  rules={{
+                    required: true,
+                  }}
+                  render={( {field: {onChange, onBlur, value}}) => (
+                      <TextInput
+                          allowFontScaling={false}
+                          style={styles.input}
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          value={value}
+                          placeholder="Last Name"
+                      />
+                  )}
+                  name="lastName"
+              />
+              <Controller
+                  control={control}
+                  rules={{
+                    required: true,
+                  }}
+                  render={( {field: {onChange, onBlur, value}}) => (
+                      <TextInput
+                          allowFontScaling={false}
+                          style={styles.input}
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          value={value}
+                          placeholder="Phone Number"
+                      />
+                  )}
+                  name="phoneNumber"
+              />
+              <Controller
+                  control={control}
+                  rules={{
+                    required: true,
+                  }}
+                  render={( {field: {onChange, onBlur, value}}) => (
+                      <TextInput
+                          allowFontScaling={false}
+                          style={styles.input}
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          value={value}
+                          placeholder="ID Number"
+                      />
+                  )}
+                  name="idNumber"
+              />
+              <Controller
+                  control={control}
+                  rules={{
+                    required: true,
+                  }}
+                  render={( {field: {onChange, onBlur, value}}) => (
+                      <TextInput
+                          allowFontScaling={false}
+                          style={styles.input}
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          value={value}
+                          placeholder="Email"
+                      />
+                  )}
+                  name="email"
+              />
+
+              <View style={{backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 15}}>
+                <TouchableOpacity onPress={() => onSubmit()} style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: loading ? '#CCCCCC' : '#336DFF', width: width-90, paddingHorizontal: 15, paddingVertical: 10, borderRadius: 25, marginVertical: 10}}>
+                  {loading && <RotateView/>}
+                  <Text allowFontScaling={false} style={styles.buttonText}>Submit</Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text allowFontScaling={false} style={{...styles.subtitle, marginTop: 40}}>Account Settings</Text>
+
+              <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 25}}>
+                <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Allow Witness requests</Text>
+                <Controller
+                    control={control}
+                    rules={{
+                      required: true,
+                    }}
+                    render={( {field: {onChange, onBlur, value}}) => (
+                        <Switch
+                            trackColor={{false: "#767577", true: "#489AAB"}}
+                            thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
+                            onValueChange={toggleSwitch}
+                            value={isEnabled}
+                        />
+                    )}
+                    name="fingerPrint"
+                />
+              </View>
+
+              <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 20}}>
+                <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Allow Guarantorship requests</Text>
+                <Controller
+                    control={control}
+                    rules={{
+                      required: true,
+                    }}
+                    render={( {field: {onChange, onBlur, value}}) => (
+                        <Switch
+                            trackColor={{false: "#767577", true: "#489AAB"}}
+                            thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
+                            onValueChange={toggleSwitch}
+                            value={isEnabled}
+                        />
+                    )}
+                    name="fingerPrint"
+                />
+              </View>
+
+              <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 20}}>
+                <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Enable push notifications</Text>
+                <Controller
+                    control={control}
+                    rules={{
+                      required: true,
+                    }}
+                    render={( {field: {onChange, onBlur, value}}) => (
+                        <Switch
+                            trackColor={{false: "#767577", true: "#489AAB"}}
+                            thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
+                            onValueChange={toggleSwitch}
+                            value={isEnabled}
+                        />
+                    )}
+                    name="fingerPrint"
+                />
+              </View>
+
+              <TouchableOpacity onPress={() => console.log('navigate to change pin')} style={styles.helpLink}>
+                <Text allowFontScaling={false} style={{fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium'}} >
+                  Change your pin
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={async () => await dispatch(logoutUser())} style={styles.helpLink}>
+                <Text allowFontScaling={false} style={{fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium'}} >
+                  Log Out
+                </Text>
+              </TouchableOpacity>
+
+            </ScrollView>
+          </SafeAreaView>
+          {/* Use a light status bar on iOS to account for the black space above the modal */}
+          <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
         </View>
-      </TouchableOpacity>
-      <Text allowFontScaling={false} style={styles.titleText}>{ `${ member?.fullName }` }</Text>
-      <Text allowFontScaling={false} style={styles.subTitleText}>{ `Member NO: ${member?.memberNumber}` }</Text>
-      <Text allowFontScaling={false} style={styles.organisationText}>{ `${user?.companyName}` }</Text>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', marginTop: 30, borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width-20, height: height/2 }}>
-        <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center', paddingBottom: 50 }}>
-          <Text allowFontScaling={false} style={styles.subtitle}>Edit Profile</Text>
-          <Controller
-              control={control}
-              rules={{
-                required: true,
-              }}
-              render={( { field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                      allowFontScaling={false}
-                      style={styles.input}
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value}
-                      placeholder="First Name"
-                  />
-              )}
-              name="firstName"
-          />
-          <Controller
-              control={control}
-              rules={{
-                required: true,
-              }}
-              render={( { field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                      allowFontScaling={false}
-                      style={styles.input}
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value}
-                      placeholder="Last Name"
-                  />
-              )}
-              name="lastName"
-          />
-          <Controller
-              control={control}
-              rules={{
-                required: true,
-              }}
-              render={( { field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                      allowFontScaling={false}
-                      style={styles.input}
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value}
-                      placeholder="Phone Number"
-                  />
-              )}
-              name="phoneNumber"
-          />
-          <Controller
-              control={control}
-              rules={{
-                required: true,
-              }}
-              render={( { field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                      allowFontScaling={false}
-                      style={styles.input}
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value}
-                      placeholder="ID Number"
-                  />
-              )}
-              name="idNumber"
-          />
-          <Controller
-              control={control}
-              rules={{
-                required: true,
-              }}
-              render={( { field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                      allowFontScaling={false}
-                      style={styles.input}
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value}
-                      placeholder="Email"
-                  />
-              )}
-              name="email"
-          />
-
-          <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 15 }}>
-            <TouchableOpacity onPress={() => onSubmit()} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: loading ? '#CCCCCC' : '#336DFF', width: width-90, paddingHorizontal: 15, paddingVertical: 10, borderRadius: 25, marginVertical: 10 }}>
-              {loading && <RotateView/>}
-              <Text allowFontScaling={false} style={styles.buttonText}>Submit</Text>
-            </TouchableOpacity>
-          </View>
-
-          <Text allowFontScaling={false} style={{...styles.subtitle, marginTop: 40}}>Account Settings</Text>
-
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 25 }}>
-            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium' }}>Allow Witness requests</Text>
-            <Controller
-                control={control}
-                rules={{
-                  required: true,
-                }}
-                render={( { field: { onChange, onBlur, value } }) => (
-                    <Switch
-                        trackColor={{ false: "#767577", true: "#489AAB" }}
-                        thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
-                        onValueChange={toggleSwitch}
-                        value={isEnabled}
-                    />
-                )}
-                name="fingerPrint"
-            />
-          </View>
-
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 20 }}>
-            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium' }}>Allow Guarantorship requests</Text>
-            <Controller
-                control={control}
-                rules={{
-                  required: true,
-                }}
-                render={( { field: { onChange, onBlur, value } }) => (
-                    <Switch
-                        trackColor={{ false: "#767577", true: "#489AAB" }}
-                        thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
-                        onValueChange={toggleSwitch}
-                        value={isEnabled}
-                    />
-                )}
-                name="fingerPrint"
-            />
-          </View>
-
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 20 }}>
-            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium' }}>Enable push notifications</Text>
-            <Controller
-                control={control}
-                rules={{
-                  required: true,
-                }}
-                render={( { field: { onChange, onBlur, value } }) => (
-                    <Switch
-                        trackColor={{ false: "#767577", true: "#489AAB" }}
-                        thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
-                        onValueChange={toggleSwitch}
-                        value={isEnabled}
-                    />
-                )}
-                name="fingerPrint"
-            />
-          </View>
-
-          <TouchableOpacity onPress={() => console.log('navigate to change pin')} style={styles.helpLink}>
-            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium' }} >
-              Change your pin
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={async () => await dispatch(logoutUser())} style={styles.helpLink}>
-            <Text allowFontScaling={false} style={{ fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium' }} >
-              Log Out
-            </Text>
-          </TouchableOpacity>
-
-        </ScrollView>
-      </SafeAreaView>
-      {/* Use a light status bar on iOS to account for the black space above the modal */}
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-    </View>
-  );
+    );
+  }
 }
 
 const styles = StyleSheet.create({

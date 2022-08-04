@@ -1,7 +1,5 @@
 apply plugin: "com.android.application"
-
-import com.android.build.OutputFile
-
+apply plugin: "com.facebook.react"
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
  * and bundleReleaseJsAndAssets).
@@ -86,6 +84,10 @@ project.ext.react = [
 
 apply from: new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), "../react.gradle")
 
+react {
+    jsRootDir = rootProject.file('../utils/codegen/')
+}
+
 /**
  * Set this to true to create two separate APKs instead of one:
  *   - An APK that only works on ARM devices
@@ -121,10 +123,16 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  * on project.ext.react, JavaScript will not be compiled to Hermes Bytecode
  * and the benefits of using Hermes will therefore be sharply reduced.
  */
-def enableHermes = project.ext.react.get("enableHermes", false);
+def enableHermes = project.ext.react.get("enableHermes", true);
 
 def safeExtGet(prop, fallback) {
     rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}
+
+afterEvaluate {
+    // un comment for turbo modules
+
+    preBuild.dependsOn("generateCodegenArtifactsFromSchema")
 }
 
 android {

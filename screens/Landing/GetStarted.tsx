@@ -1,19 +1,36 @@
 import * as React from 'react';
-import {Text, View, StyleSheet, Image, TouchableHighlight, Linking} from 'react-native';
+import {
+    Text,
+    View,
+    StyleSheet,
+    Image,
+    TouchableHighlight,
+    Linking,
+    StatusBar,
+    TouchableOpacity,
+    SafeAreaView, Dimensions, StatusBar as Bar
+} from 'react-native';
 import AppLoading from 'expo-app-loading';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {store} from "../../stores/store";
 import {initializeDB} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
 import {getSecureKey} from "../../utils/secureStore";
+import PagerView, {PagerViewOnPageScrollEvent} from "react-native-pager-view";
+import {RotateView} from "../Auth/VerifyOTP";
+import {current} from "@reduxjs/toolkit";
+import {useEvent, useHandler} from "react-native-reanimated";
+
+const { width, height } = Dimensions.get("window");
+
 type NavigationProps = NativeStackScreenProps<any>
 
 export default function GetStarted({ navigation }: NavigationProps) {
-    const { appInitialized } = useSelector((state: { auth: storeState }) => state.auth);
+    const { appInitialized, loading } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
     let [fontsLoaded] = useFonts({
@@ -36,7 +53,6 @@ export default function GetStarted({ navigation }: NavigationProps) {
                     if (oldBoy === 'true') {
                         navigation.navigate('GetTenants');
                     } else {
-                        console.log('new boyyyyyyyyyyyyyy');
                         let response = await dispatch(initializeDB())
                         if (response.type === 'initializeDB/fulfilled') {
                             console.log('initialized', response)
@@ -52,33 +68,66 @@ export default function GetStarted({ navigation }: NavigationProps) {
         };
     }, [appInitialized]);
 
+    const [currentIndex, setCurrentIndex] = useState(0)
+
 
     if (fontsLoaded) {
         return (
-            <View style={styles.container}>
-                <View style={styles.logoContainer}>
+            <>
+                {
+                    loading &&
+                    <View style={{position: 'absolute', top: 50, zIndex: 11, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
+                        <RotateView/>
+                    </View>
+                }
+
+                <View style={{position: 'absolute', top: 30, marginTop: 30, alignSelf: 'center', zIndex: 11}}>
                     <Image
                         source={require('../../assets/images/Logo.png')}
                     />
                 </View>
-                <Image
-                    style={styles.landingBg}
-                    source={require('../../assets/images/landingGetStarted.png')}
-                />
-                <View style={styles.container2}>
-                    <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('UserEducation')}>
+                <View style={{position: 'absolute',width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', bottom: 0, zIndex: 11}}>
+                    <View style={{ width: '10%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <TouchableOpacity style={{ backgroundColor: currentIndex === 0 ? '#FFFFFF' : '#489AAB', height: 10, width: 10, borderRadius: 50 }} />
+                        <TouchableOpacity style={{ backgroundColor: currentIndex === 1 ? '#FFFFFF' : '#489AAB', height: 10, width: 10, borderRadius: 50 }} />
+                        <TouchableOpacity style={{ backgroundColor: currentIndex === 2 ? '#FFFFFF' : '#489AAB', height: 10, width: 10, borderRadius: 50 }} />
+                    </View>
+                    <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('GetTenants')}>
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                            <Text allowFontScaling={false} style={styles.buttonText}>Get Started</Text>
-                            <Ionicons
-                                name="arrow-forward-outline"
-                                size={25}
-                                color='#fff'
-                                style={{ marginLeft: 15 }}
-                            />
+                            <Text allowFontScaling={false} style={styles.buttonText}>Activate Account</Text>
                         </View>
                     </TouchableHighlight>
                 </View>
-            </View>
+                <PagerView onPageSelected={(e)=> {
+                    setCurrentIndex(e.nativeEvent.position);
+                }} style={{ flex: 1, paddingTop: Bar.currentHeight, position: 'relative', backgroundColor: 'rgba(244,81,30,0.02)' }} initialPage={1}>
+                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'center' }} key="1">
+                        <Image
+                            style={styles.landingBg}
+                            source={require('../../assets/images/landingGetStarted.png')}
+                        />
+                        <Text allowFontScaling={false} style={styles.subTitleText}>
+                        </Text>
+                    </View>
+                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'center' }} key="2">
+                        <Image
+                            style={styles.landingBg}
+                            source={require('../../assets/images/farm.jpg')}
+                        />
+                        <Text allowFontScaling={false} style={styles.subTitleText}>
+                        </Text>
+                    </View>
+                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'center' }} key="3">
+                        <Image
+                            style={styles.landingBg}
+                            source={require('../../assets/images/pro.jpg')}
+                        />
+                        <Text allowFontScaling={false} style={styles.subTitleText}>
+                        </Text>
+                    </View>
+                </PagerView>
+            </>
+
         )
     } else {
         return (
@@ -88,21 +137,13 @@ export default function GetStarted({ navigation }: NavigationProps) {
 }
 
 const styles = StyleSheet.create({
-    container: {
+    container0: {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#F1F4F8',
         height: '100%',
         position: 'relative',
-    },
-    container2: {
-        padding: 20,
-        display: 'flex',
-        position: 'relative',
-        height: '100%',
-        width: '100%',
-        justifyContent: 'flex-end',
     },
     buttonText: {
         fontSize: 15,
@@ -116,7 +157,7 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         paddingVertical: 15,
         paddingHorizontal: 25,
-        marginHorizontal: 80,
+        marginHorizontal: 30,
         marginBottom: 20,
         marginTop: 20,
         alignSelf: 'stretch',
@@ -137,17 +178,26 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     landingBg: {
+        top: 0,
         position: 'absolute',
-        width: '100%',
-        height: '100%',
+        height: height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0),
+        width
     },
-    logoContainer: {
-        position: 'absolute',
-        top: '10%',
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1
-    }
+    container: {
+        flex: 1
+    },
+    landingLogo: {
+        marginTop: 20,
+    },
+    artwork: {
+        marginTop: 10
+    },
+    subTitleText: {
+        fontSize: 13,
+        marginHorizontal: 60,
+        textAlign: 'center',
+        color: '#ffffff',
+        fontFamily: 'Poppins_400Regular',
+        marginTop: 20,
+    },
 });

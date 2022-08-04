@@ -3,6 +3,7 @@ import {deleteSecureKey, getSecureKey, saveSecureKey} from '../../utils/secureSt
 import {openDatabase} from "../../database";
 import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
+import {getAppSignatures} from "../../utils/smsVerification";
 export let db: WebSQLDatabase
 (async () => {
     db = await openDatabase();
@@ -707,10 +708,12 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
 
         const myHeaders = new Headers();
 
+        const [signature] = await getAppSignatures();
+
         myHeaders.append("Authorization", `Bearer ${key}`);
         myHeaders.append("Content-Type", 'application/json');
         console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/send-otp/${phoneNumber}`);
-        const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/send-otp/${phoneNumber}`, {
+        const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/send-otp/${phoneNumber}?appSignature=${signature}`, {
             method: 'POST',
             headers: myHeaders
         });

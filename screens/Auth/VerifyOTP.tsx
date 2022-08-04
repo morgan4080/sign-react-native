@@ -8,20 +8,25 @@ import {
     TextInput,
     Animated,
     Easing,
-    Keyboard, Dimensions, SafeAreaView, NativeModules
+    Keyboard,
+    Dimensions,
+    SafeAreaView
 } from 'react-native';
 import AppLoading from 'expo-app-loading';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import {sendOtp, authenticate, verifyOtp, setAuthState} from "../../stores/auth/authSlice";
+import {sendOtp, verifyOtp} from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import {useEffect, useRef, useState} from "react";
-// import types
-import { storeState } from "../../stores/auth/authSlice"
-import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
-import {Fontisto, Ionicons} from "@expo/vector-icons";
+import { storeState } from "../../stores/auth/authSlice";
+import {getSecureKey} from "../../utils/secureStore";
+import {Fontisto} from "@expo/vector-icons";
+import {
+    startSmsRetriever,
+    receiveVerificationSMS
+} from "../../utils/smsVerification";
 
 type NavigationProps = NativeStackScreenProps<any>
 

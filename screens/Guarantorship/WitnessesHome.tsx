@@ -97,7 +97,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const [from, setFrom] = useState(0);
 
-    const [to, setTo] = useState(50);
+    const [to, setTo] = useState(15);
 
     const [memberSearching, setMemberSearching] = useState<boolean>(false);
 

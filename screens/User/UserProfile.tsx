@@ -108,7 +108,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                 {
                     loading &&
                     <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
-                        <RotateView/>
+                        <RotateView color="#FFFFFF"/>
                     </View>
                 }
                 <Image

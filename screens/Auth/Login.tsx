@@ -38,7 +38,7 @@ type FormData = {
 }
 
 export default function Login({ navigation }: NavigationProps) {
-    const { isJWT, tenants, selectedTenantId, isLoggedIn, loading, optVerified } = useSelector((state: { auth: storeState }) => state.auth);
+    const { isJWT, tenants, selectedTenantId, loading } = useSelector((state: { auth: storeState }) => state.auth);
 
     const [otpVerified, setOtpVerified] = useState(undefined);
     const [fingerPrint, setFingerPrint] = useState<string | null>(null);
@@ -108,24 +108,6 @@ export default function Login({ navigation }: NavigationProps) {
             authenticating = false
         }
     }, []);
-
-    /*useEffect(() => {
-        let isLoggedInSubscribed = true;
-        if (isLoggedIn && isLoggedInSubscribed) {
-            (async () => {
-                if (otpVerified === 'true') {
-                    console.log("supposed to go to profile")
-                    dispatch(setAuthState(true));
-                } else {
-                    navigation.navigate('VerifyOTP');
-                }
-            })()
-        }
-        return () => {
-            // cancel the subscription
-            isLoggedInSubscribed = false;
-        };
-    }, [isLoggedIn]);*/
 
     useEffect(() => {
         (async () => {
@@ -237,19 +219,18 @@ export default function Login({ navigation }: NavigationProps) {
         // log the user in on success
 
         if (biometricAuth && !biometricAuth.hasOwnProperty('error')) {
-            // Proceed to add your print
-            if (currentTenant && pin && tenant) {
-                await doLogin(currentTenant, pin);
-            } else {
-                const fP = fingerPrint ? JSON.parse(fingerPrint) : null;
-                const currentTenant = organisations.find(org => org.tenantId === tenant?.tenantId);
-                if (currentTenant && fingerPrint && fP && fP.phoneNumber === tenant?.phoneNumber) {
-                    // check in phone number provided is the phone number in secure store
-                    // use the password saved in the secureStore
-                    await doLogin(currentTenant, fP.pin)
-                }
+            const payload = {
+                pin,
+                phoneNumber: tenant?.phoneNumber
             }
-
+            saveSecureKey('fingerPrint', JSON.stringify(payload)).then(() => {
+                if (otpVerified === 'true') {
+                    console.log("supposed to go to profile");
+                    dispatch(setAuthState(true));
+                } else {
+                    navigation.navigate('VerifyOTP');
+                }
+            });
             return
         }
 
@@ -263,6 +244,8 @@ export default function Login({ navigation }: NavigationProps) {
     const animatedOpacity = useRef(new Animated.Value(1))
 
     const [inputDisabled, setInputDisabled] = useState(false)
+
+    const [cancelFingerPrint, setCancelFingerPrint] = useState<boolean>(false);
 
     const onPressed = async (field: number) => {
         if (!loading) {
@@ -316,27 +299,7 @@ export default function Login({ navigation }: NavigationProps) {
                     }, 2000);
                     const currentTenant = organisations.find(org => org.tenantId === tenant?.tenantId);
                     if (currentTenant) {
-                        // check if fingerprint exists
-                        const fP = fingerPrint ? JSON.parse(fingerPrint) : null
-                        if (!(fingerPrint && fP && fP.phoneNumber === tenant?.phoneNumber)) {
-                            // ask if fingerprint should be enabled
-                            // save pin/phoneNumber in secureStore fingerPrint
-                            return Alert.alert('Activate Biometrics', 'Proceed to add your print', [
-                                {
-                                    text: 'Cancel',
-                                    onPress: async () => await doLogin(currentTenant, `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`),
-                                    style: 'cancel'
-                                },
-                                {
-                                    text: 'Ok',
-                                    onPress: () => {
-                                        handleBiometricAuth(currentTenant, `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`)
-                                    }
-                                }
-                            ])
-                        } else {
-                            await doLogin(currentTenant, `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`)
-                        }
+                        await doLogin(currentTenant, `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`, characters)
                         //
                     } else {
                         CUSTOM.showToast("Tenant not Supported");
@@ -346,7 +309,7 @@ export default function Login({ navigation }: NavigationProps) {
         }
     }
 
-    const doLogin = async (currentTenant: {name: string, tenantId: string, clientSecret: string}, pin: string) => {
+    const doLogin = async (currentTenant: {name: string, tenantId: string, clientSecret: string}, pin: string, characters?: any[]) => {
         console.log("pin", pin);
         if (currentTenant && tenant) {
             const payload: loginUserType = {
@@ -364,20 +327,42 @@ export default function Login({ navigation }: NavigationProps) {
                     } else {
                         setError('phoneNumber', {type: 'custom', message: error.message});
                         CUSTOM.showToast(error.message);
+                        setCancelFingerPrint(true);
                     }
                 } else {
-                    const payload = {
-                        pin,
-                        phoneNumber: tenant?.phoneNumber
-                    }
-                    saveSecureKey('fingerPrint', JSON.stringify(payload)).then(() => {
+                    const fP = fingerPrint ? JSON.parse(fingerPrint) : null
+                    if (!(fingerPrint && fP && fP.phoneNumber === tenant?.phoneNumber) && !cancelFingerPrint) {
+                        // ask if fingerprint should be enabled
+                        // save pin/phoneNumber in secureStore fingerPrint
+                        return Alert.alert('Activate Biometrics', 'Proceed to add your print', [
+                            {
+                                text: 'Cancel',
+                                onPress: async () => {
+                                    setCancelFingerPrint(true);
+                                    if (otpVerified === 'true') {
+                                        console.log("supposed to go to profile");
+                                        dispatch(setAuthState(true));
+                                    } else {
+                                        navigation.navigate('VerifyOTP');
+                                    }
+                                },
+                                style: 'cancel'
+                            },
+                            {
+                                text: 'Ok',
+                                onPress: () => {
+                                    handleBiometricAuth(currentTenant, `${pin}`)
+                                }
+                            }
+                        ])
+                    } else {
                         if (otpVerified === 'true') {
                             console.log("supposed to go to profile");
                             dispatch(setAuthState(true));
                         } else {
                             navigation.navigate('VerifyOTP');
                         }
-                    });
+                    }
                 }
             } catch (e: any) {
                 console.log('LOGIN ERROR', e);
@@ -422,7 +407,7 @@ export default function Login({ navigation }: NavigationProps) {
                                             <Animated.View style={{ opacity: animatedOpacity.current }}>
                                                 <TextInput
                                                     allowFontScaling={false}
-                                                    style={{...styles.input, color: isLoggedIn ? 'rgba(127,231,117,0.99)' : '#489AAB' }}
+                                                    style={{...styles.input, color: '#489AAB' }}
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
@@ -443,7 +428,7 @@ export default function Login({ navigation }: NavigationProps) {
                                             <Animated.View style={{ opacity: animatedOpacity.current }}>
                                                 <TextInput
                                                     allowFontScaling={false}
-                                                    style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB' }}
+                                                    style={{...styles.input, color: '#489AAB' }}
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
@@ -464,7 +449,7 @@ export default function Login({ navigation }: NavigationProps) {
                                             <Animated.View style={{ opacity: animatedOpacity.current }}>
                                                 <TextInput
                                                     allowFontScaling={false}
-                                                    style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB',}}
+                                                    style={{...styles.input, color: '#489AAB',}}
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
@@ -485,7 +470,7 @@ export default function Login({ navigation }: NavigationProps) {
                                             <Animated.View style={{ opacity: animatedOpacity.current }}>
                                                 <TextInput
                                                     allowFontScaling={false}
-                                                    style={{...styles.input, color: isLoggedIn ? '#4BB543' : '#489AAB',}}
+                                                    style={{...styles.input, color: '#489AAB',}}
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}

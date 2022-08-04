@@ -24,8 +24,9 @@ import { storeState } from "../../stores/auth/authSlice";
 import {getSecureKey} from "../../utils/secureStore";
 import {Fontisto} from "@expo/vector-icons";
 import {
-    startSmsRetriever,
-    receiveVerificationSMS
+    receiveVerificationSMS,
+    startSmsUserConsent,
+    removeAllListeners
 } from "../../utils/smsVerification";
 
 type NavigationProps = NativeStackScreenProps<any>
@@ -39,7 +40,11 @@ type FormData = {
 
 const { width, height } = Dimensions.get("window");
 
-export const RotateView = () => {
+interface RotateViewProps {
+    color?: string
+}
+
+export const RotateView = ({color}: RotateViewProps) => {
     const rotateAnim = useRef(new Animated.Value(0)).current
 
     useEffect(() => {
@@ -63,7 +68,7 @@ export const RotateView = () => {
 
     return (
         <Animated.View style={{transform: [{rotate: spin}] }}>
-            <Fontisto name="spinner" size={24} color="#489AAB" />
+            <Fontisto name="spinner" size={24} color={color ? color: "#489AAB"} />
         </Animated.View>
     );
 }
@@ -89,6 +94,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 
     const resendOtp = async (): Promise<any> => {
         if (user) {
+            await startSmsUserConsent();
             const {type, error, payload}: any = await dispatch(sendOtp(phoneNumber));
             if (type === "sendOtp/rejected") {
                 console.log(error.message);
@@ -105,6 +111,27 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         let setupUser = true;
 
         if (setupUser) {
+            (async () => {
+                await startSmsUserConsent();
+                receiveVerificationSMS((error, message) => {
+                    if (error) {
+                        // handle error
+                    } else if (message) {
+                        // parse the message to obtain the verification code
+                        removeAllListeners();
+                        const regex = /\d{4}/g;
+                        const otpArray = message.split(" ")
+                        const otp = otpArray.find(meso => regex.exec(meso))
+                        if (otp && otp.length === 4) {
+                            setValue('otpChar1', otp[0])
+                            setValue('otpChar2', otp[1])
+                            setValue('otpChar3', otp[2])
+                            setValue('otpChar4', otp[3])
+                            setValueInput(`${otp}`)
+                        }
+                    }
+                });
+            })()
             getSecureKey('phone_number').then(phone => {
                 setPhoneNumber(phone);
                 return dispatch(sendOtp(phone));
@@ -120,6 +147,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         }
         return (() => {
             Keyboard.removeAllListeners('keyboardDidShow');
+            removeAllListeners();
             setupUser = false;
         })
     }, []);
@@ -141,7 +169,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         setValueInput(e)
     }
 
-    useEffect(() => {
+    const doOtp = () => {
         setValueInput(valueInput.slice(0, 4))
         let result = valueInput.split('')
         if (result.length > 0) {
@@ -183,6 +211,10 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         } else {
             setValue('otpChar1', '')
         }
+    }
+
+    useEffect(() => {
+        doOtp()
     }, [valueInput])
 
     const scrollViewRef = useRef<any>();
@@ -216,7 +248,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                                 selectTextOnFocus={false}
                                 value={valueInput}
                                 defaultValue={valueInput}
-                                autoFocus={true}
+                                autoFocus={false}
                             />
                             <Controller
                                 control={control}
@@ -318,7 +350,11 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                     </View>
 
                     <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', height: height/8, marginTop: height/8 }}>
-                        {loading && <RotateView/>}
+                        {loading &&
+                            <View>
+                                <RotateView color="#FFFFFF"/>
+                            </View>
+                        }
                     </View>
                 </ScrollView>
             </SafeAreaView>

@@ -3,7 +3,7 @@ import {deleteSecureKey, getSecureKey, saveSecureKey} from '../../utils/secureSt
 import {openDatabase} from "../../database";
 import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
-import {getAppSignatures} from "../../utils/smsVerification";
+import {getAppSignatures, removeAllListeners} from "../../utils/smsVerification";
 export let db: WebSQLDatabase
 (async () => {
     db = await openDatabase();
@@ -598,20 +598,15 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
                 },
                 body: formBody
             });
-
-            if (response.status === 401) {
-                setAuthState(false);
-                // console.log("Incorrect phone number or password");
-                reject("Incorrect phone number or password");
-            }
-
+            const data = await response.json();
             if (response.status === 200) {
-                const data = await response.json();
+                console.log(data);
                 const result: any = await saveKeys({...data, phoneNumber})
                 resolve(result)
             } else if (response.status === 401) {
+                console.log(data);
                 setAuthState(false);
-                reject(response.status);
+                reject(`${data.error}: ${data.error_description}`);
             } else {
                 reject(response.status)
             }
@@ -630,10 +625,6 @@ export const logoutUser = createAsyncThunk('logoutUser', async () => {
         deleteSecureKey('existing'),
         deleteSecureKey('fingerPrint')
     ]);
-});
-
-export const setLoading = createAsyncThunk('setLoading', async (loading: boolean) => {
-    return Promise.resolve(loading)
 });
 
 type memberPayloadType = {firstName: string, lastName: string, phoneNumber: string, idNumber: string, email: string, memberRefId?: string}
@@ -790,6 +781,7 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
 
         if (response.status === 200) {
             const data = await response.json();
+            removeAllListeners();
             if (data.validated) {
                 await saveSecureKey('otp_verified', 'true');
                 return Promise.resolve(data);
@@ -1413,6 +1405,10 @@ const authSlice = createSlice({
             state.loanProduct = action.payload
             return state
         },
+        setLoading(state, action) {
+            state.loading = action.payload
+            return
+        },
         setSelectedTenantId(state, action) {
             state.selectedTenantId = action.payload
             return state
@@ -1713,7 +1709,7 @@ const authSlice = createSlice({
             console.log("otp sent", action.payload)
             state.otpResponse = action.payload
             state.otpSent = true
-            state.loading = false
+            state.loading = true
         })
         builder.addCase(sendOtp.rejected, (state, action) => {
             state.loading = false
@@ -1743,16 +1739,12 @@ const authSlice = createSlice({
         builder.addCase(searchByMemberNo.rejected, (state, action) => {
             state.loading = false
         })
-
-        builder.addCase(setLoading.fulfilled, (state, { payload }) => {
-            state.loading = payload
-        })
     }
 })
 
 // Extract the action creators object and the reducer
 const { actions, reducer } = authSlice
 // Extract and export each action creator by name
-export const { createLoanProduct, setSelectedTenantId, setAuthState } = actions
+export const { createLoanProduct, setLoading, setSelectedTenantId, setAuthState } = actions
 // Export the reducer, either as a default or named export
 export const authReducer = reducer

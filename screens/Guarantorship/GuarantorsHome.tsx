@@ -104,7 +104,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const [from, setFrom] = useState(0);
 
-    const [to, setTo] = useState(30);
+    const [to, setTo] = useState(15);
 
     const [employerDetailsEnabled, setEmployerDetailsEnabled] = useState(false);
     const [dbUser, setDbUser] = useState(false);

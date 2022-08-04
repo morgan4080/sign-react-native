@@ -100,29 +100,32 @@ export default function GetStarted({ navigation }: NavigationProps) {
                 </View>
                 <PagerView onPageSelected={(e)=> {
                     setCurrentIndex(e.nativeEvent.position);
-                }} style={{ flex: 1, paddingTop: Bar.currentHeight, position: 'relative', backgroundColor: 'rgba(244,81,30,0.02)' }} initialPage={1}>
-                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'center' }} key="1">
+                }} style={{ flex: 1, paddingTop: Bar.currentHeight, position: 'relative', backgroundColor: 'rgba(244,81,30,0.02)' }} initialPage={0}>
+                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'flex-start' }} key="1">
                         <Image
                             style={styles.landingBg}
                             source={require('../../assets/images/landingGetStarted.png')}
                         />
                         <Text allowFontScaling={false} style={styles.subTitleText}>
+                            Digitally sign your loan documents from the cmfort of your mobile phone fast and easy.
                         </Text>
                     </View>
-                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'center' }} key="2">
+                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'flex-start' }} key="2">
                         <Image
                             style={styles.landingBg}
                             source={require('../../assets/images/farm.jpg')}
                         />
                         <Text allowFontScaling={false} style={styles.subTitleText}>
+                            Digitally sign your loan documents from the cmfort of your mobile phone fast and easy.
                         </Text>
                     </View>
-                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'center' }} key="3">
+                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'flex-start' }} key="3">
                         <Image
                             style={styles.landingBg}
                             source={require('../../assets/images/pro.jpg')}
                         />
                         <Text allowFontScaling={false} style={styles.subTitleText}>
+                            Digitally sign your loan documents from the cmfort of your mobile phone fast and easy.
                         </Text>
                     </View>
                 </PagerView>
@@ -193,11 +196,12 @@ const styles = StyleSheet.create({
         marginTop: 10
     },
     subTitleText: {
+        marginTop: height/3,
         fontSize: 13,
         marginHorizontal: 60,
         textAlign: 'center',
         color: '#ffffff',
         fontFamily: 'Poppins_400Regular',
-        marginTop: 20,
+        alignSelf: 'flex-start'
     },
 });

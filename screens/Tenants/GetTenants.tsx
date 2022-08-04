@@ -27,12 +27,15 @@ import {authenticate, getTenants, storeState} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {store} from "../../stores/store";
 import {useEffect, useRef, useState} from "react";
-import {getSecureKey} from "../../utils/secureStore";
+import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
+import {requestPhoneNumber} from "../../utils/smsVerification";
+import {Ionicons} from "@expo/vector-icons";
 
 type NavigationProps = NativeStackScreenProps<any>
 
 type FormData = {
     phoneNumber: string | undefined;
+    countryCode: string;
 }
 const GetTenants = ({ navigation }: NavigationProps) => {
     let [fontsLoaded] = useFonts({
@@ -57,7 +60,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
     (async () => {
         try {
             let otpV = await getSecureKey('otp_verified');
-            setOtpVerified(otpV);
+            if (otpV) setOtpVerified(otpV);
         } catch (e:any) {
             console.log("getSecureKey otpVerified", e)
         }
@@ -78,11 +81,14 @@ const GetTenants = ({ navigation }: NavigationProps) => {
         }
         return () => {
             // when destroying component delete form fields/ selections
+            Keyboard.removeAllListeners('keyboardDidShow');
             authenticating = false;
         }
     }, []);
 
     const [phn, setPhn] = useState('')
+
+    const [code, setCode] = useState('+')
 
     useEffect(() => {
         let tenantsFetched = true;
@@ -107,6 +113,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
     } = useForm<FormData>({
         defaultValues: {
             phoneNumber: phn,
+            countryCode: code
         }
     })
 
@@ -117,9 +124,16 @@ const GetTenants = ({ navigation }: NavigationProps) => {
             if (isLoggedIn) {
                 navigation.navigate('ProfileMain')
             } else {
-                const ph = await getSecureKey('phone_number')
-                setValue('phoneNumber', ph)
-                setPhn(ph)
+                const ph = await getSecureKey('phone_number_without');
+                const code = await getSecureKey('phone_number_code');
+                if (ph && ph !== '') {
+                    setValue('phoneNumber', ph)
+                    setPhn(ph)
+                }
+                if (code && code !== '') {
+                    setValue('countryCode', code)
+                    setCode(code)
+                }
             }
         })()
         return () => {
@@ -131,12 +145,12 @@ const GetTenants = ({ navigation }: NavigationProps) => {
     const onSubmit = async (value: any): Promise<void> => {
         if (value) {
             try {
-                if (value.phoneNumber.length < 10) {
+                if (value.phoneNumber.length < 8) {
                     setError('phoneNumber', {type: 'custom', message: 'Please provide a valid phone number'});
                     return
                 }
                 let phone: string = ''
-                let identifier: string = `${value.phoneNumber}`
+                let identifier: string = `${value.countryCode}${value.phoneNumber}`
                 if (identifier[0] === '+') {
                     let number = identifier.substring(1);
                     phone = `${number.replace(/ /g, "")}`;
@@ -154,12 +168,24 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                     } else {
                         setError('phoneNumber', {type: 'custom', message: error.message});
                     }
+                } else {
+                    await saveSecureKey('phone_number_code', value.countryCode);
+                    await saveSecureKey('phone_number_without', value.phoneNumber);
                 }
             } catch (e: any) {
                 console.log('Error Get Tenants', e);
             }
         }
     }
+
+    const scrollViewRef = useRef<any>();
+
+    Keyboard.addListener('keyboardDidShow', () => {
+        scrollViewRef.current.scrollToEnd({ animated: true });
+    });
+
+    const focusCountryCode = useRef<any>()
+    const focusPhoneNumber = useRef<any>()
 
     if (!isJWT && fontsLoaded) {
         return (
@@ -170,7 +196,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                     borderTopRightRadius: 25,
                     backgroundColor: '#F8F8FA'
                 }}>
-                    <ScrollView contentContainerStyle={styles.container}>
+                    <ScrollView contentContainerStyle={styles.container} ref={scrollViewRef}>
                         <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
                             <Image
                                 style={styles.landingLogo}
@@ -180,7 +206,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                         <View style={styles.container2}>
                             <Text allowFontScaling={false} style={styles.titleText}>Enter registered phone number</Text>
                             <Text allowFontScaling={false} style={styles.subTitleText}>Verify Membership</Text>
-                            <View style={{ paddingHorizontal: 30 }}>
+                            <View style={{ paddingHorizontal: 30, position: 'relative' }}>
                                 <Controller
                                     control={control}
                                     rules={{
@@ -189,13 +215,54 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                                     }}
                                     render={( { field: { onChange, onBlur, value } }) => (
                                         <TextInput
+                                            ref={focusCountryCode}
+                                            allowFontScaling={false}
+                                            style={{...styles.input, position: 'absolute', top: 7, left: width/14, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, borderRightWidth: 1, zIndex: 11, paddingHorizontal: 15, paddingRight: 0}}
+                                            editable={true}
+                                            value={value}
+                                            onBlur={onBlur}
+                                            onChangeText={(e) => {
+                                                if (e.length > 4) {
+                                                    focusPhoneNumber.current.focus();
+                                                    setValue('phoneNumber', e[e.length-1])
+                                                    return
+                                                }
+                                                if (e.length < 1) {
+                                                    return
+                                                } else {
+                                                    return onChange(e)
+                                                }
+                                            }}
+                                            keyboardType="phone-pad"
+                                            autoFocus={true}
+                                            maxLength={5}
+                                        ></TextInput>
+                                    )}
+                                    name="countryCode"
+                                />
+
+                                <Controller
+                                    control={control}
+                                    rules={{
+                                        required: true,
+                                        maxLength: 12,
+                                    }}
+                                    render={( { field: { onChange, onBlur, value } }) => (
+                                        <TextInput
+                                            ref={focusPhoneNumber}
                                             allowFontScaling={false}
                                             style={styles.input}
+                                            keyboardType="phone-pad"
                                             onBlur={onBlur}
+                                            onKeyPress={({ nativeEvent }) => {
+                                                if (nativeEvent.key === 'Backspace') {
+                                                    if(value === '') {
+                                                        focusCountryCode.current.focus();
+                                                    }
+                                                }
+                                            }}
                                             onChangeText={onChange}
                                             value={value}
-                                            placeholder="Enter phone number"
-                                            keyboardType="numeric"
                                         />
                                     )}
                                     name="phoneNumber"
@@ -206,26 +273,27 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                         </View>
                     </ScrollView>
                 </SafeAreaView>
-                <View style={{ backgroundColor: '#489AAB', width, display: 'flex', flexDirection: 'row', justifyContent: 'center', position: 'relative' }}>
-                    {!loading && <TouchableOpacity onPress={handleSubmit(onSubmit)} style={{
+                <View style={{ backgroundColor: '#F8F8FA', width, display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', position: 'relative' }}>
+                    {!loading && <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} style={{
                         display: 'flex',
-                        alignItems: 'center',
-                        borderColor: '#FFFFFF',
-                        borderWidth: 1,
-                        width: width / 2,
-                        paddingHorizontal: 20,
-                        paddingVertical: 15,
-                        borderRadius: 25,
-                        marginTop: 45,
-                        marginBottom: 25
+                        alignItems: 'flex-end',
+                        justifyContent: 'flex-end',
+                        flexDirection: 'row',
+                        marginBottom: 25,
+                        marginRight: 25
                     }}>
-                        <Text allowFontScaling={false} style={styles.buttonText}>Submit</Text>
+                        {   loading &&
+
+                            <View style={{marginTop: 45, marginBottom: 25, backgroundColor: '#489AAB', borderRadius: 50, padding: 20}}>
+                                <RotateView color="#FFFFFF"/>
+                            </View>
+                        }
+
+                        {
+                            !loading &&
+                            <Ionicons name="arrow-forward-circle" size={70} color="#489AAB" />
+                        }
                     </TouchableOpacity>}
-                    {loading &&
-                        <View style={{marginTop: 45, marginBottom: 25}}>
-                            <RotateView/>
-                        </View>
-                    }
                 </View>
             </>
         )
@@ -288,10 +356,10 @@ const styles = StyleSheet.create({
     input: {
         borderWidth: 1,
         borderColor: '#cccccc',
-        borderRadius: 20,
-        height: 60,
+        borderRadius: 15,
+        height: 50,
         marginTop: 30,
-        paddingHorizontal: 20,
+        paddingHorizontal:  width/5,
         fontSize: 14
     },
     error: {

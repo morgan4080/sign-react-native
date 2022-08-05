@@ -74,7 +74,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                     <View style={{ position: 'absolute', left: -100, top: '25%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                     <View style={{ position: 'absolute', right: -80, top: '32%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
                     <View style={styles.userPicBtn}>
-                        <MaterialCommunityIcons name="account" color="#FFFFFF" size={100}/>
+                        <MaterialCommunityIcons name="account" color="#FFFFFF" size={50}/>
                     </View>
                     <Text allowFontScaling={false} style={styles.titleText}>{ `${ member?.fullName }` }</Text>
                     <Text allowFontScaling={false} style={styles.subTitleText}>{ `Member NO: ${member?.memberNumber}` }</Text>
@@ -181,9 +181,10 @@ const styles = StyleSheet.create({
         position: "relative"
     },
     userPicBtn: {
-        marginTop: 40,
-        width: 130,
-        height: 130,
+        marginTop: 20,
+        marginBottom: 20,
+        width: 100,
+        height: 100,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 10,
@@ -193,22 +194,23 @@ const styles = StyleSheet.create({
         backgroundColor: '#EDEDED',
     },
     titleText: {
-        fontSize: 20,
-        textAlign: 'center',
-        color: '#489AAB',
-        fontFamily: 'Poppins_700Bold',
-        marginTop: 20,
-    },
-    subTitleText: {
-        fontSize: 15,
-        textAlign: 'center',
-        color: '#489AAB',
-        fontFamily: 'Poppins_400Regular',
-    },
-    organisationText: {
-        fontSize: 15,
+        fontSize: 16,
         textAlign: 'center',
         color: '#489AAB',
         fontFamily: 'Poppins_600SemiBold',
+        marginTop: 5,
     },
+    subTitleText: {
+        fontSize: 12,
+        textAlign: 'center',
+        color: '#489AAB',
+        fontFamily: 'Poppins_400Regular',
+        marginTop: 2
+    },
+    organisationText: {
+        fontSize: 12,
+        textAlign: 'center',
+        color: '#489AAB',
+        fontFamily: 'Poppins_400Regular',
+    }
 });

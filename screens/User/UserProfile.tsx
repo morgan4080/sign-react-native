@@ -148,24 +148,24 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                         {/*<View style={{backgroundColor: '#FC866C', position: 'absolute', top: 0, right: 0, paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: width/15, height: width/15, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                             <Text style={{fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#FFFFFF'}}>{ guarantorshipRequests?.length }</Text>
                                         </View>*/}
-                                        <Text allowFontScaling={false} style={{ flex: 3, color: '#336DFF', fontSize: 11.5, marginLeft: 10, fontFamily: 'Poppins_600SemiBold' }}>
+                                        <Text allowFontScaling={false} style={{ flex: 4, color: '#336DFF', fontSize: 11.5, marginLeft: 10, fontFamily: 'Poppins_600SemiBold' }}>
                                             Guarantorship Requests
                                         </Text>
-                                        <View  style={{ flex: 1, marginRight: width/20 }}>
+                                        <View  style={{ flex: 1, marginRight: width/20 + 1 }}>
                                             <Image
-                                                source={require('../../assets/images/Guarantorship-Requests.png')}
+                                                source={require('../../assets/images/Guarantorship-Requests.jpg')}
                                             />
                                         </View>
                                     </TouchableOpacity>
                                 </View>
                                 <View style={{ display: 'flex', flexDirection: 'row', marginTop: 20, justifyContent: 'space-between' }}>
                                     <TouchableOpacity onPress={() => navigation.navigate('FavouriteGuarantors')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderWidth: 1, borderColor: '#CCCCCC', borderRadius: 25, position: 'relative'  }}>
-                                        <Text allowFontScaling={false} style={{ flex: 3, color: '#336DFF', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10 }}>
+                                        <Text allowFontScaling={false} style={{ flex: 3, color: '#336DFF', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
                                             Favorite Guarantors
                                         </Text>
                                         <View  style={{ flex: 1, marginRight: width/20 }}>
                                             <Image
-                                                source={require('../../assets/images/favourite-guarantors.png')}
+                                                source={require('../../assets/images/favourite-guarantors.jpg')}
                                             />
                                         </View>
                                     </TouchableOpacity>
@@ -178,7 +178,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                         </Text>
                                         <View  style={{ flex: 1, marginRight: width/20 }}>
                                             <Image
-                                                source={require('../../assets/images/Witness-Requests.png')}
+                                                source={require('../../assets/images/Witness-Requests.jpg')}
                                             />
                                         </View>
                                     </TouchableOpacity>

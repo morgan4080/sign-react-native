@@ -27,7 +27,7 @@ import {
 } from "@expo-google-fonts/poppins";
 import {useDispatch, useSelector} from "react-redux";
 import {store} from "../stores/store";
-import {MaterialCommunityIcons} from "@expo/vector-icons";
+import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 import {Controller, useForm} from "react-hook-form";
 import {useEffect, useRef, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -48,7 +48,7 @@ type NavigationProps = NativeStackScreenProps<any>;
 
 export default function ModalScreen({ navigation }: NavigationProps) {
   const { isLoggedIn, user, member, loading } = useSelector((state: { auth: storeState }) => state.auth);
-
+  const [takingPhoto, setTakingPhoto] = useState<boolean>(false)
   const CSTM = NativeModules.CSTM;
 
   type AppDispatch = typeof store.dispatch;
@@ -74,19 +74,10 @@ export default function ModalScreen({ navigation }: NavigationProps) {
       })();
     }
     return () => {
+      setTakingPhoto(false)
       permCheck = false
     }
   }, []);
-
-  useEffect(() => {
-    let authCheck = true
-    if (!isLoggedIn && authCheck) {
-      navigation.navigate('GetTenants')
-    }
-    return () => {
-      authCheck = false
-    }
-  }, [isLoggedIn]);
 
   const {
     control,
@@ -168,14 +159,26 @@ export default function ModalScreen({ navigation }: NavigationProps) {
       console.log(e.message)
     }
   };
-  const [photo, setPhoto] = useState<any>()
-  const [takingPhoto, setTakingPhoto] = useState<boolean>(false)
+  const [photo, setPhoto] = useState<any>(undefined)
 
   const cameraRef = useRef<any>()
 
   const takePic = async () => {
       setTakingPhoto(true)
   }
+
+  useEffect(() => {
+    let authCheck = true
+    if (!isLoggedIn && authCheck) {
+      navigation.navigate('GetTenants')
+    }
+    if (photo) {
+      // store photo
+    }
+    return () => {
+      authCheck = false
+    }
+  }, [isLoggedIn, photo]);
 
   if (takingPhoto) {
     return (
@@ -212,13 +215,11 @@ export default function ModalScreen({ navigation }: NavigationProps) {
           :
           <TouchableOpacity onPress={() => takePic()} style={styles.userPicBtn}>
             <MaterialCommunityIcons name="account" color="#FFFFFF" size={100}/>
-            <View style={{position: 'absolute', left: '90%', bottom: 10, backgroundColor: '#336DFF', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100}}>
-              <MaterialCommunityIcons name="camera" color="#FFFFFF" size={20} />
-            </View>
+            <Ionicons style={{position: 'absolute', right: '-10%', backgroundColor: "#FFFFFF", bottom: 10, paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100}} name="add-circle-sharp" size={24} color="#489bab" />
           </TouchableOpacity>}
           <Text allowFontScaling={false} style={styles.titleText}>{`${member?.fullName}`}</Text>
           <Text allowFontScaling={false} style={styles.subTitleText}>{`Member NO: ${member?.memberNumber}`}</Text>
-          <Text allowFontScaling={false} style={styles.organisationText}>{`${user?.companyName}`}</Text>
+          <Text allowFontScaling={false} style={styles.subTitleText}>{`${user?.companyName}`}</Text>
           <SafeAreaView style={{flex: 1, backgroundColor: '#ffffff', marginTop: 30, borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width-20, height: height/2}}>
             <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', paddingBottom: 50}}>
               <Text allowFontScaling={false} style={styles.subtitle}>Edit Profile</Text>
@@ -309,7 +310,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
               />
 
               <View style={{backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 15}}>
-                <TouchableOpacity onPress={() => onSubmit()} style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: loading ? '#CCCCCC' : '#336DFF', width: width-90, paddingHorizontal: 15, paddingVertical: 10, borderRadius: 25, marginVertical: 10}}>
+                <TouchableOpacity onPress={() => onSubmit()} style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: loading ? '#CCCCCC' : '#489bab', width: width-90, paddingHorizontal: 15, paddingVertical: 10, borderRadius: 25, marginVertical: 10}}>
                   {loading && <RotateView/>}
                   <Text allowFontScaling={false} style={styles.buttonText}>Submit</Text>
                 </TouchableOpacity>
@@ -318,7 +319,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
               <Text allowFontScaling={false} style={{...styles.subtitle, marginTop: 40}}>Account Settings</Text>
 
               <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 25}}>
-                <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Allow Witness requests</Text>
+                <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Allow witness requests</Text>
                 <Controller
                     control={control}
                     rules={{
@@ -337,7 +338,26 @@ export default function ModalScreen({ navigation }: NavigationProps) {
               </View>
 
               <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 20}}>
-                <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Allow Guarantorship requests</Text>
+                <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Allow guarantorship requests</Text>
+                <Controller
+                    control={control}
+                    rules={{
+                      required: true,
+                    }}
+                    render={( {field: {onChange, onBlur, value}}) => (
+                        <Switch
+                            trackColor={{false: "#767577", true: "#489AAB"}}
+                            thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
+                            onValueChange={toggleSwitch}
+                            value={isEnabled}
+                        />
+                    )}
+                    name="fingerPrint"
+                />
+              </View>
+
+              <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 20}}>
+                <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Enable finger print</Text>
                 <Controller
                     control={control}
                     rules={{
@@ -400,7 +420,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    position: "relative"
+    position: "relative",
+    paddingTop: Bar.currentHeight,
+    height: height
   },
   title: {
     fontSize: 16,
@@ -420,6 +442,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#489AAB',
     fontFamily: 'Poppins_400Regular',
+    marginTop: 2
   },
   organisationText: {
     fontSize: 12,
@@ -466,7 +489,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     color: '#489AAB',
     fontFamily: 'Poppins_600SemiBold',
-    fontSize: 14,
+    fontSize: 15,
     marginTop: 20,
     paddingHorizontal: 35
   },

@@ -3,7 +3,7 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
-import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import {AntDesign, FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {NavigationContainer, DefaultTheme, useNavigationContainerRef} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
@@ -26,7 +26,7 @@ import FavouriteGuarantors from "../screens/Guarantorship/FavouriteGuarantors";
 import GuarantorsHome from "../screens/Guarantorship/GuarantorsHome";
 import WitnessesHome from "../screens/Guarantorship/WitnessesHome";
 import Account from "../screens/User/Account";
-import History from "../screens/User/History";
+// import History from "../screens/User/History";
 import LoanProducts from "../screens/Loans/LoanProducts";
 import LoanProduct from "../screens/Loans/LoanProduct";
 import LoanPurpose from "../screens/Loans/LoanPurpose";
@@ -232,7 +232,7 @@ function BottomTabNavigator() {
         component={UserProfile}
         options={({ navigation }: RootTabScreenProps<'UserProfile'>) => ({
           title: 'Home',
-          tabBarIcon: ({ color }) => <TabBarIcon name="home-account" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           headerShown: false
         })}
       />
@@ -241,38 +241,39 @@ function BottomTabNavigator() {
         component={LoanRequests}
         options={{
           title: 'Loan Requests',
-          tabBarIcon: ({ color }) => <TabBarIcon name="bank-transfer" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="filetext1" color={color} />,
             headerShown: false
         }}
       />
-      <BottomTab.Screen
-        name="History"
-        component={History}
+        <BottomTab.Screen
+            name="Account"
+            component={Account}
+            options={{
+                title: 'My Account',
+                tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+                headerShown: false
+            }}
+        />
+        <BottomTab.Screen
+        name="ModalScreen"
+        component={ModalScreen}
         options={{
-          title: 'History',
-          tabBarIcon: ({ color }) => <TabBarIcon name="history" color={color} />,
+            title: 'Settings',
+            tabBarIcon: ({ color }) => <TabBarIcon name="setting" color={color} />,
             headerShown: false
         }}
-      />
-      <BottomTab.Screen
-        name="Account"
-        component={Account}
-        options={{
-          title: 'My Account',
-          tabBarIcon: ({ color }) => <TabBarIcon name="account" color={color} />,
-            headerShown: false
-        }}
-      />
+        />
     </BottomTab.Navigator>
   );
 }
 
 /**
  * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
+ * <AntDesign name="home" size={24} color="black" />
  */
 function TabBarIcon(props: {
     name: React.ComponentProps<typeof FontAwesome>['name'];
     color: string;
 }) {
-    return <MaterialCommunityIcons size={30} style={{ marginBottom: -3 }} {...props} />;
+    return <AntDesign size={30} style={{ marginBottom: -3 }} {...props} />;
 }

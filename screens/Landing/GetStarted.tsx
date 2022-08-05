@@ -99,7 +99,7 @@ export default function GetStarted({ navigation }: NavigationProps) {
                     <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'flex-start' }} key="1">
                         <Image
                             style={styles.landingBg}
-                            source={require('../../assets/images/landingGetStarted.png')}
+                            source={require('../../assets/images/landingGetStarted.jpg')}
                         />
                         <Text allowFontScaling={false} style={styles.subTitleText}>
                             Digitally sign your loan documents from the cmfort of your mobile phone fast and easy.

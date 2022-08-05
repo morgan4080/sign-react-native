@@ -8,9 +8,9 @@
     "scheme": "presta-sign",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/splash.jpg",
       "resizeMode": "cover",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#489bab"
     },
     "updates": {
       "fallbackToCacheTimeout": 0

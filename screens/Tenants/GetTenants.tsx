@@ -28,7 +28,6 @@ import {useDispatch, useSelector} from "react-redux";
 import {store} from "../../stores/store";
 import {useEffect, useRef, useState} from "react";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
-import {requestPhoneNumber} from "../../utils/smsVerification";
 import {Ionicons} from "@expo/vector-icons";
 
 type NavigationProps = NativeStackScreenProps<any>
@@ -54,17 +53,6 @@ const GetTenants = ({ navigation }: NavigationProps) => {
     const dispatch : AppDispatch = useDispatch();
 
     const CSTM = NativeModules.CSTM;
-
-    const [otpVerified, setOtpVerified] = useState(undefined);
-
-    (async () => {
-        try {
-            let otpV = await getSecureKey('otp_verified');
-            if (otpV) setOtpVerified(otpV);
-        } catch (e:any) {
-            console.log("getSecureKey otpVerified", e)
-        }
-    })()
 
     useEffect(() => {
         let authenticating = true;
@@ -290,7 +278,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                     }}>
                         {   loading ?
 
-                            <View style={{marginTop: 45, marginBottom: 25, backgroundColor: '#489AAB', borderRadius: 50, padding: 20}}>
+                            <View style={{marginTop: 45, marginBottom: 25, backgroundColor: '#489bab', borderRadius: 50, padding: 20}}>
                                 <RotateView color="#FFFFFF"/>
                             </View>
                             :

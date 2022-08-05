@@ -19,14 +19,12 @@ import {
     StyleSheet,
     StatusBar,
     TouchableOpacity,
-    StatusBar as Bar, Dimensions
+    StatusBar as Bar
 } from "react-native";
 import {useEffect, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {RotateView} from "../Auth/VerifyOTP";
 import {getSecureKey} from "../../utils/secureStore";
 import configuration from "../../utils/configuration";
-const { width, height } = Dimensions.get("window");
 type NavigationProps = NativeStackScreenProps<any>;
 
 const Item = ({ item, onPress, backgroundColor, textColor }: any) => (

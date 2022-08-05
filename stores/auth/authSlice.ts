@@ -132,6 +132,7 @@ type TenantsType = {
     "keycloakId": string,
     "username": string,
     "phoneNumber": string,
+    "ussdPhoneNumber": string,
     "email": string,
     "firstName": string,
     "lastName": string,

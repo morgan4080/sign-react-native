@@ -71,6 +71,8 @@ export default function Login({ navigation }: NavigationProps) {
 
     const tenant = tenants.find(t => t.id === selectedTenantId);
 
+    console.log(tenant)
+
     const dispatch : AppDispatch = useDispatch();
 
     let [fontsLoaded] = useFonts({
@@ -145,7 +147,7 @@ export default function Login({ navigation }: NavigationProps) {
         formState: {  }
     } = useForm<FormData>({
         defaultValues: {
-            phoneNumber: tenant? tenant.phoneNumber : '',
+            phoneNumber: tenant? tenant.ussdPhoneNumber : '',
             pinChar1: '',
             pinChar2: '',
             pinChar3: '',
@@ -350,7 +352,7 @@ export default function Login({ navigation }: NavigationProps) {
     const doLogin = async (currentTenant: {name: string, tenantId: string, clientSecret: string}, pin: string) => {
         if (currentTenant && tenant) {
             const payload: loginUserType = {
-                phoneNumber: parseInt(tenant.phoneNumber),
+                phoneNumber: parseInt(tenant.ussdPhoneNumber),
                 pin,
                 tenant: tenant.tenantId,
                 clientSecret: currentTenant.clientSecret,
@@ -370,7 +372,7 @@ export default function Login({ navigation }: NavigationProps) {
                     const oldBoy = await getSecureKey('existing');
                     setLocalLogin(true);
                     const fP = fingerPrint ? JSON.parse(fingerPrint) : null;
-                    if (!(fingerPrint && fP && fP.phoneNumber === tenant?.phoneNumber) && !cancelFingerPrint && oldBoy !== 'true') {
+                    if (!(fingerPrint && fP && fP.phoneNumber === tenant?.ussdPhoneNumber) && !cancelFingerPrint && oldBoy !== 'true') {
                         // ask if fingerprint should be enabled
                         // save pin/phoneNumber in secureStore fingerPrint
                         return Alert.alert('Activate Biometrics', 'Proceed to add your print', [
@@ -392,7 +394,7 @@ export default function Login({ navigation }: NavigationProps) {
                                 onPress: async () => {
                                     const payloadFinger = {
                                         pin,
-                                        phoneNumber: tenant?.phoneNumber
+                                        phoneNumber: tenant?.ussdPhoneNumber
                                     };
                                     await Promise.all([
                                         saveSecureKey('fingerPrint', JSON.stringify(payloadFinger)),
@@ -436,7 +438,7 @@ export default function Login({ navigation }: NavigationProps) {
                                 }
                                 <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: height/9 }}>
                                     <Text allowFontScaling={false} style={{fontSize: 12, fontFamily: 'Poppins_400Regular'}}>{tenant?.firstName + " " + tenant?.lastName}</Text>
-                                    <Text allowFontScaling={false} style={{fontSize: 10, fontFamily: 'Poppins_300Light'}}>{tenant?.phoneNumber}</Text>
+                                    <Text allowFontScaling={false} style={{fontSize: 10, fontFamily: 'Poppins_300Light'}}>{tenant?.ussdPhoneNumber}</Text>
                                 </View>
                             </View>
 

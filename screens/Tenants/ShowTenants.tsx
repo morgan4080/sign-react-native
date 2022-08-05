@@ -73,7 +73,9 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
                     return
                 }
                 if (response.type === 'authenticate/fulfilled') {
-                    navigation.navigate('ProfileMain');
+                    if (isLoggedIn) {
+                        navigation.navigate('ProfileMain')
+                    }
                 }
             })()
         }
@@ -81,21 +83,6 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
             authenticating = false
         }
     }, []);
-
-    useEffect(() => {
-        let isLoggedInSubscribed = true;
-        if (isLoggedIn) {
-            if (isLoggedInSubscribed) {
-                (async () => {
-                    navigation.navigate('ProfileMain')
-                })()
-            }
-        }
-        return () => {
-            // cancel the subscription
-            isLoggedInSubscribed = false;
-        };
-    }, [isLoggedIn]);
 
 
     const renderItem = ({ item }: any) => {

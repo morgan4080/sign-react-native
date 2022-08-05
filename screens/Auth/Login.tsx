@@ -367,10 +367,10 @@ export default function Login({ navigation }: NavigationProps) {
                         setCancelFingerPrint(true);
                     }
                 } else {
-                    console.log('success login');
+                    const oldBoy = await getSecureKey('existing');
                     setLocalLogin(true);
                     const fP = fingerPrint ? JSON.parse(fingerPrint) : null;
-                    if (!(fingerPrint && fP && fP.phoneNumber === tenant?.phoneNumber) && !cancelFingerPrint) {
+                    if (!(fingerPrint && fP && fP.phoneNumber === tenant?.phoneNumber) && !cancelFingerPrint && oldBoy !== 'true') {
                         // ask if fingerprint should be enabled
                         // save pin/phoneNumber in secureStore fingerPrint
                         return Alert.alert('Activate Biometrics', 'Proceed to add your print', [

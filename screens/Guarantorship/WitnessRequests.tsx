@@ -27,6 +27,7 @@ import {useEffect, useRef, useState} from "react";
 import {toMoney} from "../User/Account";
 import GuarantorTiles from "../User/Components/GuarantorTiles";
 import {store} from "../../stores/store";
+import {RotateView} from "../Auth/VerifyOTP";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -147,7 +148,9 @@ export default function WitnessRequests ({ navigation }: NavigationProps) {
         )
     } else {
         return (
-            <AppLoading/>
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+                <RotateView/>
+            </View>
         )
     }
 }

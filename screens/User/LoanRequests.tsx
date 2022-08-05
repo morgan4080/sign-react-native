@@ -200,7 +200,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
         outputRange: ['0deg', '360deg']
     })
 
-    if (fontsLoaded) {
+    if (fontsLoaded && !loading) {
         return (
             <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
                 <View style={styles.container}>
@@ -295,7 +295,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
         )
     } else {
         return (
-            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width, backgroundColor: '#489AAB' }}>
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
                 <RotateView/>
             </View>
         )

@@ -26,6 +26,7 @@ import {
 } from "@expo-google-fonts/poppins";
 import { Circle as ProgressCircle } from 'react-native-progress';
 import {useEffect} from "react";
+import {RotateView} from "../Auth/VerifyOTP";
 
 type NavigationProps = NativeStackScreenProps<any>;
 
@@ -165,7 +166,9 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
         )
     } else {
         return (
-            <AppLoading/>
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+                <RotateView/>
+            </View>
         )
     }
 }

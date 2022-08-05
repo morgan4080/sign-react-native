@@ -48,7 +48,6 @@ export default function GetStarted({ navigation }: NavigationProps) {
             if (initializing) {
                 try {
                     const oldBoy = await getSecureKey('existing');
-
                     if (oldBoy === 'true') {
                         navigation.navigate('GetTenants');
                     } else {

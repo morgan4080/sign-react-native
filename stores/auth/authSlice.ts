@@ -574,6 +574,20 @@ export const checkForJWT = createAsyncThunk('checkForJWT', async () => {
     return await getSecureKey('access_token')
 })
 
+const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token, phoneNumber }: any) => {
+    try {
+        await Promise.all([
+            saveSecureKey('access_token', access_token),
+            saveSecureKey('refresh_token', refresh_token),
+            saveSecureKey('phone_number', `${phoneNumber}`)
+        ]);
+        return Promise.resolve(true);
+    } catch(e: any) {
+        console.log("saveKeys", e);
+        return Promise.reject(e);
+    }
+}
+
 export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin, tenant, clientSecret }: Pick<loginUserType, "phoneNumber" | "pin" | "tenant" | "clientSecret">) => {
     return new Promise(async (resolve, reject) => {
         const details: any = {
@@ -671,21 +685,6 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
         return Promise.reject(e.message)
     }
 });
-
-const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token, phoneNumber }: any) => {
-    try {
-        await Promise.all([
-            saveSecureKey('access_token', access_token),
-            saveSecureKey('refresh_token', refresh_token),
-            saveSecureKey('phone_number', `${phoneNumber}`),
-            saveSecureKey('existing', 'true')
-        ]);
-        return Promise.resolve(true);
-    } catch(e: any) {
-        console.log("saveKeys", e);
-        return Promise.reject(e);
-    }
-}
 
 export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
     try {
@@ -786,7 +785,10 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
         if (response.status === 200) {
             const data = await response.json();
             if (data.validated) {
-                await saveSecureKey('otp_verified', 'true');
+                await Promise.all([
+                    saveSecureKey('otp_verified', 'true'),
+                    saveSecureKey('existing', 'true')
+                ]);
                 removeAllListeners();
                 return Promise.resolve(data);
             } else {

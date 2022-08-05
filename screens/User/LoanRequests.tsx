@@ -86,21 +86,9 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
     const dispatch : AppDispatch = useDispatch();
 
     useEffect(() => {
-        let isMounted = true;
-        if (user) {
-            (async () => {
-                const {type, error}: any = await dispatch(fetchLoanRequests(member?.refId as string));
-                if (type === 'fetchLoanRequests/rejected' && error) {
-                    return
-                }
-                if (type === 'fetchLoanRequests/fulfilled') {
-                    return
-                }
-            })()
-        }
-        return () => {
-            isMounted = false;
-        };
+        (async () => {
+            await dispatch(fetchLoanRequests(member?.refId as string));
+        })()
     }, []);
 
     const CSTM = NativeModules.CSTM;
@@ -157,20 +145,15 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                         ...payload,
                         applicant: true
                     });
-                } else {
-                    // navigate to success error page
-                    console.log(error.message)
                 }
             }
 
         } catch (error) {
-            alert(error);
             console.log(error);
         }
     };
 
     const signDocument = async () => {
-        console.log("the loan", loan)
         type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
         type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
         const payloadOut: zohoSignPayloadType = {
@@ -178,7 +161,6 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
             actorRefId: loan?.memberRefId as string,
             actorType:  "APPLICANT"
         }
-        console.log("zohoSignPayloadType", payloadOut);
 
         const {type, error, payload}: any = await dispatch(requestSignURL(payloadOut))
 

@@ -26,7 +26,7 @@ const SignStatus = ({ navigation, route }: NavigationProps) => {
         Poppins_400Regular,
         Poppins_300Light
     });
-    console.log("confirmation sign status", route.params?.applicantSigned)
+
     return (
         <View style={{ flex: 1, alignItems: 'center', width, height }}>
             <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25 }}>

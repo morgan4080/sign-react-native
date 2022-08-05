@@ -66,8 +66,6 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
         Poppins_300Light
     });
 
-    // console.log("member details", memberDetails)
-
     if (fontsLoaded && !loading) {
         return (
             <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>

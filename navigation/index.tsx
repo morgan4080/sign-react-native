@@ -12,7 +12,6 @@ import useColorScheme from '../hooks/useColorScheme';
 import ModalScreen from '../screens/ModalScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
 import GetStarted from "../screens/Landing/GetStarted";
-import UserEducation from "../screens/Landing/UserEducation";
 import Login from "../screens/Auth/Login";
 import Forgot from "../screens/Auth/Forgot";
 import VerifyOTP from "../screens/Auth/VerifyOTP";
@@ -40,8 +39,6 @@ import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";
 import WitnessRequests from "../screens/Guarantorship/WitnessRequests";
 import WitnessStatus from "../screens/Guarantorship/WitnessStatus";
 import SignStatus from "../screens/Guarantorship/SignStatus";
-import {useEffect, useState} from "react";
-import {getSecureKey} from "../utils/secureStore";
 import {useSelector} from "react-redux";
 import {storeState} from "../stores/auth/authSlice";
 
@@ -82,7 +79,6 @@ const NonAuthNaigation = () => {
 
             {/*Before login*/}
             <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
-            <Stack.Screen name="UserEducation" component={UserEducation} options={{ headerShown: false }} />
             <Stack.Screen name="GetTenants" component={GetTenants} options={{ headerShown: false }} />
             <Stack.Screen name="ShowTenants" component={ShowTenants} options={{
                 headerShown: true,

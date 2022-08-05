@@ -155,12 +155,10 @@ export default function ModalScreen({ navigation }: NavigationProps) {
 
       if (type === 'editMember/rejected' && error) {
         if (error.message === "Network request failed") {
-          console.log(error.message);
           CSTM.showToast("Network request failed");
         } else if (error.message === "401") {
           await dispatch(logoutUser())
         } else {
-          console.log(error.message);
           CSTM.showToast(error.message);
         }
       } else {
@@ -376,11 +374,11 @@ export default function ModalScreen({ navigation }: NavigationProps) {
                 />
               </View>
 
-              <TouchableOpacity onPress={() => console.log('navigate to change pin')} style={styles.helpLink}>
+              {/*<TouchableOpacity onPress={() => console.log('navigate to change pin')} style={styles.helpLink}>
                 <Text allowFontScaling={false} style={{fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium'}} >
                   Change your pin
                 </Text>
-              </TouchableOpacity>
+              </TouchableOpacity>*/}
 
               <TouchableOpacity onPress={async () => await dispatch(logoutUser())} style={styles.helpLink}>
                 <Text allowFontScaling={false} style={{fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium'}} >

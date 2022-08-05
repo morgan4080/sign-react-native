@@ -124,7 +124,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 const {type, payload}: any = await dispatch(getUserFromDB({setDBUser}));
 
                 if (type === 'getUserFromDB/fulfilled') {
-                    console.log(payload);
                     if (payload && payload.length > 0) {
                         setDbUser(true)
                         setValue("employerName", `${payload[0].employerName}`)
@@ -336,7 +335,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         }
 
         const isDuplicate = newDeserializedCopy.some((contact) => {
-            console.log("newDeserializedCopy", contact, contact2Add);
             let phone0: string = '';
             if (contact.phone[0] === '+') {
                 let number = contact.phone.substring(1);
@@ -380,12 +378,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     // guaranteeAmount: theAmount
                 }
 
-                console.log('guarantorship payloadout', payloadOut);
-
-
-
                 return dispatch(validateGuarantorship(payloadOut)).then(({type, payload}: any) => {
-                    console.log('guarantorship response', payload);
 
                     if (type === 'validateGuarantorship/fulfilled' && payload.length > 0 && payload[0].isAccepted) {
                         let amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
@@ -550,7 +543,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     businessType: null,
                     businessLocation: null
                 }
-                console.log(dbPayload)
+
                 if (dbUser) {
                     const statement = `UPDATE user SET kraPin = '${dbPayload.kraPin}', employed = '${dbPayload.employed}', businessOwner = '${dbPayload.businessOwner}', employerName = '${dbPayload.employerName}', serviceNumber = '${dbPayload.serviceNumber}', grossSalary = '${dbPayload.grossSalary}', netSalary = '${dbPayload.netSalary}', businessType = '${dbPayload.businessType}', businessLocation = '${dbPayload.businessLocation}' WHERE id = ${dbPayload.id};`;
 
@@ -559,7 +552,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     if (type === 'updateUser/fulfilled') {
                         setEmployerPayload(payloadCode)
                     } else {
-                        console.log("submitSearch", payload)
+                        console.log("submitSearch error", payload)
                     }
 
                 } else {
@@ -568,7 +561,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     if (type === 'saveUser/fulfilled') {
                         setEmployerPayload(payloadCode)
                     } else {
-                        console.log("submitSearch", payload)
+                        console.log("save user error", payload)
                     }
                 }
 
@@ -591,7 +584,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     businessType: businessType ? businessType : null,
                     businessLocation: businessLocation ? businessLocation : null
                 }
-                console.log(dbPayload)
 
                 if (dbUser) {
                     const statement = `UPDATE user SET kraPin = '${dbPayload.kraPin}', employed = '${dbPayload.employed}', businessOwner = '${dbPayload.businessOwner}', employerName = '${dbPayload.employerName}', serviceNumber = '${dbPayload.serviceNumber}', grossSalary = '${dbPayload.grossSalary}', netSalary = '${dbPayload.netSalary}', businessType = '${dbPayload.businessType}', businessLocation = '${dbPayload.businessLocation}' WHERE id = ${dbPayload.id};`;
@@ -601,7 +593,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     if (type === 'updateUser/fulfilled') {
                         setBusinessPayload(payloadCode);
                     } else {
-                        console.log("submitSearch", payload)
+                        console.log("updateUser error", payload)
                     }
 
                 } else {
@@ -609,7 +601,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     if (type === 'saveUser/fulfilled') {
                         setBusinessPayload(payloadCode);
                     } else {
-                        console.log("submitSearch", payload)
+                        console.log("saveUser error", payload)
                     }
                 }
             }
@@ -635,8 +627,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 guaranteeAmount: amountToGuarantee ? parseInt(amountToGuarantee) : 0
             }
 
-            console.log('guarantorship payload', payloadOut);
-
             const {type, payload}: any = await dispatch(validateGuarantorship(payloadOut));
 
             if (type === 'validateGuarantorship/fulfilled' && payload.length > 0 && payload[0].isAccepted) {
@@ -649,13 +639,9 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 setValue('memberNumber', '');
                 setMemberSearching(false);
             } else {
-                console.log(payload);
                 CSTM.showToast(`Member Cannot Guarantee This Amount`);
             }
             return
-        } else {
-            console.log('member', member)
-            console.log('current guarantor', currentGuarantor)
         }
     }
 
@@ -700,7 +686,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 navigation.navigate('WitnessesHome', {
                     guarantors: selectedContacts.map((cont, i) => {
                         if (settings.amounts) {
-                            console.log(allGuaranteedAmounts[i])
                             cont = {
                                 ...cont,
                                 committedAmount: allGuaranteedAmounts[i]
@@ -717,7 +702,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     witnesses: [],
                     guarantors: selectedContacts.map((cont, i) => {
                         if (settings.amounts) {
-                            console.log(allGuaranteedAmounts[i])
                             cont = {
                                 ...cont,
                                 committedAmount: allGuaranteedAmounts[i]

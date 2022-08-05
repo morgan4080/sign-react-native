@@ -49,7 +49,6 @@ const PinLogin = ({ navigation }: NavigationProps) => {
                     CSTM.showToast("Login Successful");
                 }
             } catch (e: any) {
-                // console.log("login error", e)
                 console.log('errorssss', e);
             }
         }

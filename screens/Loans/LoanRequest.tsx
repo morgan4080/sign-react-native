@@ -102,7 +102,6 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
 
         let { hostname, path, queryParams } = Linking.parse(event.url);
 
-        console.log('handleRedirect', hostname, path, queryParams)
     };
 
     const addLinkingListener = () => {
@@ -126,8 +125,6 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
             if (Platform.OS === 'ios') {
                 removeLinkingListener();
             }
-
-            console.log('openBrowserAsync', result)
         } catch(error: any) {
             console.log(error);
         }
@@ -150,14 +147,10 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
                         ...payload,
                         applicant: true
                     });
-                } else {
-                    // navigate to success error page
-                    console.log(error.message)
                 }
             }
 
         } catch (error) {
-            alert(error);
             console.log(error);
         }
     };
@@ -171,24 +164,18 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
             actorRefId: route.params?.memberRefId,
             actorType:  "APPLICANT"
         }
-        console.log("zohoSignPayloadType", payloadOut);
 
         const {type, error, payload}: any = await dispatch(requestSignURL(payloadOut))
 
         if (type === 'requestSignURL/fulfilled') {
-            console.log(type, payload);
             if (!payload.success) {
                 CSTM.showToast(payload.message);
             }
 
             if (payload.signURL) await openAuthSessionAsync(payload.signURL)
         } else {
-            console.log(type, error);
             CSTM.showToast(error);
         }
-
-        console.log("zohoSignPayloadType", payloadOut);
-        console.log(loanRequest);
     }
 
     return (

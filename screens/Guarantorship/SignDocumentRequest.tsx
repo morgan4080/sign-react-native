@@ -58,21 +58,19 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
                     navigation.navigate('SignStatus', payload);
                 } else {
                     // navigate to success error page
-                    console.log(error.message)
+                    console.log("fetchLoanRequest", error.message)
                 }
             }
 
         } catch (error) {
-            alert(error);
             console.log(error);
         }
     };
 
     const makeSigningRequest = async () => {
         // ready to redirect to zoho
-        console.log("terror blade", route.params)
+
         if (route.params?.witness && member) {
-            console.log("witness")
             type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
             type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
             const payloadOut: zohoSignPayloadType = {
@@ -80,27 +78,22 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
                 actorRefId: member.refId,
                 actorType:  "WITNESS"
             }
-            console.log("zohoSignPayloadType", payloadOut);
 
             const {type, error, payload}: any = await dispatch(requestSignURL(payloadOut))
 
             if (type === 'requestSignURL/fulfilled') {
-                console.log(type, payload);
                 if (!payload.success) {
                     CSTM.showToast(payload.message);
                 }
 
                 if (payload.signURL) await openAuthSessionAsync(payload.signURL)
             } else {
-                console.log(type, error);
                 CSTM.showToast(error.message);
             }
 
-            console.log("zohoSignPayloadType", payloadOut);
         }
 
         if (route.params?.guarantor && member) {
-            console.log("guarantor")
             type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
             type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
             const payloadOut: zohoSignPayloadType = {
@@ -108,23 +101,18 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
                 actorRefId: member.refId,
                 actorType:  "GUARANTOR"
             }
-            console.log("zohoSignPayloadType", payloadOut);
 
             const {type, error, payload}: any = await dispatch(requestSignURL(payloadOut))
 
             if (type === 'requestSignURL/fulfilled') {
-                console.log(type, payload);
                 if (!payload.success) {
                     CSTM.showToast(payload.message);
                 }
 
                 if (payload.signURL) await openAuthSessionAsync(payload.signURL)
             } else {
-                console.log(type, error);
                 CSTM.showToast(error.message);
             }
-
-            console.log("zohoSignPayloadType", payloadOut);
         }
     };
     return(

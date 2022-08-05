@@ -15,7 +15,7 @@ import {
 import AppLoading from 'expo-app-loading';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import {sendOtp, verifyOtp} from "../../stores/auth/authSlice";
+import {sendOtp, setLoading, verifyOtp} from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
@@ -86,24 +86,24 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         }
     })()
 
-    const { isLoggedIn, user, loading, otpResponse, optVerified } = useSelector((state: { auth: storeState }) => state.auth);
+    const { user, loading, otpResponse } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
 
     const resendOtp = async (): Promise<any> => {
-        if (user) {
-            await startSmsUserConsent();
-            const {type, error, payload}: any = await dispatch(sendOtp(phoneNumber));
-            if (type === "sendOtp/rejected") {
-                console.log(error.message);
-            } else {
-                console.log(payload);
+        const {type, error, payload}: any = await dispatch(sendOtp(phoneNumber));
+        if (type === "sendOtp/rejected") {
+            if (error.message === '401') {
+                navigation.navigate('Login');
             }
-            return Promise.resolve(true)
-        } else {
+            console.log(error.message);
             return Promise.resolve(false)
+        } else {
+            await startSmsUserConsent();
+            console.log(payload);
+            return Promise.resolve(true)
         }
     }
 
@@ -113,12 +113,14 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         if (setupUser) {
             (async () => {
                 await startSmsUserConsent();
-                receiveVerificationSMS((error, message) => {
+                receiveVerificationSMS((error: any, message) => {
                     if (error) {
                         // handle error
+                        if (error === 'error') {
+                            console.log("zzzz", error);
+                        }
                     } else if (message) {
                         // parse the message to obtain the verification code
-                        removeAllListeners();
                         const regex = /\d{4}/g;
                         const otpArray = message.split(" ")
                         const otp = otpArray.find(meso => regex.exec(meso))
@@ -138,6 +140,9 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
             }).then(({type, error, payload}: any) => {
                 if (type === "sendOtp/rejected") {
                     console.log(error.message);
+                    if (error.message === '401') {
+                        navigation.navigate('Login');
+                    }
                 } else {
                     console.log(payload);
                 }
@@ -147,7 +152,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         }
         return (() => {
             Keyboard.removeAllListeners('keyboardDidShow');
-            removeAllListeners();
+
             setupUser = false;
         })
     }, []);
@@ -341,7 +346,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                         </View>
 
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                            <TouchableOpacity onPress={() => resendOtp()} >
+                            <TouchableOpacity onPress={() => resendOtp()} disabled={loading}>
                                 <Text allowFontScaling={false} style={styles.subTitleText1}>
                                     Did't receive code? <Text allowFontScaling={false} style={{ textDecorationLine: 'underline' }}>Resend code</Text>
                                 </Text>

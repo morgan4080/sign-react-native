@@ -50,9 +50,10 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                 if (type === 'authenticate/rejected') {
                     navigation.navigate('GetTenants')
                 } else {
-                    console.log("Authentication", payload);
                     try {
-                        if (!loanProducts || loanProducts.length === 0) await Promise.all([dispatch(fetchLoanProducts())]);
+                        if (!loanProducts || loanProducts.length === 0) {
+                            await Promise.all([dispatch(fetchLoanProducts())]);
+                        }
                     } catch (e: any) {
                         console.log('promise rejection', e);
                     }

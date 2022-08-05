@@ -25,6 +25,7 @@ import { storeState, loginUserType } from "../../stores/auth/authSlice"
 import {RotateView} from "./VerifyOTP";
 import {FontAwesome5} from "@expo/vector-icons";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
+import {removeAllListeners} from "../../utils/smsVerification";
 const { width, height } = Dimensions.get("window");
 
 type NavigationProps = NativeStackScreenProps<any>
@@ -39,10 +40,9 @@ type FormData = {
 
 export default function Login({ navigation }: NavigationProps) {
     const { isJWT, tenants, selectedTenantId, loading } = useSelector((state: { auth: storeState }) => state.auth);
-
     const [otpVerified, setOtpVerified] = useState(undefined);
     const [fingerPrint, setFingerPrint] = useState<string | null>(null);
-
+    const [currentTenant, setCurrentTenant] = useState<{name: string, tenantId: string, clientSecret: string} | undefined>(undefined)
     const organisations = [
         {
             name: 'Imarisha Sacco',
@@ -88,6 +88,10 @@ export default function Login({ navigation }: NavigationProps) {
         let authenticating = true;
         if (authenticating) {
             (async () => {
+                const CT = organisations.find(org => org.tenantId === tenant?.tenantId)
+                if (CT) {
+                    setCurrentTenant(CT)
+                }
                 const fP = await getSecureKey('fingerPrint');
                 setFingerPrint(fP);
                 const response = await dispatch(authenticate());
@@ -105,6 +109,7 @@ export default function Login({ navigation }: NavigationProps) {
             })()
         }
         return () => {
+            removeAllListeners();
             authenticating = false
         }
     }, []);
@@ -120,9 +125,11 @@ export default function Login({ navigation }: NavigationProps) {
         let launching = true;
 
         if (isBiometricSupported && launching) {
-            if (fingerPrint) {
+            if (fingerPrint && currentTenant) {
                 (async () => {
-                    await handleBiometricAuth()
+                    let fpParsed = JSON.parse(fingerPrint)
+                    let pin = fpParsed !== '' ? fpParsed.pin : ''
+                    await handleBiometricAuth(currentTenant, pin)
                 })()
             }
         }
@@ -174,7 +181,7 @@ export default function Login({ navigation }: NavigationProps) {
         ])
     }
 
-    const handleBiometricAuth = async (currentTenant?: {name: string, tenantId: string, clientSecret: string}, pin?: string) => {
+    const handleBiometricAuth = async (currentTenant: {name: string, tenantId: string, clientSecret: string}, pin: string) => {
         // check for support by hardware
         const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
 
@@ -218,19 +225,12 @@ export default function Login({ navigation }: NavigationProps) {
 
         // log the user in on success
 
-        if (biometricAuth && !biometricAuth.hasOwnProperty('error')) {
+        if (biometricAuth && !biometricAuth.hasOwnProperty('error') && fingerPrint) {
             const payload = {
                 pin,
                 phoneNumber: tenant?.phoneNumber
             }
-            saveSecureKey('fingerPrint', JSON.stringify(payload)).then(() => {
-                if (otpVerified === 'true') {
-                    console.log("supposed to go to profile");
-                    dispatch(setAuthState(true));
-                } else {
-                    navigation.navigate('VerifyOTP');
-                }
-            });
+            await doLogin(currentTenant, pin)
             return
         }
 
@@ -254,8 +254,10 @@ export default function Login({ navigation }: NavigationProps) {
                 if (isBiometricSupported) {
                     // proceed
                     // check secureStore for fingerPrint details
-                    if (fingerPrint) {
-                        await handleBiometricAuth()
+                    if (fingerPrint && currentTenant) {
+                        let fpParsed = JSON.parse(fingerPrint)
+                        let pin = fpParsed !== '' ? fpParsed.pin : ''
+                        await handleBiometricAuth(currentTenant, pin)
                     } else {
                         return alertComponent(
                             'Please Enter your pin',
@@ -297,9 +299,9 @@ export default function Login({ navigation }: NavigationProps) {
                         setValue(`pinChar3`, ``)
                         setValue(`pinChar4`, ``)
                     }, 2000);
-                    const currentTenant = organisations.find(org => org.tenantId === tenant?.tenantId);
+
                     if (currentTenant) {
-                        await doLogin(currentTenant, `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`, characters)
+                        await doLogin(currentTenant, `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`)
                         //
                     } else {
                         CUSTOM.showToast("Tenant not Supported");
@@ -309,7 +311,7 @@ export default function Login({ navigation }: NavigationProps) {
         }
     }
 
-    const doLogin = async (currentTenant: {name: string, tenantId: string, clientSecret: string}, pin: string, characters?: any[]) => {
+    const doLogin = async (currentTenant: {name: string, tenantId: string, clientSecret: string}, pin: string) => {
         console.log("pin", pin);
         if (currentTenant && tenant) {
             const payload: loginUserType = {

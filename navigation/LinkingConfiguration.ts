@@ -40,7 +40,6 @@ const linking: LinkingOptions<RootStackParamList> = {
       Modal: 'modal',
       NotFound: '*',
       GetStarted: 'get-started',
-      UserEducation: 'user-education',
       LoanProducts: 'loan-products',
       LoanProduct: 'loan-product',
       GuarantorsHome: 'guarantors-home',

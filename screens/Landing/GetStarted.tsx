@@ -46,17 +46,13 @@ export default function GetStarted({ navigation }: NavigationProps) {
         let initializing = true;
         (async () => {
             if (initializing) {
-                console.log('initializing...');
                 try {
                     const oldBoy = await getSecureKey('existing');
 
                     if (oldBoy === 'true') {
                         navigation.navigate('GetTenants');
                     } else {
-                        let response = await dispatch(initializeDB())
-                        if (response.type === 'initializeDB/fulfilled') {
-                            console.log('initialized', response)
-                        }
+                        await dispatch(initializeDB())
                     }
                 } catch (e: any) {
                     console.log('promise error', e)

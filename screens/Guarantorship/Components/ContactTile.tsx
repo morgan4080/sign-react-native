@@ -44,11 +44,8 @@ export default function contactTile ({contact, addContactToList, removeContactFr
             if (contact.phone[0] === '+') {
                 let number = contact.phone.substring(1);
                 phone = `${number.replace(/ /g, "")}`;
-                /*phone = `${phone.substring(0, 3) === '254' ? '' : '254'}${phone}`;*/
-                console.log('starts @+' ,phone);
             } else if (contact.phone[0] === '0') {
                 let number = contact.phone.substring(1);
-                console.log('starts @0', `254${number.replace(/ /g, "")}`);
                 phone = `254${number.replace(/ /g, "")}`;
             }
 
@@ -56,7 +53,6 @@ export default function contactTile ({contact, addContactToList, removeContactFr
             const {payload, type}: {payload: any, type: string} = result;
 
             if (type === 'validateNumber/rejected') {
-                console.log(`${contact.name} ${result.error.message}`);
                 CSTM.showToast(`${contact.name} ${result.error.message}`);
                 return
             }
@@ -66,7 +62,6 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                 if (newValue) {
                     const statement = `UPDATE contacts SET memberNumber = '${payload?.memberNumber}', memberRefId = '${payload?.refId}' WHERE contact_id = ${contact.contact_id};`;
                     await dispatch(updateContact(statement));
-                    // console.log('update response', response);
                     res = await addContactToList({
                        ...contact,
                         memberNumber: payload?.memberNumber,

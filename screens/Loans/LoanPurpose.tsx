@@ -79,7 +79,6 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
     }
     const [optionSelected, setOptionSelected] = useState<boolean>(false);
     const setFormData = (data: CategoryType) => {
-        console.log(data.options[0].selected)
         if (data.options.some((element) => element.selected)) {
             setOptionSelected(true);
             setSelectedCategory(data);

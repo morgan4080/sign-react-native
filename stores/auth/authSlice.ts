@@ -4,6 +4,7 @@ import {openDatabase} from "../../database";
 import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
 import {getAppSignatures, removeAllListeners} from "../../utils/smsVerification";
+import {NativeModules} from "react-native";
 export let db: WebSQLDatabase
 (async () => {
     db = await openDatabase();
@@ -424,7 +425,6 @@ export const validateGuarantorship = createAsyncThunk('validateGuarantorship', a
             const data = await response.json();
             return Promise.resolve(data);
         } else if (response.status === 401) {
-            console.log('setting to false');
             setAuthState(false);
             return Promise.reject(response.status);
         } else {
@@ -713,6 +713,8 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
             const data = await response.json();
             console.log(data);
             if (data.success) {
+                const toast = NativeModules.CSTM;
+                toast.showToast('Please Wait');
                 return Promise.resolve(data);
             } else {
                 return Promise.reject(data.message);
@@ -781,9 +783,9 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
 
         if (response.status === 200) {
             const data = await response.json();
-            removeAllListeners();
             if (data.validated) {
                 await saveSecureKey('otp_verified', 'true');
+                removeAllListeners();
                 return Promise.resolve(data);
             } else {
                 return Promise.reject("OTP Invalid");
@@ -1709,7 +1711,7 @@ const authSlice = createSlice({
             console.log("otp sent", action.payload)
             state.otpResponse = action.payload
             state.otpSent = true
-            state.loading = true
+            state.loading = false
         })
         builder.addCase(sendOtp.rejected, (state, action) => {
             state.loading = false

@@ -70,12 +70,16 @@ const GetTenants = ({ navigation }: NavigationProps) => {
         let authenticating = true;
         if (authenticating) {
             (async () => {
-                const response = await dispatch(authenticate());
-                if (response.type === 'authenticate/rejected') {
-                    return
-                }
-                if (response.type === 'authenticate/fulfilled') {
-                    navigation.navigate('ProfileMain')
+                try {
+                    const response = await dispatch(authenticate());
+                    if (response.type === 'authenticate/rejected') {
+                        return
+                    }
+                    if (response.type === 'authenticate/fulfilled') {
+                        navigation.navigate('ProfileMain')
+                    }
+                } catch (e) {
+                    console.log(e.message)
                 }
             })()
         }
@@ -124,15 +128,19 @@ const GetTenants = ({ navigation }: NavigationProps) => {
             if (isLoggedIn) {
                 navigation.navigate('ProfileMain')
             } else {
-                const ph = await getSecureKey('phone_number_without');
-                const code = await getSecureKey('phone_number_code');
-                if (ph && ph !== '') {
-                    setValue('phoneNumber', ph)
-                    setPhn(ph)
-                }
-                if (code && code !== '') {
-                    setValue('countryCode', code)
-                    setCode(code)
+                try {
+                    const ph = await getSecureKey('phone_number_without');
+                    const code = await getSecureKey('phone_number_code');
+                    if (ph && ph !== '') {
+                        setValue('phoneNumber', ph)
+                        setPhn(ph)
+                    }
+                    if (code && code !== '') {
+                        setValue('countryCode', code)
+                        setCode(code)
+                    }
+                } catch (e) {
+                    console.log(e.message)
                 }
             }
         })()
@@ -154,10 +162,8 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                 if (identifier[0] === '+') {
                     let number = identifier.substring(1);
                     phone = `${number.replace(/ /g, "")}`;
-                    console.log('starts @+' ,phone);
                 } else if (identifier[0] === '0') {
                     let number = identifier.substring(1);
-                    console.log('starts @0', `254${number.replace(/ /g, "")}`);
                     phone = `254${number.replace(/ /g, "")}`;
                 }
 
@@ -274,7 +280,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                     </ScrollView>
                 </SafeAreaView>
                 <View style={{ backgroundColor: '#F8F8FA', width, display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', position: 'relative' }}>
-                    {!loading && <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} style={{
+                    <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} style={{
                         display: 'flex',
                         alignItems: 'flex-end',
                         justifyContent: 'flex-end',
@@ -282,18 +288,15 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                         marginBottom: 25,
                         marginRight: 25
                     }}>
-                        {   loading &&
+                        {   loading ?
 
                             <View style={{marginTop: 45, marginBottom: 25, backgroundColor: '#489AAB', borderRadius: 50, padding: 20}}>
                                 <RotateView color="#FFFFFF"/>
                             </View>
-                        }
-
-                        {
-                            !loading &&
+                            :
                             <Ionicons name="arrow-forward-circle" size={70} color="#489AAB" />
                         }
-                    </TouchableOpacity>}
+                    </TouchableOpacity>
                 </View>
             </>
         )

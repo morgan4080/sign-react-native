@@ -216,7 +216,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         }
 
         const isDuplicate = newDeserializedCopy.some((contact) => {
-            console.log("newDeserializedCopy", contact, contact2Add);
             let phone0: string = '';
             if (contact.phone[0] === '+') {
                 let number = contact.phone.substring(1);

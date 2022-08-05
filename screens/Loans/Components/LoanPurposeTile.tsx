@@ -55,7 +55,6 @@ export default function LoanPurposeTile({category, componentIndex, currentOpenIn
     }
 
     const updateSubCopyCategory = (checkBoxVal: boolean, index: number, i: number) => {
-        console.log(checkBoxVal, index)
         let copyCategory = cloneDeep(selectedCategory)
 
         if (copyCategory) {

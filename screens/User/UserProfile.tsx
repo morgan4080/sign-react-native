@@ -72,7 +72,6 @@ export default function UserProfile({ navigation }: NavigationProps) {
                 if (type === 'authenticate/rejected') {
                     navigation.navigate('GetTenants')
                 } else {
-                    console.log("Authentication", payload);
                     try {
                         await Promise.all([
                             dispatch(fetchMember(payload.username)),

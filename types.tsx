@@ -18,7 +18,6 @@ export type RootStackParamList = {
   Modal: undefined;
   NotFound: undefined;
   GetStarted: NavigatorScreenParams<RootTabParamList> | undefined;
-  UserEducation: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanProducts: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanProduct: NavigatorScreenParams<RootTabParamList> | undefined;
   GuarantorsHome: NavigatorScreenParams<RootTabParamList> | undefined;

@@ -125,11 +125,12 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                         const otpArray = message.split(" ")
                         const otp = otpArray.find(meso => regex.exec(meso))
                         if (otp && otp.length === 4) {
-                            setValue('otpChar1', otp[0])
-                            setValue('otpChar2', otp[1])
-                            setValue('otpChar3', otp[2])
-                            setValue('otpChar4', otp[3])
-                            setValueInput(`${otp}`)
+                            setValue('otpChar1', otp[0]);
+                            setValue('otpChar2', otp[1]);
+                            setValue('otpChar3', otp[2]);
+                            setValue('otpChar4', otp[3]);
+                            removeAllListeners();
+                            setValueInput(`${otp}`);
                         }
                     }
                 });

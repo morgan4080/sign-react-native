@@ -415,6 +415,8 @@ export const validateGuarantorship = createAsyncThunk('validateGuarantorship', a
         myHeaders.append("Authorization", `Bearer ${key}`);
         myHeaders.append("Content-Type", 'application/json');
 
+        console.log("validateGuarantorType", payload);
+
         const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/loan-request/guarantors-status', {
             method: 'POST',
             headers: myHeaders,
@@ -426,7 +428,7 @@ export const validateGuarantorship = createAsyncThunk('validateGuarantorship', a
             return Promise.resolve(data);
         } else if (response.status === 401) {
             setAuthState(false);
-            return Promise.reject(response.status);
+            return Promise.reject("Auth Token Expired");
         } else {
             return Promise.reject(`Http Status: ${response.status}`);
         }

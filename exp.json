@@ -1,6 +1,6 @@
 {
   "loading": {
-    "backgroundColor": "rgba(61,136,154,0.75)",
+    "backgroundColor": "rgba(72,155,171,0.99)",
     "backgroundImage": "./assets/images/splash.png",
     "icon": "./assets/images/OTPloader.png"
   }

@@ -13,10 +13,7 @@ import ModalScreen from '../screens/ModalScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
 import GetStarted from "../screens/Landing/GetStarted";
 import Login from "../screens/Auth/Login";
-import Forgot from "../screens/Auth/Forgot";
 import VerifyOTP from "../screens/Auth/VerifyOTP";
-import PinLogin from "../screens/Auth/PinLogin";
-import SetPin from "../screens/Auth/SetPin";
 import GetTenants from "../screens/Tenants/GetTenants";
 import ShowTenants from "../screens/Tenants/ShowTenants";
 import UserProfile from "../screens/User/UserProfile";
@@ -26,7 +23,7 @@ import FavouriteGuarantors from "../screens/Guarantorship/FavouriteGuarantors";
 import GuarantorsHome from "../screens/Guarantorship/GuarantorsHome";
 import WitnessesHome from "../screens/Guarantorship/WitnessesHome";
 import Account from "../screens/User/Account";
-// import History from "../screens/User/History";
+
 import LoanProducts from "../screens/Loans/LoanProducts";
 import LoanProduct from "../screens/Loans/LoanProduct";
 import LoanPurpose from "../screens/Loans/LoanPurpose";
@@ -72,10 +69,6 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const NonAuthNaigation = () => {
     return (
         <Stack.Navigator initialRouteName="GetStarted">
-
-            {/*<Stack.Screen name="PinLogin" component={PinLogin} options={{ headerShown: false }} />
-            <Stack.Screen name="SetPin" component={SetPin} options={{ headerShown: false }} />
-            <Stack.Screen name="Forgot" component={Forgot} options={{ headerShown: false }} />*/}
 
             {/*Before login*/}
             <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
@@ -192,16 +185,14 @@ const AuthNavigation = () => {
                 }
             }} />
             <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
-            <Stack.Group screenOptions={{ presentation: 'modal' }}>
-                <Stack.Screen name="Modal" component={ModalScreen} options={{
-                    title: 'User Profile',
-                    headerStyle: {
-                        backgroundColor: 'rgba(50,52,146,0.12)',
-                    },
-                    headerTintColor: '#489AAB',
-                    headerShadowVisible: false
-                }}/>
-            </Stack.Group>
+            <Stack.Screen name="Modal" component={ModalScreen} options={{
+                title: 'User Profile',
+                headerStyle: {
+                    backgroundColor: 'rgba(50,52,146,0.12)',
+                },
+                headerTintColor: '#489AAB',
+                headerShadowVisible: false
+            }}/>
         </Stack.Navigator>
     )
 }
@@ -272,7 +263,7 @@ function BottomTabNavigator() {
  * <AntDesign name="home" size={24} color="black" />
  */
 function TabBarIcon(props: {
-    name: React.ComponentProps<typeof FontAwesome>['name'];
+    name: React.ComponentProps<typeof AntDesign>['name'];
     color: string;
 }) {
     return <AntDesign size={30} style={{ marginBottom: -3 }} {...props} />;

@@ -1088,6 +1088,7 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
 })
 
 export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string) => {
+    console.log(memberRefId);
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request?memberRefId=${memberRefId}`
     return new Promise(async (resolve, reject) => {
         try {
@@ -1104,6 +1105,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
             })
             if (response.status === 200) {
                 const data = await response.json()
+                console.log("loan-requests", data.content.length)
                 const result: any = await Promise.all(data.content.map(async ({refId}: {refId: string}, i: number) => {
                     const response0 = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${refId}`, {
                         method: 'GET',
@@ -1141,6 +1143,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                         reject(response.status);
                     }
                 }))
+                console.log("loan-requests", result.length)
                 resolve(result)
             } else if (response.status === 401) {
                 setAuthState(false);

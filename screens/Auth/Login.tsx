@@ -9,12 +9,18 @@ import {
     SafeAreaView,
     NativeModules,
     Alert,
-    Animated,
     TouchableHighlight
 } from 'react-native';
-import AppLoading from 'expo-app-loading';
+import Animated, {
+    interpolate,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withRepeat,
+    withTiming
+} from "react-native-reanimated";
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 import * as LocalAuthentication from 'expo-local-authentication';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
@@ -36,6 +42,35 @@ type FormData = {
     pinChar3: string | undefined;
     pinChar4: string | undefined;
 }
+
+const Ring = ({ delay, loading }: {delay: number, loading: boolean}) => {
+    const ring = useSharedValue(0);
+
+    const ringStyle = useAnimatedStyle(() => {
+        return {
+            opacity: 0.8 - ring.value,
+            transform: [
+                {
+                    scale: interpolate(ring.value, [0, 1], [0, 4]),
+                },
+            ],
+        };
+    });
+
+    useEffect(() => {
+        ring.value = withDelay(
+            delay,
+            withRepeat(
+                withTiming(1, {
+                    duration: 4000,
+                }),
+                -1,
+                false
+            )
+        );
+    }, []);
+    return <Animated.View style={[styles.ring, ringStyle, {backgroundColor: loading ? '#489AAB': '#FFFFFF'}]} />;
+};
 
 export default function Login({ navigation }: NavigationProps) {
     const { isJWT, tenants, selectedTenantId, loading } = useSelector((state: { auth: storeState }) => state.auth);
@@ -128,8 +163,8 @@ export default function Login({ navigation }: NavigationProps) {
         if (isBiometricSupported && launching) {
             if (fingerPrint && currentTenant) {
                 (async () => {
-                    let fpParsed = JSON.parse(fingerPrint)
-                    let pin = fpParsed !== '' ? fpParsed.pin : ''
+                    // let fpParsed = JSON.parse(fingerPrint)
+                    // let pin = fpParsed !== '' ? fpParsed.pin : ''
                     // await handleBiometricAuth(currentTenant, pin)
                 })()
             }
@@ -168,7 +203,7 @@ export default function Login({ navigation }: NavigationProps) {
         ])
     }
 
-    const TwoButtonAlert = () => {
+    /*const TwoButtonAlert = () => {
         return Alert.alert('Welcome', 'Get started by creating a new loan request', [
             {
                 text: 'Back',
@@ -180,7 +215,7 @@ export default function Login({ navigation }: NavigationProps) {
                 onPress: () => console.log('Ok Pressed')
             }
         ])
-    }
+    }*/
 
     const handleBiometricAuth = async () => {
         // check for support by hardware
@@ -279,7 +314,7 @@ export default function Login({ navigation }: NavigationProps) {
     }
     let characters: number[] = []
 
-    const animatedOpacity = useRef(new Animated.Value(1))
+    // const animatedOpacity = useRef(new Animated.Value(1))
 
     const [inputDisabled, setInputDisabled] = useState(false)
 
@@ -293,8 +328,8 @@ export default function Login({ navigation }: NavigationProps) {
                     // proceed
                     // check secureStore for fingerPrint details
                     if (fingerPrint && currentTenant) {
-                        let fpParsed = JSON.parse(fingerPrint)
-                        let pin = fpParsed !== '' ? fpParsed.pin : ''
+                        // let fpParsed = JSON.parse(fingerPrint)
+                        // let pin = fpParsed !== '' ? fpParsed.pin : ''
                         // await handleBiometricAuth(currentTenant, pin)
                     } else {
                         return alertComponent(
@@ -423,123 +458,150 @@ export default function Login({ navigation }: NavigationProps) {
 
     if (!isJWT && fontsLoaded) {
         return (
-            <>
-                <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#F8F8F8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
-                    <ScrollView contentContainerStyle={styles.container} >
-                        <View style={{height: height/2, display: 'flex', justifyContent: 'space-between', position: 'relative'}}>
-                            <View style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                                <TouchableOpacity onPress={() => navigation.navigate('GetTenants')} style={{marginTop: 45, marginBottom: 25, position: 'absolute', top: height/60, left: width/15}}>
-                                    <FontAwesome5 name="sign-out-alt" size={24} color="black" style={{transform: [{ rotate: "180deg" }]}} />
-                                </TouchableOpacity>
-                                {loading &&
-                                    <View style={{marginTop: 45, marginBottom: 25, position: 'absolute'}}>
-                                        <RotateView/>
-                                    </View>
-                                }
-                                <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: height/9 }}>
-                                    <Text allowFontScaling={false} style={{fontSize: 12, fontFamily: 'Poppins_400Regular'}}>{tenant?.firstName + " " + tenant?.lastName}</Text>
-                                    <Text allowFontScaling={false} style={{fontSize: 10, fontFamily: 'Poppins_300Light'}}>{tenant?.ussdPhoneNumber}</Text>
+            <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#F8F8F8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+                <ScrollView contentContainerStyle={styles.container} >
+                    <View style={{height: height/2, display: 'flex', justifyContent: 'space-between', position: 'relative'}}>
+                        <View style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                            <TouchableOpacity onPress={() => navigation.navigate('GetTenants')} style={{marginTop: 45, marginBottom: 25, position: 'absolute', top: height/60, left: width/15}}>
+                                <FontAwesome5 name="sign-out-alt" size={24} color="black" style={{transform: [{ rotate: "180deg" }]}} />
+                            </TouchableOpacity>
+                            {loading &&
+                                <View style={{marginTop: 45, marginBottom: 25, position: 'absolute'}}>
+                                    <RotateView/>
                                 </View>
-                            </View>
-
-                            <View>
-                                <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light', textTransform: 'uppercase'}}>{tenant?.tenantName} LOGIN</Text>
-                                <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light'}}>ENTER PIN</Text>
-                                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: width/4 }}>
-                                    <Controller
-                                        control={control}
-                                        rules={{
-                                            required: true,
-                                            maxLength: 1,
-                                        }}
-                                        render={( { field: { onChange, onBlur, value } }) => (
-                                            <Animated.View style={{ opacity: animatedOpacity.current }}>
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={{...styles.input, color: '#489AAB' }}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    editable={false}
-                                                    selectTextOnFocus={false}
-                                                />
-                                            </Animated.View>
-                                        )}
-                                        name="pinChar1"
-                                    />
-                                    <Controller
-                                        control={control}
-                                        rules={{
-                                            required: true,
-                                            maxLength: 1,
-                                        }}
-                                        render={( { field: { onChange, onBlur, value } }) => (
-                                            <Animated.View style={{ opacity: animatedOpacity.current }}>
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={{...styles.input, color: '#489AAB' }}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    editable={false}
-                                                    selectTextOnFocus={false}
-                                                />
-                                            </Animated.View>
-                                        )}
-                                        name="pinChar2"
-                                    />
-                                    <Controller
-                                        control={control}
-                                        rules={{
-                                            required: true,
-                                            maxLength: 1,
-                                        }}
-                                        render={( { field: { onChange, onBlur, value } }) => (
-                                            <Animated.View style={{ opacity: animatedOpacity.current }}>
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={{...styles.input, color: '#489AAB',}}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    editable={false}
-                                                    selectTextOnFocus={false}
-                                                />
-                                            </Animated.View>
-                                        )}
-                                        name="pinChar3"
-                                    />
-                                    <Controller
-                                        control={control}
-                                        rules={{
-                                            required: true,
-                                            maxLength: 1,
-                                        }}
-                                        render={( { field: { onChange, onBlur, value } }) => (
-                                            <Animated.View style={{ opacity: animatedOpacity.current }}>
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={{...styles.input, color: '#489AAB',}}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    editable={false}
-                                                    selectTextOnFocus={false}
-                                                />
-                                            </Animated.View>
-                                        )}
-                                        name="pinChar4"
-                                    />
-                                </View>
+                            }
+                            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: height/9 }}>
+                                <Text allowFontScaling={false} style={{fontSize: 12, fontFamily: 'Poppins_400Regular'}}>{tenant?.firstName + " " + tenant?.lastName}</Text>
+                                <Text allowFontScaling={false} style={{fontSize: 10, fontFamily: 'Poppins_300Light'}}>{tenant?.ussdPhoneNumber}</Text>
                             </View>
                         </View>
-                        <View style={{height: height/2.8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap'}}>
-                            {[1,2,3,4,5,6,7,8,9,-2,0,-1].map(num => (
-                                <TouchableHighlight disabled={inputDisabled} underlayColor='#CCCCCC' onPress={() => onPressed(num)} key={num} style={{width: width/3, height: height/11, display: 'flex', justifyContent: 'center'}}>
-                                    {
-                                        num >= 0 ?
-                                            <Text allowFontScaling={false} style={{fontSize: 18, textAlign: 'center', fontFamily: 'Poppins_400Regular'}}>{num}</Text>
-                                            : num === -1 ?
+
+                        <View>
+                            <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light', textTransform: 'uppercase'}}>{tenant?.tenantName} LOGIN</Text>
+                            <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light'}}>ENTER PIN</Text>
+                            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', paddingVertical: 10 }}>
+                                <Controller
+                                    control={control}
+                                    rules={{
+                                        required: true,
+                                        maxLength: 1,
+                                    }}
+                                    render={( { field: { onChange, onBlur, value } }) => (
+                                        <View style={styles.ringContainer}>
+
+                                                    <Ring delay={100} loading={loading}/>
+                                            {
+                                                value ?
+                                                    <View style={styles.ring2}></View> : <></>
+                                            }
+                                            <TextInput
+                                                allowFontScaling={false}
+                                                style={{...styles.input, color: '#489AAB' }}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                value={value}
+                                                editable={false}
+                                                selectTextOnFocus={false}
+                                            />
+                                        </View >
+                                    )}
+                                    name="pinChar1"
+                                />
+                                <Controller
+                                    control={control}
+                                    rules={{
+                                        required: true,
+                                        maxLength: 1,
+                                    }}
+                                    render={( { field: { onChange, onBlur, value } }) => (
+                                        <View style={styles.ringContainer}>
+
+                                                    <Ring delay={200} loading={loading}/>
+
+                                            {
+                                                value ?
+                                                    <View style={styles.ring2}></View> : <></>
+                                            }
+                                            <TextInput
+                                                allowFontScaling={false}
+                                                style={{...styles.input, color: '#489AAB' }}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                value={value}
+                                                editable={false}
+                                                selectTextOnFocus={false}
+                                            />
+                                        </View >
+                                    )}
+                                    name="pinChar2"
+                                />
+                                <Controller
+                                    control={control}
+                                    rules={{
+                                        required: true,
+                                        maxLength: 1,
+                                    }}
+                                    render={( { field: { onChange, onBlur, value } }) => (
+                                        <View style={styles.ringContainer}>
+
+                                                    <Ring delay={300} loading={loading}/>
+
+                                            {
+                                                value ?
+                                                    <View style={styles.ring2}></View> : <></>
+                                            }
+                                            <TextInput
+                                                allowFontScaling={false}
+                                                style={{...styles.input, color: '#489AAB',}}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                value={value}
+                                                editable={false}
+                                                selectTextOnFocus={false}
+                                            />
+                                        </View >
+                                    )}
+                                    name="pinChar3"
+                                />
+                                <Controller
+                                    control={control}
+                                    rules={{
+                                        required: true,
+                                        maxLength: 1,
+                                    }}
+                                    render={( { field: { onChange, onBlur, value } }) => (
+
+                                            <View style={styles.ringContainer}>
+
+                                                <Ring delay={400} loading={loading}/>
+                                                {
+                                                    value ?
+                                                    <View style={styles.ring2}></View> : <></>
+                                                }
+
+                                                <TextInput
+                                                allowFontScaling={false}
+                                                style={{...styles.input, color: '#489AAB',}}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                value={value}
+                                                editable={false}
+                                                selectTextOnFocus={false}
+                                                />
+                                            </View>
+                                    )}
+                                    name="pinChar4"
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <View style={{height: height/2.8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap'}}>
+                        {[1,2,3,4,5,6,7,8,9,-2,0,-1].map(num => (
+                            <TouchableHighlight disabled={inputDisabled} underlayColor='#CCCCCC' onPress={() => onPressed(num)} key={num} style={{width: width/3, height: height/11, display: 'flex', justifyContent: 'center'}}>
+                                {
+                                    num >= 0 ?
+                                        <Text allowFontScaling={false} style={{fontSize: 20, textAlign: 'center', fontFamily: 'Poppins_400Regular'}}>{num}</Text>
+                                        : num === -1 ?
                                             <Text allowFontScaling={false} style={{fontSize: 18, textAlign: 'center', fontFamily: 'Poppins_400Regular'}}>
                                                 <FontAwesome5 name="fingerprint" size={24} color="black" />
                                             </Text>
@@ -547,18 +609,19 @@ export default function Login({ navigation }: NavigationProps) {
                                             <Text allowFontScaling={false} style={{fontSize: 11, textAlign: 'center', fontFamily: 'Poppins_400Regular'}}>
                                                 CLEAR
                                             </Text>
-                                    }
-                                </TouchableHighlight>
-                            ))}
-                        </View>
-                    </ScrollView>
-                </SafeAreaView>
-            </>
+                                }
+                            </TouchableHighlight>
+                        ))}
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
         )
     }  else {
         return (
-            <AppLoading/>
-        );
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+                <RotateView/>
+            </View>
+        )
     }
 }
 
@@ -594,13 +657,9 @@ const styles = StyleSheet.create({
     },
     input: {
         textAlign: 'center',
-        borderColor: '#CCCCCC',
-        borderWidth: 1,
-        borderRadius: 100,
-        height: height/20,
-        width: height/20,
-        fontWeight: '900',
-        fontSize: height/width * 17
+        fontWeight: 'bold',
+        fontSize: 35,
+        display: 'none'
     },
     error: {
         fontSize: 12,
@@ -608,5 +667,30 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_400Regular',
         paddingHorizontal: 10,
         marginTop: 5
+    },
+    ringContainer: {
+        borderColor: '#CCCCCC',
+        borderWidth: 1,
+        height: 40,
+        width: 40,
+        marginLeft: 10,
+        borderRadius: 50,
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    ring: {
+        position: "absolute",
+        width: 20,
+        height: 20,
+        borderRadius: 50
+    },
+    ring2: {
+        position: "absolute",
+        width: 25,
+        height: 25,
+        backgroundColor: "#489AAB",
+        borderRadius: 50
     }
 });

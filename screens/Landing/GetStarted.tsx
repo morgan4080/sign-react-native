@@ -101,27 +101,18 @@ export default function GetStarted({ navigation }: NavigationProps) {
                             style={styles.landingBg}
                             source={require('../../assets/images/landingGetStarted.jpg')}
                         />
-                        <Text allowFontScaling={false} style={styles.subTitleText}>
-                            Digitally sign your loan documents from the cmfort of your mobile phone fast and easy.
-                        </Text>
                     </View>
                     <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'flex-start' }} key="2">
                         <Image
                             style={styles.landingBg}
                             source={require('../../assets/images/farm.jpg')}
                         />
-                        <Text allowFontScaling={false} style={styles.subTitleText}>
-                            Digitally sign your loan documents from the cmfort of your mobile phone fast and easy.
-                        </Text>
                     </View>
                     <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'flex-start' }} key="3">
                         <Image
                             style={styles.landingBg}
                             source={require('../../assets/images/pro.jpg')}
                         />
-                        <Text allowFontScaling={false} style={styles.subTitleText}>
-                            Digitally sign your loan documents from the cmfort of your mobile phone fast and easy.
-                        </Text>
                     </View>
                 </PagerView>
             </>

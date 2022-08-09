@@ -22,6 +22,8 @@ public class CustomModule extends ReactContextBaseJavaModule {
         Toast.makeText(reactContext, message, Toast.LENGTH_LONG).show();
     }
 
+
+
     @NonNull
     @Override
     public String getName() {

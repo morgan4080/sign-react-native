@@ -49,6 +49,7 @@ const Ring = ({ delay, loading }: {delay: number, loading: boolean}) => {
     const ringStyle = useAnimatedStyle(() => {
         return {
             opacity: 0.8 - ring.value,
+            backgroundColor: loading ? '#489AAB': '#FFFFFF',
             transform: [
                 {
                     scale: interpolate(ring.value, [0, 1], [0, 4]),
@@ -69,7 +70,7 @@ const Ring = ({ delay, loading }: {delay: number, loading: boolean}) => {
             )
         );
     }, []);
-    return <Animated.View style={[styles.ring, ringStyle, {backgroundColor: loading ? '#489AAB': '#FFFFFF'}]} />;
+    return <Animated.View style={[styles.ring, ringStyle]} />;
 };
 
 export default function Login({ navigation }: NavigationProps) {

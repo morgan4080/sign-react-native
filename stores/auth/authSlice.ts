@@ -975,10 +975,15 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
                        buffer = chars.indexOf(buffer);
                    }
                    const { phoneNumber }: { phoneNumber?: string } = JSON.parse(output);
-                   resolve({
-                       ...data,
-                       phoneNumber
-                   })
+                   let otpV = await getSecureKey('otp_verified');
+                   if (otpV) {
+                       resolve({
+                           ...data,
+                           phoneNumber
+                       })
+                   } else {
+                       reject(otpV)
+                   }
                }
 
            }  else if (response.status === 401) {

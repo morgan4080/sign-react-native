@@ -69,6 +69,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
     let permCheck = true
     if (permCheck) {
       (async () => {
+        setTakingPhoto(false);
         const { status } = await Camera.requestCameraPermissionsAsync();
         setHasPermission(status === 'granted');
       })();

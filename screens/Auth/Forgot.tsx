@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {Text, View, StyleSheet, TouchableHighlight, TouchableOpacity, TextInput} from 'react-native';
-import AppLoading from 'expo-app-loading';
 
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 
@@ -38,39 +37,33 @@ export default function Forgot({ navigation }: NavigationProps) {
         }
     })
 
-    if (fontsLoaded) {
-        return (
-            <View style={styles.container}>
-                <Text allowFontScaling={false} style={styles.titleText}>Reset your pin</Text>
-                <Controller
-                    control={control}
-                    rules={{
-                        required: true,
-                        maxLength: 12,
-                    }}
-                    render={( { field: { onChange, onBlur, value } }) => (
-                        <TextInput
-                            allowFontScaling={false}
-                            style={styles.input}
-                            onBlur={onBlur}
-                            onChangeText={onChange}
-                            value={value}
-                        />
-                    )}
-                    name="phoneNumber"
-                />
-                {errors.phoneNumber && <Text  allowFontScaling={false} >This field is required</Text>}
-                <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)} underlayColor='#99d9f4'>
-                    <Text allowFontScaling={false} style={styles.buttonText}>Reset Pin</Text>
-                </TouchableHighlight>
-                <TouchableOpacity onPress={() => navigation.navigate('Login')}><Text allowFontScaling={false} style={styles.linkText}>Back to login</Text></TouchableOpacity>
-            </View>
-        )
-    }  else {
-        return (
-            <AppLoading/>
-        );
-    }
+    return (
+        <View style={styles.container}>
+            <Text allowFontScaling={false} style={styles.titleText}>Reset your pin</Text>
+            <Controller
+                control={control}
+                rules={{
+                    required: true,
+                    maxLength: 12,
+                }}
+                render={( { field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                        allowFontScaling={false}
+                        style={styles.input}
+                        onBlur={onBlur}
+                        onChangeText={onChange}
+                        value={value}
+                    />
+                )}
+                name="phoneNumber"
+            />
+            {errors.phoneNumber && <Text  allowFontScaling={false} >This field is required</Text>}
+            <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)} underlayColor='#99d9f4'>
+                <Text allowFontScaling={false} style={styles.buttonText}>Reset Pin</Text>
+            </TouchableHighlight>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}><Text allowFontScaling={false} style={styles.linkText}>Back to login</Text></TouchableOpacity>
+        </View>
+    )
 
 }
 

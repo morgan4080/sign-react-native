@@ -7,10 +7,9 @@ import {
     TouchableHighlight,
     Linking,
     StatusBar,
-    TouchableOpacity,
-    SafeAreaView, Dimensions, StatusBar as Bar
+    TouchableOpacity, Dimensions, StatusBar as Bar
 } from 'react-native';
-import AppLoading from 'expo-app-loading';
+
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
@@ -120,7 +119,9 @@ export default function GetStarted({ navigation }: NavigationProps) {
         )
     } else {
         return (
-            <AppLoading/>
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+                <RotateView/>
+            </View>
         );
     }
 }

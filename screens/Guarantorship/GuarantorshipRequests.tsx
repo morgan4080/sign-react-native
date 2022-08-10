@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
-import AppLoading from "expo-app-loading";
+
 import {useDispatch, useSelector} from "react-redux";
 import {fetchGuarantorshipRequests, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";

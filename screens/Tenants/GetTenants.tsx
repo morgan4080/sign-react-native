@@ -21,7 +21,7 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import AppLoading from "expo-app-loading";
+
 import {Controller, useForm} from "react-hook-form";
 import {authenticate, getTenants, storeState} from "../../stores/auth/authSlice";
 import {useDispatch, useSelector} from "react-redux";
@@ -289,7 +289,11 @@ const GetTenants = ({ navigation }: NavigationProps) => {
             </>
         )
     } else {
-        return (<AppLoading/>)
+        return (
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+                <RotateView/>
+            </View>
+        )
     }
 }
 

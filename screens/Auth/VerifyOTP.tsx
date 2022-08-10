@@ -12,7 +12,7 @@ import {
     Dimensions,
     SafeAreaView
 } from 'react-native';
-import AppLoading from 'expo-app-loading';
+
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
 import {sendOtp, setLoading, verifyOtp} from "../../stores/auth/authSlice";
@@ -367,7 +367,9 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         )
     } else {
         return (
-            <AppLoading/>
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+                <RotateView/>
+            </View>
         );
     }
 }

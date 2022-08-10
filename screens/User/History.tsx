@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {AntDesign, Ionicons} from "@expo/vector-icons";
-import AppLoading from "expo-app-loading";
+
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -25,6 +25,7 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import HistoryTile from "./Components/HistoryTile";
+import {RotateView} from "../Auth/VerifyOTP";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -95,7 +96,9 @@ export default function History ({ navigation }: NavigationProps) {
         )
     } else {
         return (
-            <AppLoading/>
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+                <RotateView/>
+            </View>
         )
     }
 }

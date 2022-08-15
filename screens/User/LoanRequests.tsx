@@ -173,7 +173,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
             if (payload.signURL) await openAuthSessionAsync(payload.signURL)
         } else {
             console.log(type, error);
-            CSTM.showToast(error);
+            CSTM.showToast(error.message);
         }
 
         console.log("zohoSignPayloadType", payloadOut);

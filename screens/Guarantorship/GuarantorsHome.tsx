@@ -55,7 +55,7 @@ import {Controller, useForm} from "react-hook-form";
 
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
-import {cloneDeep} from "lodash";
+import cloneDeep from "lodash/cloneDeep";
 
 import {RotateView} from "../Auth/VerifyOTP";
 

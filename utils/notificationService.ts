@@ -1,4 +1,3 @@
-import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import {Platform} from "react-native";
 import * as TaskManager from 'expo-task-manager';
@@ -7,11 +6,6 @@ import * as TaskManager from 'expo-task-manager';
 const MY_TASK_NAME = 'BACKGROUND-NOTIFICATION-TASK';
 
 export const registerForPushNotificationsAsync = async (): Promise<string | null> => {
-    if (!Constants.isDevice) {
-        alert("Must use physical device for Push Notifications");
-        return null;
-    }
-
     const {status} = await Notifications.requestPermissionsAsync();
 
     if (status !== "granted") {

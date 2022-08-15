@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import React, { useEffect } from 'react';
 import {Linking} from 'react-native';
-// import useCachedResources from './hooks/useCachedResources';
+
 import Navigation from './navigation';
 import { Provider } from 'react-redux';
 import { store } from "./stores/store";

@@ -56,7 +56,7 @@ const greeting = () => {
 }
 
 export default function UserProfile({ navigation }: NavigationProps) {
-    const { loading, user, member, guarantorshipRequests, witnessRequests } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, user, member } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
@@ -124,6 +124,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             <View>
                                 <Text allowFontScaling={false} style={styles.titleText}>{ `Good ${ greeting() } ${ user?.firstName }` }</Text>
                                 <Text allowFontScaling={false} style={styles.subTitleText}>{ `Your member NO: ${member?.memberNumber}` }</Text>
+                                <Text allowFontScaling={false} style={styles.subText}>{ `${user?.companyName}` }</Text>
                             </View>
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: height/2 }}>
@@ -208,6 +209,13 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#FFFFFF',
         fontFamily: 'Poppins_600SemiBold',
+        elevation: 1
+    },
+    subText: {
+        fontSize: 14,
+        textAlign: 'center',
+        color: '#FFFFFF',
+        fontFamily: 'Poppins_400Regular',
         elevation: 1
     },
     landingBg: {

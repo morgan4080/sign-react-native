@@ -803,7 +803,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const isDisabled = () => {
         let reminder = route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount);
-        if (reminder > 0) {
+        if (reminder > 2) {
             return true
         }
         return selectedContacts.length < requiredGuarantors();
@@ -822,16 +822,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
             <View style={styles.container}>
                 <View style={{flex: 1, alignItems: 'center', position: 'relative'}}>
-                    <View style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'flex-start',
-                        width,
-                        height: 3/12 * height,
-                        position: 'relative',
-                        marginTop: 25,
-                        marginBottom: 20
-                    }}>
+                    <View style={styles.searchbar}>
                         <View style={{paddingHorizontal: 20, marginBottom: 5}}>
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 16 }}>
                                 Add Guarantors ({route.params?.loanProduct.requiredGuarantors} Required) {dbUser}
@@ -866,7 +857,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                 </TouchableOpacity>
                             </View>
                         </View>
-                        <View style={{paddingHorizontal: 20, marginTop: 10, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                        <View style={{paddingHorizontal: 20, marginTop: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', zIndex: 10}}>
                             <ScrollView horizontal>
                                 {selectedContacts && selectedContacts.map((co,i) => (
                                     <TouchableOpacity onPress={() => removeContactFromList(co)} key={i} style={{
@@ -889,18 +880,21 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                             fontFamily: 'Poppins_400Regular',
                                             textAlign: 'center',
                                             zIndex: 2
-                                        }}>{co.name}</Text>
+                                        }}>{co.name.split(' ')[0]}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
                         </View>
                     </View>
-                    <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#e8e8e8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+                    <SafeAreaView style={{ flex: 1, width, height: 10/12 * height, borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                         <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
                             {
-                                contacts && contacts.map((contact: any, i: number) => (
+                                contacts.length ? contacts.map((contact: any, i: number) => (
                                     <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} />
-                                ))
+                                )) :
+                                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', fontSize: 12}}>No Contacts Found</Text>
+                                </View>
                             }
                         </ScrollView>
                     </SafeAreaView>
@@ -1203,6 +1197,16 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         position: 'relative'
+    },
+    searchbar: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        width,
+        height: 2/12 * height,
+        position: 'relative',
+        marginTop: 30,
+        marginBottom: 20
     },
     dialPad: {
         display: 'flex',

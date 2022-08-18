@@ -440,35 +440,37 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
             <View style={styles.container}>
                 <View style={{flex: 1, alignItems: 'center', position: 'relative'}}>
-                    <View style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'flex-start',
-                        width,
-                        height: 3/12 * height,
-                        position: 'relative',
-                        paddingTop:(Bar.currentHeight ? Bar.currentHeight : 0) + 10,
-                        marginBottom: 20
-                    }}>
+                    <View style={styles.searchbar}>
                         <View style={{paddingHorizontal: 20, marginBottom: 5}}>
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 16 }}>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 16, marginBottom: 10 }}>
                                 Add Witnesses (1 Required)
                             </Text>
 
-                            <Controller
-                                control={control}
-                                render={( { field: { onChange, onBlur, value } }) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="Search Contact name or phone"
-                                    />
-                                )}
-                                name="searchTerm"
-                            />
+                            <View style={{position: 'relative', display: 'flex', flexDirection: 'row', overflow: 'hidden'}}>
+                                <View style={{position: 'absolute', display: 'flex', height: 45, zIndex: 1, alignItems: 'center', justifyContent: 'center'}}>
+                                    <Ionicons name="search" size={25} color="#CCCCCC" style={{paddingHorizontal: 10}} />
+                                </View>
+
+                                <Controller
+                                    control={control}
+                                    render={( { field: { onChange, onBlur, value } }) => (
+                                        <TextInput
+                                            allowFontScaling={false}
+                                            style={styles.input}
+                                            onBlur={onBlur}
+                                            onChangeText={onChange}
+                                            value={value}
+                                            placeholder="Search Contacts"
+                                        />
+                                    )}
+                                    name="searchTerm"
+                                />
+                                <TouchableOpacity style={styles.optionsButton} onPress={() => {
+                                    onPress('options');
+                                }}>
+                                    <Ionicons name="options-outline" size={25} color="white" style={{paddingHorizontal: 15}} />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                         <View style={{paddingHorizontal: 20, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                             <ScrollView horizontal>
@@ -485,7 +487,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                         position: 'relative'
                                     }}>
                                         <View style={{ position: 'absolute', top: 0, right: -1 }}>
-                                            <FontAwesome5 name="minus-circle" size={14} color="black" />
+                                            <FontAwesome5 name="minus-circle" size={14} color="#767577" />
                                         </View>
                                         <Text allowFontScaling={false} style={{
                                             color: '#363D7D',
@@ -493,28 +495,21 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                             fontFamily: 'Poppins_400Regular',
                                             textAlign: 'center',
                                             zIndex: 2
-                                        }}>{co.name}</Text>
+                                        }}>{co.name.split(' ')[0]}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
                         </View>
                     </View>
-                    <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#e8e8e8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
-                        <View style={{ position: 'absolute', marginTop: -18, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableHighlight onPress={() => {
-                                onPress('options');
-                            }} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/3, height: 35, borderRadius: 50 }}>
-                                <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                    <Ionicons name="options-outline" size={16} color="white" />
-                                    <Text allowFontScaling={false} style={styles.buttonText0}>Options</Text>
-                                </View>
-                            </TouchableHighlight>
-                        </View>
+                    <SafeAreaView style={{ flex: 1, width, height: 10/12 * height, borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                         <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
                             {
-                                contacts && contacts.map((contact: any, i: number) => (
-                                    <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} />
-                                ))
+                                contacts.length ? contacts.map((contact: any, i: number) => (
+                                        <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} />
+                                    )) :
+                                    <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
+                                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', fontSize: 12}}>No Contacts Found</Text>
+                                    </View>
                             }
                         </ScrollView>
                     </SafeAreaView>
@@ -623,6 +618,16 @@ const styles = StyleSheet.create({
         flex: 1,
         position: 'relative'
     },
+    searchbar: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        width,
+        height: 2/12 * height,
+        position: 'relative',
+        marginTop: 30,
+        marginBottom: 20
+    },
     dialPad: {
         display: 'flex',
         alignItems: 'center',
@@ -656,12 +661,12 @@ const styles = StyleSheet.create({
         borderColor: '#cccccc',
         backgroundColor: '#FFFFFF',
         borderRadius: 15,
-        height: 40,
-        marginTop: 10,
-        paddingHorizontal: 15,
+        height: 45,
+        paddingLeft: 50,
         fontSize: 12,
         color: '#767577',
-        fontFamily: 'Poppins_400Regular',
+        width: '100%',
+        fontFamily: 'Poppins_400Regular'
     },
     input0: {
         borderWidth: 1,
@@ -674,7 +679,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#767577',
         fontFamily: 'Poppins_400Regular',
-        marginBottom: 20,
+        marginBottom: 20
     },
     buttonText: {
         fontSize: 15,
@@ -712,4 +717,21 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_300Light',
         marginLeft: 10
     },
+    optionsButton: {
+        backgroundColor: '#489AAB',
+        borderTopWidth: 2,
+        borderBottomWidth: 2,
+        borderRightWidth: 2,
+        borderColor: '#cccccc',
+        position: 'absolute',
+        right: 1,
+        borderTopRightRadius: 13,
+        borderBottomRightRadius: 13,
+        top: 0,
+        height: 45,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center'
+    }
 });

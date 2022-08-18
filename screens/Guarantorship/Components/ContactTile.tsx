@@ -9,7 +9,7 @@ import {
 } from "@expo-google-fonts/poppins";
 import {Dimensions, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Ionicons, Octicons} from "@expo/vector-icons";
-import Checkbox from "expo-checkbox";
+// import Checkbox from "expo-checkbox";
 import {useState} from "react";
 import {updateContact, validateNumber} from "../../../stores/auth/authSlice";
 import {store} from "../../../stores/store";
@@ -20,9 +20,10 @@ interface propInterface {
     contact: any,
     addContactToList: any
     removeContactFromList: any
+    contactList: any
 }
 const { width, height } = Dimensions.get("window");
-export default function contactTile ({contact, addContactToList, removeContactFromList}: propInterface) {
+export default function contactTile ({contact, addContactToList, removeContactFromList, contactList}: propInterface) {
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
     let [fontsLoaded] = useFonts({
@@ -74,17 +75,16 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                         memberRefId: payload?.refId
                     });
                 }
-                /*if (!res && !newValue) {
-                    CSTM.showToast("Already added contact");
-                }*/
                 setSelectedContact(res)
             }
         } catch (e: any) {
             console.log("error", e)
         }
     }
-
-
+    contactList.map((current: any) => {
+        console.log(contact.memberNumber)
+        console.log(current)
+    })
     return (
         <TouchableOpacity style={[{backgroundColor: selectedContact ? 'rgb(50,52,146)' : '#FFFFFF'},styles.main]} onPress={() => selectContact(!selectedContact, contact)}>
             <View style={styles.tile} >
@@ -97,20 +97,20 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                         {contact.memberNumber &&
                             <View style={{ display: 'flex', flexDirection: 'row'}}>
                                 <Octicons style={{paddingLeft: 5}} name="verified" size={12} color="#336DFFFF" />
-                                <Text allowFontScaling={false} style={{color: selectedContact ? '#FFFFFF' : '#cccccc', fontSize: 10}}>{contact.memberNumber}</Text>
+                                <Text allowFontScaling={false} style={{ color: selectedContact ? '#FFFFFF' : '#cccccc', fontSize: 10 }}>{contact.memberNumber}</Text>
                             </View>
                         }
                     </View>
                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: selectedContact ? '#FFFFFF' : '#9a9a9a', fontSize: 13 }}>{contact.phone}</Text>
                 </View>
-                <View>
+                {/*<View>
                     <Checkbox
                         style={{ width: 22, height: 22 }}
                         value={selectedContact}
                         onValueChange={(newValue) => selectContact(newValue, contact)}
                         color={selectedContact ? 'rgb(50,52,146)' : '#ADADAD'}
                     />
-                </View>
+                </View>*/}
             </View>
         </TouchableOpacity>
     )

@@ -38,7 +38,7 @@ export default function GuarantorshipRequests ({ navigation }: NavigationProps) 
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
-    type accountHistoryType = {refId: string, executor: string, subject: string, event: string, time: string}
+    type accountHistoryType = {refId: string, executor: string, subject: string, event: string, isActive: boolean, time: string}
 
     const [pressed, setPressed] = useState<boolean>(false)
     const [request, setRequest] = useState<accountHistoryType | null>()
@@ -72,6 +72,7 @@ export default function GuarantorshipRequests ({ navigation }: NavigationProps) 
             executor: request.applicant.firstName + " " + request.applicant.lastName,
             subject: toMoney(`${request.loanRequest.amount}`),
             event: 'requested you to guarantee their loan ' + request.loanRequest.loanNumber +  ' of Kshs',
+            isActive: !!request.isActive,
             time: new Date().toLocaleTimeString()
         };
     });

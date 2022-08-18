@@ -46,9 +46,17 @@ export default function GetStarted({ navigation }: NavigationProps) {
         (async () => {
             if (initializing) {
                 try {
-                    const oldBoy = await getSecureKey('existing');
+                    const [oldBoy, phone, code] = await Promise.all([
+                        getSecureKey('existing'),
+                        getSecureKey('phone_number_without'),
+                        getSecureKey('phone_number_code')
+                    ]);
+
                     if (oldBoy === 'true') {
-                        navigation.navigate('GetTenants');
+                        navigation.navigate('ShowTenants', {
+                            countryCode: code,
+                            phoneNumber: phone
+                        });
                     } else {
                         await dispatch(initializeDB())
                     }

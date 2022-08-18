@@ -513,7 +513,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
                             {
                                 contacts && contacts.map((contact: any, i: number) => (
-                                    <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} />
+                                    <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} />
                                 ))
                             }
                         </ScrollView>

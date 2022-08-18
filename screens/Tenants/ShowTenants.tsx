@@ -8,7 +8,7 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import {useDispatch, useSelector} from "react-redux";
-import {authenticate, storeState, setSelectedTenantId} from "../../stores/auth/authSlice";
+import {authenticate, storeState, setSelectedTenantId, getTenants} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {
     FlatList,
@@ -33,7 +33,7 @@ const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
     </TouchableOpacity>
 );
 
-const ShowTenants = ({ navigation }: NavigationProps) => {
+const ShowTenants = ({ navigation, route }: NavigationProps) => {
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -45,15 +45,6 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
 
     const [otpVerified, setOtpVerified] = useState(undefined);
 
-    (async () => {
-        try {
-            let otpV = await getSecureKey('otp_verified');
-            setOtpVerified(otpV);
-        } catch (e:any) {
-            console.log("getSecureKey otpVerified", e)
-        }
-    })()
-
     const { selectedTenantId, isLoggedIn, tenants } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
@@ -61,6 +52,40 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
     const dispatch : AppDispatch = useDispatch();
 
     const CSTM = NativeModules.CSTM;
+
+    useEffect(() => {
+        let fetching = true;
+        if (fetching) {
+            (async () => {
+                try {
+                    let otpV = await getSecureKey('otp_verified');
+                    setOtpVerified(otpV);
+                    console.log('route params', route.params);
+                    if (route.params) {
+                        const { countryCode, phoneNumber }: any = route.params;
+                        if (countryCode && phoneNumber) {
+                            // get tenants
+                            let phone: string = '';
+                            let identifier: string = `${countryCode}${phoneNumber}`;
+                            if (identifier[0] === '+') {
+                                let number = identifier.substring(1);
+                                phone = `${number.replace(/ /g, "")}`;
+                            } else if (identifier[0] === '0') {
+                                let number = identifier.substring(1);
+                                phone = `254${number.replace(/ /g, "")}`;
+                            }
+                            const { type, error }: any = await dispatch(getTenants(phone));
+                        }
+                    }
+                } catch (e:any) {
+                    console.log("getSecureKey otpVerified", e)
+                }
+            })()
+        }
+        return () => {
+            fetching = false;
+        }
+    }, [])
 
     useEffect(() => {
         let authenticating = true;
@@ -91,7 +116,7 @@ const ShowTenants = ({ navigation }: NavigationProps) => {
             <Item
                 item={item}
                 onPress={() => {
-                    // if item doesnt exist in configuration
+                    // if item doesn't exist in configuration
                     // communicate that it's not yet supported
 
                     const settings = configuration.find(config => config.tenantId === item.tenantId);

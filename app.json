@@ -1,5 +1,6 @@
 {
   "expo": {
+    "jsEngine": "hermes",
     "name": "Presta Sign",
     "slug": "presta-sign",
     "version": "1.0.0",

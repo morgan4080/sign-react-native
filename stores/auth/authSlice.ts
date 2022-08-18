@@ -242,7 +242,7 @@ const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> =
 export const searchContactsInDB = createAsyncThunk('searchContactsInDB', async({searchTerm, setContacts}: {searchTerm: string, setContacts: any}) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM contacts WHERE name LIKE '%${searchTerm}%' OR phone LIKE '%${searchTerm}%' LIMIT '0', '100'`, undefined,
+            tx.executeSql(`SELECT * FROM contacts WHERE name LIKE '%${searchTerm}%' OR phone LIKE '%${searchTerm}%' LIMIT '0', '10'`, undefined,
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: any, { rows: { _array } } : any) => {
                     setContacts(_array)
@@ -556,7 +556,7 @@ export const getUserFromDB = createAsyncThunk('getUserFromDB', async ({setDBUser
 export const getContactsFromDB = createAsyncThunk('getContactsFromDB', async ({setContacts, from, to}: {setContacts: any, from: number, to: number}) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '30'`, undefined,
+            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '10'`, undefined,
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: any, { rows: { _array } } : any) => {
                     setContacts(_array)
@@ -851,7 +851,7 @@ export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRe
         if (!key) {
             reject("You are not authenticated")
         }
-        const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/guarantorship-request?acceptanceStatus=INPROGRESS&memberRefId=${memberRefId}`,{
+        const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/guarantorship-request?memberRefId=${memberRefId}&order=ASC&sort=ASC&pageSize=10&pageIndex=0`,{
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -870,6 +870,70 @@ export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRe
             reject(`is not a member.`);
         }
     })
+});
+
+export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest', async (refId: string) => {
+    try {
+        const key = await getSecureKey('access_token');
+
+        if (!key) {
+            return Promise.reject('You are not authenticated');
+        }
+
+        const myHeaders = new Headers();
+
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        myHeaders.append("Content-Type", 'application/json');
+
+        const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/guarantorship-request/${refId}/false`, {
+            method: 'POST',
+            headers: myHeaders
+        });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            return Promise.resolve(data);
+        } else if (response.status === 401) {
+            setAuthState(false);
+            return Promise.reject(response.status);
+        } else {
+            return Promise.reject(response);
+        }
+    } catch (e: any) {
+        return Promise.reject(e.message)
+    }
+});
+
+export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', async (refId: string) => {
+    try {
+        const key = await getSecureKey('access_token');
+
+        if (!key) {
+            return Promise.reject('You are not authenticated');
+        }
+
+        const myHeaders = new Headers();
+
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        myHeaders.append("Content-Type", 'application/json');
+
+        const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/witness-request/${refId}/false`, {
+            method: 'POST',
+            headers: myHeaders
+        });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            return Promise.resolve(data);
+        } else if (response.status === 401) {
+            setAuthState(false);
+            return Promise.reject(response.status);
+        } else {
+            return Promise.reject(response);
+        }
+    } catch (e) {
+        return Promise.reject(e)
+    }
 });
 
 export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuarantors', ({memberRefId, setFaveGuarantors}: {memberRefId: string | undefined, setFaveGuarantors: any}) => {

@@ -104,7 +104,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const [from, setFrom] = useState(0);
 
-    const [to, setTo] = useState(15);
+    const [to, setTo] = useState(10);
 
     const [employerDetailsEnabled, setEmployerDetailsEnabled] = useState(false);
     const [dbUser, setDbUser] = useState(false);
@@ -829,32 +829,44 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         width,
                         height: 3/12 * height,
                         position: 'relative',
-                        paddingTop:(Bar.currentHeight ? Bar.currentHeight : 0) + 10,
+                        marginTop: 25,
                         marginBottom: 20
                     }}>
                         <View style={{paddingHorizontal: 20, marginBottom: 5}}>
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 16 }}>
                                 Add Guarantors ({route.params?.loanProduct.requiredGuarantors} Required) {dbUser}
                             </Text>
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12 }}>
-                                Loan: {toMoney(route.params?.loanDetails.desiredAmount)} KSH - Guaranteed: {toMoney(calculateGuarantorship(route.params?.loanDetails.desiredAmount))}
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, marginBottom: 10 }}>
+                                Loan Amount: {toMoney(route.params?.loanDetails.desiredAmount)} KSH - Amount Guaranteed: {toMoney(calculateGuarantorship(route.params?.loanDetails.desiredAmount))}
                             </Text>
-                            <Controller
-                                control={control}
-                                render={( { field: { onChange, onBlur, value } }) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="Search Contact name or phone"
-                                    />
-                                )}
-                                name="searchTerm"
-                            />
+                            <View style={{position: 'relative', display: 'flex', flexDirection: 'row', overflow: 'hidden'}}>
+                                <View style={{position: 'absolute', display: 'flex', height: 45, zIndex: 1, alignItems: 'center', justifyContent: 'center'}}>
+                                    <Ionicons name="search" size={25} color="#CCCCCC" style={{paddingHorizontal: 10}} />
+                                </View>
+
+                                <Controller
+                                    control={control}
+                                    render={( { field: { onChange, onBlur, value } }) => (
+                                        <TextInput
+                                            allowFontScaling={false}
+                                            style={styles.input}
+                                            onBlur={onBlur}
+                                            onChangeText={onChange}
+                                            value={value}
+                                            placeholder="Search Contacts"
+                                        />
+                                    )}
+                                    name="searchTerm"
+                                />
+                                <TouchableOpacity style={styles.optionsButton} onPress={() => {
+                                    setEmployerDetailsEnabled(false);
+                                    onPress('options');
+                                }}>
+                                    <Ionicons name="options-outline" size={25} color="white" style={{paddingHorizontal: 15}} />
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                        <View style={{paddingHorizontal: 20, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                        <View style={{paddingHorizontal: 20, marginTop: 10, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                             <ScrollView horizontal>
                                 {selectedContacts && selectedContacts.map((co,i) => (
                                     <TouchableOpacity onPress={() => removeContactFromList(co)} key={i} style={{
@@ -869,7 +881,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                         position: 'relative'
                                     }}>
                                         <View style={{ position: 'absolute', top: 0, right: -1 }}>
-                                            <FontAwesome5 name="minus-circle" size={14} color="black" />
+                                            <FontAwesome5 name="minus-circle" size={14} color="#767577" />
                                         </View>
                                         <Text allowFontScaling={false} style={{
                                             color: '#363D7D',
@@ -884,21 +896,10 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         </View>
                     </View>
                     <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#e8e8e8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
-                        <View style={{ position: 'absolute', marginTop: -18, zIndex: 7, width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableHighlight onPress={() => {
-                                setEmployerDetailsEnabled(false);
-                                onPress('options');
-                            }} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#336DFF', width: width/3, height: 35, borderRadius: 50 }}>
-                                <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                    <Ionicons name="options-outline" size={16} color="white" />
-                                    <Text allowFontScaling={false} style={styles.buttonText0}>OPTIONS</Text>
-                                </View>
-                            </TouchableHighlight>
-                        </View>
                         <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
                             {
                                 contacts && contacts.map((contact: any, i: number) => (
-                                    <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} />
+                                    <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} />
                                 ))
                             }
                         </ScrollView>
@@ -912,12 +913,12 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 </View>
             </View>
             <BottomSheet ref={ref}>
-                <SafeAreaView style={{display: 'flex', position: 'relative', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
-                    <TouchableOpacity style={{position: 'absolute', top: -25, right: 12, width: 20, height: 20}} onPress={() => {
+                <SafeAreaView style={{ display: 'flex', position: 'relative', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
+                    <TouchableOpacity style={{ position: 'absolute', top: -25, right: 12, backgroundColor: '#767577', borderRadius: 15 }} onPress={() => {
                         setEmployerDetailsEnabled(false);
                         onPress('options');
                     }}>
-                        <AntDesign name="closecircleo" size={15} color="#767577" />
+                        <AntDesign name="close" size={15} style={{padding: 2}} color="#FFFFFF" />
                     </TouchableOpacity>
                     {context === "options" ?
                         <FlatList
@@ -1181,7 +1182,12 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                             }
                             <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                                 <TouchableOpacity disabled={ !memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                                    {loading && <RotateView/>}
+                                    {
+                                        loading &&
+                                        <View style={{marginRight: 10}}>
+                                            <RotateView/>
+                                        </View>
+                                    }
                                     <Text allowFontScaling={false} style={styles.buttonText}>{context === 'search' ? 'Search' : 'Submit'}</Text>
                                 </TouchableOpacity>
                             </View>
@@ -1231,11 +1237,11 @@ const styles = StyleSheet.create({
         borderColor: '#cccccc',
         backgroundColor: '#FFFFFF',
         borderRadius: 15,
-        height: 40,
-        marginTop: 10,
-        paddingHorizontal: 15,
+        height: 45,
+        paddingLeft: 50,
         fontSize: 12,
         color: '#767577',
+        width: '100%',
         fontFamily: 'Poppins_400Regular',
     },
     input0: {
@@ -1255,7 +1261,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         textAlign: 'center',
         color: '#FFFFFF',
-        fontFamily: 'Poppins_600SemiBold',
+        fontFamily: 'Poppins_600SemiBold'
     },
     buttonText0: {
         fontSize: 15,
@@ -1287,4 +1293,21 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_300Light',
         marginLeft: 10
     },
+    optionsButton: {
+        backgroundColor: '#489AAB',
+        borderTopWidth: 2,
+        borderBottomWidth: 2,
+        borderRightWidth: 2,
+        borderColor: '#cccccc',
+        position: 'absolute',
+        right: 1,
+        borderTopRightRadius: 13,
+        borderBottomRightRadius: 13,
+        top: 0,
+        height: 45,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center'
+    }
 });

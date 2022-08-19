@@ -29,6 +29,7 @@ import {
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
+import {getSecureKey} from "../../utils/secureStore";
 
 // Types
 
@@ -67,13 +68,28 @@ export default function UserProfile({ navigation }: NavigationProps) {
         const signal = controller.signal;
         if (authenticating) {
             (async () => {
-                const { type, payload }: any = await dispatch(authenticate());
+                const [authStuff, phone_no, country_code] = await Promise.all([
+                    dispatch(authenticate()),
+                    getSecureKey('phone_number_without'),
+                    getSecureKey('phone_number_code')
+                ]);
+                const { type }: any = authStuff;
+                console.log(phone_no, country_code)
                 if (type === 'authenticate/rejected') {
                     navigation.navigate('GetTenants')
                 } else {
+                    let phone: string = ''
+                    let identifier: string = `${country_code}${phone_no}`
+                    if (identifier[0] === '+') {
+                        let number = identifier.substring(1);
+                        phone = `${number.replace(/ /g, "")}`;
+                    } else if (identifier[0] === '0') {
+                        let number = identifier.substring(1);
+                        phone = `254${number.replace(/ /g, "")}`;
+                    }
                     try {
                         await Promise.all([
-                            dispatch(fetchMember(payload.username)),
+                            dispatch(fetchMember(phone)),
                             dispatch(saveContactsToDb()),
                             dispatch(fetchLoanProducts()),
                             dispatch(setLoanCategories(signal))

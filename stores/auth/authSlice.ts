@@ -632,6 +632,49 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
         }
     })
 })
+type refreshTokenPayloadType = {client_id: string, grant_type: string, refresh_token: string}
+
+export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async ({client_id, grant_type, refresh_token} : refreshTokenPayloadType) => {
+    try {
+        const url = `https://keycloak.example.com/auth/realms/myrealm/protocol/openid-connect/token`;
+
+        const payload: any = {
+            client_id,
+            grant_type,
+            refresh_token
+        };
+
+        let formBody: any = [];
+
+        for (const property in payload) {
+            let encodedKey = encodeURIComponent(property);
+            let encodedValue = encodeURIComponent(payload[property]);
+            formBody.push(encodedKey + "=" + encodedValue);
+        }
+
+        formBody = formBody.join("&");
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            },
+            body: formBody
+        });
+
+        const data = await response.json();
+        if (response.status === 200) {
+            console.log("new access token", data);
+            return Promise.resolve(data);
+        } else {
+            console.log("refresh error", data);
+            return Promise.reject(response.status);
+        }
+
+    } catch(e: any) {
+        return Promise.reject(e.message);
+    }
+})
 
 export const logoutUser = createAsyncThunk('logoutUser', async () => {
     return await Promise.all([
@@ -1600,6 +1643,16 @@ const authSlice = createSlice({
             state.loading = false
         })
         builder.addCase(fetchMember.rejected, state => {
+            state.loading = false
+        })
+
+        builder.addCase(refreshAccessToken.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(refreshAccessToken.fulfilled, (state) => {
+            state.loading = false
+        })
+        builder.addCase(refreshAccessToken.rejected, state => {
             state.loading = false
         })
 

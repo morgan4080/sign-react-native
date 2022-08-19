@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {Text, View, StyleSheet, TouchableHighlight, TouchableOpacity, TextInput} from 'react-native';
 
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';

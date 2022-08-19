@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import {Linking} from 'react-native';
 
 import Navigation from './navigation';

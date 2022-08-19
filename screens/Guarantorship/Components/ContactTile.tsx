@@ -21,7 +21,7 @@ interface propInterface {
     removeContactFromList: any
     contactList: any
 }
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 export default function contactTile ({contact, addContactToList, removeContactFromList, contactList}: propInterface) {
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();

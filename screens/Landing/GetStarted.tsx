@@ -1,28 +1,25 @@
-import * as React from 'react';
 import {
     Text,
     View,
     StyleSheet,
     Image,
     TouchableHighlight,
-    Linking,
     StatusBar,
-    TouchableOpacity, Dimensions, StatusBar as Bar
+    TouchableOpacity,
+    Dimensions,
+    StatusBar as Bar
 } from 'react-native';
 
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Ionicons } from "@expo/vector-icons";
 import {useEffect, useState} from "react";
 import {store} from "../../stores/store";
 import {initializeDB} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
 import {getSecureKey} from "../../utils/secureStore";
-import PagerView, {PagerViewOnPageScrollEvent} from "react-native-pager-view";
+import PagerView from "react-native-pager-view";
 import {RotateView} from "../Auth/VerifyOTP";
-import {current} from "@reduxjs/toolkit";
-import {useEvent, useHandler} from "react-native-reanimated";
 
 const { width, height } = Dimensions.get("window");
 

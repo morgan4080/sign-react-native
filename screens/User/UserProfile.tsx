@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
     Text,
     View,
@@ -9,7 +8,7 @@ import {
     Image,
     StatusBar as Bar,
     Dimensions,
-    Platform, NativeModules
+    Platform
 } from 'react-native';
 
 import { StatusBar } from 'expo-status-bar';

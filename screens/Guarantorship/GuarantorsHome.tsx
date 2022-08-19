@@ -11,8 +11,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    TouchableHighlight,
-    View, Keyboard
+    View
 } from "react-native";
 
 import {Picker} from "@react-native-picker/picker";
@@ -825,7 +824,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     <View style={styles.searchbar}>
                         <View style={{paddingHorizontal: 20, marginBottom: 5}}>
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 16 }}>
-                                Add Guarantors ({route.params?.loanProduct.requiredGuarantors} Required) {dbUser}
+                                Add Guarantors ({route.params?.loanProduct.requiredGuarantors} Required)
                             </Text>
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, marginBottom: 10 }}>
                                 Loan Amount: {toMoney(route.params?.loanDetails.desiredAmount)} KSH - Amount Guaranteed: {toMoney(calculateGuarantorship(route.params?.loanDetails.desiredAmount))}
@@ -853,7 +852,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                     setEmployerDetailsEnabled(false);
                                     onPress('options');
                                 }}>
-                                    <Ionicons name="options-outline" size={25} color="white" style={{paddingHorizontal: 15}} />
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#FFFFFF', fontSize: 10, paddingLeft: 10 }}>OPTIONS</Text>
+                                    <Ionicons name="options-outline" size={20} color="white" style={{paddingLeft: 5, paddingRight: 15}} />
                                 </TouchableOpacity>
                             </View>
                         </View>

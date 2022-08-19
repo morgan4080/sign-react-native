@@ -95,6 +95,8 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
         )
     };
 
+    console.log('loan product', route.params?.loanProduct)
+
     if (fontsLoaded && !loading) {
         return (
             <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
@@ -117,6 +119,7 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
 
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 20, marginTop: 30 }}>Enter Loan Details</Text>
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>{ route.params?.loanProduct.name }</Text>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_300Light', fontSize: 12 }}>Interest { route.params?.loanProduct.interestRate }%</Text>
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 9/12 * height }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>

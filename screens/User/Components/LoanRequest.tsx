@@ -74,7 +74,7 @@ export default function LoanRequest ({loan, setLoan, onPress}: propInterface) {
                     {
                         loan.signingStatus === 'INPROGRESS' &&
                         <View style={{padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                            <ProgressCircle size={70} thickness={5} showsText={true} unfilledColor='#4AB1C3' formatText={() => `${loan.loanRequestProgress}%`} progress={loan.loanRequestProgress / 100} color='#4867ab' borderColor='transparent'/>
+                            <ProgressCircle size={70} thickness={5} showsText={true} unfilledColor='#CCCCCC' formatText={() => `${loan.loanRequestProgress}%`} progress={loan.loanRequestProgress / 100} color='#489bab' borderColor='transparent'/>
                             <Text allowFontScaling={false} style={{
                                 fontFamily: 'Poppins_500Medium',
                                 color: '#9a9a9a',

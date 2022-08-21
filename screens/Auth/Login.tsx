@@ -74,7 +74,7 @@ const Ring = ({ delay, loading }: {delay: number, loading: boolean}) => {
 };
 
 export default function Login({ navigation }: NavigationProps) {
-    const { isJWT, tenants, selectedTenantId, loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const { tenants, selectedTenantId, loading } = useSelector((state: { auth: storeState }) => state.auth);
     const [otpVerified, setOtpVerified] = useState(undefined);
     const [fingerPrint, setFingerPrint] = useState<string | null>(null);
     const [localLogin, setLocalLogin] = useState<boolean>(false);
@@ -129,6 +129,7 @@ export default function Login({ navigation }: NavigationProps) {
                 const CT = organisations.find(org => org.tenantId === tenant?.tenantId)
                 if (CT) {
                     setCurrentTenant(CT)
+                    await saveSecureKey('currentTenant', JSON.stringify(CT))
                 }
                 const fP = await getSecureKey('fingerPrint');
                 setFingerPrint(fP);
@@ -138,7 +139,6 @@ export default function Login({ navigation }: NavigationProps) {
                 }
                 if (response.type === 'authenticate/fulfilled') {
                     if (otpVerified === 'true') {
-                        console.log("supposed to go to profile");
                         dispatch(setAuthState(true));
                     } else {
                         navigation.navigate('VerifyOTP')
@@ -417,7 +417,6 @@ export default function Login({ navigation }: NavigationProps) {
                                 onPress: async () => {
                                     setCancelFingerPrint(true);
                                     if (otpVerified === 'true') {
-                                        console.log("supposed to go to profile");
                                         dispatch(setAuthState(true));
                                     } else {
                                         navigation.navigate('VerifyOTP');
@@ -441,7 +440,6 @@ export default function Login({ navigation }: NavigationProps) {
                         ])
                     } else {
                         if (otpVerified === 'true') {
-                            console.log("supposed to go to profile");
                             dispatch(setAuthState(true));
                         } else {
                             navigation.navigate('VerifyOTP');
@@ -457,7 +455,7 @@ export default function Login({ navigation }: NavigationProps) {
         }
     }
 
-    if (!isJWT && fontsLoaded) {
+    if (fontsLoaded) {
         return (
             <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#F8F8F8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                 <ScrollView contentContainerStyle={styles.container} >

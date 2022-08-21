@@ -19,13 +19,15 @@ import {
     StyleSheet,
     StatusBar,
     TouchableOpacity,
-    StatusBar as Bar
+    StatusBar as Bar, Dimensions
 } from "react-native";
 import {useEffect, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {getSecureKey} from "../../utils/secureStore";
 import configuration from "../../utils/configuration";
+import {RotateView} from "../Auth/VerifyOTP";
 type NavigationProps = NativeStackScreenProps<any>;
+const { width, height } = Dimensions.get("window");
 
 const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
     <TouchableOpacity onPress={onPress} style={[styles.item, backgroundColor]}>
@@ -45,7 +47,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
 
     const [otpVerified, setOtpVerified] = useState(undefined);
 
-    const { selectedTenantId, isLoggedIn, tenants } = useSelector((state: { auth: storeState }) => state.auth);
+    const { selectedTenantId, isLoggedIn, tenants, loading } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
@@ -134,20 +136,58 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
         );
     };
 
-    return (
-        <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
-            <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-            <View style={{ position: 'absolute', left: -100, top: '20%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-            <View style={{ position: 'absolute', right: -80, top: '10%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
-            <SafeAreaView style={styles.container}>
-                <FlatList
-                    data={tenants}
-                    renderItem={renderItem}
-                    keyExtractor={item => item.id}
-                />
-            </SafeAreaView>
-        </View>
-    )
+    if (fontsLoaded && !loading) {
+        return (
+            <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+                <View style={{
+                    position: 'absolute',
+                    left: 60,
+                    top: -120,
+                    backgroundColor: 'rgba(50,52,146,0.12)',
+                    paddingHorizontal: 5,
+                    paddingVertical: 5,
+                    borderRadius: 100,
+                    width: 200,
+                    height: 200
+                }}/>
+                <View style={{
+                    position: 'absolute',
+                    left: -100,
+                    top: '20%',
+                    backgroundColor: 'rgba(50,52,146,0.12)',
+                    paddingHorizontal: 5,
+                    paddingVertical: 5,
+                    borderRadius: 100,
+                    width: 200,
+                    height: 200
+                }}/>
+                <View style={{
+                    position: 'absolute',
+                    right: -80,
+                    top: '10%',
+                    backgroundColor: 'rgba(50,52,146,0.12)',
+                    paddingHorizontal: 5,
+                    paddingVertical: 5,
+                    borderRadius: 100,
+                    width: 150,
+                    height: 150
+                }}/>
+                <SafeAreaView style={styles.container}>
+                    <FlatList
+                        data={tenants}
+                        renderItem={renderItem}
+                        keyExtractor={item => item.id}
+                    />
+                </SafeAreaView>
+            </View>
+        )
+    } else {
+        return (
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+                <RotateView/>
+            </View>
+        )
+    }
 }
 
 const styles = StyleSheet.create({

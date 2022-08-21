@@ -75,7 +75,14 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
         setValue('desiredPeriod', itemValue)
     }
 
-    const loanPeriods: {name: string, period: string}[] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24].reduce((acc: {name: string, period: string}[], current: number) => {
+    let foo = new Array(96);//create a 45 element array
+    let fooData = [];
+
+    for(let i=0;i<foo.length;i++){
+        fooData.push(i+1)
+    }
+
+    const loanPeriods: {name: string, period: string}[] = fooData.reduce((acc: {name: string, period: string}[], current: number) => {
         acc.push({
             name: `${current} ${current === 1 ? 'Month' : 'Months'}`,
             period: `${current}`

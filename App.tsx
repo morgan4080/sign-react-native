@@ -23,6 +23,9 @@ export default function App() {
     return (
         <Provider store={store}>
             <SafeAreaProvider>
+                {/*<View style={{position: 'absolute', top: '10%', right: 50, zIndex: 20}}>
+                    <Text>Test</Text>
+                </View>*/}
                 <Navigation />
                 <StatusBar />
             </SafeAreaProvider>

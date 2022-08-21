@@ -32,7 +32,6 @@ import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../component
 import {Bar as ProgressBar} from "react-native-progress";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import * as WebBrowser from "expo-web-browser";
-import {getSecureKey} from "../../utils/secureStore";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -221,14 +220,14 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                             { loading ?
                                 <Animated.View
                                     style={{ position: 'absolute', right: 20, top: 20, transform: [{rotate: spin}] }}>
-                                    <TouchableOpacity onPress={() => dispatch(fetchLoanRequest(loan?.refId as string))}>
+                                    <TouchableOpacity onPress={() => dispatch(fetchLoanRequests(member?.refId as string))}>
                                         <Ionicons name="reload" size={18} color="#489AAB"/>
                                     </TouchableOpacity>
                                 </Animated.View>
                                 :
                                 <View
                                     style={{ position: 'absolute', right: 20, top: 20 }}>
-                                    <TouchableOpacity onPress={() => dispatch(fetchLoanRequest(loan?.refId as string))}>
+                                    <TouchableOpacity onPress={() => dispatch(fetchLoanRequests(member?.refId as string))}>
                                         <Ionicons name="reload" size={18} color="#489AAB"/>
                                     </TouchableOpacity>
                                 </View>

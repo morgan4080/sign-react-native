@@ -5,6 +5,7 @@ import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
 import {getAppSignatures, removeAllListeners} from "../../utils/smsVerification";
 import {NativeModules} from "react-native";
+import {BaseThunkAPI} from "@reduxjs/toolkit/dist/createAsyncThunk";
 export let db: WebSQLDatabase
 (async () => {
     db = await openDatabase();
@@ -196,6 +197,12 @@ type membersFilter = {
     "loanCount": number
 };
 
+type organisationType = {
+    name: string,
+    tenantId: string,
+    clientSecret: string,
+}
+
 export type storeState = {
     user: AuthData | null;
     member: MemberData | null;
@@ -218,6 +225,7 @@ export type storeState = {
     tenants: TenantsType[] | []
     selectedTenantId: string | null
     otpResponse: otpResponseType | null
+    organisations: organisationType[]
 }
 
 const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> => {
@@ -362,7 +370,7 @@ type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
 
 type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
 
-export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanRequestRefId,actorRefId,actorType}: zohoSignPayloadType) => {
+export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanRequestRefId,actorRefId,actorType}: zohoSignPayloadType, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token');
 
@@ -391,8 +399,32 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
             const data = await response.json();
             return Promise.resolve(data);
         } else if (response.status === 401) {
-            setAuthState(false);
-            return Promise.reject(response.status);
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(requestSignURL({loanRequestRefId,actorRefId,actorType}))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
         } else {
             return Promise.reject(`Document Expired`);
         }
@@ -403,7 +435,7 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
 
 type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number, guaranteeAmount?: number}
 
-export const validateGuarantorship = createAsyncThunk('validateGuarantorship', async (payload:validateGuarantorType) => {
+export const validateGuarantorship = createAsyncThunk('validateGuarantorship', async (payload:validateGuarantorType, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token');
 
@@ -428,8 +460,32 @@ export const validateGuarantorship = createAsyncThunk('validateGuarantorship', a
             const data = await response.json();
             return Promise.resolve(data);
         } else if (response.status === 401) {
-            setAuthState(false);
-            return Promise.reject("Auth Token Expired");
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(validateGuarantorship(payload))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
         } else {
             return Promise.reject(`Http Status: ${response.status}`);
         }
@@ -621,7 +677,6 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
                 const result: any = await saveKeys({...data, phoneNumber})
                 resolve(result)
             } else if (response.status === 401) {
-                console.log(data);
                 setAuthState(false);
                 reject(`${data.error}: ${data.error_description}`);
             } else {
@@ -632,16 +687,16 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
         }
     })
 })
-type refreshTokenPayloadType = {client_id: string, grant_type: string, refresh_token: string}
+type refreshTokenPayloadType = {client_id: string, grant_type: string, refresh_token: string, realm?: string, client_secret?: string, cb?: any}
 
-export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async ({client_id, grant_type, refresh_token} : refreshTokenPayloadType) => {
+export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async ({client_id, grant_type, refresh_token, realm, client_secret,  cb} : refreshTokenPayloadType) => {
     try {
-        const url = `https://keycloak.example.com/auth/realms/myrealm/protocol/openid-connect/token`;
-
         const payload: any = {
             client_id,
             grant_type,
-            refresh_token
+            refresh_token,
+            client_secret,
+            scope: 'openid'
         };
 
         let formBody: any = [];
@@ -654,7 +709,7 @@ export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async (
 
         formBody = formBody.join("&");
 
-        const response = await fetch(url, {
+        const response = await fetch(`https://iam.presta.co.ke/auth/realms/${realm}/protocol/openid-connect/token`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
@@ -664,10 +719,13 @@ export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async (
 
         const data = await response.json();
         if (response.status === 200) {
-            console.log("new access token", data);
+            await saveSecureKey('access_token', data.access_token)
+            if (cb) {
+                await cb()
+            }
             return Promise.resolve(data);
         } else {
-            console.log("refresh error", data);
+            console.log("refresh error: " + refresh_token, data);
             return Promise.reject(response.status);
         }
 
@@ -689,7 +747,7 @@ export const logoutUser = createAsyncThunk('logoutUser', async () => {
 
 type memberPayloadType = {firstName: string, lastName: string, phoneNumber: string, idNumber: string, email: string, memberRefId?: string}
 
-export const editMember = createAsyncThunk('editMember', async (payload: memberPayloadType) => {
+export const editMember = createAsyncThunk('editMember', async (payload: memberPayloadType, {dispatch, getState}) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/members/${payload.memberRefId}`;
 
     try {
@@ -719,8 +777,32 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
             const data = await response.json();
             return Promise.resolve(data);
         } else if (response.status === 401) {
-            setAuthState(false);
-            return Promise.reject(response.status);
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(editMember(payload))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
         } else {
             return Promise.reject(`API error code: ${response.status}`);
         }
@@ -730,7 +812,7 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
     }
 });
 
-export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
+export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token');
 
@@ -765,8 +847,32 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
                 return Promise.reject(data.message);
             }
         } else if (response.status === 401) {
-            setAuthState(false);
-            return Promise.reject(response.status);
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(sendOtp(phoneNumber))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
         } else {
             return Promise.reject(`API error code: ${response.status}`);
         }
@@ -775,7 +881,7 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any) => {
     }
 })
 
-export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memberNo: string) => {
+export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memberNo: string, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token');
 
@@ -797,8 +903,32 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
             const { list } = await response.json();
             return Promise.resolve(list);
         } else if (response.status === 401) {
-            setAuthState(false);
-            return Promise.reject(response.status);
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(searchByMemberNo(memberNo))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
         } else {
             return Promise.reject(`is not a member.`);
         }
@@ -808,7 +938,7 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
     }
 })
 
-export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, OTP }: { requestMapper: string, OTP: string }) => {
+export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, OTP }: { requestMapper: string, OTP: string }, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token');
 
@@ -840,8 +970,32 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
             }
 
         } else if (response.status === 401) {
-            setAuthState(false);
-            return Promise.reject(response.status);
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(verifyOtp({ requestMapper, OTP }))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
         } else {
             return Promise.reject(`API error code: ${response.status}`);
         }
@@ -850,7 +1004,7 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
     }
 });
 
-export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( payload: any) => {
+export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( payload: any, {dispatch, getState}) => {
     return new Promise(async (resolve, reject) => {
         try {
             const key = await getSecureKey('access_token');
@@ -874,8 +1028,32 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
                 const data = await response.json();
                 resolve(data);
             } else if (response.status === 401) {
-                setAuthState(false);
-                reject(response.status);
+                // update refresh token and retry
+                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+                const state: any = getState();
+                if (state) {
+                    const [refresh_token, currentTenant] = await Promise.all([
+                        getSecureKey('refresh_token'),
+                        getSecureKey('currentTenant')
+                    ])
+                    const refreshTokenPayload: refreshTokenPayloadType = {
+                        client_id: 'direct-access',
+                        grant_type: 'refresh_token',
+                        refresh_token,
+                        realm:JSON.parse(currentTenant).tenantId,
+                        client_secret: JSON.parse(currentTenant).clientSecret,
+                        cb: async () => {
+                            console.log('callback running');
+                            await dispatch(submitLoanRequest(payload))
+                        }
+                    }
+
+                    await dispatch(refreshAccessToken(refreshTokenPayload))
+                } else {
+                    setAuthState(false);
+
+                    reject(response.status);
+                }
             } else {
                 reject(response);
             }
@@ -885,7 +1063,7 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
     })
 });
 
-export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRequests', ({memberRefId}: {memberRefId: string | undefined }) => {
+export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRequests', ({memberRefId}: {memberRefId: string | undefined }, {dispatch, getState}) => {
     return new Promise(async (resolve, reject) => {
         const key = await getSecureKey('access_token');
         if (!memberRefId) {
@@ -907,15 +1085,39 @@ export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRe
             console.log('all guarantorship requests', data);
             resolve(data);
         } else if (result.status === 401) {
-            setAuthState(false);
-            reject(result.status);
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(fetchGuarantorshipRequests({memberRefId}))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                reject(result.status);
+            }
         } else {
             reject(`is not a member.`);
         }
     })
 });
 
-export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest', async (refId: string) => {
+export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest', async (refId: string, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token');
 
@@ -937,8 +1139,32 @@ export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest
             const data = await response.json();
             return Promise.resolve(data);
         } else if (response.status === 401) {
-            setAuthState(false);
-            return Promise.reject(response.status);
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(declineGuarantorRequest(refId))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
         } else {
             return Promise.reject(response);
         }
@@ -947,7 +1173,7 @@ export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest
     }
 });
 
-export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', async (refId: string) => {
+export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', async (refId: string, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token');
 
@@ -969,8 +1195,32 @@ export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', a
             const data = await response.json();
             return Promise.resolve(data);
         } else if (response.status === 401) {
-            setAuthState(false);
-            return Promise.reject(response.status);
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(declineWitnessRequest(refId))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
         } else {
             return Promise.reject(response);
         }
@@ -979,7 +1229,7 @@ export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', a
     }
 });
 
-export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuarantors', ({memberRefId, setFaveGuarantors}: {memberRefId: string | undefined, setFaveGuarantors: any}) => {
+export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuarantors', ({memberRefId, setFaveGuarantors}: {memberRefId: string | undefined, setFaveGuarantors: any}, {dispatch, getState}) => {
     return new Promise(async (resolve, reject) => {
         const key = await getSecureKey('access_token');
         if (!memberRefId) {
@@ -1009,15 +1259,39 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
             setFaveGuarantors(data);
             resolve(data);
         } else if (result.status === 401) {
-            setAuthState(false);
-            reject(result.status);
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(fetchFavouriteGuarantors({memberRefId, setFaveGuarantors}))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                reject(result.status);
+            }
         } else {
             reject(`is not a member.`);
         }
     })
 });
 
-export const validateNumber = createAsyncThunk('validateNumber', async (phone: string) => {
+export const validateNumber = createAsyncThunk('validateNumber', async (phone: string, {dispatch, getState}) => {
     return new Promise(async (resolve, reject) => {
         try {
             const key = await getSecureKey('access_token')
@@ -1035,8 +1309,32 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
                 const data = await result.json();
                 resolve(data);
             } else if (result.status === 401) {
-                setAuthState(false);
-                reject(result.status);
+                // update refresh token and retry
+                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+                const state: any = getState();
+                if (state) {
+                    const [refresh_token, currentTenant] = await Promise.all([
+                        getSecureKey('refresh_token'),
+                        getSecureKey('currentTenant')
+                    ])
+                    const refreshTokenPayload: refreshTokenPayloadType = {
+                        client_id: 'direct-access',
+                        grant_type: 'refresh_token',
+                        refresh_token,
+                        realm:JSON.parse(currentTenant).tenantId,
+                        client_secret: JSON.parse(currentTenant).clientSecret,
+                        cb: async () => {
+                            console.log('callback running');
+                            await dispatch(validateNumber(phone))
+                        }
+                    }
+
+                    await dispatch(refreshAccessToken(refreshTokenPayload))
+                } else {
+                    setAuthState(false);
+
+                    reject(result.status);
+                }
             } else {
                 reject(`is not a member of this organisation`);
             }
@@ -1134,7 +1432,7 @@ export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: str
     }
 })
 
-export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: string | undefined) => {
+export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: string | undefined, { getState, dispatch }) => {
     return new Promise(async (resolve, reject) => {
        try {
            const key = await getSecureKey('access_token');
@@ -1154,8 +1452,32 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
                console.log("Fetch Member Data", data);
                resolve(data);
            }  else if (response.status === 401) {
-               setAuthState(false);
-               reject(response.status);
+               // update refresh token and retry
+               // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+               const state: any = getState();
+               if (state) {
+                   const [refresh_token, currentTenant] = await Promise.all([
+                       getSecureKey('refresh_token'),
+                       getSecureKey('currentTenant')
+                   ])
+                   const refreshTokenPayload: refreshTokenPayloadType = {
+                       client_id: 'direct-access',
+                       grant_type: 'refresh_token',
+                       refresh_token,
+                       realm:JSON.parse(currentTenant).tenantId,
+                       client_secret: JSON.parse(currentTenant).clientSecret,
+                       cb: async () => {
+                           console.log('callback running');
+                           await dispatch(fetchMember(phoneNumber))
+                       }
+                   }
+
+                   await dispatch(refreshAccessToken(refreshTokenPayload))
+               } else {
+                   setAuthState(false);
+
+                   reject(response.status);
+               }
            } else {
                console.log("Fetch Member Failed");
                reject("Fetch Member Failed");
@@ -1166,7 +1488,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
     })
 })
 
-export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', async ({memberRefId}: {memberRefId: string | undefined }) => {
+export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', async ({memberRefId}: {memberRefId: string | undefined }, { getState, dispatch}) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/witness-request?acceptanceStatus=ANY&memberRefId=${memberRefId}`
 
     return new Promise(async (resolve, reject) => {
@@ -1188,8 +1510,32 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
                 console.log("witness data", data);
                 resolve(data);
             } else if (response.status === 401) {
-                setAuthState(false);
-                reject(response.status);
+                // update refresh token and retry
+                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+                const state: any = getState();
+                if (state) {
+                    const [refresh_token, currentTenant] = await Promise.all([
+                        getSecureKey('refresh_token'),
+                        getSecureKey('currentTenant')
+                    ])
+                    const refreshTokenPayload: refreshTokenPayloadType = {
+                        client_id: 'direct-access',
+                        grant_type: 'refresh_token',
+                        refresh_token,
+                        realm:JSON.parse(currentTenant).tenantId,
+                        client_secret: JSON.parse(currentTenant).clientSecret,
+                        cb: async () => {
+                            console.log('callback running');
+                            await  dispatch(fetchWitnessRequests({memberRefId}))
+                        }
+                    }
+
+                    await dispatch(refreshAccessToken(refreshTokenPayload))
+                } else {
+                    setAuthState(false);
+
+                    reject(response.status);
+                }
             } else {
                 reject("Witness Requests not found!");
             }
@@ -1199,9 +1545,9 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
     });
 })
 
-export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string) => {
+export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string, {dispatch, getState}) => {
     console.log(memberRefId);
-    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request?memberRefId=${memberRefId}`
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request?memberRefId=${memberRefId}&order=ASC&pageSize=10`
     return new Promise(async (resolve, reject) => {
         try {
             const key = await getSecureKey('access_token')
@@ -1216,8 +1562,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                 redirect: 'follow'
             })
             if (response.status === 200) {
-                const data = await response.json()
-                console.log("loan-requests", data.content.length)
+                const data = await response.json();
                 const result: any = await Promise.all(data.content.map(async ({refId}: {refId: string}, i: number) => {
                     const response0 = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${refId}`, {
                         method: 'GET',
@@ -1251,15 +1596,65 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                             "guarantorList": data0.guarantorList,
                         }
                     } else if (response.status === 401) {
-                        setAuthState(false);
-                        reject(response.status);
+                        // update refresh token and retry
+                        // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+                        console.log(response.status)
+                        const state: any = getState();
+                        if (state) {
+                            const [refresh_token, currentTenant] = await Promise.all([
+                                getSecureKey('refresh_token'),
+                                getSecureKey('currentTenant')
+                            ])
+                            const refreshTokenPayload: refreshTokenPayloadType = {
+                                client_id: 'direct-access',
+                                grant_type: 'refresh_token',
+                                refresh_token,
+                                realm:JSON.parse(currentTenant).tenantId,
+                                client_secret: JSON.parse(currentTenant).clientSecret,
+                                cb: async () => {
+                                    console.log('callback running');
+                                    await  dispatch(fetchLoanRequests(memberRefId));
+                                }
+                            }
+
+                            await dispatch(refreshAccessToken(refreshTokenPayload))
+                        } else {
+                            setAuthState(false);
+
+                            reject(response.status);
+                        }
                     }
                 }))
-                console.log("loan-requests", result.length)
+
                 resolve(result)
             } else if (response.status === 401) {
-                setAuthState(false);
-                reject(response.status);
+                // update refresh token and retry
+                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+                console.log(response.status)
+                const state: any = getState();
+                if (state) {
+                    const [refresh_token, currentTenant] = await Promise.all([
+                        getSecureKey('refresh_token'),
+                        getSecureKey('currentTenant')
+                    ])
+                    const refreshTokenPayload: refreshTokenPayloadType = {
+                        client_id: 'direct-access',
+                        grant_type: 'refresh_token',
+                        refresh_token,
+                        realm: JSON.parse(currentTenant).tenantId,
+                        client_secret: JSON.parse(currentTenant).clientSecret,
+                        cb: async () => {
+                            console.log('callback running');
+                            await  dispatch(fetchLoanRequests(memberRefId))
+                        }
+                    }
+
+                    await dispatch(refreshAccessToken(refreshTokenPayload))
+                } else {
+                    setAuthState(false);
+
+                    reject(response.status);
+                }
             } else {
                 reject("Fetch Member Failed")
             }
@@ -1300,7 +1695,7 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
     })
 })
 
-export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async () => {
+export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async (_, {dispatch, getState}) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/loans-products`
 
     return new Promise(async (resolve, reject) => {
@@ -1320,8 +1715,32 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async () 
                 const data = await response.json()
                 resolve(data.list)
             } else if (response.status === 401) {
-                setAuthState(false);
-                reject(response.status);
+                // update refresh token and retry
+                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+                const state: any = getState();
+                if (state) {
+                    const [refresh_token, currentTenant] = await Promise.all([
+                        getSecureKey('refresh_token'),
+                        getSecureKey('currentTenant')
+                    ])
+                    const refreshTokenPayload: refreshTokenPayloadType = {
+                        client_id: 'direct-access',
+                        grant_type: 'refresh_token',
+                        refresh_token,
+                        realm:JSON.parse(currentTenant).tenantId,
+                        client_secret: JSON.parse(currentTenant).clientSecret,
+                        cb: async () => {
+                            console.log('callback running');
+                            await dispatch(fetchLoanProducts())
+                        }
+                    }
+
+                    await dispatch(refreshAccessToken(refreshTokenPayload))
+                } else {
+                    setAuthState(false);
+
+                    return Promise.reject(response.status);
+                }
             } else {
                 reject("fetch loan products failed")
             }
@@ -1331,7 +1750,7 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async () 
     })
 })
 
-export const setLoanCategories = createAsyncThunk('setLoanCategories', async(signal: any) => {
+export const setLoanCategories = createAsyncThunk('setLoanCategories', async(signal: any, {dispatch, getState}) => {
     const key = await getSecureKey('access_token')
     if (!key) {
         console.log("You are not authenticated")
@@ -1428,14 +1847,38 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
             return Promise.reject('Cant resolve sasra');
         }
     } else if (response.status === 401) {
-        setAuthState(false);
-        return Promise.reject(response.status);
+        // update refresh token and retry
+        // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+        const state: any = getState();
+        if (state) {
+            const [refresh_token, currentTenant] = await Promise.all([
+                getSecureKey('refresh_token'),
+                getSecureKey('currentTenant')
+            ])
+            const refreshTokenPayload: refreshTokenPayloadType = {
+                client_id: 'direct-access',
+                grant_type: 'refresh_token',
+                refresh_token,
+                realm:JSON.parse(currentTenant).tenantId,
+                client_secret: JSON.parse(currentTenant).clientSecret,
+                cb: async () => {
+                    console.log('callback running');
+                    await dispatch(setLoanCategories(signal))
+                }
+            }
+
+            await dispatch(refreshAccessToken(refreshTokenPayload))
+        } else {
+            setAuthState(false);
+
+            return Promise.reject(response.status);
+        }
     } else {
         return Promise.reject('Cant resolve sasra');
     }
 })
 
-export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (refId: string) => {
+export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (refId: string, {dispatch, getState}) => {
     try {
         const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${refId}/sign`
         const key = await getSecureKey('access_token')
@@ -1452,8 +1895,32 @@ export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (
         if (response.status === 200) {
             return Promise.resolve(true);
         } else if (response.status === 401) {
-            setAuthState(false);
-            return Promise.reject(response.status);
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(resubmitForSigning(refId))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
         } else {
             return Promise.reject(response.status + ": API Error");
         }
@@ -1463,7 +1930,7 @@ export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (
     }
 })
 
-export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string | undefined, signal: any}) => {
+export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string | undefined, signal: any}, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
@@ -1489,8 +1956,32 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
                 return Promise.resolve(data)
             }
         } else if (response.status === 401) {
-            setAuthState(false);
-            return Promise.reject(response.status);
+            // update refresh token and retry
+            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(fetchMemberDetails({memberNo, signal}))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
         } else {
             return Promise.reject(response.status + ": API Error");
         }
@@ -1521,6 +2012,18 @@ const authSlice = createSlice({
         tenants: [],
         selectedTenantId: null,
         otpResponse: null,
+        organisations: [
+            {
+                name: 'Imarisha Sacco',
+                tenantId: 't72767',
+                clientSecret: '238c4949-4c0a-4ef2-a3de-fa39bae8d9ce',
+            },
+            {
+                name: 'Wanaanga Sacco',
+                tenantId: 't74411',
+                clientSecret: '25dd3083-d494-4af5-89a1-104fa02ef782',
+            }
+        ]
     },
     reducers: {
         createLoanProduct(state, action) {
@@ -1599,8 +2102,8 @@ const authSlice = createSlice({
         builder.addCase(setLoanCategories.pending, state => {
             state.loading = true
         })
-        builder.addCase(setLoanCategories.fulfilled, (state, action) => {
-            state.loanCategories = action.payload
+        builder.addCase(setLoanCategories.fulfilled, (state, {payload}: {payload: any}) => {
+            state.loanCategories = payload
             state.loading = false
         })
         builder.addCase(setLoanCategories.rejected, (state) => {

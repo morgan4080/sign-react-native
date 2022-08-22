@@ -102,6 +102,7 @@ interface LoanRequest {
 
 interface LoanProduct {
     refId: string;
+    maxPeriod: string;
     name: string;
     interestRate: number;
     requiredGuarantors: number;
@@ -725,7 +726,10 @@ export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async (
             }
             return Promise.resolve(data);
         } else {
-            console.log("refresh error: " + refresh_token, data);
+            console.log("refresh error:", {
+                ...data,
+                ...payload
+            });
             return Promise.reject(response.status);
         }
 
@@ -1134,8 +1138,9 @@ export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest
             method: 'POST',
             headers: myHeaders
         });
-
+        console.log('declining');
         if (response.status === 200) {
+            console.log('declined');
             const data = await response.json();
             return Promise.resolve(data);
         } else if (response.status === 401) {
@@ -1664,7 +1669,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
     })
 })
 
-export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refId: string) => {
+export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refId: string, {dispatch, getState}) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${refId}`
     return new Promise(async (resolve, reject) => {
         try {
@@ -1684,8 +1689,32 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
                 console.log("fetchLoanRequest", data);
                 resolve(data)
             } else if (response.status === 401) {
-                setAuthState(false);
-                reject(response.status);
+                // update refresh token and retry
+                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
+                const state: any = getState();
+                if (state) {
+                    const [refresh_token, currentTenant] = await Promise.all([
+                        getSecureKey('refresh_token'),
+                        getSecureKey('currentTenant')
+                    ])
+                    const refreshTokenPayload: refreshTokenPayloadType = {
+                        client_id: 'direct-access',
+                        grant_type: 'refresh_token',
+                        refresh_token,
+                        realm:JSON.parse(currentTenant).tenantId,
+                        client_secret: JSON.parse(currentTenant).clientSecret,
+                        cb: async () => {
+                            console.log('callback running');
+                            await dispatch(fetchLoanRequest(refId))
+                        }
+                    }
+
+                    await dispatch(refreshAccessToken(refreshTokenPayload))
+                } else {
+                    setAuthState(false);
+
+                    reject(response.status);
+                }
             } else {
                 reject("Fetch Loan Request Failed")
             }
@@ -1739,7 +1768,7 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async (_,
                 } else {
                     setAuthState(false);
 
-                    return Promise.reject(response.status);
+                    reject(response.status);
                 }
             } else {
                 reject("fetch loan products failed")
@@ -2255,6 +2284,16 @@ const authSlice = createSlice({
             state.loading = false
         })
         builder.addCase(saveContactsToDb.rejected, (state, action) => {
+            state.loading = false
+        })
+
+        builder.addCase(declineGuarantorRequest.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(declineGuarantorRequest.fulfilled, (state, action: any) => {
+            state.loading = false
+        })
+        builder.addCase(declineGuarantorRequest.rejected, (state, action) => {
             state.loading = false
         })
 

@@ -46,7 +46,7 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 
-import {AntDesign, FontAwesome5, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {AntDesign, FontAwesome5, Ionicons, MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 
 import {useCallback, useEffect, useRef, useState} from "react";
 
@@ -892,8 +892,10 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                 contacts.length ? contacts.map((contact: any, i: number) => (
                                     <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} />
                                 )) :
-                                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', fontSize: 12}}>No Contacts Found</Text>
+                                <View style={{width: '100%', height: height/3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                    <MaterialCommunityIcons name="delete-empty-outline" size={100} color="#CCCCCC" />
+                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 16 }}>Whooops!</Text>
+                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12 }}>No Data</Text>
                                 </View>
                             }
                         </ScrollView>

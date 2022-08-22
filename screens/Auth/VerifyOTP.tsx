@@ -244,7 +244,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                         </View>
 
                         <Text allowFontScaling={false} style={styles.titleText1}>Enter your verification code</Text>
-                        <Text allowFontScaling={false} style={styles.subTitleText1}>Kindly enter the verification code that was sent to <Text allowFontScaling={false} style={{textDecorationLine: 'underline'}}>{user && user.username}</Text></Text>
+                        <Text allowFontScaling={false} style={styles.subTitleText1}>Kindly enter the verification code that was sent to <Text allowFontScaling={false} style={{textDecorationLine: 'underline'}}>{phoneNumber}</Text></Text>
                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, position: 'relative' }}>
                             <TextInput
                                 allowFontScaling={false}

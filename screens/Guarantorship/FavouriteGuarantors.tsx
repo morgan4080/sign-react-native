@@ -8,7 +8,7 @@ import {
     View
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
-import {Ionicons} from "@expo/vector-icons";
+import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchFavouriteGuarantors, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -73,7 +73,7 @@ const FavouriteGuarantors = ({ navigation }: NavigationProps) => {
                 <View style={{ position: 'absolute', right: -30, top: -10, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
                 <View style={styles.container}>
                     <View style={{flex: 1, alignItems: 'center',}}>
-                        <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height }}>
+                        <SafeAreaView style={{ flex: 1, backgroundColor: faveGuarantors.length === 0 ? 'rgba(50,52,146,0)' : '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height }}>
 
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50  }}>
                                 {
@@ -111,6 +111,14 @@ const FavouriteGuarantors = ({ navigation }: NavigationProps) => {
                                         </View>
                                     ))
                                 }
+                                {
+                                    faveGuarantors.length === 0 &&
+                                    <View style={{width: '100%', height: height/3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                        <MaterialCommunityIcons name="delete-empty-outline" size={100} color="#CCCCCC" />
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 16 }}>Whooops!</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12 }}>No Data</Text>
+                                    </View>
+                                }
                             </ScrollView>
 
                         </SafeAreaView>
@@ -121,7 +129,7 @@ const FavouriteGuarantors = ({ navigation }: NavigationProps) => {
         )
     } else {
         return (
-            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: height/3, width }}>
                 <RotateView/>
             </View>
         )

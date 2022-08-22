@@ -1,14 +1,14 @@
-import { Dimensions, StyleSheet, View, StatusBar } from 'react-native';
-import React, { useCallback, useImperativeHandle } from 'react';
+import {Dimensions, StyleSheet, View, StatusBar, TouchableOpacity, Text} from 'react-native';
+import React, {useCallback, useImperativeHandle} from 'react';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+const { width, height } = Dimensions.get("window");
 import Animated, {
     Extrapolate,
-    interpolate,
+    interpolate, runOnJS,
     useAnimatedStyle,
     useSharedValue,
-    withSpring,
+    withSpring
 } from 'react-native-reanimated';
-const { height, width } = Dimensions.get('window');
 
 const SCREEN_HEIGHT = height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0);
 
@@ -16,6 +16,9 @@ export const MAX_TRANSLATE_Y = -SCREEN_HEIGHT/1.38;
 
 type BottomSheetProps = {
     children?: React.ReactNode;
+    setRequest?: (x: any) => any;
+    setPressed?: (x: any) => any;
+    pressed?: boolean;
 };
 
 export type BottomSheetRefProps = {
@@ -24,7 +27,7 @@ export type BottomSheetRefProps = {
 };
 
 const BottomSheet = React.forwardRef<BottomSheetRefProps, BottomSheetProps>(
-    ({ children }, ref) => {
+    ({ children, setRequest, setPressed, pressed }, ref) => {
         const translateY = useSharedValue(0);
         const active = useSharedValue(false);
 
@@ -44,6 +47,9 @@ const BottomSheet = React.forwardRef<BottomSheetRefProps, BottomSheetProps>(
         ]);
 
         const context = useSharedValue({ y: 0 });
+
+        const fadeAnim = useSharedValue(1);
+
         const gesture = Gesture.Pan()
             .onStart(() => {
                 context.value = { y: translateY.value };
@@ -74,12 +80,31 @@ const BottomSheet = React.forwardRef<BottomSheetRefProps, BottomSheetProps>(
             };
         });
 
+        const fadeAnimStyle = useAnimatedStyle(() => {
+            return {
+                opacity: fadeAnim.value
+            }
+        })
+
         return (
             <GestureDetector gesture={gesture}>
-                <Animated.View style={[styles.bottomSheetContainer, rBottomSheetStyle]}>
-                    <View style={styles.line} />
-                    {children}
-                </Animated.View>
+                <>
+                    {/*{
+                        pressed &&
+                        <Animated.View style={[{ position: 'absolute', height, width, backgroundColor: 'rgba(0,0,0,0.35)' }, fadeAnimStyle]}>
+                            <TouchableOpacity onPress={() => {
+                                if (setPressed) setPressed(false);
+                                if (setRequest) setRequest(null);
+                            }} style={{width: '100%',height: '100%'}}>
+                                <Text></Text>
+                            </TouchableOpacity>
+                        </Animated.View>
+                    }*/}
+                    <Animated.View style={[styles.bottomSheetContainer, rBottomSheetStyle]}>
+                        <View style={styles.line} />
+                        {children}
+                    </Animated.View>
+                </>
             </GestureDetector>
         );
     }

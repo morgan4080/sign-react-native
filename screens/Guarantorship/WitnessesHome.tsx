@@ -129,8 +129,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const {
         control,
         watch,
-        handleSubmit,
-        setError,
         setValue,
         formState: { errors }
     } = useForm<FormData>({
@@ -468,7 +466,8 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                                 <TouchableOpacity style={styles.optionsButton} onPress={() => {
                                     onPress('options');
                                 }}>
-                                    <Ionicons name="options-outline" size={25} color="white" style={{paddingHorizontal: 15}} />
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#FFFFFF', fontSize: 10, paddingLeft: 10 }}>OPTIONS</Text>
+                                    <Ionicons name="options-outline" size={20} color="white" style={{paddingLeft: 5, paddingRight: 15}} />
                                 </TouchableOpacity>
                             </View>
                         </View>

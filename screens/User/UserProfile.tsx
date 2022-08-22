@@ -143,11 +143,11 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             </View>
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: height/2 }}>
-                            {/*<View style={{ position: 'absolute', left: width/4, zIndex: 2 }}>
+                            <View style={{ position: 'absolute', left: width/4, zIndex: 2 }}>
                                 <TouchableOpacity onPress={() => navigation.navigate('Account')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginTop: -30 }}>
                                     <Text allowFontScaling={false} style={styles.buttonText}>View balances</Text>
                                 </TouchableOpacity>
-                            </View>*/}
+                            </View>
                             <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center' }}>
                                 <View style={{ display: 'flex', flexDirection: 'row', marginTop: 50, justifyContent: 'space-between' }}>
                                     <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#336DFFFF', position: 'relative'  }}>

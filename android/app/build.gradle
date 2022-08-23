@@ -130,7 +130,7 @@ def safeExtGet(prop, fallback) {
 }
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk compileSdkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -139,8 +139,8 @@ android {
 
     defaultConfig {
         applicationId 'com.presta.prestasign'
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdk minSdkVersion
+        targetSdk targetSdkVersion
         versionCode 1
         versionName "1.0.0"
     }
@@ -172,6 +172,8 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+    buildToolsVersion '31.0.0'
+    ndkVersion '25.1.8937393'
 
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->

@@ -1,25 +1,23 @@
 import {
-    Text,
     View,
     StyleSheet,
-    Image,
-    TouchableHighlight,
-    StatusBar,
-    TouchableOpacity,
     Dimensions,
-    StatusBar as Bar
+    TouchableHighlight,
+    Text,
+    StatusBar as Bar,
+    Image
 } from 'react-native';
-
+import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import {store} from "../../stores/store";
 import {initializeDB} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
 import {getSecureKey} from "../../utils/secureStore";
-import PagerView from "react-native-pager-view";
 import {RotateView} from "../Auth/VerifyOTP";
+import Onboarding from "../../components/Onboarding";
 
 const { width, height } = Dimensions.get("window");
 
@@ -67,60 +65,24 @@ export default function GetStarted({ navigation }: NavigationProps) {
         };
     }, [appInitialized]);
 
-    const [currentIndex, setCurrentIndex] = useState(0)
 
-
-    if (fontsLoaded) {
+    if (fontsLoaded && !loading) {
         return (
-            <>
-                {
-                    loading &&
-                    <View style={{position: 'absolute', top: 50, zIndex: 11, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
-                        <RotateView/>
-                    </View>
-                }
-
-                <View style={{position: 'absolute', top: 30, marginTop: 30, alignSelf: 'center', zIndex: 11}}>
-                    <Image
-                        source={require('../../assets/images/Logo.png')}
-                    />
-                </View>
-                <View style={{position: 'absolute',width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', bottom: 0, zIndex: 11}}>
-                    <View style={{ width: '10%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <TouchableOpacity style={{ backgroundColor: currentIndex === 0 ? '#FFFFFF' : '#489AAB', height: 10, width: 10, borderRadius: 50 }} />
-                        <TouchableOpacity style={{ backgroundColor: currentIndex === 1 ? '#FFFFFF' : '#489AAB', height: 10, width: 10, borderRadius: 50 }} />
-                        <TouchableOpacity style={{ backgroundColor: currentIndex === 2 ? '#FFFFFF' : '#489AAB', height: 10, width: 10, borderRadius: 50 }} />
-                    </View>
+            <View style={styles.container}>
+                <Image
+                    style={styles.landingBg}
+                    source={require('../../assets/images/landingGetStarted.jpg')}
+                />
+                <View style={{position: 'absolute',width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', bottom: 0, zIndex: 12}}>
                     <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('GetTenants')}>
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                            <Text allowFontScaling={false} style={styles.buttonText}>Activate Account</Text>
+                            <Text allowFontScaling={false} style={styles.buttonText}>Get Started</Text>
                         </View>
                     </TouchableHighlight>
                 </View>
-                <PagerView onPageSelected={(e)=> {
-                    setCurrentIndex(e.nativeEvent.position);
-                }} style={{ flex: 1, paddingTop: Bar.currentHeight, position: 'relative', backgroundColor: 'rgba(244,81,30,0.02)' }} initialPage={0}>
-                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'flex-start' }} key="1">
-                        <Image
-                            style={styles.landingBg}
-                            source={require('../../assets/images/landingGetStarted.jpg')}
-                        />
-                    </View>
-                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'flex-start' }} key="2">
-                        <Image
-                            style={styles.landingBg}
-                            source={require('../../assets/images/farm.jpg')}
-                        />
-                    </View>
-                    <View style={{ display: 'flex', alignItems: 'center', width, height, overflow: "hidden", justifyContent: 'flex-start' }} key="3">
-                        <Image
-                            style={styles.landingBg}
-                            source={require('../../assets/images/pro.jpg')}
-                        />
-                    </View>
-                </PagerView>
-            </>
-
+                <Onboarding />
+                <StatusBar style='auto'/>
+            </View>
         )
     } else {
         return (
@@ -132,13 +94,10 @@ export default function GetStarted({ navigation }: NavigationProps) {
 }
 
 const styles = StyleSheet.create({
-    container0: {
-        display: 'flex',
-        justifyContent: 'center',
+    container: {
+        flex: 1,
         alignItems: 'center',
-        backgroundColor: '#F1F4F8',
-        height: '100%',
-        position: 'relative',
+        justifyContent: 'center',
     },
     buttonText: {
         fontSize: 15,
@@ -158,42 +117,10 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
         justifyContent: 'center'
     },
-    titleText: {
-        fontSize: 25,
-        color: '#3c3c3c',
-        fontFamily: 'Poppins_600SemiBold',
-        marginBottom: 30,
-    },
-    linkText: {
-        fontSize: 18,
-        color: '#3D889A',
-        alignSelf: 'flex-start',
-        fontFamily: 'Poppins_400Regular',
-        marginBottom: 10,
-        marginTop: 10,
-    },
     landingBg: {
         top: 0,
         position: 'absolute',
-        height: height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0),
+        height: height + (Bar.currentHeight ? Bar.currentHeight : 0),
         width
-    },
-    container: {
-        flex: 1
-    },
-    landingLogo: {
-        marginTop: 20,
-    },
-    artwork: {
-        marginTop: 10
-    },
-    subTitleText: {
-        marginTop: height/3,
-        fontSize: 13,
-        marginHorizontal: 60,
-        textAlign: 'center',
-        color: '#ffffff',
-        fontFamily: 'Poppins_400Regular',
-        alignSelf: 'flex-start'
     },
 });

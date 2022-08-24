@@ -80,11 +80,11 @@ const BottomSheet = React.forwardRef<BottomSheetRefProps, BottomSheetProps>(
             };
         });
 
-        const fadeAnimStyle = useAnimatedStyle(() => {
+        /*const fadeAnimStyle = useAnimatedStyle(() => {
             return {
                 opacity: fadeAnim.value
             }
-        })
+        })*/
 
         return (
             <GestureDetector gesture={gesture}>

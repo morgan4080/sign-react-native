@@ -65,7 +65,6 @@ export default function GetStarted({ navigation }: NavigationProps) {
         };
     }, [appInitialized]);
 
-
     if (fontsLoaded && !loading) {
         return (
             <View style={styles.container}>

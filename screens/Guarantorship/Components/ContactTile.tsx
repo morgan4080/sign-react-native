@@ -84,26 +84,26 @@ export default function contactTile ({contact, addContactToList, removeContactFr
     const isChecked = contactList.find((con: any ) => con.memberNumber === contact.memberNumber);
 
     return (
-        <TouchableOpacity style={[{backgroundColor: isChecked ? 'rgb(50,52,146)' : '#FFFFFF'},styles.main]} onPress={() => selectContact(!selectedContact, contact)}>
+        <TouchableOpacity style={[{backgroundColor: isChecked ||  selectedContact ? 'rgb(50,52,146)' : '#FFFFFF'},styles.main]} onPress={() => selectContact(!selectedContact, contact)}>
             <View style={styles.tile}>
                 <View style={{padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', width: width/5}}>
                     <Ionicons name="person-circle" size={40} color="#CCCCCC"/>
                 </View>
                 <View style={{ width: width * 6.8/12 }}>
                     <View style={{ display: 'flex', flexDirection: 'row'}}>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: isChecked ? '#FFFFFF' : '#9a9a9a', fontSize: 13, maxWidth: 200 }}>{contact.name}</Text>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: isChecked ||  selectedContact ? '#FFFFFF' : '#9a9a9a', fontSize: 13, maxWidth: 200 }}>{contact.name}</Text>
                         {contact.memberNumber &&
                             <View style={{ display: 'flex', flexDirection: 'row'}}>
                                 <Octicons style={{paddingLeft: 5}} name="verified" size={12} color="#336DFFFF" />
-                                <Text allowFontScaling={false} style={{ color: isChecked ? '#FFFFFF' : '#cccccc', fontSize: 10 }}>{contact.memberNumber}</Text>
+                                <Text allowFontScaling={false} style={{ color: isChecked ||  selectedContact ? '#FFFFFF' : '#cccccc', fontSize: 10 }}>{contact.memberNumber}</Text>
                             </View>
                         }
                     </View>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: isChecked ? '#FFFFFF' : '#9a9a9a', fontSize: 13 }}>{contact.phone}</Text>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: isChecked ||  selectedContact ? '#FFFFFF' : '#9a9a9a', fontSize: 13 }}>{contact.phone}</Text>
                 </View>
                 <View>
                     {
-                        isChecked ?
+                        isChecked ||  selectedContact ?
 
                             <Ionicons name="ios-checkbox-outline" size={22} color="white"/>
 

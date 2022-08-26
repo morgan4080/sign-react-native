@@ -113,6 +113,9 @@ export default function LoanRequest ({loan, setLoan, onPress}: propInterface) {
                 <View style={{position: 'absolute', top: 10, right: 5, paddingHorizontal: 10, width: width/1.5}}>
                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_600SemiBold', color:  loan.applicantSigned ? '#0BB962FF' : '#CCCCCC', fontSize: 8, textAlign: 'right' }}>{loan.applicantSigned ? 'APPLICANT SIGNED' : 'APPLICANT NOT SIGNED'}</Text>
                 </View>
+                <View style={{position: 'absolute', bottom: 10, right: 5, paddingHorizontal: 10, width: width/1.5}}>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#CCCCCC', fontSize: 8, textAlign: 'right' }}>{loan?.loanDate}</Text>
+                </View>
             </TouchableOpacity>
         </View>
     )

@@ -74,7 +74,7 @@ export default function WitnessRequests ({ navigation }: NavigationProps) {
             executor: request.applicant.firstName + " " + request.applicant.lastName,
             subject: toMoney(`${request.loanRequest.amount}`),
             event: 'requested you to witness their loan ' + request.loanRequest.loanNumber +  ' of Kshs',
-            time: new Date().toLocaleTimeString()
+            time: request.loanDate
         };
     });
 

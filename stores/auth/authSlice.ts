@@ -109,12 +109,22 @@ interface LoanProduct {
 }
 
 type WitnessRequestType = {
+    loanDate: string,
     memberRefId: string,
     firstName: string,
     lastName: string,
     witnessAcceptanceStatus: string,
-    applicant: {firstName: string, lastName: string, refId: string, memberNo: string},
-    loanRequest: {refId: string, loanNumber: string, amount: string}
+    applicant: {
+        firstName: string,
+        lastName: string,
+        refId: string,
+        memberNo: string
+    },
+    loanRequest: {
+        refId: string,
+        loanNumber: string,
+        amount: string
+    }
 }
 
 type GuarantorshipRequestType = {
@@ -123,7 +133,12 @@ type GuarantorshipRequestType = {
     firstName: string,
     isActive: string,
     lastName: string,
-    loanRequest: {amount: number, loanNumber: string, refId: string},
+    loanRequest: {
+        loanDate: string;
+        amount: number,
+        loanNumber: string,
+        refId: string
+    },
     memberNumber: string,
     memberRefId: string,
     refId: string
@@ -1031,6 +1046,10 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
 
             if (response.status === 200) {
                 const data = await response.json();
+                console.log(data, data.hasOwnProperty('pendingReason'));
+                if (data.hasOwnProperty('pendingReason')) {
+                    reject(data.pendingReason)
+                }
                 resolve(data);
             } else if (response.status === 401) {
                 // update refresh token and retry
@@ -2215,6 +2234,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(fetchLoanRequests.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
+            console.log('loan requests', payload)
             state.loanRequests = payload
             state.loading = false
         })
@@ -2347,6 +2367,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(fetchWitnessRequests.fulfilled, (state, action: any) => {
+            console.log('witness requests', action.payload)
             state.witnessRequests = action.payload
             state.loading = false
         })

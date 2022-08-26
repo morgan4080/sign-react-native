@@ -90,7 +90,7 @@ export default function GuarantorshipRequests ({ navigation }: NavigationProps) 
             subject: toMoney(`${request.loanRequest.amount}`),
             event: 'requested you to guarantee their loan ' + request.loanRequest.loanNumber +  ' of Kshs',
             isActive: !!request.isActive,
-            time: new Date().toLocaleTimeString()
+            time: request.loanRequest.loanDate
         };
     });
 

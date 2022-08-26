@@ -30,6 +30,7 @@ import {
 } from "@expo-google-fonts/poppins";
 import {Controller, useForm} from "react-hook-form";
 import {RotateView} from "../Auth/VerifyOTP";
+import {useState} from "react";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -37,7 +38,8 @@ const { width, height } = Dimensions.get("window");
 
 interface FormData {
     desiredAmount: string | undefined,
-    desiredPeriod: string | undefined
+    desiredPeriod: string | undefined,
+    customPeriod: string | undefined,
 }
 
 export default function LoanProduct ({ navigation, route }: NavigationProps) {
@@ -66,12 +68,18 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
         {
             defaultValues: {
                 desiredAmount: undefined,
-                desiredPeriod: '1'
+                desiredPeriod: '1',
+                customPeriod: undefined
             }
         }
     )
 
     const setSelectedValue = (itemValue: string) => {
+        if (itemValue === "-1") {
+            setCustom(true)
+        } else {
+            setCustom(false)
+        }
         setValue('desiredPeriod', itemValue)
     }
 
@@ -83,15 +91,37 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
         pData.push(i+1)
     }
 
+    pData.push(-1)
+
     const loanPeriods: {name: string, period: string}[] = pData.reduce((acc: {name: string, period: string}[], current: number) => {
-        acc.push({
-            name: `${current} ${current === 1 ? 'Month' : 'Months'}`,
-            period: `${current}`
-        })
+        if (current === -1) {
+            acc.push({
+                name: 'Custom Period',
+                period: `${current}`
+            })
+        } else {
+            acc.push({
+                name: `${current} ${current === 1 ? 'Month' : 'Months'}`,
+                period: `${current}`
+            })
+        }
         return acc
     }, [])
 
     const onSubmit = async (value: any): Promise<void> => {
+        console.log(value.customPeriod)
+        if (value.customPeriod) {
+            navigation.navigate('LoanPurpose',
+                {
+                    loanProduct: route.params?.loanProduct,
+                    loanDetails: {
+                        desiredAmount: value.desiredAmount,
+                        desiredPeriod: value.customPeriod
+                    }
+                }
+            )
+            return
+        }
         navigation.navigate('LoanPurpose',
             {
                 loanProduct: route.params?.loanProduct,
@@ -104,6 +134,8 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
     };
 
     console.log('loan product', route.params?.loanProduct)
+
+    const [custom, setCustom] = useState<boolean>(false)
 
     if (fontsLoaded && !loading) {
         return (
@@ -170,6 +202,31 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
                                     )}
                                     name="desiredPeriod"
                                 />
+
+                                {
+                                    custom &&
+                                    <>
+                                    <Controller
+                                        control={control}
+                                        rules={{
+                                            required: true,
+                                        }}
+                                        render={( { field: { onChange, onBlur, value } }) => (
+                                            <TextInput
+                                                allowFontScaling={false}
+                                                style={styles.input}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                value={value}
+                                                placeholder="Desired Period"
+                                                keyboardType="numeric"
+                                            />
+                                        )}
+                                        name="customPeriod"
+                                    />
+                                    {errors.customPeriod && <Text allowFontScaling={false} style={styles.error}>{errors.customPeriod?.message ? errors.customPeriod?.message : 'Loan amount is required'}</Text>}
+                                    </>
+                                }
 
                                 <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)}>
                                     <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>

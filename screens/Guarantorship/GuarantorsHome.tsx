@@ -408,71 +408,74 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     }
 
     const addToSelected = async (identifier: string) => {
-        if (inputStrategy === 1) {
-            let phone: string = ''
-            if (identifier[0] === '+') {
-                let number = identifier.substring(1);
-                phone = `${number.replace(/ /g, "")}`;
-            } else if (identifier[0] === '0') {
-                let number = identifier.substring(1);
-                phone = `254${number.replace(/ /g, "")}`;
-            } else if (identifier[0] === '2') {
-                phone = `${identifier}`;
-            }
-
-            const result: any = await dispatch(validateNumber(phone));
-
-            const {payload, type}: {payload: any, type: string} = result;
-
-            if (type === 'validateNumber/rejected') {
-                CSTM.showToast(`${phone} ${result.error.message}`);
-                return
-            }
-
-            if (type === "validateNumber/fulfilled" && member) {
-                // add this guy to contact table
-                // result added, add to contact list
-
-                let memberCustom = {
-                    contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
-                    memberNumber: `${payload.memberNumber}`,
-                    memberRefId: `${payload.refId}`,
-                    name: `${payload.firstName}`,
-                    phone: `${payload.phoneNumber}`
+        try {
+            if (inputStrategy === 1) {
+                let phone: string = ''
+                if (identifier[0] === '+') {
+                    let number = identifier.substring(1);
+                    phone = `${number.replace(/ /g, "")}`;
+                } else if (identifier[0] === '0') {
+                    let number = identifier.substring(1);
+                    phone = `254${number.replace(/ /g, "")}`;
+                } else if (identifier[0] === '2') {
+                    phone = `${identifier}`;
                 }
-                await addContactToList(memberCustom, false);
-            }
-        }
 
-        if (inputStrategy === 0) {
-            // implement search by memberNo
+                const result: any = await dispatch(validateNumber(phone));
 
-            const {payload, type, error}: {payload: any, type: string, error?: any} = await dispatch(searchByMemberNo(identifier))
+                const {payload, type}: {payload: any, type: string} = result;
 
-            if (type === 'searchByMemberNo/rejected') {
-                CSTM.showToast(`${error.message}`);
-                return
-            }
-
-            if (type === "searchByMemberNo/fulfilled" && member) {
-                // add this guy to contact table
-                // result added, add to contact list
-
-                if (payload.length < 1) {
-                    CSTM.showToast(`${identifier}: is not a member.`);
+                if (type === 'validateNumber/rejected') {
+                    CSTM.showToast(`${phone} ${result.error.message}`);
                     return
                 }
 
-                let memberCustom = {
-                    contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
-                    memberNumber: `${payload[0].memberNumber}`,
-                    memberRefId: `${payload[0].refId}`,
-                    name: `${payload[0].firstName}`,
-                    phone: `${payload[0].phoneNumber}`
+                if (type === "validateNumber/fulfilled" && member) {
+                    // add this guy to contact table
+                    // result added, add to contact list
+
+                    let memberCustom = {
+                        contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
+                        memberNumber: `${payload.memberNumber}`,
+                        memberRefId: `${payload.refId}`,
+                        name: `${payload.firstName}`,
+                        phone: `${payload.phoneNumber}`
+                    }
+                    await addContactToList(memberCustom, false);
+                }
+            }
+
+            if (inputStrategy === 0) {
+                // implement search by memberNo
+
+                const {payload, type, error}: {payload: any, type: string, error?: any} = await dispatch(searchByMemberNo(identifier))
+
+                if (type === 'searchByMemberNo/rejected') {
+                    CSTM.showToast(`${error.message}`);
+                    return
                 }
 
-                await addContactToList(memberCustom, false);
+                if (type === "searchByMemberNo/fulfilled" && member) {
+                    // add this guy to contact table
+                    // result added, add to contact list
+                    if (payload && !payload.hasOwnProperty("firstName")) {
+                        CSTM.showToast(`${identifier}: is not a member.`);
+                        return
+                    }
+
+                    let memberCustom = {
+                        contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
+                        memberNumber: `${payload.memberNumber}`,
+                        memberRefId: `${payload.refId}`,
+                        name: `${payload.firstName}`,
+                        phone: `${payload.phoneNumber}`
+                    }
+
+                    await addContactToList(memberCustom, false);
+                }
             }
+        } catch(e: any) {
+            console.log(e.message);
         }
     }
 

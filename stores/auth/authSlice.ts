@@ -217,7 +217,7 @@ export type storeState = {
     isJWT: boolean | string;
     otpSent: boolean;
     optVerified: boolean;
-    searchedMembers: membersFilter[];
+    searchedMembers: membersFilter;
     contacts: {contact_id: number, name: string, phone: string}[] | null;
     loanCategories: CategoryType[] | null,
     appInitialized: boolean,
@@ -898,14 +898,15 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
         myHeaders.append("Authorization", `Bearer ${key}`);
         myHeaders.append("Content-Type", 'application/json');
 
-        const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members?order=ASC&pageSize=1&searchTerm=${memberNo}`, {
+        const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/member/${memberNo}`, {
             method: 'GET',
             headers: myHeaders
         });
 
         if (response.status === 200) {
-            const { list } = await response.json();
-            return Promise.resolve(list);
+            const data = await response.json();
+            console.log(data)
+            return Promise.resolve(data);
         } else if (response.status === 401) {
             // update refresh token and retry
             // state.organisations.find(org => org.tenantId === tenant?.tenantId)

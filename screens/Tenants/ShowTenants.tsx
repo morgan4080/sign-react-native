@@ -62,7 +62,6 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                 try {
                     let otpV = await getSecureKey('otp_verified');
                     setOtpVerified(otpV);
-                    console.log('route params', route.params);
                     if (route.params) {
                         const { countryCode, phoneNumber }: any = route.params;
                         if (countryCode && phoneNumber) {

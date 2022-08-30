@@ -37,6 +37,7 @@ public class MainApplication extends Application implements ReactApplication {
       // packages.add(new MyReactNativePackage());
       packages.add(new CustomModulePackage());
       packages.add(new SmsModulePackage());
+      packages.add(new CountriesModulePackage());
       return packages;
     }
 

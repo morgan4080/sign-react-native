@@ -49,6 +49,7 @@ const linking: LinkingOptions<RootStackParamList> = {
       Login: 'login',
       ShowTenants: 'Show-tenants',
       GetTenants: 'get-tenants',
+      Countries: 'countries',
       PinLogin: 'pin-login',
       SetPin: 'set-pin',
       LoanPurpose: 'loan-purpose',

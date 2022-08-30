@@ -15,6 +15,7 @@ import GetStarted from "../screens/Landing/GetStarted";
 import Login from "../screens/Auth/Login";
 import VerifyOTP from "../screens/Auth/VerifyOTP";
 import GetTenants from "../screens/Tenants/GetTenants";
+import Countries from "../screens/Tenants/Countries";
 import ShowTenants from "../screens/Tenants/ShowTenants";
 import UserProfile from "../screens/User/UserProfile";
 import LoanRequests from "../screens/User/LoanRequests";
@@ -73,6 +74,7 @@ const NonAuthNaigation = () => {
             {/*Before login*/}
             <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
             <Stack.Screen name="GetTenants" component={GetTenants} options={{ headerShown: false }} />
+            <Stack.Screen name="Countries" component={Countries} options={{ headerShown: false }} />
             <Stack.Screen name="ShowTenants" component={ShowTenants} options={{
                 headerShown: true,
                 title: 'Select Organization',

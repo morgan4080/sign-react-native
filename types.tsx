@@ -27,6 +27,7 @@ export type RootStackParamList = {
   Login: NavigatorScreenParams<RootTabParamList> | undefined;
   ShowTenants: NavigatorScreenParams<RootTabParamList> | undefined;
   GetTenants: NavigatorScreenParams<RootTabParamList> | undefined;
+  Countries: NavigatorScreenParams<RootTabParamList> | undefined;
   PinLogin: NavigatorScreenParams<RootTabParamList> | undefined;
   SetPin: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanPurpose: NavigatorScreenParams<RootTabParamList> | undefined;

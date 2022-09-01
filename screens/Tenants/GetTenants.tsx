@@ -1,7 +1,7 @@
 import {
     Dimensions,
     Image, Keyboard,
-    NativeModules,
+    NativeModules, Pressable,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -28,7 +28,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {store} from "../../stores/store";
 import {useEffect, useRef, useState} from "react";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
-import {Ionicons} from "@expo/vector-icons";
+import {AntDesign, Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 const { CSTM, CountriesModule } = NativeModules;
 
 type NavigationProps = NativeStackScreenProps<any>
@@ -38,7 +38,8 @@ type FormData = {
     countryCode: string;
 }
 
-const GetTenants = ({ navigation }: NavigationProps) => {
+const GetTenants = ({ navigation, route }: NavigationProps) => {
+
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -56,9 +57,16 @@ const GetTenants = ({ navigation }: NavigationProps) => {
 
     const [phn, setPhn] = useState('')
 
-    const [code, setCode] = useState('+')
+    const [code, setCode] = useState(route.params?.code ? `+${route.params.code}` : '+254')
 
     const [country, setCountry] = useState<{name: string, code: string, numericCode: string, flag: string}>()
+
+    const defaultValues = phn && phn !== "" ? {
+        phoneNumber: phn,
+        countryCode: code
+    } : {
+        countryCode: code
+    };
 
     const {
         control,
@@ -67,10 +75,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
         setValue,
         formState: { errors }
     } = useForm<FormData>({
-        defaultValues: {
-            phoneNumber: phn,
-            countryCode: code
-        }
+        defaultValues
     });
 
     useEffect(() => {
@@ -120,18 +125,18 @@ const GetTenants = ({ navigation }: NavigationProps) => {
             } else {
                 try {
                     const ph = await getSecureKey('phone_number_without');
-                    const code = await getSecureKey('phone_number_code');
+                    const codex = route.params?.code ? `+${route.params.code}` : await getSecureKey('phone_number_code');
                     if (ph && ph !== '') {
                         setValue('phoneNumber', ph)
                         setPhn(ph)
                     }
-                    if (code && code !== '') {
-                        setValue('countryCode', code);
+                    if (codex && codex !== '') {
+                        setValue('countryCode', route.params?.code ? code : codex);
                         let countriesJson = await CountriesModule.getCountries();
                         if (countriesJson) {
                             let countries: {name: string, code: string, numericCode: string, alpha2Code: string}[] = JSON.parse(countriesJson);
-                            const country = countries.find((country: {name: string, code: string, numericCode: string, alpha2Code: string}) => country.code === code.replace("+", ""));
-                            console.log(country);
+                            setValue('countryCode', codex);
+                            const country = countries.find((country: {name: string, code: string, numericCode: string, alpha2Code: string}) => country.code === codex.replace("+", ""));
                             if (country && country.alpha2Code) {
                                 setCountry({
                                     ...country,
@@ -139,7 +144,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                                 });
                             }
                         }
-                        setCode(code)
+                        setCode(codex)
                     }
                 } catch (e: any) {
                     console.log(e.message)
@@ -150,9 +155,12 @@ const GetTenants = ({ navigation }: NavigationProps) => {
             // cancel the subscription
             isLoggedInSubscribed = false;
         };
-    }, [isLoggedIn]);
+    }, [isLoggedIn, route.params?.code]);
+
+    const [submitted, setSubmitted] = useState(false)
 
     const onSubmit = async (value: any): Promise<void> => {
+        console.log("running submit");
         if (value) {
             try {
                 if (value.phoneNumber.length < 8) {
@@ -170,6 +178,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                 }
 
                 const { type, error }: any = await dispatch(getTenants(phone !== '' ? phone : value.phoneNumber));
+                setSubmitted(true);
                 if (type === 'getTenants/rejected' && error) {
                     if (error.message === "Network request failed") {
                         CSTM.showToast(error.message);
@@ -201,7 +210,8 @@ const GetTenants = ({ navigation }: NavigationProps) => {
             <SafeAreaView style={{
                 flex: 1,
                 borderTopLeftRadius: 25,
-                borderTopRightRadius: 25
+                borderTopRightRadius: 25,
+                height
             }}>
                 <ScrollView contentContainerStyle={styles.container} ref={scrollViewRef}>
                     <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
@@ -215,18 +225,27 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                         <Text allowFontScaling={false} style={styles.subTitleText}>Verify Membership</Text>
                         <View style={{ paddingHorizontal: 30, position: 'relative' }}>
                             <View style={{ ...styles.input, position: 'absolute', top: 7, left: width/14, width: width/5.5, borderRadius: 0, height: 35, paddingHorizontal: 15, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                <Image source={{ uri: country?.flag}} style={{ width: 20, height: 15 }}/>
+                                {
+                                    country ? <Image source={{uri: country?.flag}} style={{width: 20, height: 15}}/>
+                                    :
+                                    <MaterialCommunityIcons name="diving-scuba-flag" size={20} color="#8d8d8d"/>
+                                }
+                            </View>
+                            <View style={{ ...styles.input, position: 'absolute', top: 7, right: width/12, width: width/5.5, borderRadius: 0, height: 35, paddingHorizontal: 15, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                <AntDesign name="right" size={20} color="#8d8d8d" />
                             </View>
 
-                            <TextInput
-                                style={{...styles.input}}
-                                placeholder="Country"
-                                value={country?.name}
-                                onFocus={() => {
-                                    Keyboard.dismiss();
-                                    navigation.navigate('Countries');
-                                }}
-                            />
+                            <View>
+                                <Pressable style={{position: 'absolute', width: '100%', height: '100%'}} onPress={() => navigation.navigate('Countries')}>
+
+                                </Pressable>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="SELECT COUNTRY"
+                                    value={country?.name}
+                                    editable={false}
+                                />
+                            </View>
                         </View>
                         <View style={{ paddingHorizontal: 30, position: 'relative' }}>
                             <Controller
@@ -239,7 +258,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                                     <TextInput
                                         ref={focusCountryCode}
                                         allowFontScaling={false}
-                                        style={{...styles.input, position: 'absolute', top: 7, left: width/12, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, zIndex: 11, paddingHorizontal: 15, paddingRight: 0}}
+                                        style={{...styles.input, position: 'absolute', top: 7, left: width/11, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, zIndex: 11, paddingHorizontal: 15, paddingRight: 0}}
                                         editable={false}
                                         value={value}
                                         onBlur={onBlur}
@@ -273,7 +292,7 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                                     <TextInput
                                         ref={focusPhoneNumber}
                                         allowFontScaling={false}
-                                        style={styles.input}
+                                        style={{...styles.input, color: errors.phoneNumber && submitted ? '#d53b39': '#757575', borderColor: errors.phoneNumber && submitted ? '#d53b39': 'rgba(0,0,0,0.9)'}}
                                         keyboardType="phone-pad"
                                         onBlur={onBlur}
                                         onKeyPress={({ nativeEvent }) => {
@@ -286,11 +305,12 @@ const GetTenants = ({ navigation }: NavigationProps) => {
                                         onChangeText={onChange}
                                         value={value}
                                         autoFocus={false}
+                                        placeholder="722000000"
                                     />
                                 )}
                                 name="phoneNumber"
                             />
-                            {errors.phoneNumber && <Text  allowFontScaling={false}  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Kindly use the required format'}</Text>}
+                            {errors.phoneNumber && submitted && <Text  allowFontScaling={false}  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Kindly use the required format'}</Text>}
 
                         </View>
                     </View>
@@ -329,7 +349,7 @@ const styles = StyleSheet.create({
         display: 'flex',
         flexDirection: 'column',
         width,
-        height: height - height/3
+        height,
     },
     container2: {
         display: 'flex',
@@ -351,7 +371,7 @@ const styles = StyleSheet.create({
     titleText: {
         fontSize: 15,
         textAlign: 'center',
-        color: '#489AAB',
+        color: '#265D73',
         fontFamily: 'Poppins_500Medium',
         paddingTop: 10
     },
@@ -364,7 +384,7 @@ const styles = StyleSheet.create({
     linkText: {
         fontSize: 14,
         textDecorationLine: 'underline',
-        color: '#489AAB',
+        color: '#44A69C',
         alignSelf: 'flex-start',
         fontFamily: 'Poppins_400Regular',
         marginBottom: 10,
@@ -376,8 +396,8 @@ const styles = StyleSheet.create({
         height: width/2
     },
     input: {
-        borderWidth: .5,
-        borderColor: '#bbbbbb',
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.9)',
         borderRadius: 10,
         height: 50,
         marginTop: 20,
@@ -387,8 +407,8 @@ const styles = StyleSheet.create({
         color: '#757575'
     },
     error: {
-        fontSize: 12,
-        color: '#f30000',
+        fontSize: 10,
+        color: '#d53b39',
         fontFamily: 'Poppins_400Regular',
         paddingHorizontal: 10,
         marginTop: 5

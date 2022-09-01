@@ -123,11 +123,11 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
                                 }
                             </ScrollView>
                         </SafeAreaView>
-                        <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.6)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                        <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.6)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center', paddingHorizontal: 20 }}>
                             <TouchableOpacity disabled={!optionSelected} onPress={() => selectedCategory ? navigation.navigate('GuarantorsHome', {
                                 category: selectedCategory,
                                 ...route.params
-                            }) : null} style={{ display: 'flex', alignItems: 'center', backgroundColor: !optionSelected ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            }) : null} style={{ display: 'flex', alignItems: 'center', backgroundColor: !optionSelected ? '#CCCCCC' : '#336DFF', width: '100%', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 25, marginVertical: 10 }}>
                                 <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>

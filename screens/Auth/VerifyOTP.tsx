@@ -377,8 +377,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
 
 const styles = StyleSheet.create({
     container: {
-        display: 'flex',
-        height: height
+
     },
     titleText: {
         fontSize: 15,

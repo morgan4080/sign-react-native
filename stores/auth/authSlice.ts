@@ -452,6 +452,7 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
 type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number, guaranteeAmount?: number}
 
 export const validateGuarantorship = createAsyncThunk('validateGuarantorship', async (payload:validateGuarantorType, {dispatch, getState}) => {
+    console.log(payload)
     try {
         const key = await getSecureKey('access_token');
 
@@ -628,7 +629,7 @@ export const getUserFromDB = createAsyncThunk('getUserFromDB', async ({setDBUser
 export const getContactsFromDB = createAsyncThunk('getContactsFromDB', async ({setContacts, from, to}: {setContacts: any, from: number, to: number}) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '10'`, undefined,
+            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '30'`, undefined,
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: any, { rows: { _array } } : any) => {
                     setContacts(_array)

@@ -168,7 +168,7 @@ const Countries = ({ navigation }: NavigationProps) => {
                                     render={( { field: { onChange, onBlur, value } }) => (
                                         <TextInput
                                             allowFontScaling={false}
-                                            style={{paddingLeft: 20, fontFamily: 'Poppins_500Medium', fontSize: 18, minWidth: width/2}}
+                                            style={{paddingLeft: 20, fontFamily: 'Poppins_500Medium', fontSize: 18, minWidth: width/1.5}}
                                             onBlur={onBlur}
                                             onChangeText={onChange}
                                             value={value}

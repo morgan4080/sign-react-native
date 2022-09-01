@@ -22,7 +22,7 @@ import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, 
 import {useEffect, useRef, useState} from "react";
 import { storeState } from "../../stores/auth/authSlice";
 import {getSecureKey} from "../../utils/secureStore";
-import {Fontisto} from "@expo/vector-icons";
+import {EvilIcons, Fontisto} from "@expo/vector-icons";
 import {
     receiveVerificationSMS,
     startSmsUserConsent,
@@ -68,7 +68,7 @@ export const RotateView = ({color}: RotateViewProps) => {
 
     return (
         <Animated.View style={{transform: [{rotate: spin}] }}>
-            <Fontisto name="spinner" size={24} color={color ? color: "#489AAB"} />
+            <EvilIcons name="spinner-3" size={24} color={color ? color: "#489AAB"} />
         </Animated.View>
     );
 }

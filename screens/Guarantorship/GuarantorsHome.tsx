@@ -1,40 +1,39 @@
+import {NativeStackScreenProps} from "@react-navigation/native-stack";
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {Picker} from "@react-native-picker/picker";
 import {
+    Pressable,
+    Text,
+    TextInput,
+    View,
     Dimensions,
-    FlatList,
     NativeModules,
+    TouchableOpacity,
+    FlatList,
     SafeAreaView,
     ScrollView,
-    StatusBar as Bar,
     StatusBar,
     StyleSheet,
     Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
 } from "react-native";
-
-import {Picker} from "@react-native-picker/picker";
-
-import ContactTile from "./Components/ContactTile";
-
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
-
+import {AntDesign, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {Controller, useForm} from "react-hook-form";
+import {useState, useEffect, useCallback, useRef} from "react";
 import {store} from "../../stores/store";
-
 import {useDispatch, useSelector} from "react-redux";
-
 import {
     authenticate,
     getContactsFromDB, getUserFromDB, saveUser,
     searchByMemberNo,
     searchContactsInDB,
     setLoading,
-    storeState, updateUser,
+    storeState,
+    updateUser,
     validateGuarantorship,
     validateNumber
 } from "../../stores/auth/authSlice";
-
+import cloneDeep from "lodash/cloneDeep";
+import {RotateView} from "../Auth/VerifyOTP";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -45,29 +44,11 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-
-import {AntDesign, FontAwesome5, Ionicons, MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
-
-import {useCallback, useEffect, useRef, useState} from "react";
-
-import {Controller, useForm} from "react-hook-form";
-
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-
-import cloneDeep from "lodash/cloneDeep";
-
-import {RotateView} from "../Auth/VerifyOTP";
-
 import configuration from "../../utils/configuration";
-
-import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../components/BottomSheet";
-
 import {toMoney} from "../User/Account";
-
-type NavigationProps = NativeStackScreenProps<any>;
-
 const { width, height } = Dimensions.get("window");
 
+type NavigationProps = NativeStackScreenProps<any>;
 type FormData = {
     searchTerm: string;
     phoneNumber: string | undefined;
@@ -83,13 +64,45 @@ type FormData = {
     businessLocation: string;
     businessType: string;
 };
+type employerPayloadType = {
+    employerName: string | undefined;
+    serviceNo: string | undefined;
+    grossSalary: string | undefined;
+    netSalary: string | undefined;
+    kraPin: string | undefined;
+}
+type businessPayloadType = {
+    businessLocation: string | undefined;
+    businessType: string | undefined;
+    kraPin: string | undefined;
+}
+const { CSTM } = NativeModules;
 
-export default function GuarantorsHome({ navigation, route }: NavigationProps) {
+// temporary
+
+import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../components/BottomSheet";
+import ContactSectionList from "../../components/ContactSectionList";
+
+const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
+    StatusBar.setBackgroundColor('#FFFFFF', true);
+
+    let [fontsLoaded] = useFonts({
+        Poppins_900Black,
+        Poppins_500Medium,
+        Poppins_800ExtraBold,
+        Poppins_700Bold,
+        Poppins_600SemiBold,
+        Poppins_400Regular,
+        Poppins_300Light
+    });
+
+    const scrollViewRef = useRef<any>();
+
+    const [searching, setSearching] = useState<boolean>(false);
+
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
-
-    const scrollViewRef = useRef<any>();
 
     const { loading, tenants, selectedTenantId, user, member, isLoggedIn } = useSelector((state: { auth: storeState }) => state.auth);
 
@@ -99,14 +112,14 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const settings = configuration.find(config => config.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
 
-    const CSTM = NativeModules.CSTM;
-
     const [from, setFrom] = useState(0);
 
     const [to, setTo] = useState(10);
 
     const [employerDetailsEnabled, setEmployerDetailsEnabled] = useState(false);
+
     const [dbUser, setDbUser] = useState(false);
+
     const [DBUser, setDBUser] = useState<{id: number, kraPin: string, employed: number, businessOwner: number, employerName: any, serviceNumber: any, grossSalary: any, netSalary: any, businessType: any, businessLocation: any}[]>([]);
 
     const [memberSearching, setMemberSearching] = useState<boolean>(false);
@@ -186,7 +199,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         };
     }, [contacts]);
 
-
     const {
         control,
         watch,
@@ -198,16 +210,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         defaultValues: {
             employerDetails: settings && settings.employerInfo
         }
-    });
-
-    let [fontsLoaded] = useFonts({
-        Poppins_900Black,
-        Poppins_500Medium,
-        Poppins_800ExtraBold,
-        Poppins_700Bold,
-        Poppins_600SemiBold,
-        Poppins_400Regular,
-        Poppins_300Light
     });
 
     const filterContactsCB = async (searchTerm: string = '') => {
@@ -295,6 +297,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
 
     const removeContactFromList = (contact2Remove: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): boolean => {
+        console.log('removing');
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
         let index = newDeserializedCopy.findIndex(contact => contact.contact_id === contact2Remove.contact_id);
         newDeserializedCopy.splice(index, 1);
@@ -321,6 +324,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     const [currentGuarantor, setCurrentGuarantor] = useState<{contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}>()
 
     const addContactToList = async (contact2Add: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}, press: boolean = true): Promise<boolean> => {
+        console.log("adding to list contact2Add", contact2Add);
         let newDeserializedCopy: any[] = cloneDeep(selectedContacts);
         let phone: string = '';
         if (contact2Add.phone[0] === '+') {
@@ -384,6 +388,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                         amountsToG.push(theAmount);
                         setAllGuaranteedAmounts(amountsToG);
                         newDeserializedCopy.push(contact2Add);
+                        console.warn('setting setSelectedContacts', setSelectedContacts)
                         setSelectedContacts(newDeserializedCopy);
                         setValue('searchTerm', '');
                         setMemberNumber('');
@@ -497,18 +502,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     }, []);
 
     const [tab, setTab] = useState<number>(0);
-    type employerPayloadType = {
-        employerName: string | undefined;
-        serviceNo: string | undefined;
-        grossSalary: string | undefined;
-        netSalary: string | undefined;
-        kraPin: string | undefined;
-    }
-    type businessPayloadType = {
-        businessLocation: string | undefined;
-        businessType: string | undefined;
-        kraPin: string | undefined;
-    }
 
     const submitSearch = async (ctx: string) => {
         scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: true });
@@ -812,105 +805,76 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
     }
 
     return (
-        <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+        <GestureHandlerRootView style={styles.container}>
             {
                 loading &&
                 <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
                     <RotateView/>
                 </View>
             }
-            <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-            <View style={{ position: 'absolute', left: -100, top: 200, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-            <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
-            <View style={styles.container}>
-                <View style={{flex: 1, alignItems: 'center', position: 'relative'}}>
-                    <View style={styles.searchbar}>
-                        <View style={{paddingHorizontal: 20, marginBottom: 5}}>
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 16 }}>
-                                Add Guarantors ({route.params?.loanProduct.requiredGuarantors} Required)
-                            </Text>
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, marginBottom: 10 }}>
-                                Loan Amount: {toMoney(route.params?.loanDetails.desiredAmount)} KSH - Amount Guaranteed: {toMoney(calculateGuarantorship(route.params?.loanDetails.desiredAmount))}
-                            </Text>
-                            <View style={{position: 'relative', display: 'flex', flexDirection: 'row', overflow: 'hidden'}}>
-                                <View style={{position: 'absolute', display: 'flex', height: 45, zIndex: 1, alignItems: 'center', justifyContent: 'center'}}>
-                                    <Ionicons name="search" size={25} color="#CCCCCC" style={{paddingHorizontal: 10}} />
-                                </View>
+            <View style={styles.searchableHeader}>
+                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <Pressable style={{alignSelf: 'flex-start'}} onPress={() => {
+                        if (searching) {
+                            setSearching(!searching);
+                            setValue("searchTerm", "");
+                        } else {
+                            navigation.goBack();
+                        }
+                    }}>
+                        <AntDesign name="arrowleft" size={24} color="rgba(0,0,0,0.89)" />
+                    </Pressable>
 
-                                <Controller
-                                    control={control}
-                                    render={( { field: { onChange, onBlur, value } }) => (
-                                        <TextInput
-                                            allowFontScaling={false}
-                                            style={styles.input}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            placeholder="Search Contacts"
-                                        />
-                                    )}
-                                    name="searchTerm"
-                                />
-                                <TouchableOpacity style={styles.optionsButton} onPress={() => {
-                                    setEmployerDetailsEnabled(false);
-                                    onPress('options');
-                                }}>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#FFFFFF', fontSize: 10, paddingLeft: 10 }}>OPTIONS</Text>
-                                    <Ionicons name="options-outline" size={20} color="white" style={{paddingLeft: 5, paddingRight: 15}} />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                        <View style={{paddingHorizontal: 20, marginTop: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', zIndex: 10}}>
-                            <ScrollView horizontal>
-                                {selectedContacts && selectedContacts.map((co,i) => (
-                                    <TouchableOpacity onPress={() => removeContactFromList(co)} key={i} style={{
-                                        backgroundColor: 'rgba(50,52,146,0.31)',
-                                        width: width / 7,
-                                        height: width / 7,
-                                        borderRadius: 100,
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        marginRight: 10,
-                                        position: 'relative'
-                                    }}>
-                                        <View style={{ position: 'absolute', top: 0, right: -1 }}>
-                                            <FontAwesome5 name="minus-circle" size={14} color="#767577" />
-                                        </View>
-                                        <Text allowFontScaling={false} style={{
-                                            color: '#363D7D',
-                                            fontSize: 8,
-                                            fontFamily: 'Poppins_400Regular',
-                                            textAlign: 'center',
-                                            zIndex: 2
-                                        }}>{co.name.split(' ')[0]}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
-                        </View>
-                    </View>
-                    <SafeAreaView style={{ flex: 1, width, height: 10/12 * height, borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
-                        <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
-                            {
-                                contacts.length ? contacts.map((contact: any, i: number) => (
-                                    <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} />
-                                )) :
-                                <View style={{width: '100%', height: height/3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                    <MaterialCommunityIcons name="delete-empty-outline" size={100} color="#CCCCCC" />
-                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 16 }}>Whooops!</Text>
-                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12 }}>No Data</Text>
-                                </View>
-                            }
-                        </ScrollView>
-                    </SafeAreaView>
+                    {
+                        searching ?
 
-                    <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <TouchableOpacity disabled={ isDisabled() || loading } onPress={navigateUser} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                            <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
-                        </TouchableOpacity>
-                    </View>
+                            <Controller
+                                control={control}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={{paddingLeft: 20, fontFamily: 'Poppins_500Medium', fontSize: 15, minWidth: width/1.5, color: '#393a34', textDecorationLine: "underline"}}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="Search Guarantors"
+                                        autoFocus={true}
+                                    />
+                                )}
+                                name="searchTerm"
+                            />
+
+                            : <Text style={styles.header} allowFontScaling={false}>Add {route.params?.loanProduct.requiredGuarantors} {route.params?.loanProduct.requiredGuarantors == 1 ? 'Guarantor' : 'Guarantors'}</Text>
+                    }
                 </View>
+
+                <Pressable onPress={() => {
+                    setSearching(!searching);
+                }}>
+                    <AntDesign style={{paddingHorizontal: 10}} name="search1" size={20} color="rgba(0,0,0,0.89)" />
+                </Pressable>
             </View>
+            <ContactSectionList contactsData={
+                [
+                    {
+                        title: 'OPTIONS',
+                        data: [
+                            {
+                                name: ''
+                            }
+                        ]
+                    },
+                    {
+                        title: 'SELECTED GUARANTORS',
+                        data: selectedContacts
+                    },
+                    {
+                        title: 'CONTACTS',
+                        data: contacts
+                    }
+                ]
+            } searching={searching} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} onPress={onPress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} />
+
             <BottomSheet ref={ref}>
                 <SafeAreaView style={{ display: 'flex', position: 'relative', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
                     <TouchableOpacity style={{ position: 'absolute', top: -25, right: 12, backgroundColor: '#767577', borderRadius: 15 }} onPress={() => {
@@ -1201,57 +1165,61 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        position: 'relative'
+        paddingTop: StatusBar.currentHeight,
+        marginHorizontal: 0
     },
-    searchbar: {
+    searchableHeader: {
         display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        width,
-        height: 2/12 * height,
-        position: 'relative',
-        marginTop: 30,
-        marginBottom: 20
-    },
-    dialPad: {
-        display: 'flex',
+        flexDirection: 'row',
+        backgroundColor: "#FFFFFF",
         alignItems: 'center',
-        justifyContent: 'center',
-        width: width/3,
-        height: (height/2)/ 4
+        justifyContent: 'space-between',
+        padding: 15,
+        shadowColor: 'rgba(0,0,0,0.7)', // IOS
+        shadowOffset: { height: 1, width: 1 }, // IOS
+        shadowOpacity: 1, // IOS
+        shadowRadius: 1, // IOS
+        elevation: 5, // Android
     },
-    dialPadText: {
+    item: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: "#FFFFFF",
+        padding: 20
+    },
+    header: {
+        fontSize: 18,
+        color: 'rgba(0,0,0,0.89)',
+        paddingLeft: 20,
+        fontFamily: 'Poppins_500Medium'
+    },
+    title: {
         fontSize: 20,
-        color: '#336DFF',
-        fontFamily: 'Poppins_300Light'
+        fontFamily: 'Poppins_400Regular'
     },
-    subtitle: {
-        textAlign: 'left',
-        alignSelf: 'flex-start',
-        color: '#489AAB',
-        fontFamily: 'Poppins_600SemiBold',
-        fontSize: 14,
-        paddingHorizontal: 30,
-        marginBottom: 5
+    option: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: width/1.12,
+        backgroundColor: '#f9c2ff',
+        padding: 20,
+        marginVertical: 8,
+        marginHorizontal: 16,
+        borderRadius: 20,
+        borderColor: '#CCCCCC',
+        borderWidth: .5,
+        shadowColor: 'rgba(0,0,0, .4)', // IOS
+        shadowOffset: { height: 1, width: 1 }, // IOS
+        shadowOpacity: 1, // IOS
+        shadowRadius: 1, //IOS
+        elevation: 2, // Android
     },
-    tabTitle: {
-        textAlign: 'left',
-        alignSelf: 'flex-start',
-        fontFamily: 'Poppins_600SemiBold',
-        fontSize: 12,
-        padding: 5
-    },
-    input: {
-        borderWidth: 2,
-        borderColor: '#cccccc',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 15,
-        height: 45,
-        paddingLeft: 50,
-        fontSize: 12,
-        color: '#767577',
-        width: '100%',
-        fontFamily: 'Poppins_400Regular',
+    optionName: {
+        fontSize: 16,
+        fontFamily: 'Poppins_300Light',
+        marginLeft: 10
     },
     input0: {
         borderWidth: 1,
@@ -1279,44 +1247,22 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontFamily: 'Poppins_300Light',
     },
-    option: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: width/1.12,
-        backgroundColor: '#f9c2ff',
-        padding: 20,
-        marginVertical: 8,
-        marginHorizontal: 16,
-        borderRadius: 20,
-        borderColor: '#CCCCCC',
-        borderWidth: .5,
-        shadowColor: 'rgba(0,0,0, .4)', // IOS
-        shadowOffset: { height: 1, width: 1 }, // IOS
-        shadowOpacity: 1, // IOS
-        shadowRadius: 1, //IOS
-        elevation: 2, // Android
+    subtitle: {
+        textAlign: 'left',
+        alignSelf: 'flex-start',
+        color: '#489AAB',
+        fontFamily: 'Poppins_600SemiBold',
+        fontSize: 14,
+        paddingHorizontal: 30,
+        marginBottom: 5
     },
-    optionName: {
-        fontSize: 16,
-        fontFamily: 'Poppins_300Light',
-        marginLeft: 10
-    },
-    optionsButton: {
-        backgroundColor: '#489AAB',
-        borderTopWidth: 2,
-        borderBottomWidth: 2,
-        borderRightWidth: 2,
-        borderColor: '#cccccc',
-        position: 'absolute',
-        right: 1,
-        borderTopRightRadius: 13,
-        borderBottomRightRadius: 13,
-        top: 0,
-        height: 45,
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center'
+    tabTitle: {
+        textAlign: 'left',
+        alignSelf: 'flex-start',
+        fontFamily: 'Poppins_600SemiBold',
+        fontSize: 12,
+        padding: 5
     }
 });
+
+export default GuarantorsHome;

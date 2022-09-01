@@ -133,8 +133,6 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
         )
     };
 
-    console.log('loan product', route.params?.loanProduct)
-
     const [custom, setCustom] = useState<boolean>(false)
 
     if (fontsLoaded && !loading) {
@@ -312,7 +310,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 25,
         marginHorizontal: 0,
         marginBottom: 20,
-        marginTop: height/6,
+        marginTop: 80,
         alignSelf: 'stretch',
         justifyContent: 'center'
     },

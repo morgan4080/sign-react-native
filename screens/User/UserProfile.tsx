@@ -13,14 +13,12 @@ import {
 
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {useDispatch, useSelector} from "react-redux";
 import {
     storeState,
-    setLoading,
     fetchMember,
-    logoutUser,
     saveContactsToDb,
     setLoanCategories,
     authenticate,

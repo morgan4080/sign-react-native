@@ -119,9 +119,10 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
             }
             return acc;
         }, []);
-        let loan_purpose_2: string[] = []
 
-        let loan_purpose_3: string[] = []
+        let loan_purpose_2: string[] = [];
+
+        let loan_purpose_3: string[] = [];
 
         route.params?.category.options.map((op: any) => {
             if (op.selected) {
@@ -133,7 +134,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
 
                 loan_purpose_2.push(op.name)
             }
-        })
+        });
 
         const payload = {
             "details": {
@@ -201,24 +202,27 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
             "guarantorList": guarantorList
         };
 
-        console.log(JSON.stringify(payload));
+        if (payload.witnessRefId === undefined) delete payload.witnessRefId;
 
         const CSTM = NativeModules.CSTM;
 
         try {
             const response: any = await dispatch(submitLoanRequest(payload));
+
             if (response.type === 'submitLoanRequest/fulfilled') {
-                const newPayload: any = response.payload
+                const newPayload: any = response.payload;
+
                 if (newPayload) {
                     if (newPayload.hasOwnProperty('pdfThumbNail')) {
-                        navigation.navigate('LoanRequest', response.payload)
+                        navigation.navigate('LoanRequest', response.payload);
                     } else {
                         // resubmit for signing
-                        const refId: any = response.payload.refId
-                        console.log(refId)
-                        const res = await dispatch(resubmitForSigning(refId))
+                        const refId: any = response.payload.refId;
+
+                        const res = await dispatch(resubmitForSigning(refId));
+
                         if (res.type === 'resubmitForSigning/fulfilled') {
-                            navigation.navigate('LoanRequest', response.payload)
+                            navigation.navigate('LoanRequest', response.payload);
                         } else {
                             console.log(res)
                             CSTM.showToast('Loan Request resubmit failed');

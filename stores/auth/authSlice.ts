@@ -1047,9 +1047,10 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
 
             if (response.status === 200) {
                 const data = await response.json();
-                console.log(data, data.hasOwnProperty('pendingReason'));
-                if (data.hasOwnProperty('pendingReason')) {
-                    reject(data.pendingReason)
+                console.log(data.pendingReason, data.hasOwnProperty('pendingReason'));
+                if (data.pendingReason && data.hasOwnProperty('pendingReason')) {
+                    console.log('error here 0', data.pendingReason);
+                    reject(data.pendingReason);
                 }
                 resolve(data);
             } else if (response.status === 401) {
@@ -1076,13 +1077,14 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
                     await dispatch(refreshAccessToken(refreshTokenPayload))
                 } else {
                     setAuthState(false);
-
+                    console.log('error here 1', response.status);
                     reject(response.status);
                 }
             } else {
                 reject(response);
             }
         } catch (e: any) {
+            console.log('error here 2', e);
             reject(e.message);
         }
     })

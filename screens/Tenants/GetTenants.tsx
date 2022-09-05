@@ -1,13 +1,17 @@
 import {
     Dimensions,
-    Image, Keyboard,
-    NativeModules, Pressable,
+    Image,
+    Keyboard,
+    NativeModules,
+    Pressable,
     SafeAreaView,
-    ScrollView,
     StyleSheet,
     Text,
-    TextInput, TouchableOpacity,
-    View
+    TextInput,
+    TouchableOpacity,
+    VirtualizedList,
+    View,
+    StatusBar
 } from "react-native";
 import {RotateView} from "../Auth/VerifyOTP";
 const { width, height } = Dimensions.get("window");
@@ -136,7 +140,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                         if (countriesJson) {
                             let countries: {name: string, code: string, numericCode: string, alpha2Code: string}[] = JSON.parse(countriesJson);
                             setValue('countryCode', codex);
-                            const country = countries.find((country: {name: string, code: string, numericCode: string, alpha2Code: string}) => country.code === codex.replace("+", ""));
+                            const country = countries.find((country: {name: string, code: string, numericCode: string, alpha2Code: string}) => (country.code === codex.replace("+", "") && country.numericCode === route.params?.numericCode && country.alpha2Code === route.params?.alpha2Code));
                             if (country && country.alpha2Code) {
                                 setCountry({
                                     ...country,
@@ -195,144 +199,192 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
         }
     }
 
-    const scrollViewRef = useRef<any>();
-
     Keyboard.addListener('keyboardDidShow', () => {
-        scrollViewRef.current.scrollToEnd({ animated: true });
+
     });
 
     const focusCountryCode = useRef<any>();
 
     const focusPhoneNumber = useRef<any>();
 
-    if (!isJWT && fontsLoaded) {
-        return (
-            <SafeAreaView style={{
-                flex: 1,
-                borderTopLeftRadius: 25,
-                borderTopRightRadius: 25,
-                height
-            }}>
-                <ScrollView contentContainerStyle={styles.container} ref={scrollViewRef}>
+    const Item = ({ title }: {title: string}) => {
+        switch (title){
+            case 'logo':
+                return (
                     <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
                         <Image
                             style={styles.landingLogo}
                             source={require('../../assets/images/DarkLogo.png')}
                         />
                     </View>
-                    <View style={styles.container2}>
+                )
+            case 'title':
+                return (
+                    <View>
                         <Text allowFontScaling={false} style={styles.titleText}>Enter registered phone number</Text>
                         <Text allowFontScaling={false} style={styles.subTitleText}>Verify Membership</Text>
-                        <View style={{ paddingHorizontal: 30, position: 'relative' }}>
-                            <View style={{ ...styles.input, position: 'absolute', top: 7, left: width/14, width: width/5.5, borderRadius: 0, height: 35, paddingHorizontal: 15, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                {
-                                    country ? <Image source={{uri: country?.flag}} style={{width: 20, height: 15}}/>
+                    </View>
+                )
+            case 'country':
+                return (
+                    <View style={{ paddingHorizontal: 30, marginTop: 20, position: 'relative' }}>
+                        <View style={{ ...styles.input, position: 'absolute', top: 7, left: width/14, width: width/5.5, borderRadius: 0, height: 35, paddingHorizontal: 15, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                            {
+                                country ? <Image source={{uri: country?.flag}} style={{width: 20, height: 15}}/>
                                     :
                                     <MaterialCommunityIcons name="diving-scuba-flag" size={20} color="#8d8d8d"/>
-                                }
-                            </View>
-                            <View style={{ ...styles.input, position: 'absolute', top: 7, right: width/12, width: width/5.5, borderRadius: 0, height: 35, paddingHorizontal: 15, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                <AntDesign name="right" size={20} color="#8d8d8d" />
-                            </View>
-
-                            <View>
-                                <Pressable style={{position: 'absolute', width: '100%', height: '100%'}} onPress={() => navigation.navigate('Countries')}>
-
-                                </Pressable>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="SELECT COUNTRY"
-                                    value={country?.name}
-                                    editable={false}
-                                />
-                            </View>
+                            }
                         </View>
-                        <View style={{ paddingHorizontal: 30, position: 'relative' }}>
-                            <Controller
-                                control={control}
-                                rules={{
-                                    required: true,
-                                    maxLength: 12,
-                                }}
-                                render={( { field: { onChange, onBlur, value } }) => (
-                                    <TextInput
-                                        ref={focusCountryCode}
-                                        allowFontScaling={false}
-                                        style={{...styles.input, position: 'absolute', top: 7, left: width/11, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, zIndex: 11, paddingHorizontal: 15, paddingRight: 0}}
-                                        editable={false}
-                                        value={value}
-                                        onBlur={onBlur}
-                                        onChangeText={(e) => {
-                                            if (e.length > 4) {
-                                                focusPhoneNumber.current.focus();
-                                                setValue('phoneNumber', e[e.length-1])
-                                                return
-                                            }
-                                            if (e.length < 1) {
-                                                return
-                                            } else {
-                                                return onChange(e)
-                                            }
-                                        }}
-                                        keyboardType="phone-pad"
-                                        autoFocus={false}
-                                        maxLength={5}
-                                    ></TextInput>
-                                )}
-                                name="countryCode"
-                            />
+                        <View style={{ ...styles.input, position: 'absolute', top: 7, right: width/12, width: width/5.5, borderRadius: 0, height: 35, paddingHorizontal: 15, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                            <AntDesign name="right" size={20} color="#8d8d8d" />
+                        </View>
 
-                            <Controller
-                                control={control}
-                                rules={{
-                                    required: true,
-                                    maxLength: 12,
-                                }}
-                                render={( { field: { onChange, onBlur, value } }) => (
-                                    <TextInput
-                                        ref={focusPhoneNumber}
-                                        allowFontScaling={false}
-                                        style={{...styles.input, color: errors.phoneNumber && submitted ? '#d53b39': '#757575', borderColor: errors.phoneNumber && submitted ? '#d53b39': 'rgba(0,0,0,0.9)'}}
-                                        keyboardType="phone-pad"
-                                        onBlur={onBlur}
-                                        onKeyPress={({ nativeEvent }) => {
-                                            if (nativeEvent.key === 'Backspace') {
-                                                if(value === '') {
-                                                    focusCountryCode.current.focus();
-                                                }
-                                            }
-                                        }}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        autoFocus={false}
-                                        placeholder="722000000"
-                                    />
-                                )}
-                                name="phoneNumber"
-                            />
-                            {errors.phoneNumber && submitted && <Text  allowFontScaling={false}  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Kindly use the required format'}</Text>}
+                        <View>
+                            <Pressable style={{position: 'absolute', width: '100%', height: '100%'}} onPress={() => navigation.navigate('Countries')}>
 
+                            </Pressable>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="SELECT COUNTRY"
+                                value={country?.name}
+                                editable={false}
+                            />
                         </View>
                     </View>
-                </ScrollView>
-                <View style={{
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    justifyContent: 'flex-end',
-                    flexDirection: 'row',
-                    width,
-                    backgroundColor: 'rgba(52,52,52,0)'
-                }}>
-                    <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} >
-                        {   !loading ?
-                            <Ionicons name="arrow-forward-circle" size={55} color="#489AAB" />
-                            :
-                            <View style={{backgroundColor: '#489AAB', borderRadius: 25, padding: 10, marginBottom: 8, marginRight: 8}}>
-                                <RotateView color="#FFFFFF"/>
-                            </View>
-                        }
-                    </TouchableOpacity>
-                </View>
+                )
+            case 'phoneNumber':
+                return (
+                    <View style={{ paddingHorizontal: 30, marginTop: 10, position: 'relative' }}>
+                        <Controller
+                            control={control}
+                            rules={{
+                                required: true,
+                                maxLength: 12,
+                            }}
+                            render={( { field: { onChange, onBlur, value } }) => (
+                                <TextInput
+                                    ref={focusCountryCode}
+                                    allowFontScaling={false}
+                                    style={{...styles.input, position: 'absolute', top: 7, left: width/11, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, zIndex: 11, paddingHorizontal: 15, paddingRight: 0}}
+                                    editable={false}
+                                    value={value}
+                                    onBlur={onBlur}
+                                    onChangeText={(e) => {
+                                        if (e.length > 4) {
+                                            focusPhoneNumber.current.focus();
+                                            setValue('phoneNumber', e[e.length-1])
+                                            return
+                                        }
+                                        if (e.length < 1) {
+                                            return
+                                        } else {
+                                            return onChange(e)
+                                        }
+                                    }}
+                                    keyboardType="phone-pad"
+                                    autoFocus={false}
+                                    maxLength={5}
+                                ></TextInput>
+                            )}
+                            name="countryCode"
+                        />
+
+                        <Controller
+                            control={control}
+                            rules={{
+                                required: true,
+                                maxLength: 12,
+                            }}
+                            render={( { field: { onChange, onBlur, value } }) => (
+                                <TextInput
+                                    ref={focusPhoneNumber}
+                                    allowFontScaling={false}
+                                    style={{...styles.input, color: errors.phoneNumber && submitted ? '#d53b39': '#757575', borderColor: errors.phoneNumber && submitted ? '#d53b39': '#8d8d8d'}}
+                                    keyboardType="phone-pad"
+                                    onBlur={onBlur}
+                                    onKeyPress={({ nativeEvent }) => {
+                                        if (nativeEvent.key === 'Backspace') {
+                                            if(value === '') {
+                                                focusCountryCode.current.focus();
+                                            }
+                                        }
+                                    }}
+                                    onChangeText={onChange}
+                                    value={value}
+                                    autoFocus={false}
+                                    placeholder="722000000"
+                                />
+                            )}
+                            name="phoneNumber"
+                        />
+                        {errors.phoneNumber && submitted && <Text  allowFontScaling={false}  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Kindly use the required format'}</Text>}
+
+                    </View>
+                )
+            case 'button':
+                return (
+                    <View style={{ paddingHorizontal: 30, paddingVertical: 20 }}>
+                        <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} style={{alignSelf: 'flex-end'}} >
+                            {   !loading ?
+                                <Ionicons name="arrow-forward-circle" size={70} color="#489AAB" />
+                                :
+                                <View style={{display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#CCCCCC', borderRadius: 50, width: 65, height: 65}}>
+                                    <RotateView color="#FFFFFF"/>
+                                </View>
+                            }
+                        </TouchableOpacity>
+                    </View>
+                )
+            default:
+                return (
+                    <>
+
+                    </>
+                )
+        }
+
+    };
+
+    const DATA: any[] = [
+        {
+            id: Math.random().toString(12).substring(0),
+            title: 'logo'
+        },
+        {
+            id: Math.random().toString(12).substring(0),
+            title: 'title'
+        },
+        {
+            id: Math.random().toString(12).substring(0),
+            title: 'country'
+        },
+        {
+            id: Math.random().toString(12).substring(0),
+            title: 'phoneNumber'
+        },
+        {
+            id: Math.random().toString(12).substring(0),
+            title: 'button'
+        },
+    ];
+
+    const getItem = (data: any, index: number) => (data[index]);
+
+    const getItemCount = (data: any) => {
+        return data.length
+    };
+
+    if (!isJWT && fontsLoaded) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <VirtualizedList
+                    data={DATA}
+                    initialNumToRender={4}
+                    renderItem={({ item }) => <Item title={item.title} />}
+                    keyExtractor={item => item.id}
+                    getItemCount={getItemCount}
+                    getItem={getItem}
+                />
             </SafeAreaView>
         )
     } else {
@@ -346,10 +398,9 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
 
 const styles = StyleSheet.create({
     container: {
-        display: 'flex',
-        flexDirection: 'column',
-        width,
-        height,
+        flex: 1,
+        marginTop: StatusBar.currentHeight,
+        backgroundColor: '#FFFFFF'
     },
     container2: {
         display: 'flex',
@@ -372,14 +423,15 @@ const styles = StyleSheet.create({
         fontSize: 15,
         textAlign: 'center',
         color: '#265D73',
-        fontFamily: 'Poppins_500Medium',
+        textTransform: 'capitalize',
+        fontFamily: 'Poppins_600SemiBold',
         paddingTop: 10
     },
     subTitleText: {
-        fontSize: 12,
+        fontSize: 13,
         textAlign: 'center',
         color: '#8d8d8d',
-        fontFamily: 'Poppins_400Regular'
+        fontFamily: 'Poppins_300Light'
     },
     linkText: {
         fontSize: 14,
@@ -397,7 +449,7 @@ const styles = StyleSheet.create({
     },
     input: {
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.9)',
+        borderColor: '#8d8d8d',
         borderRadius: 10,
         height: 50,
         marginTop: 20,

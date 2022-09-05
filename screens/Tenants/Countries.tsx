@@ -139,9 +139,12 @@ const Countries = ({ navigation }: NavigationProps) => {
         return () => subscription.unsubscribe();
     },[watch]);
 
-    const navigationSet = (code: string) => {
+    const navigationSet = (code: string, numericCode?: string, alpha2Code?: string): void => {
+
         navigation.navigate('GetTenants', {
-            code
+            code,
+            numericCode,
+            alpha2Code,
         })
     }
 

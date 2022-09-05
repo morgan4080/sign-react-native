@@ -2,20 +2,20 @@ import {
     Dimensions,
     Platform,
     SafeAreaView,
-    ScrollView,
     StatusBar as Bar,
     StyleSheet,
     TouchableOpacity,
     View,
-    Text
+    Text, VirtualizedList
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
-import {AntDesign, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {Ionicons, MaterialIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {
     authenticate,
     fetchLoanProducts,
-    storeState
+    storeState,
+    LoanProduct
 } from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
@@ -76,9 +76,30 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
         Poppins_300Light
     });
 
+    const Item = ({ product }: { product: LoanProduct } ) => (
+        <TouchableOpacity key={product.refId} style={styles.tile} onPress={() => navigation.navigate('LoanProduct', { loanProduct: product })}>
+            <Text allowFontScaling={false} style={{color: '#ADADAD', fontFamily: 'Poppins_400Regular', fontSize: 13}}>{ product.name }</Text>
+            <MaterialIcons name="keyboard-arrow-right" size={40} color="#ADADAD"/>
+        </TouchableOpacity>
+    );
+
+    const DATA = loanProducts?.map(product => {
+        return {
+            id: product.refId,
+            title: product.name,
+            ...product
+        }
+    })
+
+    const getItem = (data: any, index: any) => (data[index]);
+
+    const getItemCount = (data: any) => {
+        return data.length
+    };
+
     if (fontsLoaded) {
         return (
-            <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+            <SafeAreaView style={{flex: 1, marginTop: Bar.currentHeight, position: 'relative'}}>
                 {
                     loading &&
                     <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
@@ -88,44 +109,30 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                 <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', left: -100, top: '20%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', right: -80, top: '10%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
-                <View style={styles.container}>
-                    <View style={{flex: 1, alignItems: 'center',}}>
-                        <View style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            width,
-                            height: 3/12 * height,
-                            position: 'relative'
-                        }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
-                                <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
-                            </TouchableOpacity>
-                            <AntDesign name="gift" size={70} color="#489AAB" />
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginTop: 30 }}>Select Loan Product</Text>
-                        </View>
-                        <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 9/12 * height }}>
-                            <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>
-                                {
-                                    loading &&
-                                    <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
-                                        <RotateView/>
-                                    </View>
-                                }
-                                {loanProducts &&
-                                    loanProducts.map((product, index) => (
-                                        <TouchableOpacity key={index} style={styles.tile} onPress={() => navigation.navigate('LoanProduct', { loanProduct: product })}>
-                                            <Text allowFontScaling={false} style={{color: '#ADADAD', fontFamily: 'Poppins_400Regular', fontSize: 13}}>{ product.name }</Text>
-                                            <MaterialIcons name="keyboard-arrow-right" size={40} color="#ADADAD"/>
-                                        </TouchableOpacity>
-                                    ))
-                                }
-                            </ScrollView>
-                        </SafeAreaView>
-                    </View>
+                <View style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width,
+                    position: 'relative'
+                }}>
+                    <TouchableOpacity onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 12, left: 12 }}>
+                        <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={30} />
+                    </TouchableOpacity>
+
+                    <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginVertical: 15 }}>Select Loan Product</Text>
                 </View>
-                <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'}/>
-            </View>
+                <VirtualizedList
+                    style={{paddingHorizontal: 20}}
+                    data={DATA}
+                    initialNumToRender={4}
+                    renderItem={({ item }) => <Item product={item} />}
+                    keyExtractor={item => item.refId}
+                    getItemCount={getItemCount}
+                    getItem={getItem}
+                />
+
+            </SafeAreaView>
         )
     } else {
         return (
@@ -147,7 +154,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         borderRadius: 20,
-        marginTop: 20,
+        marginVertical: 10,
         height: 74,
         paddingHorizontal: 20,
         shadowColor: 'rgba(0,0,0, .4)', // IOS

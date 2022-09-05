@@ -10,7 +10,7 @@ import {
     Easing,
     Keyboard,
     Dimensions,
-    SafeAreaView
+    SafeAreaView, StatusBar
 } from 'react-native';
 
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -74,6 +74,8 @@ export const RotateView = ({color}: RotateViewProps) => {
 }
 
 export default function VerifyOTP({ navigation }: NavigationProps) {
+
+    StatusBar.setBackgroundColor('#489AAB', true);
 
     const [phoneNumber, setPhoneNumber] = useState(undefined);
 

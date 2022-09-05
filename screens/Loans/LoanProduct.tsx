@@ -10,6 +10,7 @@ import {
     Text,
     TextInput,
     TouchableHighlight,
+    Pressable,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import {StatusBar} from "expo-status-bar";
@@ -232,11 +233,11 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
                                     </View>
                                 </TouchableHighlight>
 
-                                <TouchableHighlight style={styles.button0} onPress={() => navigation.navigate('LoanProducts')}>
+                                <Pressable style={styles.button0} onPress={() => navigation.navigate('LoanProducts')}>
                                     <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                                         <Text allowFontScaling={false} style={styles.buttonText0}>Cancel</Text>
                                     </View>
-                                </TouchableHighlight>
+                                </Pressable>
                             </ScrollView>
                         </SafeAreaView>
                     </View>
@@ -283,10 +284,10 @@ const styles = StyleSheet.create({
     input: {
         borderWidth: 1,
         borderColor: '#cccccc',
-        borderRadius: 20,
+        borderRadius: 50,
         height: 54,
         marginTop: 40,
-        paddingHorizontal: 20,
+        paddingHorizontal: 30,
         fontSize: 15,
         color: '#767577',
         fontFamily: 'Poppins_400Regular',
@@ -294,7 +295,7 @@ const styles = StyleSheet.create({
     input0: {
         borderWidth: 1,
         borderColor: '#cccccc',
-        borderRadius: 20,
+        borderRadius: 50,
         height: 54,
         marginTop: 20,
         fontSize: 15,
@@ -306,9 +307,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#336DFF',
         elevation: 3,
         borderRadius: 50,
-        paddingVertical: 10,
-        paddingHorizontal: 25,
-        marginHorizontal: 0,
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        marginHorizontal: 10,
         marginBottom: 20,
         marginTop: 80,
         alignSelf: 'stretch',

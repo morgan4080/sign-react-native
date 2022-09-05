@@ -1,12 +1,12 @@
 import {Image, SectionList, StyleSheet, Text, View, Pressable} from 'react-native'
 
-type propType = {countriesData: any, searching: any, navigationSet: (code: string) => void}
+type propType = {countriesData: any, searching: any, navigationSet: (code: string, numericCode?: string, alpha2Code?: string) => void}
 
 const CountrySectionList = ({countriesData, searching, navigationSet}: propType) => {
 
     const Item = ({ country }: { country: {name: string, code: string, numericCode: string, alpha2Code: string, flag: any} }) => (
         <Pressable onPress={() => {
-            navigationSet(country.code)
+            navigationSet(country.code, country.numericCode, country.alpha2Code)
         }} style={styles.item}>
             <View style={{flex: 0.1}}>
                 <Image source={{uri: country?.flag}} style={{width: 20, height: 15}}/>

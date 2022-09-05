@@ -16,7 +16,7 @@ import {
     StyleSheet,
     Switch,
 } from "react-native";
-import {AntDesign, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {AntDesign, MaterialIcons} from "@expo/vector-icons";
 import {Controller, useForm} from "react-hook-form";
 import {useState, useEffect, useCallback, useRef} from "react";
 import {store} from "../../stores/store";

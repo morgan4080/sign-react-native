@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
         marginVertical: 8,
         marginHorizontal: 16,
         borderRadius: 20,
-        borderColor: '#CCCCCC',
+        borderColor: 'rgba(204,204,204,0.13)',
         borderWidth: .5,
         shadowColor: 'rgba(0,0,0, .4)', // IOS
         shadowOffset: { height: 1, width: 1 }, // IOS

@@ -100,7 +100,7 @@ interface LoanRequest {
     pdfThumbNail: string,
 }
 
-interface LoanProduct {
+export interface LoanProduct {
     refId: string;
     maxPeriod: string;
     name: string;

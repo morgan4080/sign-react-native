@@ -457,7 +457,7 @@ export default function Login({ navigation }: NavigationProps) {
 
     if (fontsLoaded) {
         return (
-            <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#F8F8F8', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+            <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                 <ScrollView contentContainerStyle={styles.container} >
                     <View style={{height: height/2, display: 'flex', justifyContent: 'space-between', position: 'relative'}}>
                         <View style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
@@ -580,7 +580,7 @@ export default function Login({ navigation }: NavigationProps) {
 
                                                 <TextInput
                                                 allowFontScaling={false}
-                                                style={{...styles.input, color: '#489AAB',}}
+                                                style={{...styles.input}}
                                                 onBlur={onBlur}
                                                 onChangeText={onChange}
                                                 value={value}
@@ -629,7 +629,6 @@ const styles = StyleSheet.create({
     container: {
         display: 'flex',
         height: height,
-        backgroundColor: '#F8F8FA',
         justifyContent: 'space-between'
     },
     buttonText: {
@@ -687,9 +686,9 @@ const styles = StyleSheet.create({
     },
     ring2: {
         position: "absolute",
-        width: 25,
-        height: 25,
-        backgroundColor: "#489AAB",
+        width: 26,
+        height: 26,
+        backgroundColor: "rgba(72,154,171,0.98)",
         borderRadius: 50
     }
 });

@@ -80,7 +80,7 @@ const NonAuthNaigation = () => {
                 title: 'Select Organization',
                 headerShadowVisible: false,
                 headerStyle: {
-                    backgroundColor: 'rgba(204,204,204,0.28)',
+                    backgroundColor: '#FFFFFF',
                 },
                 headerTintColor: '#489AAB',
                 headerTitleStyle: {

@@ -88,7 +88,7 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
     }
     if (fontsLoaded) {
         return (
-            <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+            <SafeAreaView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
                 {
                     loading &&
                     <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
@@ -102,19 +102,19 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
                     <View style={{flex: 1, alignItems: 'center',}}>
                         <View style={{
                             display: 'flex',
+                            flexDirection: 'row',
                             justifyContent: 'center',
                             alignItems: 'center',
                             width,
-                            height: 3/12 * height,
                             position: 'relative'
                         }}>
                             <TouchableOpacity onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
                                 <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                             </TouchableOpacity>
 
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginTop: 30 }}>Select Loan Purpose Category</Text>
+                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginTop: 15, marginBottom: 10 }}>Loan Purpose Category</Text>
                         </View>
-                        <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 9/12 * height }}>
+                        <SafeAreaView style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0)', borderTopLeftRadius: 25, borderTopRightRadius: 25, width }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 120 }}>
                                 { loanCategories &&
                                     loanCategories.map((category, index: number) => (
@@ -123,18 +123,18 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
                                 }
                             </ScrollView>
                         </SafeAreaView>
-                        <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.6)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center', paddingHorizontal: 20 }}>
+                        <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                             <TouchableOpacity disabled={!optionSelected} onPress={() => selectedCategory ? navigation.navigate('GuarantorsHome', {
                                 category: selectedCategory,
                                 ...route.params
-                            }) : null} style={{ display: 'flex', alignItems: 'center', backgroundColor: !optionSelected ? '#CCCCCC' : '#336DFF', width: '100%', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 25, marginVertical: 10 }}>
+                            }) : null} style={{ display: 'flex', alignItems: 'center', backgroundColor: !optionSelected? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                 <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
                 <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'}/>
-            </View>
+            </SafeAreaView>
         )
     } else {
         return (

@@ -280,7 +280,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                 <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                             </TouchableOpacity>
                         </View>
-                        <SafeAreaView style={{ flex: 1, width, height: 11/12 * height, backgroundColor: 'rgba(50,52,146,0.12)', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+                        <SafeAreaView style={{ flex: 1, width, height: 11/12 * height, backgroundColor: 'transparent', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                             <ScrollView contentContainerStyle={{ display: 'flex', flexDirection: 'column', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
                                 <Text allowFontScaling={false} style={styles.headTitle}>Confirm</Text>
                                 <Text allowFontScaling={false} style={styles.subtitle}>Loan Request to <Text allowFontScaling={false} style={{color: '#489AAB', textDecorationStyle: 'dotted', textDecorationLine: 'underline'}}>{ `${user?.companyName}` }</Text></Text>
@@ -316,12 +316,13 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 12, width: '50%', textAlign: 'right'  }}>{
                                             route.params?.category.options.map((op: any) => {
                                                 if (op.selected) {
-                                                    let subs = op.options.map((o: any) => {
+                                                    const subs = op.options.map((o: any) => {
                                                         if (o.selected) {
                                                             return ` ${o.name}`
                                                         }
-                                                    }).toString()
-                                                    return `${op.name + ':' + subs}`
+                                                    }).toString();
+                                                    console.log(subs)
+                                                    return `${op.name + ':' + subs.replace(/,{3,}/g, '')}`;
                                                 }
                                             })
                                         }</Text>

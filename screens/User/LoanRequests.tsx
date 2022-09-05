@@ -7,7 +7,7 @@ import {
     StyleSheet,
     TouchableOpacity,
     View,
-    Text, NativeModules, Animated, Easing
+    Text, NativeModules, Animated, Easing, SectionList
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {AntDesign, Ionicons} from "@expo/vector-icons";
@@ -199,7 +199,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
         outputRange: ['0deg', '360deg']
     })
 
-    if (fontsLoaded && !loading) {
+    if (fontsLoaded) {
         return (
             <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
                 <View style={styles.container}>
@@ -217,7 +217,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                 <AntDesign name="arrowleft" size={24} color="#489AAB" />
                             </TouchableOpacity>
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_700Bold', fontSize: 18 }}>Your Loan Requests</Text>
-                            { loading ?
+                            {/*{ loading ?
                                 <Animated.View
                                     style={{ position: 'absolute', right: 20, top: 20, transform: [{rotate: spin}] }}>
                                     <TouchableOpacity onPress={() => dispatch(fetchLoanRequests(member?.refId as string))}>
@@ -231,16 +231,25 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                         <Ionicons name="reload" size={18} color="#489AAB"/>
                                     </TouchableOpacity>
                                 </View>
-                            }
+                            }*/}
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 11/12 * height }}>
-                            <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>
-                                {
-                                    loanRequests && loanRequests.map((loan, i) => (
-                                        <LoanRequest key={i} loan={loan} setLoan={setLoan} onPress={onPress}/>
-                                    ))
-                                }
-                            </ScrollView>
+                            <SectionList
+                                sections={[
+                                    {
+                                        title: '',
+                                        data: loanRequests ? loanRequests : []
+                                    }
+                                ]}
+                                progressViewOffset={50}
+                                refreshing={loading}
+                                onRefresh={() => dispatch(fetchLoanRequests(member?.refId as string))}
+                                keyExtractor={(index) => index + Math.random().toString(12).substring(0)}
+                                renderItem={({ item }) => <LoanRequest loan={item} setLoan={setLoan} onPress={onPress}/>}
+                                renderSectionHeader={() => (
+                                    <></>
+                                )}
+                            />
                         </SafeAreaView>
                     </View>
                 </View>

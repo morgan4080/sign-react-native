@@ -89,8 +89,9 @@ export default function GuarantorTiles ({guarantor, setPressed, pressed, setRequ
 const styles = StyleSheet.create({
     main: {
         zIndex: 0,
-        marginTop: 20,
+        marginVertical: 10,
         borderRadius: 25,
+        marginHorizontal: 20,
         shadowColor: 'rgba(0,0,0, .4)', // IOS
         shadowOffset: { height: 1, width: 1 }, // IOS
         shadowOpacity: 1, // IOS

@@ -138,7 +138,17 @@ export default function WitnessRequests ({ navigation }: NavigationProps) {
                                 </Text>
                             </View>
                             <View style={{height: (height/6), display: 'flex', flexDirection: 'row', marginTop:  (height/1.5)/20 }}>
-                                <TouchableOpacity onPress={() => navigation.navigate('WitnessStatus', { accepted: true, witness: request, loanRequest: witnessRequests.find((rq, i) => i === request?.id) })}>
+                                <TouchableOpacity onPress={() => {
+                                    /*navigation.navigate('WitnessStatus', {
+                                        accepted: true,
+                                        witness: request,
+                                        loanRequest: witnessRequests.find((rq, i) => i === request?.id)
+                                    })*/
+                                    navigation.navigate('SignDocumentRequest', {
+                                        guarantorshipRequest: witnessRequests.find((rq, i) => i === request?.id),
+                                        witness: true
+                                    })
+                                }}>
                                     <MaterialIcons name="check-circle" size={80} color="#78E49D" />
                                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', textAlign: 'center', color: '#78E49D'}}>Accept</Text>
                                 </TouchableOpacity>

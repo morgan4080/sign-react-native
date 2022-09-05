@@ -123,8 +123,9 @@ export default function LoanRequest ({loan, setLoan, onPress}: propInterface) {
 
 const styles = StyleSheet.create({
     main: {
-        marginTop: 20,
+        marginVertical: 15,
         borderRadius: 25,
+        marginHorizontal: 20,
         shadowColor: 'rgba(0,0,0, .4)', // IOS
         shadowOffset: { height: 1, width: 1 }, // IOS
         shadowOpacity: 1, // IOS

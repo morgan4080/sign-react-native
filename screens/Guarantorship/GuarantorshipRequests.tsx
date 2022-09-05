@@ -2,7 +2,7 @@ import {
     Dimensions,
     Platform,
     SafeAreaView,
-    ScrollView,
+    ScrollView, SectionList,
     StatusBar as Bar,
     StyleSheet, Text,
     TouchableOpacity,
@@ -30,6 +30,7 @@ import GuarantorTiles from "../User/Components/GuarantorTiles";
 import {store} from "../../stores/store";
 import {RotateView} from "../Auth/VerifyOTP";
 import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../components/BottomSheet";
+import LoanRequest from "../User/Components/LoanRequest";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -94,34 +95,43 @@ export default function GuarantorshipRequests ({ navigation }: NavigationProps) 
         };
     });
 
-    if (fontsLoaded && !loading) {
+    if (fontsLoaded) {
         return (
         <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
             <View style={{ position: 'absolute', right: -30, top: -10, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
             <View style={styles.container}>
-                <View style={{flex: 1, alignItems: 'center',}}>
-                    <SafeAreaView style={{ flex: 1, backgroundColor: accountHistory.length === 0 ? 'rgba(50,52,146,0)' : '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height }}>
+                <SafeAreaView style={{ flex: 1, backgroundColor: accountHistory.length === 0 ? 'rgba(50,52,146,0)' : '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height }}>
+                    {
+                        accountHistory.length !== 0  && <SectionList
+                            style={{marginTop: 20}}
+                            sections={[
+                                {
+                                    title: '',
+                                    data: accountHistory ? accountHistory : []
+                                }
+                            ]}
+                            progressViewOffset={50}
+                            refreshing={loading}
+                            onRefresh={() => dispatch(fetchGuarantorshipRequests({ memberRefId: member?.refId}))}
+                            keyExtractor={(index) => index + Math.random().toString(12).substring(0)}
+                            renderItem={({ item }) => <GuarantorTiles pressed={pressed} setPressed={() => {
+                                setPressed(!pressed)
+                                onPress()
+                            }} setRequest={setRequest} guarantor={item} />}
+                            renderSectionHeader={() => (
+                                <></>
+                            )}
+                        />
+                    }
+                    {accountHistory.length === 0 &&
+                        <View style={{width: '100%', height: height/3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                            <MaterialCommunityIcons name="delete-empty-outline" size={100} color="#CCCCCC" />
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 16 }}>Whooops!</Text>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12 }}>No Data</Text>
+                        </View>
+                    }
 
-                        <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50  }}>
-                        {
-                            accountHistory && accountHistory.map((history, i) => (
-                                <GuarantorTiles pressed={pressed} setPressed={() => {
-                                    setPressed(!pressed)
-                                    onPress()
-                                }} setRequest={setRequest}  key={i} guarantor={history} />
-                            ))
-                        }
-                        {accountHistory.length === 0 &&
-                            <View style={{width: '100%', height: height/3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                <MaterialCommunityIcons name="delete-empty-outline" size={100} color="#CCCCCC" />
-                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 16 }}>Whooops!</Text>
-                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12 }}>No Data</Text>
-                            </View>
-                        }
-                        </ScrollView>
-
-                    </SafeAreaView>
-                </View>
+                </SafeAreaView>
             </View>
 
             <BottomSheet ref={ref} setRequest={setRequest} setPressed={setPressed} pressed={pressed}>
@@ -143,10 +153,14 @@ export default function GuarantorshipRequests ({ navigation }: NavigationProps) 
                         <TouchableOpacity onPress={() => {
                             setPressed(false);
                             setRequest(null);
-                            navigation.navigate('GuarantorshipStatus', {
+                            /*navigation.navigate('GuarantorshipStatus', {
                                 accepted: true,
                                 guarantor: request,
                                 loanRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId)
+                            })*/
+                            navigation.navigate('SignDocumentRequest', {
+                                guarantorshipRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId),
+                                guarantor: true
                             })
                         }}>
                             <MaterialIcons name="check-circle" size={80} color="#78E49D" />

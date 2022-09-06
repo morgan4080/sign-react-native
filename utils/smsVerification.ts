@@ -26,9 +26,9 @@ const EmitterMessages = {
 let cb: Callback | null = null;
 
 const AndroidSmsVerificationApi: AndroidSmsVerificationApiType = NativeModules.AndroidSmsVerificationApi;
-
+// NativeModules.AndroidSmsVerificationApi
 const eventEmitter = new NativeEventEmitter(
-    NativeModules.AndroidSmsVerificationApi
+
 );
 
 const onMessageSuccess = (message: string) => {
@@ -45,6 +45,7 @@ const onMessageError = (error: string) => {
 
 const startListeners = () => {
     // check if event exists, add listener if it doesn't
+
     eventEmitter.addListener(EmitterMessages.SMS_RECEIVED, onMessageSuccess);
 
     eventEmitter.addListener(EmitterMessages.SMS_ERROR, onMessageError);

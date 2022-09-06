@@ -83,15 +83,15 @@ const Item = ({ contact, selectContact, contactList, section, onPress, setEmploy
         )
     } else {
         return (
-            <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 20}}>
-                <TouchableOpacity style={styles.optionsButton} onPress={() => {
-                    setEmployerDetailsEnabled(false);
-                    onPress('options');
-                }}>
+            <TouchableOpacity onPress={() => {
+                setEmployerDetailsEnabled(false);
+                onPress('options');
+            }} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 20}}>
+                <View style={styles.optionsButton} >
                     <Ionicons name="options-outline" size={20} color="white" style={{padding: 5}} />
-                </TouchableOpacity>
+                </View>
                 <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#000000', fontSize: 10, paddingLeft: 10 }}>OPTIONS</Text>
-            </View>
+            </TouchableOpacity>
         )
     }
 };

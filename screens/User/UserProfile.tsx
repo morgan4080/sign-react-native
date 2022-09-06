@@ -147,9 +147,9 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                             <Text allowFontScaling={false} style={[styles.subTitleText, {fontSize: 12, color: '#FFFFFF', paddingRight: 10, fontFamily: 'Poppins_300Light'}]}>PROFILE</Text>
                                         </TouchableOpacity>
                                         <View>
-                                            <Text allowFontScaling={false} style={styles.titleText}>{ `Good ${ greeting() } ${ user?.firstName }` }</Text>
-                                            <Text allowFontScaling={false} style={styles.subTitleText}>{ `Your member NO: ${member?.memberNumber}` }</Text>
-                                            <Text allowFontScaling={false} style={styles.subText}>{ `${user?.companyName}` }</Text>
+                                            <Text allowFontScaling={false} style={styles.titleText}>{ `Good ${ greeting() } ${ user?.firstName ? user?.firstName : '' }` }</Text>
+                                            <Text allowFontScaling={false} style={styles.subTitleText}>{ `Your member NO: ${ member?.memberNumber ? member?.memberNumber : '' }` }</Text>
+                                            <Text allowFontScaling={false} style={styles.subText}>{ `${ user?.companyName ? user?.companyName : '' }` }</Text>
                                         </View>
                                         <View style={{ position: 'absolute', left: width/4, zIndex: 2, bottom: -25 }}>
                                             <TouchableOpacity onPress={() => navigation.navigate('Account')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginTop: -30 }}>

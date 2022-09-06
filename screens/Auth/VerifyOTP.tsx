@@ -1,33 +1,37 @@
 import {
-    Text,
-    View,
-    StyleSheet,
-    TouchableOpacity,
-    Image,
-    ScrollView,
-    TextInput,
     Animated,
-    Easing,
-    Keyboard,
     Dimensions,
-    SafeAreaView, StatusBar
+    Easing,
+    Image,
+    Keyboard,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import { useForm, Controller } from "react-hook-form";
-import {sendOtp, setLoading, verifyOtp} from "../../stores/auth/authSlice";
-import { useDispatch, useSelector } from "react-redux";
-import { store } from "../../stores/store";
-import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
-import {useEffect, useRef, useState} from "react";
-import { storeState } from "../../stores/auth/authSlice";
-import {getSecureKey} from "../../utils/secureStore";
-import {EvilIcons, Fontisto} from "@expo/vector-icons";
+import {Controller, useForm} from "react-hook-form";
+import {sendOtp, storeState, verifyOtp} from "../../stores/auth/authSlice";
+import {useDispatch, useSelector} from "react-redux";
+import {store} from "../../stores/store";
 import {
-    receiveVerificationSMS,
-    startSmsUserConsent,
-    removeAllListeners
-} from "../../utils/smsVerification";
+    Poppins_300Light,
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_800ExtraBold,
+    Poppins_900Black,
+    useFonts
+} from '@expo-google-fonts/poppins';
+import {useEffect, useRef, useState} from "react";
+import {getSecureKey} from "../../utils/secureStore";
+import {EvilIcons} from "@expo/vector-icons";
+import {receiveVerificationSMS, removeAllListeners, startSmsUserConsent} from "../../utils/smsVerification";
 
 type NavigationProps = NativeStackScreenProps<any>
 

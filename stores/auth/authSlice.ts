@@ -266,7 +266,7 @@ const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> =
 export const searchContactsInDB = createAsyncThunk('searchContactsInDB', async({searchTerm, setContacts}: {searchTerm: string, setContacts: any}) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM contacts WHERE name LIKE '%${searchTerm}%' OR phone LIKE '%${searchTerm}%' LIMIT '0', '10'`, undefined,
+            tx.executeSql(`SELECT * FROM contacts WHERE name LIKE '%${searchTerm}%' OR phone LIKE '%${searchTerm}%' LIMIT '0', '5'`, undefined,
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: any, { rows: { _array } } : any) => {
                     setContacts(_array)
@@ -629,7 +629,7 @@ export const getUserFromDB = createAsyncThunk('getUserFromDB', async ({setDBUser
 export const getContactsFromDB = createAsyncThunk('getContactsFromDB', async ({setContacts, from, to}: {setContacts: any, from: number, to: number}) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '30'`, undefined,
+            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '10'`, undefined,
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: any, { rows: { _array } } : any) => {
                     setContacts(_array)

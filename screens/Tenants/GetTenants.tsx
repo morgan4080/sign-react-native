@@ -16,6 +16,7 @@ import {
 import {RotateView} from "../Auth/VerifyOTP";
 const { width, height } = Dimensions.get("window");
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
+// import {requestPhoneNumber} from "../../utils/smsVerification";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -86,6 +87,13 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
         let authenticating = true;
         if (authenticating) {
             (async () => {
+                /*try {
+                    // presents a modal enabling the user to select their phone number. Requires a physical device, it won't work on an emulator
+                    const phoneNumber = await requestPhoneNumber();
+                    console.log("requestPhoneNumber", phoneNumber);
+                } catch (e: any) {
+                    console.log(`${e.code} : ${e.message}`);
+                }*/
                 try {
                     const response = await dispatch(authenticate());
                     if (response.type === 'authenticate/rejected') {
@@ -118,7 +126,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
         return () => {
             tenantsFetched = false;
         };
-    }, [tenants])
+    }, [tenants]);
 
     useEffect(() => {
         let isLoggedInSubscribed = true;

@@ -6,7 +6,14 @@ import {Linking} from 'react-native';
 import Navigation from './navigation';
 import { Provider } from 'react-redux';
 import { store } from "./stores/store";
-import {NotificationResponse, registerForPushNotificationsAsync} from "./utils/notificationService";
+import {
+    NotificationResponse,
+    registerForPushNotificationsAsync,
+    handleNotificationTask,
+    registerTask
+} from "./utils/notificationService";
+
+handleNotificationTask();
 
 export default function App() {
     // const isLoadingComplete = useCachedResources();
@@ -17,9 +24,12 @@ export default function App() {
         (async () => {
             try {
                 const token = await registerForPushNotificationsAsync();
-                if (token) setExpoPushToken(token);
+                if (token) {
+                    setExpoPushToken(token);
+                    registerTask();
+                }
             } catch (e: any) {
-                console.log('registerForPushNotificationsAsync error', e)
+                console.log('registerForPushNotificationsAsync error', e);
             }
         })()
     }, [])
@@ -28,7 +38,8 @@ export default function App() {
         (async () => {
             try {
                 if (lastNotificationResponse) {
-                    await Linking.openURL(lastNotificationResponse.notification.request.content.data.url as string)
+                    console.log('noti', lastNotificationResponse);
+                    // await Linking.openURL(lastNotificationResponse.notification.request.content.data.url as string)
                 }
             } catch (e: any) {
                 console.log("notification response error", e);

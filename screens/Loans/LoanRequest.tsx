@@ -71,6 +71,9 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
     // const loanRequest = route.params;
+    if (!route.params) {
+        // prefill route.params?.refId and route.params?.memberRefId from store
+    }
     useEffect(() => {
         let isFetching = true;
         (async () => {

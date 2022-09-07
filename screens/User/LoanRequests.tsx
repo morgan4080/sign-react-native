@@ -79,7 +79,7 @@ interface LoanRequestData {
 }
 
 export default function LoanRequests ({ navigation }: NavigationProps) {
-    const { loading, user, member, loanRequests } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, member, loanRequests } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
     const [loan, setLoan] = useState<LoanRequestData>();
     const dispatch : AppDispatch = useDispatch();

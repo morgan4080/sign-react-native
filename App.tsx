@@ -6,6 +6,7 @@ import {Linking} from 'react-native';
 import Navigation from './navigation';
 import { Provider } from 'react-redux';
 import { store } from "./stores/store";
+import * as Notifications from 'expo-notifications';
 import {
     NotificationResponse,
     registerForPushNotificationsAsync,
@@ -13,12 +14,27 @@ import {
     registerTask
 } from "./utils/notificationService";
 
-handleNotificationTask();
+const useMount = (func: () => void) => useEffect(() => func(), []);
 
 export default function App() {
     // const isLoadingComplete = useCachedResources();
+    handleNotificationTask();
     const lastNotificationResponse = NotificationResponse();
     const [expoPushToken, setExpoPushToken] = useState('');
+
+    useMount(() => {
+        const getUrlAsync = async () => {
+            // Get the deep link used to open the app
+            const initialUrl = await Linking.getInitialURL();
+
+            // The setTimeout is just for testing purpose
+            setTimeout(() => {
+                console.log("initialUrl", initialUrl);
+            }, 1000);
+        };
+
+        getUrlAsync();
+    });
 
     useEffect(() => {
         (async () => {
@@ -31,15 +47,27 @@ export default function App() {
             } catch (e: any) {
                 console.log('registerForPushNotificationsAsync error', e);
             }
-        })()
+        })();
+
+        const subscription = Notifications.addNotificationReceivedListener(notification => {
+            if (notification.request.content.data.url) {
+                console.log("notification data foreground", notification.request.content.data.url);
+                (async () => {
+                    await Linking.openURL("presta-sign://app/loan-request");
+                })()
+            }
+        });
+
+        return () => subscription.remove();
     }, [])
 
     useEffect(() => {
         (async () => {
             try {
-                if (lastNotificationResponse) {
-                    console.log('noti', lastNotificationResponse);
-                    // await Linking.openURL(lastNotificationResponse.notification.request.content.data.url as string)
+                if (lastNotificationResponse?.notification.request.content.data.url) {
+                    console.log('notification data background', lastNotificationResponse?.notification.request.content.data);
+                    // store.dispatch("");
+                    await Linking.openURL("presta-sign://app/loan-request");
                 }
             } catch (e: any) {
                 console.log("notification response error", e);

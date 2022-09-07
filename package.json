@@ -29,6 +29,7 @@
     "expo-camera": "~12.3.0",
     "expo-checkbox": "~2.2.0",
     "expo-contacts": "~10.3.0",
+    "expo-device": "~4.3.0",
     "expo-file-system": "~14.1.0",
     "expo-linking": "~3.2.2",
     "expo-local-authentication": "~12.3.0",

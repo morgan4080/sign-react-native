@@ -94,7 +94,7 @@ export default function contactTile ({contact, addContactToList, removeContactFr
                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: isChecked ||  selectedContact ? '#FFFFFF' : '#9a9a9a', fontSize: 13, maxWidth: 200 }}>{contact.name}</Text>
                         {contact.memberNumber &&
                             <View style={{ display: 'flex', flexDirection: 'row'}}>
-                                <Octicons style={{paddingLeft: 5}} name="verified" size={12} color="#336DFFFF" />
+                                <Octicons style={{paddingLeft: 5}} name="verified" size={12} color="#489AABFF" />
                                 <Text allowFontScaling={false} style={{ color: isChecked ||  selectedContact ? '#FFFFFF' : '#cccccc', fontSize: 10 }}>{contact.memberNumber}</Text>
                             </View>
                         }

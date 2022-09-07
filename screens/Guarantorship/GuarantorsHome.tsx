@@ -202,6 +202,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         control,
         watch,
         handleSubmit,
+        clearErrors,
         setError,
         setValue,
         formState: { errors }
@@ -254,34 +255,42 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         setInputStrategy(value.inputStrategy);
                         break;
                     case  'employerName':
+                        clearErrors("employerName");
                         setEmployerName(value.employerName);
                         setMemberSearching(true);
                         break;
                     case  'serviceNo':
+                        clearErrors("serviceNo");
                         setServiceNo(value.serviceNo);
                         setMemberSearching(true);
                         break;
                     case  'grossSalary':
+                        clearErrors("grossSalary");
                         setGrossSalary(value.grossSalary);
                         setMemberSearching(true);
                         break;
                     case  'netSalary':
+                        clearErrors("netSalary");
                         setNetSalary(value.netSalary);
                         setMemberSearching(true);
                         break;
                     case  'kraPin':
+                        clearErrors("kraPin");
                         setKraPin(value.kraPin);
                         setMemberSearching(true);
                         break;
                     case  'businessType':
+                        clearErrors("businessType");
                         setBusinessType(value.businessType);
                         setMemberSearching(true);
                         break;
                     case  'businessLocation':
+                        clearErrors("businessLocation");
                         setBusinessLocation(value.businessLocation);
                         setMemberSearching(true);
                         break;
                     case  'amountToGuarantee':
+                        clearErrors("amountToGuarantee");
                         if (value.amountToGuarantee !== '') {
                             setAmountToGuarantee(value.amountToGuarantee);
                             setMemberSearching(true);
@@ -501,7 +510,8 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             }
             setMemberSearching(false);
         } else {
-            console.log('close it')
+            console.log('close it');
+            handleClosePress();
         }
         setBSActive(!bSActive)
     }, []);
@@ -523,6 +533,26 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             if (tab === 0) {
                 // set payload for employer
                 // check em
+                if (employerName === undefined) {
+                    setError("employerName", { type: 'custom', message: "Ëmployer name required"});
+                    return
+                }
+                if (serviceNo === undefined) {
+                    setError("serviceNo", { type: 'custom', message: "Service no. required"});
+                    return
+                }
+                if (grossSalary === undefined) {
+                    setError("grossSalary", { type: 'custom', message: "Gross salary required"});
+                    return
+                }
+                if (netSalary === undefined) {
+                    setError("netSalary", { type: 'custom', message: "Net salary required"});
+                    return
+                }
+                if (kraPin === undefined) {
+                    setError("kraPin", { type: 'custom', message: "KRA pin required"});
+                    return
+                }
                 let payloadCode = {
                     employerName,
                     serviceNo,
@@ -914,7 +944,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 ]
             } searching={searching} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} onPress={onPress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} />
             <View style={{ position: 'absolute', bottom: 0, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                <TouchableOpacity disabled={ isDisabled() || loading } onPress={navigateUser} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                <TouchableOpacity disabled={ isDisabled() || loading } onPress={navigateUser} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                     <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                 </TouchableOpacity>
             </View>
@@ -1008,9 +1038,9 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         }
                         {
                             context === "amount" &&
-                            <View style={{display: 'flex', alignItems: 'center', width}}>
+                            <View style={{display: 'flex', alignItems: 'center', width, marginBottom: 10}}>
                                 <Text allowFontScaling={false} style={styles.subtitle}>Add {currentGuarantor?.name}'s Guarantorship Amount</Text>
-                                <Text allowFontScaling={false} style={{ alignSelf: 'flex-start', textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, marginBottom: 10, paddingHorizontal: 30 }}>Un-guaranteed Amount <Text style={{textDecorationLine: 'underline'}}>{toMoney(`${route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount)}` )}</Text></Text>
+                                <Text allowFontScaling={false} style={{ alignSelf: 'flex-start', textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, paddingHorizontal: 30 }}>Un-guaranteed Amount <Text style={{textDecorationLine: 'underline'}}>{toMoney(`${route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount)}` )}</Text></Text>
                                 <Controller
                                     control={control}
                                     render={({field: {onChange, onBlur, value}}) => (
@@ -1205,7 +1235,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                             </View>
                         }
                         <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity disabled={ !memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            <TouchableOpacity disabled={ !memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                 {
                                     loading &&
                                     <View style={{marginRight: 10}}>
@@ -1293,7 +1323,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#767577',
         fontFamily: 'Poppins_400Regular',
-        marginBottom: 20,
+        marginTop: 20,
     },
     buttonText: {
         fontSize: 15,
@@ -1304,8 +1334,9 @@ const styles = StyleSheet.create({
     error: {
         fontSize: 10,
         color: '#d53b39',
-        fontFamily: 'Poppins_400Regular',
-        paddingHorizontal: 10,
+        fontFamily: 'Poppins_300Light',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 30,
         marginTop: 5
     },
     buttonText0: {

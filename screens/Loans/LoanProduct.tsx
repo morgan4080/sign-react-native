@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_400Regular',
     },
     button: {
-        backgroundColor: '#336DFF',
+        backgroundColor: '#489AAB',
         elevation: 3,
         borderRadius: 50,
         paddingVertical: 12,

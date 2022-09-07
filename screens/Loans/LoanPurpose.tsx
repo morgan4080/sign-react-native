@@ -127,7 +127,7 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
                             <TouchableOpacity disabled={!optionSelected} onPress={() => selectedCategory ? navigation.navigate('GuarantorsHome', {
                                 category: selectedCategory,
                                 ...route.params
-                            }) : null} style={{ display: 'flex', alignItems: 'center', backgroundColor: !optionSelected? '#CCCCCC' : '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            }) : null} style={{ display: 'flex', alignItems: 'center', backgroundColor: !optionSelected? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                 <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_400Regular',
     },
     button: {
-        backgroundColor: '#336DFF',
+        backgroundColor: '#489AAB',
         elevation: 3,
         borderRadius: 50,
         paddingVertical: 15,

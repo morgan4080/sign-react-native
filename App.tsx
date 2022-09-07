@@ -1,21 +1,37 @@
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {Linking} from 'react-native';
 
 import Navigation from './navigation';
 import { Provider } from 'react-redux';
 import { store } from "./stores/store";
-import {NotificationResponse} from "./utils/notificationService";
+import {NotificationResponse, registerForPushNotificationsAsync} from "./utils/notificationService";
 
 export default function App() {
     // const isLoadingComplete = useCachedResources();
     const lastNotificationResponse = NotificationResponse();
+    const [expoPushToken, setExpoPushToken] = useState('');
 
     useEffect(() => {
         (async () => {
-            if (lastNotificationResponse) {
-                await Linking.openURL(lastNotificationResponse.notification.request.content.data.url as string)
+            try {
+                const token = await registerForPushNotificationsAsync();
+                if (token) setExpoPushToken(token);
+            } catch (e: any) {
+                console.log('registerForPushNotificationsAsync error', e)
+            }
+        })()
+    }, [])
+
+    useEffect(() => {
+        (async () => {
+            try {
+                if (lastNotificationResponse) {
+                    await Linking.openURL(lastNotificationResponse.notification.request.content.data.url as string)
+                }
+            } catch (e: any) {
+                console.log("notification response error", e);
             }
         })();
     }, [lastNotificationResponse]);

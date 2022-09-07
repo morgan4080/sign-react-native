@@ -48,7 +48,7 @@ const SignStatus = ({ navigation, route }: NavigationProps) => {
                     <Text allowFontScaling={false} style={{...styles.buttonText, color: '#797979'}}>LOAN REQUESTS</Text>
                 </TouchableOpacity>
                 {!route.params?.applicantSigned &&
-                    <TouchableOpacity onPress={() => alert('resubmit zoho credentials to try and sign again')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
+                    <TouchableOpacity onPress={() => alert('resubmit zoho credentials to try and sign again')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#489AAB', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
                         <Text allowFontScaling={false} style={{...styles.buttonText}}>RETRY</Text>
                     </TouchableOpacity
                 >}

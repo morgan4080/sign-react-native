@@ -790,6 +790,8 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         // submit self as guarantor
                         if (member && member.memberNumber) {
                             (async () => {
+                                setValue("amountToGuarantee", route.params?.loanDetails.desiredAmount);
+                                console.log("am2g", route.params?.loanDetails.desiredAmount);
                                 await addToSelected(member.memberNumber);
                             })()
                         }
@@ -848,20 +850,15 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const handleSheetChange = useCallback((index: any) => {
         console.log("handleSheetChange", index);
     }, []);
+
     const handleSnapPress = useCallback((index: any) => {
         sheetRef.current?.snapToIndex(index);
     }, []);
+
     const handleClosePress = useCallback(() => {
         sheetRef.current?.close();
     }, []);
 
-    const data = useMemo(
-        () =>
-            Array(50)
-                .fill(0)
-                .map((_, index) => `index-${index}`),
-        []
-    );
     // disappearsOnIndex={1}
     const renderBackdrop = useCallback(
         (props: any) => (
@@ -1353,7 +1350,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_600SemiBold',
         fontSize: 14,
         paddingHorizontal: 30,
-        marginBottom: 5
+        marginBottom: 2
     },
     tabTitle: {
         textAlign: 'left',

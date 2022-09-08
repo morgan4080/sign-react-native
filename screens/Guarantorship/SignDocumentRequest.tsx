@@ -17,7 +17,6 @@ import {fetchLoanRequest, requestSignURL, storeState} from "../../stores/auth/au
 import {store} from "../../stores/store";
 import {toMoney} from "../User/Account";
 import * as WebBrowser from "expo-web-browser";
-import * as Linking from "expo-linking";
 
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");

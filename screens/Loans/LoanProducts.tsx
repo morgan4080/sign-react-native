@@ -1,6 +1,5 @@
 import {
     Dimensions,
-    Platform,
     SafeAreaView,
     StatusBar as Bar,
     StyleSheet,
@@ -8,7 +7,6 @@ import {
     View,
     Text, VirtualizedList
 } from "react-native";
-import {StatusBar} from "expo-status-bar";
 import {Ionicons, MaterialIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {
@@ -94,7 +92,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
     const getItem = (data: any, index: any) => (data[index]);
 
     const getItemCount = (data: any) => {
-        return data.length
+        return data ? data.length : 0
     };
 
     if (fontsLoaded) {

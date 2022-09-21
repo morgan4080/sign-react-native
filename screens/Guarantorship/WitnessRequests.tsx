@@ -3,7 +3,7 @@ import {
     Dimensions,
     Platform,
     SafeAreaView,
-    ScrollView, SectionList,
+    SectionList,
     StatusBar as Bar,
     StyleSheet, Text, TouchableHighlight, TouchableOpacity,
     View
@@ -91,7 +91,7 @@ export default function WitnessRequests ({ navigation }: NavigationProps) {
         ).start();
     }, [fadeAnim])
 
-    if (fontsLoaded && !loading) {
+    if (fontsLoaded) {
         return (
             <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
                 <View style={{ position: 'absolute', right: -30, top: -10, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
@@ -99,35 +99,32 @@ export default function WitnessRequests ({ navigation }: NavigationProps) {
                     <View style={{flex: 1, alignItems: 'center'}}>
 
                         <SafeAreaView style={{ flex: 1, backgroundColor: accountHistory.length === 0 ? 'rgba(50,52,146,0)' : '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height }}>
-                            {
-                                accountHistory.length !== 0  && <SectionList
-                                    style={{marginTop: 20}}
-                                    sections={[
-                                        {
-                                            title: '',
-                                            data: accountHistory ? accountHistory : []
-                                        }
-                                    ]}
-                                    progressViewOffset={50}
-                                    refreshing={loading}
-                                    onRefresh={() => dispatch(fetchWitnessRequests({ memberRefId: member?.refId}))}
-                                    keyExtractor={(index) => index + Math.random().toString(12).substring(0)}
-                                    renderItem={({ item }) => <GuarantorTiles pressed={pressed} setPressed={() => {
-                                        setPressed(!pressed)
-                                    }} setRequest={setRequest} guarantor={item} />}
-                                    renderSectionHeader={() => (
-                                        <></>
-                                    )}
-                                />
-                            }
-                            {accountHistory.length === 0 &&
-                                <View style={{width: '100%', height: height/3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                    <MaterialCommunityIcons name="delete-empty-outline" size={100} color="#CCCCCC" />
-                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 16 }}>Whooops!</Text>
-                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12 }}>No Data</Text>
-                                </View>
-                            }
-
+                            <SectionList
+                                style={{marginTop: 20}}
+                                sections={accountHistory.length > 0 ? [
+                                    {
+                                        title: '',
+                                        data: accountHistory ? accountHistory : []
+                                    }
+                                ] : []}
+                                progressViewOffset={50}
+                                refreshing={loading}
+                                onRefresh={() => dispatch(fetchWitnessRequests({ memberRefId: member?.refId}))}
+                                keyExtractor={(index) => index + Math.random().toString(12).substring(0)}
+                                renderItem={({ item }) => <GuarantorTiles pressed={pressed} setPressed={() => {
+                                    setPressed(!pressed)
+                                }} setRequest={setRequest} guarantor={item} />}
+                                renderSectionHeader={() => (
+                                    <></>
+                                )}
+                                ListEmptyComponent={
+                                    <View style={{width: '100%', height: height/3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                        <MaterialCommunityIcons name="delete-empty-outline" size={100} color="#CCCCCC" />
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 16 }}>Whooops!</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12 }}>No Data</Text>
+                                    </View>
+                                }
+                            />
                         </SafeAreaView>
                     </View>
                 </View>

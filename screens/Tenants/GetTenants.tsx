@@ -1,7 +1,6 @@
 import {
     Dimensions,
     Image,
-    Keyboard,
     NativeModules,
     Pressable,
     SafeAreaView,
@@ -108,8 +107,6 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
             })()
         }
         return () => {
-            // when destroying component delete form fields/ selections
-            Keyboard.removeAllListeners('keyboardDidShow');
             authenticating = false;
         }
     }, []);
@@ -154,9 +151,32 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                                     ...country,
                                     flag: `https://flagcdn.com/28x21/${country.alpha2Code.toLowerCase()}.png`
                                 });
+                            } else {
+                                const countryLight = countries.find((country: {name: string, code: string, numericCode: string, alpha2Code: string}) => (country.code === codex.replace("+", "")));
+                                if (countryLight) {
+                                    setCountry({
+                                        ...countryLight,
+                                        flag: `https://flagcdn.com/28x21/${countryLight.alpha2Code.toLowerCase()}.png`
+                                    });
+                                }
                             }
                         }
                         setCode(codex)
+                    } else {
+                        setValue('countryCode', defaultValues.countryCode);
+                        let countriesJson = await CountriesModule.getCountries();
+                        if (countriesJson) {
+                            let countries: {name: string, code: string, numericCode: string, alpha2Code: string}[] = JSON.parse(countriesJson);
+                            setValue('countryCode', defaultValues.countryCode);
+                            const country = countries.find((country: {name: string, code: string, numericCode: string, alpha2Code: string}) => (country.code === defaultValues.countryCode.replace("+", "")));
+                            if (country && country.alpha2Code) {
+                                setCountry({
+                                    ...country,
+                                    flag: `https://flagcdn.com/28x21/${country.alpha2Code.toLowerCase()}.png`
+                                });
+                            }
+                        }
+                        setCode(defaultValues.countryCode)
                     }
                 } catch (e: any) {
                     console.log(e.message)
@@ -206,10 +226,6 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
             }
         }
     }
-
-    Keyboard.addListener('keyboardDidShow', () => {
-
-    });
 
     const focusCountryCode = useRef<any>();
 
@@ -407,7 +423,6 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: StatusBar.currentHeight,
         backgroundColor: '#FFFFFF'
     },
     container2: {

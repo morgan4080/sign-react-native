@@ -2,7 +2,6 @@ import {
     Dimensions,
     Platform,
     SafeAreaView,
-    ScrollView,
     StatusBar as Bar,
     StyleSheet,
     TouchableOpacity,
@@ -10,7 +9,7 @@ import {
     Text, NativeModules, Animated, Easing, SectionList
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
-import {AntDesign, Ionicons} from "@expo/vector-icons";
+import {AntDesign, MaterialCommunityIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchLoanRequest, fetchLoanRequests, requestSignURL, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -217,30 +216,15 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                 <AntDesign name="arrowleft" size={24} color="#489AAB" />
                             </TouchableOpacity>
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_700Bold', fontSize: 18 }}>Your Loan Requests</Text>
-                            {/*{ loading ?
-                                <Animated.View
-                                    style={{ position: 'absolute', right: 20, top: 20, transform: [{rotate: spin}] }}>
-                                    <TouchableOpacity onPress={() => dispatch(fetchLoanRequests(member?.refId as string))}>
-                                        <Ionicons name="reload" size={18} color="#489AAB"/>
-                                    </TouchableOpacity>
-                                </Animated.View>
-                                :
-                                <View
-                                    style={{ position: 'absolute', right: 20, top: 20 }}>
-                                    <TouchableOpacity onPress={() => dispatch(fetchLoanRequests(member?.refId as string))}>
-                                        <Ionicons name="reload" size={18} color="#489AAB"/>
-                                    </TouchableOpacity>
-                                </View>
-                            }*/}
                         </View>
                         <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 11/12 * height }}>
                             <SectionList
-                                sections={[
+                                sections={loanRequests && loanRequests.length > 0 ? [
                                     {
                                         title: '',
-                                        data: loanRequests ? loanRequests : []
+                                        data: loanRequests
                                     }
-                                ]}
+                                ]: []}
                                 progressViewOffset={50}
                                 refreshing={loading}
                                 onRefresh={() => dispatch(fetchLoanRequests(member?.refId as string))}
@@ -249,6 +233,13 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                 renderSectionHeader={() => (
                                     <></>
                                 )}
+                                ListEmptyComponent={
+                                    <View style={{width: '100%', height: height/3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                        <MaterialCommunityIcons name="delete-empty-outline" size={100} color="#CCCCCC" />
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 16 }}>Whooops!</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12 }}>No Data</Text>
+                                    </View>
+                                }
                             />
                         </SafeAreaView>
                     </View>

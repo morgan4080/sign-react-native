@@ -19,7 +19,7 @@ import {
     StyleSheet,
     StatusBar,
     TouchableOpacity,
-    StatusBar as Bar, Dimensions
+    Dimensions
 } from "react-native";
 import {useEffect, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -137,7 +137,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
 
     if (fontsLoaded && !loading) {
         return (
-            <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+            <View style={{ flex: 1, position: 'relative' }}>
                 <View style={{
                     position: 'absolute',
                     left: 60,
@@ -176,6 +176,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                         data={tenants}
                         renderItem={renderItem}
                         keyExtractor={item => item.id}
+                        ListFooterComponent={<View style={{height: 50}} />}
                     />
                 </SafeAreaView>
             </View>
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        marginTop: StatusBar.currentHeight || 0,
+        marginTop: 20,
     },
     item: {
         backgroundColor: '#f9c2ff',

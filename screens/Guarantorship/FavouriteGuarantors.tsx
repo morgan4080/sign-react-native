@@ -4,7 +4,8 @@ import {
     SafeAreaView,
     ScrollView,
     StatusBar as Bar,
-    StyleSheet, Text, TouchableHighlight,
+    StyleSheet,
+    Text,
     View
 } from "react-native";
 import {StatusBar} from "expo-status-bar";

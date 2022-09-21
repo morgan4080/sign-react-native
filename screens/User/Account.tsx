@@ -69,7 +69,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
 
     if (fontsLoaded && !loading) {
         return (
-            <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+            <View style={{flex: 1, position: 'relative'}}>
                 <View style={styles.container}>
                     <View style={{ position: 'absolute', left: -100, top: '25%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                     <View style={{ position: 'absolute', right: -80, top: '32%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
@@ -132,7 +132,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                     </View>
                                 </View>
 
-                                <View style={{display: 'flex', width: '100%', borderRadius: 15, backgroundColor: '#489AAB', paddingHorizontal: 20, paddingVertical: 25, marginTop: 15, marginBottom: 50}}>
+                                <View style={{display: 'flex', width: '100%', borderRadius: 15, backgroundColor: '#1072e1', paddingHorizontal: 20, paddingVertical: 25, marginTop: 15, marginBottom: 50}}>
                                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 10 }}>LOAN PERFORMANCE</Text>
                                     <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                                         <View>
@@ -178,7 +178,8 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         backgroundColor: '#FFFFFF',
-        position: "relative"
+        position: "relative",
+        paddingTop: Bar.currentHeight
     },
     userPicBtn: {
         marginTop: 20,
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
         borderColor: '#489AAB',
         borderWidth: 2,
         borderRadius: 100,
-        backgroundColor: '#EDEDED',
+        backgroundColor: '#EDEDED'
     },
     titleText: {
         fontSize: 16,

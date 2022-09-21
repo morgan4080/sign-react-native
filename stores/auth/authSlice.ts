@@ -629,7 +629,7 @@ export const getUserFromDB = createAsyncThunk('getUserFromDB', async ({setDBUser
 export const getContactsFromDB = createAsyncThunk('getContactsFromDB', async ({setContacts, from, to}: {setContacts: any, from: number, to: number}) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '10'`, undefined,
+            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '50'`, undefined,
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: any, { rows: { _array } } : any) => {
                     setContacts(_array)
@@ -1435,7 +1435,6 @@ export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: str
     const myHeaders = new Headers();
     myHeaders.append("api-key", `EqU.+vP\\_74Vu<'$jGxxfvwqN(z"h46Z2"*G=-ABs=rSDF&4.e`);
     const url = `https://accounts.presta.co.ke/api/v1/users/tenants/${phoneNumber}`;
-    console.log(url)
     try {
         const response = await fetch(url, {
             method: 'GET',
@@ -1443,15 +1442,15 @@ export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: str
         });
 
         if (response.status === 200) {
-            console.log("successful");
-            const data = await response.json()
-            return Promise.resolve(data)
+            const data = await response.json();
+            return Promise.resolve(data);
         } else if (response.status === 401) {
             setAuthState(false);
             return Promise.reject(response.status);
         } else {
-            console.log("Failure");
-            return Promise.reject("API response code: "+response.status)
+            const data = await response.json();
+            console.log("status", response.status, data);
+            return Promise.reject("API response code: " + response.status);
         }
 
     } catch (e: any) {

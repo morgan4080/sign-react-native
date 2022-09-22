@@ -49,9 +49,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                     navigation.navigate('GetTenants')
                 } else {
                     try {
-                        if (!loanProducts || loanProducts.length === 0) {
-                            await Promise.all([dispatch(fetchLoanProducts())]);
-                        }
+                        await Promise.all([dispatch(fetchLoanProducts())]);
                     } catch (e: any) {
                         console.log('promise rejection', e);
                     }

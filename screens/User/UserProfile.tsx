@@ -1,14 +1,14 @@
 import {
     Text,
     View,
-    ScrollView,
     StyleSheet,
     TouchableOpacity,
     SafeAreaView,
     Image,
-    StatusBar as Bar,
     Dimensions,
-    Platform, ImageBackground, SectionList
+    Platform,
+    ImageBackground,
+    SectionList
 } from 'react-native';
 
 import { StatusBar } from 'expo-status-bar';

@@ -466,14 +466,14 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     landingLogo: {
-        marginTop: 30,
+        marginTop: 80,
         width: width/2,
         height: width/2
     },
     input: {
         borderWidth: 1,
         borderColor: '#8d8d8d',
-        borderRadius: 10,
+        borderRadius: 15,
         height: 50,
         marginTop: 20,
         paddingHorizontal: width/5,

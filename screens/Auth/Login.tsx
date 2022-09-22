@@ -29,7 +29,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { storeState, loginUserType } from "../../stores/auth/authSlice"
 import {RotateView} from "./VerifyOTP";
-import {FontAwesome5} from "@expo/vector-icons";
+import {FontAwesome5, Ionicons} from "@expo/vector-icons";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 const { width, height } = Dimensions.get("window");
 
@@ -462,7 +462,7 @@ export default function Login({ navigation }: NavigationProps) {
                     <View style={{height: height/2, display: 'flex', justifyContent: 'space-between', position: 'relative'}}>
                         <View style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                             <TouchableOpacity onPress={() => navigation.navigate('GetTenants')} style={{marginTop: 45, marginBottom: 25, position: 'absolute', top: height/60, left: width/15}}>
-                                <FontAwesome5 name="sign-out-alt" size={24} color="black" style={{transform: [{ rotate: "180deg" }]}} />
+                                <Ionicons name="chevron-back-sharp" size={24} color="black" />
                             </TouchableOpacity>
                             {loading &&
                                 <View style={{marginTop: 45, marginBottom: 25, position: 'absolute'}}>
@@ -470,7 +470,7 @@ export default function Login({ navigation }: NavigationProps) {
                                 </View>
                             }
                             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: height/9 }}>
-                                <Text allowFontScaling={false} style={{fontSize: 12, fontFamily: 'Poppins_400Regular'}}>{tenant?.firstName + " " + tenant?.lastName}</Text>
+                                <Text allowFontScaling={false} style={{fontSize: 12, fontFamily: 'Poppins_500Medium'}}>{tenant?.firstName + " " + tenant?.lastName}</Text>
                                 <Text allowFontScaling={false} style={{fontSize: 10, fontFamily: 'Poppins_300Light'}}>{tenant?.ussdPhoneNumber}</Text>
                             </View>
                         </View>

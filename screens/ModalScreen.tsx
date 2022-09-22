@@ -206,7 +206,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
     return (
         <View style={styles.container}>
           <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', paddingBottom: 50}}>
-            <View style={{paddingTop: 50}}>
+            <View style={{paddingTop: 50, width, display: 'flex', alignItems: 'center'}}>
               {photo ? <TouchableOpacity onPress={() => takePic()} style={{...styles.userPicBtn, overflow: 'hidden'}}>
                     <Image style={{width: 108, height: 108, borderRadius: 50}} source={{ uri: "data:image/jpg;base64," + photo?.base64 }} />
                   </TouchableOpacity>
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     width: '80%',
   },
   userPicBtn: {
-    marginTop: 20,
+    marginVertical: 20,
     width: 120,
     height: 120,
     justifyContent: 'center',

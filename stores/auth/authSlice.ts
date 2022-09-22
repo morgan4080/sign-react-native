@@ -1588,8 +1588,10 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                 headers: myHeaders,
                 redirect: 'follow'
             })
+            console.log("loan requests", response.status)
             if (response.status === 200) {
                 const data = await response.json();
+                console.log("loan requests", data);
                 const result: any = await Promise.all(data.content.map(async ({refId}: {refId: string}, i: number) => {
                     const response0 = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${refId}`, {
                         method: 'GET',
@@ -1622,7 +1624,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                             "witnessName": data0.witnessName,
                             "guarantorList": data0.guarantorList,
                         }
-                    } else if (response.status === 401) {
+                    } else if (response0.status === 401) {
                         // update refresh token and retry
                         // state.organisations.find(org => org.tenantId === tenant?.tenantId)
                         console.log(response.status)
@@ -1764,6 +1766,7 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async (_,
             })
             if (response.status === 200) {
                 const data = await response.json()
+                console.log("the loan products", data)
                 resolve(data.list)
             } else if (response.status === 401) {
                 // update refresh token and retry
@@ -1980,6 +1983,8 @@ export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (
         return Promise.reject(e.message);
     }
 })
+
+
 
 export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string | undefined, signal: any}, {dispatch, getState}) => {
     try {

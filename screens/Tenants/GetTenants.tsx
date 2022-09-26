@@ -9,7 +9,7 @@ import {
     TextInput,
     TouchableOpacity,
     VirtualizedList,
-    View
+    View, KeyboardAvoidingView
 } from "react-native";
 import {RotateView} from "../Auth/VerifyOTP";
 const { width, height } = Dimensions.get("window");
@@ -39,6 +39,7 @@ type NavigationProps = NativeStackScreenProps<any>
 type FormData = {
     phoneNumber: string | undefined;
     countryCode: string;
+    email: string;
 }
 
 const GetTenants = ({ navigation, route }: NavigationProps) => {
@@ -200,7 +201,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
 
     const onSubmit = async (value: any): Promise<void> => {
         console.log("running submit");
-        if (value) {
+        if (value && code === '+254') {
             try {
                 if (value.phoneNumber.length < 8) {
                     setError('phoneNumber', {type: 'custom', message: 'Please provide a valid phone number'});
@@ -231,6 +232,19 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
             } catch (e: any) {
                 console.log('Error Get Tenants', e);
             }
+        } else {
+            try {
+                const { email, phoneNumber, countryCode } = value;
+
+                if (email && phoneNumber && countryCode) {
+                    await saveSecureKey('account_email', email);
+                    await saveSecureKey('phone_number_code', countryCode);
+                    await saveSecureKey('phone_number_without', phoneNumber);
+                }
+
+            } catch (e) {
+                console.log('Error email login', e);
+            }
         }
     }
 
@@ -259,7 +273,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
             case 'country':
                 return (
                     <View style={{ paddingHorizontal: 30, marginTop: 20, position: 'relative' }}>
-                        <View style={{ ...styles.input, position: 'absolute', top: 7, left: width/14, width: width/5.5, borderRadius: 0, height: 35, paddingHorizontal: 15, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                        <View style={{ ...styles.input, position: 'absolute', top: 7, left: width/14, width: width/5.5, borderRadius: 0, height: 35, paddingLeft: 0, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                             {
                                 country ? <Image source={{uri: country?.flag}} style={{width: 20, height: 15}}/>
                                     :
@@ -283,27 +297,76 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                         </View>
                     </View>
                 )
+            case 'email':
+                if (code !== '+254') {
+                    return (
+                        <View style={{ paddingHorizontal: 30, marginTop: 10, position: 'relative' }}>
+
+                            <AntDesign name="mail" size={20} color="#757575FF" style={{position: 'absolute', top: 33, left: width/11, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, zIndex: 11, paddingHorizontal: 15, paddingRight: 0}} />
+
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: true,
+                                    pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i
+                                }}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={{ ...styles.input, color: errors.email && submitted ? '#d53b39': '#757575', borderColor: errors.email && submitted ? '#d53b39': '#8d8d8d', fontSize: 12 }}
+                                        keyboardType="email-address"
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        placeholder="example@host.tld"
+                                    />
+                                )}
+                                name="email"
+                            />
+                            {
+                                (errors.email && submitted) &&
+                                <Text  allowFontScaling={false}  style={styles.error}>{errors.email?.message ? errors.email?.message : 'Kindly use the required format'}</Text>
+                            }
+                        </View>
+                    )
+                } else {
+                    return (
+                        <></>
+                    )
+                }
             case 'phoneNumber':
                 return (
-                    <View style={{ paddingHorizontal: 30, marginTop: 10, position: 'relative' }}>
+                    <View style={{paddingHorizontal: 30, marginTop: 10, position: 'relative'}}>
                         <Controller
                             control={control}
                             rules={{
                                 required: true,
                                 maxLength: 12,
                             }}
-                            render={( { field: { onChange, onBlur, value } }) => (
+                            render={({field: {onChange, onBlur, value}}) => (
                                 <TextInput
                                     ref={focusCountryCode}
                                     allowFontScaling={false}
-                                    style={{...styles.input, position: 'absolute', top: 7, left: width/11, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, zIndex: 11, paddingHorizontal: 15, paddingRight: 0}}
+                                    style={{
+                                        ...styles.input,
+                                        position: 'absolute',
+                                        top: 7,
+                                        left: width / 11,
+                                        width: width / 5.5,
+                                        borderRadius: 0,
+                                        height: 35,
+                                        borderWidth: 0,
+                                        zIndex: 11,
+                                        paddingHorizontal: 15,
+                                        paddingRight: 0
+                                    }}
                                     editable={false}
                                     value={value}
                                     onBlur={onBlur}
                                     onChangeText={(e) => {
                                         if (e.length > 4) {
                                             focusPhoneNumber.current.focus();
-                                            setValue('phoneNumber', e[e.length-1])
+                                            setValue('phoneNumber', e[e.length - 1])
                                             return
                                         }
                                         if (e.length < 1) {
@@ -326,16 +389,20 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                                 required: true,
                                 maxLength: 12,
                             }}
-                            render={( { field: { onChange, onBlur, value } }) => (
+                            render={({field: {onChange, onBlur, value}}) => (
                                 <TextInput
                                     ref={focusPhoneNumber}
                                     allowFontScaling={false}
-                                    style={{...styles.input, color: errors.phoneNumber && submitted ? '#d53b39': '#757575', borderColor: errors.phoneNumber && submitted ? '#d53b39': '#8d8d8d'}}
+                                    style={{
+                                        ...styles.input,
+                                        color: errors.phoneNumber && submitted ? '#d53b39' : '#757575',
+                                        borderColor: errors.phoneNumber && submitted ? '#d53b39' : '#8d8d8d'
+                                    }}
                                     keyboardType="phone-pad"
                                     onBlur={onBlur}
-                                    onKeyPress={({ nativeEvent }) => {
+                                    onKeyPress={({nativeEvent}) => {
                                         if (nativeEvent.key === 'Backspace') {
-                                            if(value === '') {
+                                            if (value === '') {
                                                 focusCountryCode.current.focus();
                                             }
                                         }
@@ -350,17 +417,25 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                         />
                         {
                             (errors.phoneNumber && submitted) &&
-                            <Text  allowFontScaling={false}  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Kindly use the required format'}</Text>
+                            <Text allowFontScaling={false}
+                                  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Kindly use the required format'}</Text>
                         }
-                        { (deviceId && phn && code && errors.phoneNumber && submitted) &&
-                            <Pressable style={{paddingTop: 10}} onPress={() => {
+
+                        {(deviceId && phn && code && errors.phoneNumber && submitted) &&
+                            <Pressable style={{paddingTop: 10}} onPress={async () => {
+                                const [c, p] = await Promise.all([getSecureKey('phone_number_code'), getSecureKey('phone_number_without')]);
                                 const payload = {
                                     deviceId: deviceId,
-                                    phoneNumber: `${code}${phn}`
+                                    phoneNumber: `${c}${p}`
                                 };
                                 navigation.navigate('SelectTenant', payload);
                             }}>
-                                <Text allowFontScaling={false}  style={{...styles.error, color: '#489AAB', textDecorationLine: 'underline', fontSize: 12}}>Setup Account</Text>
+                                <Text allowFontScaling={false} style={{
+                                    ...styles.error,
+                                    color: '#489AAB',
+                                    textDecorationLine: 'underline',
+                                    fontSize: 12
+                                }}>Setup Account</Text>
                             </Pressable>
                         }
                     </View>
@@ -404,6 +479,10 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
         },
         {
             id: Math.random().toString(12).substring(0),
+            title: 'email'
+        },
+        {
+            id: Math.random().toString(12).substring(0),
             title: 'phoneNumber'
         },
         {
@@ -421,14 +500,16 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
     if (!isJWT && fontsLoaded) {
         return (
             <SafeAreaView style={styles.container}>
-                <VirtualizedList
-                    data={DATA}
-                    initialNumToRender={4}
-                    renderItem={({ item }) => <Item title={item.title} />}
-                    keyExtractor={item => item.id}
-                    getItemCount={getItemCount}
-                    getItem={getItem}
-                />
+                <KeyboardAvoidingView>
+                    <VirtualizedList
+                        data={DATA}
+                        initialNumToRender={4}
+                        renderItem={({ item }) => <Item title={item.title} />}
+                        keyExtractor={item => item.id}
+                        getItemCount={getItemCount}
+                        getItem={getItem}
+                    />
+                </KeyboardAvoidingView>
             </SafeAreaView>
         )
     } else {

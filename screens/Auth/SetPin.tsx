@@ -1,5 +1,5 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {Dimensions, View, StyleSheet, TextInput, Text, StatusBar} from "react-native";
+import {Dimensions, View, StyleSheet, TextInput, Text, StatusBar, Pressable} from "react-native";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -40,6 +40,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
         clearErrors,
         setError,
         setValue,
+        getValues,
         formState: { errors }
     } = useForm<FormData>({})
 
@@ -47,8 +48,8 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
 
     const {phoneNumber}: any = route.params;
 
-    const onSubmit = () => {
-
+    const onSubmit = ({pin, pinConfirmation}: FormData) => {
+        console.log(pin, pinConfirmation);
     }
 
     if (fontsLoaded) {
@@ -57,6 +58,11 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                 <Text allowFontScaling={false} style={{ color: '#489AAB', fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }} >Pin</Text>
                 <Controller
                     control={control}
+                    rules={{
+                        required: true,
+                        maxLength: 4,
+                        minLength: 4
+                    }}
                     render={( { field: { onChange, onBlur, value } }) => (
                         <TextInput
                             allowFontScaling={false}
@@ -68,6 +74,8 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                             maxLength={4}
                             onChange={() => clearErrors()}
                             placeholder="Enter Pin"
+                            keyboardType="number-pad"
+                            secureTextEntry={true}
                         />
                     )}
                     name="pin"
@@ -79,6 +87,12 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                 <Text allowFontScaling={false} style={{ color: '#489AAB', marginTop: 20, fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }}>Pin Confirmation</Text>
                 <Controller
                     control={control}
+                    rules={{
+                        required: true,
+                        maxLength: 4,
+                        minLength: 4,
+                        validate: value => value === getValues('pin')
+                    }}
                     render={( { field: { onChange, onBlur, value } }) => (
                         <TextInput
                             allowFontScaling={false}
@@ -90,6 +104,8 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                             maxLength={4}
                             onChange={() => clearErrors()}
                             placeholder="Enter Pin Confirmation"
+                            keyboardType="number-pad"
+                            secureTextEntry={true}
                         />
                     )}
                     name="pinConfirmation"
@@ -98,6 +114,12 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     errors.pinConfirmation &&
                     <Text  allowFontScaling={false}  style={styles.error}>{errors.pinConfirmation?.message ? errors.pinConfirmation?.message : 'Invalid Pin Confirmation'}</Text>
                 }
+
+                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 50, marginBottom: 5 }}>
+                    <Pressable style={styles.button} onPress={handleSubmit(onSubmit)}>
+                        <Text allowFontScaling={false} style={styles.buttonText}>Save</Text>
+                    </Pressable>
+                </View>
             </View>
         )
     } else {
@@ -133,7 +155,21 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_400Regular',
         paddingHorizontal: 10,
         marginTop: 5
-    }
+    },
+    button: {
+        backgroundColor: '#3D889A',
+        elevation: 3,
+        borderRadius: 50,
+        paddingHorizontal: 15,
+        paddingVertical: 7,
+        width: '99%'
+    },
+    buttonText: {
+        fontSize: 14,
+        color: 'white',
+        alignSelf: 'center',
+        fontFamily: 'Poppins_400Regular',
+    },
 })
 
 export default SetPin

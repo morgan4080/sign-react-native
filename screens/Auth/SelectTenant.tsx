@@ -1,4 +1,14 @@
-import {FlatList, StyleSheet, Text, TouchableOpacity, View, StatusBar, TextInput, Dimensions} from "react-native";
+import {
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    StatusBar,
+    TextInput,
+    Dimensions,
+    NativeModules
+} from "react-native";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {
     Poppins_300Light,
@@ -32,6 +42,8 @@ type FormData = {
 type NavigationProps = NativeStackScreenProps<any>;
 
 const { width, height } = Dimensions.get("window");
+
+const { CSTM } = NativeModules;
 
 const SelectTenant = ({ navigation, route }: NavigationProps) => {
     const { loading, organisations, selectedTenant } = useSelector((state: { auth: storeState }) => state.auth);
@@ -102,7 +114,7 @@ const SelectTenant = ({ navigation, route }: NavigationProps) => {
                                     handleClosePress();
                                     setTimeout(() => navigation.navigate('SetPin', {
                                         phoneNumber
-                                    }), 1000);
+                                    }), 500);
                                 } else {
                                     setError('otp', {type: 'custom', message: 'Verification failed'});
                                     console.log('verification failed', payload, type);
@@ -133,6 +145,7 @@ const SelectTenant = ({ navigation, route }: NavigationProps) => {
                     handleSnapPress(1);
                     dispatch(sendOtpBeforeToken({phoneNumber, deviceId})).then(response => {
                         console.log("sendOtpBeforeToken", response);
+                        CSTM.showToast("OTP sent please wait");
                     }).catch(e => {
                         console.log("Item: sendOtpBeforeToken", e.message)
                     })
@@ -195,7 +208,7 @@ const SelectTenant = ({ navigation, route }: NavigationProps) => {
                         </View>
 
                         <View style={{display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', marginTop: 20}}>
-                            {loading ? <RotateView color="#489AAB"/> : <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#489AAB', fontSize: 15}}>Please Wait</Text>}
+                            {loading ? <RotateView color="#489AAB"/> : <></>}
                         </View>
 
                         <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 10 }}>

@@ -120,6 +120,8 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
         };
     }, [tenants]);
 
+    const [deviceId, setDeviceId] = useState<string | null>(null)
+
     useEffect(() => {
         let isLoggedInSubscribed = true;
 
@@ -128,14 +130,17 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                 navigation.navigate('ProfileMain')
             } else {
                 try {
-                    const ph = await getSecureKey('phone_number_without');
+                    const [ph, x] = await Promise.all([
+                        getSecureKey('phone_number_without'),
+                        DeviceInfModule.getUniqueId(),
+                    ]);
+                    setDeviceId(x);
                     const codex = route.params?.code ? `+${route.params.code}` : await getSecureKey('phone_number_code');
                     if (ph && ph !== '') {
                         setValue('phoneNumber', ph);
                         setPhn(ph);
                     } else {
-                        const [uniqueId, pn] = await Promise.all([
-                            DeviceInfModule.getUniqueId(),
+                        const [pn] = await Promise.all([
                             requestPhoneNumber()
                         ]);
                         setValue('phoneNumber', pn);
@@ -343,8 +348,21 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                             )}
                             name="phoneNumber"
                         />
-                        {errors.phoneNumber && submitted && <Text  allowFontScaling={false}  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Kindly use the required format'}</Text>}
-
+                        {
+                            (errors.phoneNumber && submitted) &&
+                            <Text  allowFontScaling={false}  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Kindly use the required format'}</Text>
+                        }
+                        { (deviceId && phn && code && errors.phoneNumber && submitted) &&
+                            <Pressable style={{paddingTop: 10}} onPress={() => {
+                                const payload = {
+                                    deviceId: deviceId,
+                                    phoneNumber: `${code}${phn}`
+                                };
+                                navigation.navigate('SelectTenant', payload);
+                            }}>
+                                <Text allowFontScaling={false}  style={{...styles.error, color: '#489AAB', textDecorationLine: 'underline', fontSize: 12}}>Setup Account</Text>
+                            </Pressable>
+                        }
                     </View>
                 )
             case 'button':

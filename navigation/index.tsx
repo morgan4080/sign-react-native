@@ -76,8 +76,32 @@ const NonAuthNaigation = () => {
             {/*Before login*/}
             <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
             <Stack.Screen name="GetTenants" component={GetTenants} options={{ headerShown: false }} />
-            <Stack.Screen name="SelectTenant" component={SelectTenant} options={{ headerShown: false }} />
-            <Stack.Screen name="SetPin" component={Countries} options={{ headerShown: false }} />
+            <Stack.Screen name="SelectTenant" component={SelectTenant} options={{
+                headerShown: true,
+                title: 'Select Organization',
+                headerShadowVisible: false,
+                headerStyle: {
+                    backgroundColor: '#FFFFFF',
+                },
+                headerTintColor: '#489AAB',
+                headerTitleStyle: {
+                    fontSize: 20,
+                    fontFamily: 'Poppins_600SemiBold'
+                }
+            }} />
+            <Stack.Screen name="SetPin" component={SetPin} options={{
+                headerShown: true,
+                title: 'Set Account Pin',
+                headerShadowVisible: false,
+                headerStyle: {
+                    backgroundColor: '#FFFFFF',
+                },
+                headerTintColor: '#489AAB',
+                headerTitleStyle: {
+                    fontSize: 20,
+                    fontFamily: 'Poppins_600SemiBold'
+                }
+            }} />
             <Stack.Screen name="Countries" component={Countries} options={{ headerShown: false }} />
             <Stack.Screen name="ShowTenants" component={ShowTenants} options={{
                 headerShown: true,

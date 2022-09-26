@@ -214,7 +214,7 @@ type membersFilter = {
 };
 
 type organisationType = {
-    id: number,
+    id: string,
     tenantName: string,
     tenantId: string,
     clientSecret: string,
@@ -243,6 +243,7 @@ export type storeState = {
     selectedTenantId: string | null
     otpResponse: otpResponseType | null
     organisations: organisationType[]
+    selectedTenant: organisationType | null
 }
 
 const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> => {
@@ -892,6 +893,66 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dis
             }
         } else {
             return Promise.reject(`API error code: ${response.status}`);
+        }
+    } catch (e: any) {
+        return Promise.reject(e.message);
+    }
+})
+
+export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async ({phoneNumber, deviceId}: {phoneNumber: string, deviceId: string}) => {
+    try {
+        const myHeaders = new Headers();
+        myHeaders.append("api-key", "EqU.+vP\\_74Vu<'$jGxxfvwqN(z\"h46Z2\"*G=-ABs=rSDF&4.e");
+        myHeaders.append("Content-Type", "application/json");
+
+        const raw = JSON.stringify({
+            "phoneNumber": phoneNumber,
+            "deviceId": deviceId
+        });
+
+        const requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw
+        };
+
+        const response = await fetch("https://accounts.presta.co.ke/api/v1/users/verification", requestOptions);
+        if (response.status === 200) {
+            const data = await response.json();
+            return Promise.resolve(data);
+        } else {
+            return Promise.reject(response.status);
+        }
+    } catch (e: any) {
+        return Promise.reject(e.message);
+    }
+})
+
+export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', async ({identifier, deviceHash, verificationType, otp }: {identifier: string, deviceHash: string, verificationType: string, otp: string}) => {
+    try {
+        const myHeaders = new Headers();
+        myHeaders.append("api-key", "EqU.+vP\\_74Vu<'$jGxxfvwqN(z\"h46Z2\"*G=-ABs=rSDF&4.e");
+        myHeaders.append("Content-Type", "application/json");
+
+        const raw = JSON.stringify({
+            "identifier":identifier,
+            "deviceHash":deviceHash,
+            "verificationType":verificationType,
+            "otp":otp
+        });
+
+        const requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw
+        };
+
+        const response = await fetch("https://accounts.presta.co.ke/api/v1/users/verification/validate", requestOptions);
+        if (response.status === 200) {
+            const data = await response.json();
+            return Promise.resolve(data);
+        } else {
+            return Promise.reject(response.status);
         }
     } catch (e: any) {
         return Promise.reject(e.message);
@@ -1964,8 +2025,6 @@ export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (
     }
 })
 
-
-
 export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string | undefined, signal: any}, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token')
@@ -2049,36 +2108,41 @@ const authSlice = createSlice({
         otpResponse: null,
         organisations: [
             {
-                id: 1,
+                id: "1",
                 tenantName: 'Imarisha Sacco',
                 tenantId: 't72767',
                 clientSecret: '238c4949-4c0a-4ef2-a3de-fa39bae8d9ce',
             },
             {
-                id: 2,
+                id: "2",
                 tenantName: 'Wanaanga Sacco',
                 tenantId: 't74411',
                 clientSecret: '25dd3083-d494-4af5-89a1-104fa02ef782',
             }
-        ]
+        ],
+        selectedTenant: null
     },
     reducers: {
         createLoanProduct(state, action) {
-            state.loanProduct = action.payload
-            return state
+            state.loanProduct = action.payload;
+            return state;
         },
         setLoading(state, action) {
-            state.loading = action.payload
-            return
+            state.loading = action.payload;
+            return state;
         },
         setSelectedTenantId(state, action) {
-            state.selectedTenantId = action.payload
-            return state
+            state.selectedTenantId = action.payload;
+            return state;
         },
         setAuthState(state, action) {
-            state.isLoggedIn = action.payload
+            state.isLoggedIn = action.payload;
             console.log('is logged in', state.isLoggedIn);
-            return state
+            return state;
+        },
+        setSelectedTenant(state, action) {
+            state.selectedTenant = action.payload;
+            return state;
         }
     },
     extraReducers: builder => {
@@ -2400,6 +2464,19 @@ const authSlice = createSlice({
             state.otpSent = false
         })
 
+        builder.addCase(sendOtpBeforeToken.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(sendOtpBeforeToken.fulfilled, (state, action: any) => {
+            console.log("otp sent", action.payload)
+            state.otpSent = true
+            state.loading = false
+        })
+        builder.addCase(sendOtpBeforeToken.rejected, (state, action) => {
+            state.loading = false
+            state.otpSent = false
+        })
+
         builder.addCase(verifyOtp.pending, state => {
             state.loading = true
         })
@@ -2409,6 +2486,17 @@ const authSlice = createSlice({
             state.loading = false;
         })
         builder.addCase(verifyOtp.rejected, (state, action) => {
+            state.loading = false
+        })
+
+        builder.addCase(verifyOtpBeforeToken.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(verifyOtpBeforeToken.fulfilled, (state, action: any) => {
+            state.optVerified = true;
+            state.loading = false;
+        })
+        builder.addCase(verifyOtpBeforeToken.rejected, (state, action) => {
             state.loading = false
         })
 
@@ -2429,6 +2517,6 @@ const authSlice = createSlice({
 // Extract the action creators object and the reducer
 const { actions, reducer } = authSlice
 // Extract and export each action creator by name
-export const { createLoanProduct, setLoading, setSelectedTenantId, setAuthState } = actions
+export const { createLoanProduct, setLoading, setSelectedTenantId, setAuthState, setSelectedTenant } = actions
 // Export the reducer, either as a default or named export
 export const authReducer = reducer

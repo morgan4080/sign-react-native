@@ -2,7 +2,7 @@ import { NativeModules, NativeEventEmitter } from 'react-native';
 
 type AndroidSmsVerificationApiType = {
     multiply(a: number, b: number): Promise<number>;
-    requestPhoneNumber(requestCode: number): Promise<string>;
+    requestPhoneNumber(requestCode?: number): Promise<string>;
     startSmsRetriever(): Promise<boolean>;
 
     // remove after implementation

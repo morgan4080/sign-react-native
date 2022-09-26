@@ -6,6 +6,7 @@
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import SelectTenant from "./screens/Auth/SelectTenant";
 
 declare global {
   namespace ReactNavigation {
@@ -30,6 +31,7 @@ export type RootStackParamList = {
   Countries: NavigatorScreenParams<RootTabParamList> | undefined;
   PinLogin: NavigatorScreenParams<RootTabParamList> | undefined;
   SetPin: NavigatorScreenParams<RootTabParamList> | undefined;
+  SelectTenant: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanPurpose: NavigatorScreenParams<RootTabParamList> | undefined;
   Forgot: NavigatorScreenParams<RootTabParamList> | undefined;
   ProfileMain: NavigatorScreenParams<RootTabParamList> | undefined;

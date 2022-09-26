@@ -9,13 +9,12 @@ import {
     TextInput,
     TouchableOpacity,
     VirtualizedList,
-    View,
-    StatusBar
+    View
 } from "react-native";
 import {RotateView} from "../Auth/VerifyOTP";
 const { width, height } = Dimensions.get("window");
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-// import {requestPhoneNumber} from "../../utils/smsVerification";
+import {requestPhoneNumber} from "../../utils/smsVerification";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -33,7 +32,7 @@ import {store} from "../../stores/store";
 import {useEffect, useRef, useState} from "react";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import {AntDesign, Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
-const { CSTM, CountriesModule } = NativeModules;
+const { CSTM, CountriesModule, DeviceInfModule } = NativeModules;
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -86,15 +85,11 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
         let authenticating = true;
         if (authenticating) {
             (async () => {
-                /*try {
-                    // presents a modal enabling the user to select their phone number. Requires a physical device, it won't work on an emulator
-                    const phoneNumber = await requestPhoneNumber();
-                    console.log("requestPhoneNumber", phoneNumber);
-                } catch (e: any) {
-                    console.log(`${e.code} : ${e.message}`);
-                }*/
                 try {
-                    const response = await dispatch(authenticate());
+                    const [response] = await Promise.all([
+                        dispatch(authenticate())
+                    ]);
+
                     if (response.type === 'authenticate/rejected') {
                         return
                     }
@@ -136,8 +131,15 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                     const ph = await getSecureKey('phone_number_without');
                     const codex = route.params?.code ? `+${route.params.code}` : await getSecureKey('phone_number_code');
                     if (ph && ph !== '') {
-                        setValue('phoneNumber', ph)
-                        setPhn(ph)
+                        setValue('phoneNumber', ph);
+                        setPhn(ph);
+                    } else {
+                        const [uniqueId, pn] = await Promise.all([
+                            DeviceInfModule.getUniqueId(),
+                            requestPhoneNumber()
+                        ]);
+                        setValue('phoneNumber', pn);
+                        setPhn(pn);
                     }
                     if (codex && codex !== '') {
                         setValue('countryCode', route.params?.code ? code : codex);

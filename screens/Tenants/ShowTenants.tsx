@@ -17,7 +17,6 @@ import {
     View,
     Text,
     StyleSheet,
-    StatusBar,
     TouchableOpacity,
     Dimensions
 } from "react-native";

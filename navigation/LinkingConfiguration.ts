@@ -8,6 +8,7 @@ import { LinkingOptions } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 
 import { RootStackParamList } from '../types';
+import SelectTenant from "../screens/Auth/SelectTenant";
 
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: [Linking.createURL('presta-sign://app')],
@@ -52,6 +53,7 @@ const linking: LinkingOptions<RootStackParamList> = {
       Countries: 'countries',
       PinLogin: 'pin-login',
       SetPin: 'set-pin',
+      SelectTenant: 'select-tenant',
       LoanPurpose: 'loan-purpose',
       Forgot: 'forgot',
       ProfileMain: 'profile-main',

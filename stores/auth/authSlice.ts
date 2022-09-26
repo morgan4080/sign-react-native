@@ -214,7 +214,8 @@ type membersFilter = {
 };
 
 type organisationType = {
-    name: string,
+    id: number,
+    tenantName: string,
     tenantId: string,
     clientSecret: string,
 }
@@ -416,7 +417,6 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
             return Promise.resolve(data);
         } else if (response.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -478,7 +478,6 @@ export const validateGuarantorship = createAsyncThunk('validateGuarantorship', a
             return Promise.resolve(data);
         } else if (response.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -798,7 +797,6 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
             return Promise.resolve(data);
         } else if (response.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -868,7 +866,6 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dis
             }
         } else if (response.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -925,7 +922,6 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
             return Promise.resolve(data);
         } else if (response.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -992,7 +988,6 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
 
         } else if (response.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -1055,7 +1050,6 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
                 resolve(data);
             } else if (response.status === 401) {
                 // update refresh token and retry
-                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
                 const state: any = getState();
                 if (state) {
                     const [refresh_token, currentTenant] = await Promise.all([
@@ -1113,7 +1107,6 @@ export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRe
             resolve(data);
         } else if (result.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -1168,7 +1161,6 @@ export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest
             return Promise.resolve(data);
         } else if (response.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -1224,7 +1216,6 @@ export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', a
             return Promise.resolve(data);
         } else if (response.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -1288,7 +1279,6 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
             resolve(data);
         } else if (result.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -1338,7 +1328,6 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
                 resolve(data);
             } else if (result.status === 401) {
                 // update refresh token and retry
-                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
                 const state: any = getState();
                 if (state) {
                     const [refresh_token, currentTenant] = await Promise.all([
@@ -1480,7 +1469,6 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
                resolve(data);
            }  else if (response.status === 401) {
                // update refresh token and retry
-               // state.organisations.find(org => org.tenantId === tenant?.tenantId)
                const state: any = getState();
                if (state) {
                    const [refresh_token, currentTenant] = await Promise.all([
@@ -1538,7 +1526,6 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
                 resolve(data);
             } else if (response.status === 401) {
                 // update refresh token and retry
-                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
                 const state: any = getState();
                 if (state) {
                     const [refresh_token, currentTenant] = await Promise.all([
@@ -1591,7 +1578,6 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
             console.log("loan requests", response.status)
             if (response.status === 200) {
                 const data = await response.json();
-                console.log("loan requests", data);
                 const result: any = await Promise.all(data.content.map(async ({refId}: {refId: string}, i: number) => {
                     const response0 = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${refId}`, {
                         method: 'GET',
@@ -1626,7 +1612,6 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                         }
                     } else if (response0.status === 401) {
                         // update refresh token and retry
-                        // state.organisations.find(org => org.tenantId === tenant?.tenantId)
                         console.log(response.status)
                         const state: any = getState();
                         if (state) {
@@ -1658,7 +1643,6 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                 resolve(result)
             } else if (response.status === 401) {
                 // update refresh token and retry
-                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
                 console.log(response.status)
                 const state: any = getState();
                 if (state) {
@@ -1714,7 +1698,6 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
                 resolve(data)
             } else if (response.status === 401) {
                 // update refresh token and retry
-                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
                 const state: any = getState();
                 if (state) {
                     const [refresh_token, currentTenant] = await Promise.all([
@@ -1770,7 +1753,6 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async (_,
                 resolve(data.list)
             } else if (response.status === 401) {
                 // update refresh token and retry
-                // state.organisations.find(org => org.tenantId === tenant?.tenantId)
                 const state: any = getState();
                 if (state) {
                     const [refresh_token, currentTenant] = await Promise.all([
@@ -1902,7 +1884,6 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
         }
     } else if (response.status === 401) {
         // update refresh token and retry
-        // state.organisations.find(org => org.tenantId === tenant?.tenantId)
         const state: any = getState();
         if (state) {
             const [refresh_token, currentTenant] = await Promise.all([
@@ -1950,7 +1931,6 @@ export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (
             return Promise.resolve(true);
         } else if (response.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -2013,7 +1993,6 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
             }
         } else if (response.status === 401) {
             // update refresh token and retry
-            // state.organisations.find(org => org.tenantId === tenant?.tenantId)
             const state: any = getState();
             if (state) {
                 const [refresh_token, currentTenant] = await Promise.all([
@@ -2070,12 +2049,14 @@ const authSlice = createSlice({
         otpResponse: null,
         organisations: [
             {
-                name: 'Imarisha Sacco',
+                id: 1,
+                tenantName: 'Imarisha Sacco',
                 tenantId: 't72767',
                 clientSecret: '238c4949-4c0a-4ef2-a3de-fa39bae8d9ce',
             },
             {
-                name: 'Wanaanga Sacco',
+                id: 2,
+                tenantName: 'Wanaanga Sacco',
                 tenantId: 't74411',
                 clientSecret: '25dd3083-d494-4af5-89a1-104fa02ef782',
             }

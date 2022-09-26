@@ -5,7 +5,8 @@ import {
     TouchableHighlight,
     Text,
     StatusBar as Bar,
-    Image
+    Image,
+    NativeModules
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
@@ -72,12 +73,11 @@ export default function GetStarted({ navigation }: NavigationProps) {
                     style={styles.landingBg}
                     source={require('../../assets/images/landingGetStarted.jpg')}
                 />
-                <View style={{position: 'absolute',width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', bottom: 0, zIndex: 12}}>
+                <View style={{position: 'absolute',width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', bottom: 5, zIndex: 12}}>
                     <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('GetTenants')}>
-                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                            <Text allowFontScaling={false} style={styles.buttonText}>Get Started</Text>
-                        </View>
+                        <Text allowFontScaling={false} style={styles.buttonText}>Get Started</Text>
                     </TouchableHighlight>
+                    <Text allowFontScaling={false} style={{ fontSize: 8, color: '#FFFFFF', textAlign: 'center', marginBottom: 10, fontFamily: 'Poppins_300Light', paddingHorizontal: 20, marginHorizontal: 30 }}>By continuing, you agree to Presta's Terms of Service and privacy policy.</Text>
                 </View>
                 <Onboarding />
                 <StatusBar style='auto'/>
@@ -111,8 +111,8 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 25,
         marginHorizontal: 30,
-        marginBottom: 20,
         marginTop: 20,
+        marginBottom: 5,
         alignSelf: 'stretch',
         justifyContent: 'center'
     },

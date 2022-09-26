@@ -37,6 +37,8 @@ import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";
 import WitnessRequests from "../screens/Guarantorship/WitnessRequests";
 import WitnessStatus from "../screens/Guarantorship/WitnessStatus";
 import SignStatus from "../screens/Guarantorship/SignStatus";
+import SelectTenant from "../screens/Auth/SelectTenant";
+import SetPin from "../screens/Auth/SetPin";
 import {useSelector} from "react-redux";
 import {storeState} from "../stores/auth/authSlice";
 
@@ -74,6 +76,8 @@ const NonAuthNaigation = () => {
             {/*Before login*/}
             <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
             <Stack.Screen name="GetTenants" component={GetTenants} options={{ headerShown: false }} />
+            <Stack.Screen name="SelectTenant" component={SelectTenant} options={{ headerShown: false }} />
+            <Stack.Screen name="SetPin" component={Countries} options={{ headerShown: false }} />
             <Stack.Screen name="Countries" component={Countries} options={{ headerShown: false }} />
             <Stack.Screen name="ShowTenants" component={ShowTenants} options={{
                 headerShown: true,

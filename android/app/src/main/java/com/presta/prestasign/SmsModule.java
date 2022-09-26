@@ -1,26 +1,26 @@
 package com.presta.prestasign;
 
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-import com.google.android.gms.auth.api.credentials.Credential;
-import com.google.android.gms.auth.api.credentials.Credentials;
-import com.google.android.gms.auth.api.credentials.HintRequest;
+import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest;
+import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
 import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.common.api.CommonStatusCodes;
@@ -30,16 +30,18 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 public class SmsModule extends ReactContextBaseJavaModule {
 
-    private int phoneNumberRequestCode = 420;
+    private final int phoneNumberRequestCode = 420;
     private int userConsentRequestCode = 69;
     private Promise promise;
     private static ReactApplicationContext reactContext;
+    private PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
 
-
-    private final ActivityEventListener activityEventListener = new ActivityEventListener() {
+    private final ActivityEventListener activityEventListener = new BaseActivityEventListener() {
         @Override
         public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
             handleOnActivityResult(activity, requestCode, resultCode, data);
@@ -81,7 +83,7 @@ public class SmsModule extends ReactContextBaseJavaModule {
 
     SmsModule(ReactApplicationContext context) {
         super(context);
-        this.reactContext = context;
+        reactContext = context;
         context.addActivityEventListener(activityEventListener);
         IntentFilter intentFilter = new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION);
         getReactApplicationContext().registerReceiver(smsVerificationReceiver, intentFilter, SmsRetriever.SEND_PERMISSION, null);
@@ -98,8 +100,15 @@ public class SmsModule extends ReactContextBaseJavaModule {
         }
         if (requestCode == phoneNumberRequestCode && promise != null) {
             if (resultCode == Activity.RESULT_OK) {
-                Credential credential = data.getParcelableExtra(Credential.EXTRA_KEY);
-                promise.resolve(credential.getId());
+                try {
+                    String phoneNumber = Identity.getSignInClient(activity).getPhoneNumberFromIntent(data);
+                    String defaultCountry = "";
+                    PhoneNumber number = phoneUtil.parseAndKeepRawInput(phoneNumber, defaultCountry);
+                    String ph = Long.toString(number.getNationalNumber());
+                    promise.resolve(ph);
+                } catch (Exception e){
+                    promise.reject("Phone Number Hint failed", e);
+                }
             } else {
                 promise.reject(String.valueOf(resultCode), "Unable to retrieve phone number");
             }
@@ -124,18 +133,41 @@ public class SmsModule extends ReactContextBaseJavaModule {
         promise.resolve(a*b+5);
     }
 
+    // mine
     @ReactMethod
-    public void requestPhoneNumber (int phoneNumberRequestCode, Promise promise) {
-        this.promise = promise;
-        this.phoneNumberRequestCode = phoneNumberRequestCode;
-        HintRequest request = new HintRequest.Builder().setPhoneNumberIdentifierSupported(true).build();
-        PendingIntent intent = Credentials.getClient(getReactApplicationContext()).getHintPickerIntent(request);
-        try {
-            getCurrentActivity().startIntentSenderForResult(intent.getIntentSender(), phoneNumberRequestCode, null, 0, 0, 0);
-        } catch (Exception e) {
-            promise.reject(e);
+    public void requestPhoneNumber(int phoneNumberRequestCode,final Promise promise) {
+        Activity currentActivity = getCurrentActivity();
+
+        if (currentActivity == null) {
+            promise.reject("E_ACTIVITY_DOES_NOT_EXIST", "Activity doesn't exist");
+            return;
         }
-    }
+
+        // Store the promise to resolve/reject when picker returns data
+        this.promise = promise;
+
+        try {
+            GetPhoneNumberHintIntentRequest request = GetPhoneNumberHintIntentRequest.builder().build();
+
+            Identity.getSignInClient(currentActivity)
+                    .getPhoneNumberHintIntent(request)
+                    .addOnSuccessListener( result -> {
+                          try {
+                              currentActivity.startIntentSenderForResult(result.getIntentSender(), phoneNumberRequestCode, null, 0, 0, 0);
+                          } catch(Exception e) {
+                              this.promise.reject("Launching the PendingIntent failed", e);
+                          }
+                  })
+                  .addOnFailureListener(e -> {
+                      this.promise.reject("Phone Number Hint failed", e);
+                  });
+
+        } catch (Exception e) {
+            this.promise.reject("E_FAILED_TO_SHOW_PICKER", e);
+            this.promise = null;
+        }
+
+    };
 
     // remove after getting app signature
 

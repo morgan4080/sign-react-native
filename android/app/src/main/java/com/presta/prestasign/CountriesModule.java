@@ -1,5 +1,7 @@
 package com.presta.prestasign;
 
+import android.os.Build;
+
 import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.Promise;
@@ -30,13 +32,19 @@ public class CountriesModule extends ReactContextBaseJavaModule {
         try {
             InputStream res = reactContext.getResources().openRawResource(R.raw.countries);
             int size = res.available();
+
             byte[] buffer = new byte[size];
+
             res.read(buffer);
+
             res.close();
+
             jsonString = new String(buffer, StandardCharsets.UTF_8);
+
             JSONArray countriesArray = new JSONArray(jsonString);
 
             JSONObject country = null;
+
             for (int i=0 ; i<countriesArray.length() ; i++){
                 JSONObject object = countriesArray.getJSONObject(i);
                 String countryCode = (String) object.get("code");
@@ -69,7 +77,7 @@ public class CountriesModule extends ReactContextBaseJavaModule {
             res.close();
             jsonString = new String(buffer, StandardCharsets.UTF_8);
             promise.resolve(jsonString);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             promise.reject("Create Event Error", e);
         }

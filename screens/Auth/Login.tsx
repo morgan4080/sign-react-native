@@ -33,7 +33,7 @@ import {FontAwesome5, Ionicons} from "@expo/vector-icons";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 const { width, height } = Dimensions.get("window");
 
-type NavigationProps = NativeStackScreenProps<any>
+type NavigationProps = NativeStackScreenProps<any>;
 
 type FormData = {
     phoneNumber: string | undefined;
@@ -41,7 +41,7 @@ type FormData = {
     pinChar2: string | undefined;
     pinChar3: string | undefined;
     pinChar4: string | undefined;
-}
+};
 
 const Ring = ({ delay, loading }: {delay: number, loading: boolean}) => {
     const ring = useSharedValue(0);
@@ -74,23 +74,11 @@ const Ring = ({ delay, loading }: {delay: number, loading: boolean}) => {
 };
 
 export default function Login({ navigation }: NavigationProps) {
-    const { tenants, selectedTenantId, loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const { tenants, selectedTenantId, loading, organisations } = useSelector((state: { auth: storeState }) => state.auth);
     const [otpVerified, setOtpVerified] = useState(undefined);
     const [fingerPrint, setFingerPrint] = useState<string | null>(null);
     const [localLogin, setLocalLogin] = useState<boolean>(false);
-    const [currentTenant, setCurrentTenant] = useState<{name: string, tenantId: string, clientSecret: string} | undefined>(undefined)
-    const organisations = [
-        {
-            name: 'Imarisha Sacco',
-            tenantId: 't72767',
-            clientSecret: '238c4949-4c0a-4ef2-a3de-fa39bae8d9ce',
-        },
-        {
-            name: 'Wanaanga Sacco',
-            tenantId: 't74411',
-            clientSecret: '25dd3083-d494-4af5-89a1-104fa02ef782',
-        }
-    ];
+    const [currentTenant, setCurrentTenant] = useState<{tenantName: string, tenantId: string, clientSecret: string} | undefined>(undefined);
 
     (async () => {
         try {
@@ -385,7 +373,7 @@ export default function Login({ navigation }: NavigationProps) {
         }
     }
 
-    const doLogin = async (currentTenant: {name: string, tenantId: string, clientSecret: string}, pin: string) => {
+    const doLogin = async (currentTenant: {tenantName: string, tenantId: string, clientSecret: string}, pin: string) => {
         if (currentTenant && tenant) {
             const payload: loginUserType = {
                 phoneNumber: parseInt(tenant.ussdPhoneNumber),

@@ -899,16 +899,21 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dis
     }
 })
 
-export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async ({phoneNumber, deviceId}: {phoneNumber: string, deviceId: string}) => {
+export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async ({email, phoneNumber, deviceId}: { email?: string, phoneNumber?: string, deviceId: string }) => {
     try {
         const myHeaders = new Headers();
         myHeaders.append("api-key", "EqU.+vP\\_74Vu<'$jGxxfvwqN(z\"h46Z2\"*G=-ABs=rSDF&4.e");
         myHeaders.append("Content-Type", "application/json");
 
-        const raw = JSON.stringify({
+        const obj = phoneNumber ? {
             "phoneNumber": phoneNumber,
             "deviceId": deviceId
-        });
+        } : {
+            "email": email,
+            "deviceId": deviceId
+        };
+
+        const raw = JSON.stringify(obj);
 
         const requestOptions = {
             method: 'POST',

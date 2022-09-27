@@ -98,7 +98,6 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                             allowFontScaling={false}
                             style={styles.input}
                             value={value}
-                            autoFocus={false}
                             onBlur={onBlur}
                             onChangeText={onChange}
                             maxLength={4}

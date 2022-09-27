@@ -77,6 +77,8 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
         handleSubmit,
         setError,
         setValue,
+        clearErrors,
+        getValues,
         formState: { errors }
     } = useForm<FormData>({
         defaultValues
@@ -122,6 +124,17 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
     }, [tenants]);
 
     const [deviceId, setDeviceId] = useState<string | null>(null)
+
+    const [tab, setTab] = useState<number>(1)
+
+
+    useEffect(() => {
+        if (code === '+254') {
+            setTab(0)
+        } else {
+            setTab(1)
+        }
+    }, [code]);
 
     useEffect(() => {
         let isLoggedInSubscribed = true;
@@ -237,9 +250,23 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                 const { email, phoneNumber, countryCode } = value;
 
                 if (email && phoneNumber && countryCode) {
-                    await saveSecureKey('account_email', email);
-                    await saveSecureKey('phone_number_code', countryCode);
-                    await saveSecureKey('phone_number_without', phoneNumber);
+                    const { type, error, payload }: any = await dispatch(getTenants(email));
+                    setSubmitted(true);
+                    if (type === 'getTenants/rejected' && error) {
+                        if (error.message === "Network request failed") {
+                            CSTM.showToast(error.message);
+                        } else {
+                            setError('email', { type: 'custom', message: error.message });
+                        }
+                    } else {
+                        await saveSecureKey('account_email', email);
+                        await saveSecureKey('phone_number_code', countryCode);
+
+                        if (payload.length === 0)  setError('email', {type: 'custom', message: 'Please provide a valid email'});
+                    }
+
+                } else {
+                    setError('email', {type: 'custom', message: 'Please provide a valid email'});
                 }
 
             } catch (e) {
@@ -265,9 +292,47 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                 )
             case 'title':
                 return (
-                    <View>
+                    <View style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
                         <Text allowFontScaling={false} style={styles.titleText}>Enter registered phone number</Text>
                         <Text allowFontScaling={false} style={styles.subTitleText}>Verify Membership</Text>
+
+                        {
+                            code !== '+254' &&
+                            <View style={{display: 'flex', alignItems: 'center', flexDirection: 'row', paddingTop: 15}}>
+                                <TouchableOpacity onPress={() => {
+                                    setTab(0)
+                                }} style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    justifyContent: 'flex-start',
+                                    alignItems: 'flex-start'
+                                }}>
+                                    <Text allowFontScaling={false} style={[{
+                                        color: tab === 0 ? '#489AAB' : '#c6c6c6',
+                                        paddingHorizontal: 10
+                                    }, styles.tabTitle, {
+                                        borderBottomWidth: tab === 0 ? 2 : 0,
+                                        borderColor: '#489AAB'
+                                    }]}>Phone</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {
+                                    setTab(1)
+                                }} style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    justifyContent: 'flex-start',
+                                    alignItems: 'flex-start'
+                                }}>
+                                    <Text allowFontScaling={false} style={[{
+                                        color: tab === 1 ? '#489AAB' : '#c6c6c6',
+                                        paddingHorizontal: 10
+                                    }, styles.tabTitle, {
+                                        borderBottomWidth: tab === 1 ? 2 : 0,
+                                        borderColor: '#489AAB'
+                                    }]}>Email</Text>
+                                </TouchableOpacity>
+                            </View>
+                        }
                     </View>
                 )
             case 'country':
@@ -298,27 +363,32 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                     </View>
                 )
             case 'email':
-                if (code !== '+254') {
+                if (code !== '+254' && tab === 1) {
                     return (
                         <View style={{ paddingHorizontal: 30, marginTop: 10, position: 'relative' }}>
 
-                            <AntDesign name="mail" size={20} color="#757575FF" style={{position: 'absolute', top: 33, left: width/11, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, zIndex: 11, paddingHorizontal: 15, paddingRight: 0}} />
+                            <AntDesign name="mail" size={20} color={errors.email && submitted ? '#d53b39' : "#757575FF"} style={{position: 'absolute', top: 33, left: width/11, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, zIndex: 11, paddingHorizontal: 15, paddingRight: 0}} />
+
 
                             <Controller
                                 control={control}
                                 rules={{
-                                    required: true,
+                                    required: false,
                                     pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i
                                 }}
-                                render={( { field: { onChange, onBlur, value } }) => (
+                                render={( { field: { onChange, value } }) => (
                                     <TextInput
-                                        allowFontScaling={false}
-                                        style={{ ...styles.input, color: errors.email && submitted ? '#d53b39': '#757575', borderColor: errors.email && submitted ? '#d53b39': '#8d8d8d', fontSize: 12 }}
-                                        keyboardType="email-address"
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
                                         value={value}
+                                        allowFontScaling={false}
+                                        keyboardType="email-address"
+                                        style={{
+                                            ...styles.input,
+                                            color: errors.email && submitted ? '#d53b39': '#757575',
+                                            borderColor: errors.email && submitted ? '#d53b39': '#8d8d8d',
+                                            fontSize: 12
+                                        }}
                                         placeholder="example@host.tld"
+                                        onChangeText={onChange}
                                     />
                                 )}
                                 name="email"
@@ -326,6 +396,24 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                             {
                                 (errors.email && submitted) &&
                                 <Text  allowFontScaling={false}  style={styles.error}>{errors.email?.message ? errors.email?.message : 'Kindly use the required format'}</Text>
+                            }
+
+                            {(deviceId && phn && code && (errors.email) && submitted) &&
+                                <Pressable style={{paddingTop: 10}} onPress={() => {
+                                    const payload = {
+                                        deviceId: deviceId,
+                                        phoneNumber: null,
+                                        email: getValues("email")
+                                    };
+                                    navigation.navigate('SelectTenant', payload);
+                                }}>
+                                    <Text allowFontScaling={false} style={{
+                                        ...styles.error,
+                                        color: '#489AAB',
+                                        textDecorationLine: 'underline',
+                                        fontSize: 12
+                                    }}>Setup Account</Text>
+                                </Pressable>
                             }
                         </View>
                     )
@@ -335,111 +423,116 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                     )
                 }
             case 'phoneNumber':
-                return (
-                    <View style={{paddingHorizontal: 30, marginTop: 10, position: 'relative'}}>
-                        <Controller
-                            control={control}
-                            rules={{
-                                required: true,
-                                maxLength: 12,
-                            }}
-                            render={({field: {onChange, onBlur, value}}) => (
-                                <TextInput
-                                    ref={focusCountryCode}
-                                    allowFontScaling={false}
-                                    style={{
-                                        ...styles.input,
-                                        position: 'absolute',
-                                        top: 7,
-                                        left: width / 11,
-                                        width: width / 5.5,
-                                        borderRadius: 0,
-                                        height: 35,
-                                        borderWidth: 0,
-                                        zIndex: 11,
-                                        paddingHorizontal: 15,
-                                        paddingRight: 0
-                                    }}
-                                    editable={false}
-                                    value={value}
-                                    onBlur={onBlur}
-                                    onChangeText={(e) => {
-                                        if (e.length > 4) {
-                                            focusPhoneNumber.current.focus();
-                                            setValue('phoneNumber', e[e.length - 1])
-                                            return
-                                        }
-                                        if (e.length < 1) {
-                                            return
-                                        } else {
-                                            return onChange(e)
-                                        }
-                                    }}
-                                    keyboardType="phone-pad"
-                                    autoFocus={false}
-                                    maxLength={5}
-                                ></TextInput>
-                            )}
-                            name="countryCode"
-                        />
-
-                        <Controller
-                            control={control}
-                            rules={{
-                                required: true,
-                                maxLength: 12,
-                            }}
-                            render={({field: {onChange, onBlur, value}}) => (
-                                <TextInput
-                                    ref={focusPhoneNumber}
-                                    allowFontScaling={false}
-                                    style={{
-                                        ...styles.input,
-                                        color: errors.phoneNumber && submitted ? '#d53b39' : '#757575',
-                                        borderColor: errors.phoneNumber && submitted ? '#d53b39' : '#8d8d8d'
-                                    }}
-                                    keyboardType="phone-pad"
-                                    onBlur={onBlur}
-                                    onKeyPress={({nativeEvent}) => {
-                                        if (nativeEvent.key === 'Backspace') {
-                                            if (value === '') {
-                                                focusCountryCode.current.focus();
+                if (tab === 0) {
+                    return (
+                        <View style={{paddingHorizontal: 30, marginTop: 10, position: 'relative'}}>
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: false,
+                                    maxLength: 12,
+                                }}
+                                render={({field: {onChange, value}}) => (
+                                    <TextInput
+                                        ref={focusCountryCode}
+                                        allowFontScaling={false}
+                                        style={{
+                                            ...styles.input,
+                                            position: 'absolute',
+                                            top: 7,
+                                            left: width / 11,
+                                            width: width / 5.5,
+                                            borderRadius: 0,
+                                            height: 35,
+                                            borderWidth: 0,
+                                            zIndex: 11,
+                                            paddingHorizontal: 15,
+                                            paddingRight: 0
+                                        }}
+                                        editable={false}
+                                        value={value}
+                                        onChangeText={(e) => {
+                                            if (e.length > 4) {
+                                                focusPhoneNumber.current.focus();
+                                                setValue('phoneNumber', e[e.length - 1])
+                                                return
                                             }
-                                        }
-                                    }}
-                                    onChangeText={onChange}
-                                    value={value}
-                                    autoFocus={false}
-                                    placeholder="722000000"
-                                />
-                            )}
-                            name="phoneNumber"
-                        />
-                        {
-                            (errors.phoneNumber && submitted) &&
-                            <Text allowFontScaling={false}
-                                  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Kindly use the required format'}</Text>
-                        }
+                                            if (e.length < 1) {
+                                                return
+                                            } else {
+                                                return onChange(e)
+                                            }
+                                        }}
+                                        keyboardType="phone-pad"
+                                        autoFocus={false}
+                                        maxLength={5}
+                                    ></TextInput>
+                                )}
+                                name="countryCode"
+                            />
 
-                        {(deviceId && phn && code && errors.phoneNumber && submitted) &&
-                            <Pressable style={{paddingTop: 10}} onPress={async () => {
-                                const [c, p] = await Promise.all([getSecureKey('phone_number_code'), getSecureKey('phone_number_without')]);
-                                const payload = {
-                                    deviceId: deviceId,
-                                    phoneNumber: `${c}${p}`
-                                };
-                                navigation.navigate('SelectTenant', payload);
-                            }}>
-                                <Text allowFontScaling={false} style={{
-                                    ...styles.error,
-                                    color: '#489AAB',
-                                    textDecorationLine: 'underline',
-                                    fontSize: 12
-                                }}>Setup Account</Text>
-                            </Pressable>
-                        }
-                    </View>
-                )
+                            <Controller
+                                control={control}
+                                rules={{
+                                    required: false,
+                                    maxLength: 12,
+                                }}
+                                render={({field: {onChange, value}}) => (
+                                    <TextInput
+                                        ref={focusPhoneNumber}
+                                        allowFontScaling={false}
+                                        style={{
+                                            ...styles.input,
+                                            color: errors.phoneNumber && submitted ? '#d53b39' : '#757575',
+                                            borderColor: errors.phoneNumber && submitted ? '#d53b39' : '#8d8d8d'
+                                        }}
+                                        keyboardType="phone-pad"
+                                        onKeyPress={({nativeEvent}) => {
+                                            if (nativeEvent.key === 'Backspace') {
+                                                if (value === '') {
+                                                    focusCountryCode.current.focus();
+                                                }
+                                            }
+                                        }}
+                                        onChangeText={onChange}
+                                        value={value}
+                                        autoFocus={false}
+                                        placeholder="722000000"
+                                    />
+                                )}
+                                name="phoneNumber"
+                            />
+                            {
+                                (errors.phoneNumber && submitted) &&
+                                <Text allowFontScaling={false}
+                                      style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Kindly use the required format'}</Text>
+                            }
+
+                            {(deviceId && phn && code && (errors.phoneNumber) && submitted) &&
+                                <Pressable style={{paddingTop: 10}} onPress={async () => {
+                                    const [c, p] = await Promise.all([getSecureKey('phone_number_code'), getSecureKey('phone_number_without')]);
+                                    const payload = {
+                                        deviceId: deviceId,
+                                        phoneNumber: `${c}${p}`,
+                                        email: null
+                                    };
+                                    navigation.navigate('SelectTenant', payload);
+                                }}>
+                                    <Text allowFontScaling={false} style={{
+                                        ...styles.error,
+                                        color: '#489AAB',
+                                        textDecorationLine: 'underline',
+                                        fontSize: 12
+                                    }}>Setup Account</Text>
+                                </Pressable>
+                            }
+                        </View>
+                    )
+                } else {
+                    return (
+                        <></>
+                    )
+                }
             case 'button':
                 return (
                     <View style={{ paddingHorizontal: 30, paddingVertical: 20 }}>
@@ -588,6 +681,13 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_400Regular',
         paddingHorizontal: 10,
         marginTop: 5
+    },
+    tabTitle: {
+        textAlign: 'left',
+        alignSelf: 'flex-start',
+        fontFamily: 'Poppins_600SemiBold',
+        fontSize: 12,
+        padding: 5
     }
 });
 

@@ -48,13 +48,9 @@ const { CSTM } = NativeModules;
 const SelectTenant = ({ navigation, route }: NavigationProps) => {
     const { loading, organisations, selectedTenant } = useSelector((state: { auth: storeState }) => state.auth);
 
-    const {deviceId, phoneNumber}: any = route.params;
+    const {deviceId, phoneNumber, email}: any = route.params;
 
-    if (!deviceId || !phoneNumber) {
-        navigation.goBack();
-    } else {
-        console.log(deviceId, phoneNumber);
-    }
+    console.log(route.params);
 
     const {
         control,
@@ -101,9 +97,9 @@ const SelectTenant = ({ navigation, route }: NavigationProps) => {
 
                             // verify otp and redirect to setPin
                             const payload = {
-                                identifier: phoneNumber,
+                                identifier: phoneNumber ? phoneNumber: email,
                                 deviceHash: deviceId,
-                                verificationType: "PHONE_NUMBER",
+                                verificationType: phoneNumber ? "PHONE_NUMBER" : "EMAIL",
                                 otp
                             }
 
@@ -113,7 +109,8 @@ const SelectTenant = ({ navigation, route }: NavigationProps) => {
                                 if (type === "verifyOtpBeforeToken/fulfilled" && payload) {
                                     handleClosePress();
                                     setTimeout(() => navigation.navigate('SetPin', {
-                                        phoneNumber
+                                        phoneNumber,
+                                        email
                                     }), 500);
                                 } else {
                                     setError('otp', {type: 'custom', message: 'Verification failed'});
@@ -143,7 +140,7 @@ const SelectTenant = ({ navigation, route }: NavigationProps) => {
                 onPress={() => {
                     dispatch(setSelectedTenant(item));
                     handleSnapPress(1);
-                    dispatch(sendOtpBeforeToken({phoneNumber, deviceId})).then(response => {
+                    dispatch(sendOtpBeforeToken({email, phoneNumber, deviceId})).then(response => {
                         console.log("sendOtpBeforeToken", response);
                         CSTM.showToast("OTP sent please wait");
                     }).catch(e => {

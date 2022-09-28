@@ -125,8 +125,6 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
 
             console.log('payload', payload)
             navigation.navigate('ShowTenants', payload);
-        }  else {
-            setError('phoneNumber', {type: 'custom', message: "Kindly check the number and try again"});
         }
 
         return () => {
@@ -218,9 +216,13 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
 
     const [submitted, setSubmitted] = useState(false)
 
+    const onError = (errors: any, e: any) => {
+        console.log(errors, e)
+    }
+
     const onSubmit = async (value: any): Promise<void> => {
         console.log("running submit");
-        if (value && code === '+254' && tab === 0) {
+        if (tab === 0) {
             try {
                 if (value.phoneNumber.length < 8) {
                     setError('phoneNumber', {type: 'custom', message: 'Please provide a valid phone number'});
@@ -236,7 +238,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                     phone = `254${number.replace(/ /g, "")}`;
                 }
 
-                const { type, error }: any = await dispatch(getTenants(phone !== '' ? phone : value.phoneNumber));
+                const { type, error, payload }: any = await dispatch(getTenants(phone !== '' ? phone : value.phoneNumber));
                 setSubmitted(true);
                 if (type === 'getTenants/rejected' && error) {
                     if (error.message === "Network request failed") {
@@ -245,8 +247,15 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                         setError('phoneNumber', {type: 'custom', message: error.message});
                     }
                 } else {
-                    await saveSecureKey('phone_number_code', value.countryCode);
-                    await saveSecureKey('phone_number_without', value.phoneNumber);
+                    if (payload.length > 0) {
+                        await Promise.all([
+                            saveSecureKey('phone_number_code', value.countryCode),
+                            saveSecureKey('phone_number_without', value.phoneNumber)
+                        ])
+                    } else {
+                        setError('phoneNumber', {type: 'custom', message: "Kindly check your number and try again"});
+                    }
+
                 }
             } catch (e: any) {
                 console.log('Error Get Tenants', e);
@@ -533,7 +542,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                                     const [c, p] = await Promise.all([getSecureKey('phone_number_code'), getSecureKey('phone_number_without')]);
                                     const payload = {
                                         deviceId: deviceId,
-                                        phoneNumber: `${c}${p}`,
+                                        phoneNumber: `${getValues("countryCode")}${getValues("phoneNumber")}`,
                                         email: null
                                     };
                                     navigation.navigate('SelectTenant', payload);
@@ -556,7 +565,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
             case 'button':
                 return (
                     <View style={{ paddingHorizontal: 30, paddingVertical: 20 }}>
-                        <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} style={{alignSelf: 'flex-end'}} >
+                        <TouchableOpacity onPress={handleSubmit(onSubmit, onError)} disabled={loading} style={{alignSelf: 'flex-end'}} >
                             {   !loading ?
                                 <Ionicons name="arrow-forward-circle" size={70} color="#489AAB" />
                                 :

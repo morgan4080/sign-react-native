@@ -5,7 +5,7 @@ import {
     StyleSheet,
     TouchableOpacity,
     View,
-    Text, VirtualizedList
+    Text, VirtualizedList, SectionList
 } from "react-native";
 import {Ionicons, MaterialIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
@@ -79,13 +79,25 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
         </TouchableOpacity>
     );
 
-    const DATA = loanProducts?.map(product => {
-        return {
-            id: product.refId,
-            title: product.name,
-            ...product
+    loanProducts?.reduce((acc: {title: string, data: {}[]}[], product) => {
+        if (product.details.isFosa.value === 'N') {
+            acc[0].data = [...acc[0].data, product]
+        } else {
+            acc[1].data = [...acc[1].data, product]
         }
-    })
+        return acc
+    }, [
+        {
+            title: 'Bosa',
+            data: []
+        },
+        {
+            title: 'Fosa',
+            data: []
+        }
+    ])
+
+    const DATA: any = []
 
     const getItem = (data: any, index: any) => (data[index]);
 
@@ -118,14 +130,14 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
 
                     <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginVertical: 15 }}>Select Loan Product</Text>
                 </View>
-                <VirtualizedList
+                <SectionList
                     style={{paddingHorizontal: 20}}
-                    data={DATA}
-                    initialNumToRender={4}
+                    sections={DATA}
                     renderItem={({ item }) => <Item product={item} />}
                     keyExtractor={item => item.refId}
-                    getItemCount={getItemCount}
-                    getItem={getItem}
+                    renderSectionHeader={({ section: { title } }) => (
+                        <Text style={{}}>{title}</Text>
+                    )}
                 />
 
             </SafeAreaView>

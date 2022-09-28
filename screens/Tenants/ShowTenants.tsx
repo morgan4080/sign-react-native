@@ -286,7 +286,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                     onChange={handleSheetChange}
                     backdropComponent={renderBackdrop}
                 >
-                    <></>
+                    <View style={{backgroundColor: '#FFFFFF'}}></View>
                 </BottomSheet>
             </GestureHandlerRootView>
         )

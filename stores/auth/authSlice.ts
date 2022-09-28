@@ -106,6 +106,7 @@ export interface LoanProduct {
     name: string;
     interestRate: number;
     requiredGuarantors: number;
+    details: {[key: string]: {value: string, type: string}};
 }
 
 type WitnessRequestType = {
@@ -662,6 +663,48 @@ const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_
     }
 }
 
+export const createPin = createAsyncThunk('createPin', async ({pinConfirmation, memberRefId, access_token}: {pinConfirmation: string, memberRefId: string, access_token: string}) => {
+    return new Promise (async (resolve, reject) => {
+        try {
+            const payload = {
+                "memberRefId": memberRefId,
+                "termsAccepted": true,
+                "pin": pinConfirmation
+            }
+
+            const raw = JSON.stringify(payload);
+
+            const myHeaders = new Headers();
+
+            myHeaders.append("Authorization", `Bearer ${access_token}`);
+
+            myHeaders.append("Content-Type", 'application/json');
+
+            const requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw
+            };
+
+            const response = await fetch("https://eguarantorship-api.presta.co.ke/api/v1/members/update-terms-pin", requestOptions);
+
+            if (response.status === 200) {
+                const data = await response.json()
+
+                console.log('pin create results', data)
+
+                resolve(data)
+            } else {
+                console.log('Process Failed')
+
+                reject('Process Failed')
+            }
+        } catch(e: any) {
+            reject(e.message)
+        }
+    })
+});
+
 export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin, tenant, clientSecret }: Pick<loginUserType, "phoneNumber" | "pin" | "tenant" | "clientSecret">) => {
     return new Promise(async (resolve, reject) => {
         const details: any = {
@@ -943,7 +986,7 @@ export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async (
 })
 
 export const searchByPhone = createAsyncThunk('searchByPhone', async ({phoneNumber, access_token}: {phoneNumber: string, access_token: string}) => {
-    const URL = `https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber}`
+    const URL = `https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber.replace('+', '')}`;
 
     const myHeaders = new Headers();
 
@@ -957,6 +1000,8 @@ export const searchByPhone = createAsyncThunk('searchByPhone', async ({phoneNumb
     try {
 
         const response = await fetch(URL, requestOptions)
+
+        console.log('STATUSSSS', response.status)
 
         if (response.status === 200) {
 
@@ -1046,6 +1091,8 @@ export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', asy
             "otp":otp
         });
 
+        console.log(raw)
+
         const requestOptions = {
             method: 'POST',
             headers: myHeaders,
@@ -1054,8 +1101,15 @@ export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', asy
 
         const response = await fetch("https://accounts.presta.co.ke/api/v1/users/verification/validate", requestOptions);
         if (response.status === 200) {
-            const data = await response.json();
-            console.log("from auth", data);
+
+            const [data, x, y] = await Promise.all([
+                response.json(),
+                saveSecureKey('otp_verified', 'true'),
+                saveSecureKey('existing', 'true')
+            ]);
+
+            removeAllListeners();
+
             return Promise.resolve(data);
         } else {
             return Promise.reject(response.status);

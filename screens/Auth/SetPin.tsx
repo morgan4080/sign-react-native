@@ -11,7 +11,7 @@ import {
 } from "@expo-google-fonts/poppins";
 import {RotateView} from "./VerifyOTP";
 import {useDispatch, useSelector} from "react-redux";
-import {authClient, searchByEmail, searchByPhone, storeState} from "../../stores/auth/authSlice";
+import {authClient, createPin, searchByEmail, searchByPhone, storeState} from "../../stores/auth/authSlice";
 import {Controller, useForm} from "react-hook-form";
 import {useEffect, useState} from "react";
 import {store} from "../../stores/store";
@@ -26,6 +26,8 @@ type NavigationProps = NativeStackScreenProps<any>;
 type FormData = {
     pin: string;
     pinConfirmation: string;
+    memberRefId: string;
+    access_token: string;
 }
 
 const SetPin = ({ navigation, route }: NavigationProps) => {
@@ -56,7 +58,32 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
     const {phoneNumber, email, realm, client_secret}: any = route.params;
 
     const onSubmit = ({pin, pinConfirmation}: FormData) => {
-        console.log(pin, pinConfirmation);
+        (async () => {
+            try {
+                const load: {pinConfirmation: string, memberRefId: string, access_token: string} = {
+                    pinConfirmation: getValues("pinConfirmation"),
+                    memberRefId: getValues("memberRefId"),
+                    access_token: getValues("access_token")
+                }
+
+                console.log('load out', load)
+
+                const response : any = await dispatch(createPin(load));
+
+                if (response.type === 'createPin/rejected') {
+                    console.log('cant set pin');
+
+                    CSTM.showToast(response.error.message);
+                } else {
+                    navigation.navigate('Login');
+                }
+
+            } catch (e: any) {
+                console.log(e)
+
+                CSTM.showToast(e)
+            }
+        })()
     }
 
     const {} = useSelector((state: { auth: storeState }) => state.auth);
@@ -84,20 +111,28 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                             CSTM.showToast(response.error.message)
                             setErrorSMS(response.error.message)
                         } else {
-                            console.log('searchByPhone,,,', response.payload)
+                            console.log('searchByPhone,,,', response.payload.refId)
                             setUserFound(true)
+                            await Promise.all([
+                                setValue("memberRefId", response.payload.refId),
+                                setValue("access_token", access_token)
+                            ])
                         }
                     }
 
                     if (email && access_token) {
                         const response: any = await dispatch(searchByEmail({email, access_token}))
 
-                        if (response.type === 'searchByPhone/rejected') {
+                        if (response.type === 'searchByEmail/rejected') {
                             CSTM.showToast(response.error.message)
                             setErrorSMS(response.error.message)
                         } else {
-                            console.log('searchByEmail,,,', response.payload)
+                            console.log('searchByEmail,,,', response.payload.refId)
                             setUserFound(true)
+                            await Promise.all([
+                                setValue("memberRefId", response.payload.refId),
+                                setValue("access_token", access_token)
+                            ])
                         }
                     }
 

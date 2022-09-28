@@ -57,6 +57,8 @@ const SelectTenant = ({ navigation, route }: NavigationProps) => {
 
     const {deviceId, phoneNumber, email}: any = route.params;
 
+    console.log(deviceId, phoneNumber, email);
+
     const {
         control,
         watch,
@@ -194,7 +196,6 @@ const SelectTenant = ({ navigation, route }: NavigationProps) => {
             })()
         }
         return (() => {
-            removeAllListeners();
             setupUser = false;
         })
     }, [selectedTenant])

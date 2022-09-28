@@ -2400,6 +2400,50 @@ const authSlice = createSlice({
             state.isJWT = false
         })
 
+
+
+        builder.addCase(createPin.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(createPin.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
+            state.loading = false;
+        })
+        builder.addCase(createPin.rejected, state => {
+            state.loading = false
+        })
+
+        builder.addCase(authClient.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(authClient.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
+            state.loading = false;
+        })
+        builder.addCase(authClient.rejected, state => {
+            state.loading = false
+        })
+
+        builder.addCase(searchByPhone.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(searchByPhone.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
+            state.loading = false;
+        })
+        builder.addCase(searchByPhone.rejected, state => {
+            state.loading = false
+        })
+
+        builder.addCase(searchByEmail.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(searchByEmail.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
+            state.loading = false;
+        })
+        builder.addCase(searchByEmail.rejected, state => {
+            state.loading = false
+        })
+
+
+
         builder.addCase(fetchMember.pending, state => {
             state.loading = true
         })

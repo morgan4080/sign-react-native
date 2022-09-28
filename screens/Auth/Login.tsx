@@ -168,7 +168,7 @@ export default function Login({ navigation }: NavigationProps) {
         control,
         setError,
         setValue,
-        formState: {  }
+        formState: {}
     } = useForm<FormData>({
         defaultValues: {
             phoneNumber: tenant? tenant.ussdPhoneNumber : '',

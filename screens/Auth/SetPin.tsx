@@ -11,7 +11,14 @@ import {
 } from "@expo-google-fonts/poppins";
 import {RotateView} from "./VerifyOTP";
 import {useDispatch, useSelector} from "react-redux";
-import {authClient, createPin, searchByEmail, searchByPhone, storeState} from "../../stores/auth/authSlice";
+import {
+    authClient,
+    createPin, loginUser,
+    loginUserType,
+    searchByEmail,
+    searchByPhone, setAuthState,
+    storeState
+} from "../../stores/auth/authSlice";
 import {Controller, useForm} from "react-hook-form";
 import {useEffect, useState} from "react";
 import {store} from "../../stores/store";
@@ -33,6 +40,8 @@ type FormData = {
 const SetPin = ({ navigation, route }: NavigationProps) => {
     const [userFound, setUserFound] = useState<boolean>(false)
     const [errorSMS, setErrorSMS] = useState<string>("")
+    const [authRes, setAuthRes] = useState<any>(null)
+    const [searchRes, setSearchRes] = useState<any>(null)
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -53,40 +62,9 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
         formState: { errors }
     } = useForm<FormData>({})
 
-    const { selectedTenant } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
 
     const {phoneNumber, email, realm, client_secret}: any = route.params;
-
-    const onSubmit = ({pin, pinConfirmation}: FormData) => {
-        (async () => {
-            try {
-                const load: {pinConfirmation: string, memberRefId: string, access_token: string} = {
-                    pinConfirmation: getValues("pinConfirmation"),
-                    memberRefId: getValues("memberRefId"),
-                    access_token: getValues("access_token")
-                }
-
-                console.log('load out', load)
-
-                const response : any = await dispatch(createPin(load));
-
-                if (response.type === 'createPin/rejected') {
-                    console.log('cant set pin');
-
-                    CSTM.showToast(response.error.message);
-                } else {
-                    navigation.navigate('Login');
-                }
-
-            } catch (e: any) {
-                console.log(e)
-
-                CSTM.showToast(e)
-            }
-        })()
-    }
-
-    const {} = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
@@ -100,6 +78,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                 const {type, payload} : any = await dispatch(authClient({realm, client_secret}))
 
                 if (type === 'authClient/fulfilled') {
+                    setAuthRes(payload);
                     const { access_token } = payload;
 
                     console.log("start member verify", access_token)
@@ -112,6 +91,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                             setErrorSMS(response.error.message)
                         } else {
                             console.log('searchByPhone,,,', response.payload.refId)
+                            setSearchRes(response.payload)
                             setUserFound(true)
                             await Promise.all([
                                 setValue("memberRefId", response.payload.refId),
@@ -128,6 +108,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                             setErrorSMS(response.error.message)
                         } else {
                             console.log('searchByEmail,,,', response.payload.refId)
+                            setSearchRes(response.payload)
                             setUserFound(true)
                             await Promise.all([
                                 setValue("memberRefId", response.payload.refId),
@@ -148,6 +129,62 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
             start = false;
         }
     }, [])
+
+    const onSubmit = () => {
+        console.log("authResponse", authRes)
+        console.log("searchResponse", searchRes)
+        if (realm && client_secret && searchRes) {
+            (async () => {
+                try {
+                    const load: {pinConfirmation: string, memberRefId: string, access_token: string} = {
+                        pinConfirmation: getValues("pinConfirmation"),
+                        memberRefId: getValues("memberRefId"),
+                        access_token: getValues("access_token")
+                    }
+
+                    const response : any = await dispatch(createPin(load));
+
+                    if (response.type === 'createPin/rejected') {
+                        console.log('cant set pin');
+
+                        CSTM.showToast(response.error.message);
+                    } else {
+                        const loadOut: loginUserType = {
+                            phoneNumber: searchRes.phoneNumber,
+                            pin: getValues("pinConfirmation"),
+                            tenant: realm,
+                            clientSecret:  client_secret
+                        };
+
+                        console.log('logging in', loadOut);
+
+                        try {
+                            const {type, error}: any = await dispatch(loginUser(loadOut))
+                            if (type === 'loginUser/rejected' && error) {
+                                if (error.message === "Network request failed") {
+                                    CSTM.showToast(error.message);
+                                } else {
+                                    setError('pinConfirmation', {type: 'custom', message: error.message});
+                                    CSTM.showToast(error.message);
+                                }
+                            } else {
+                                dispatch(setAuthState(true));
+                            }
+                        } catch (e: any) {
+                            CSTM.showToast(e.message)
+                        }
+                    }
+
+                } catch (e: any) {
+                    console.log(e)
+
+                    CSTM.showToast(e)
+                }
+            })()
+        } else {
+            CSTM.showToast("We couldn't login")
+        }
+    }
 
     if (fontsLoaded && userFound) {
         return (
@@ -213,7 +250,10 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
 
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 50, marginBottom: 5 }}>
                     <Pressable style={styles.button} onPress={handleSubmit(onSubmit)}>
-                        <Text allowFontScaling={false} style={styles.buttonText}>Save</Text>
+                        <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+                            {loading && <RotateView color="#FFFFFF"/>}
+                            <Text allowFontScaling={false} style={styles.buttonText}>Save</Text>
+                        </View>
                     </Pressable>
                 </View>
             </View>

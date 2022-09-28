@@ -1,5 +1,5 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {Dimensions, View, StyleSheet, TextInput, Text, StatusBar, Pressable} from "react-native";
+import {Dimensions, View, StyleSheet, TextInput, Text, StatusBar, Pressable, NativeModules} from "react-native";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -10,9 +10,13 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import {RotateView} from "./VerifyOTP";
-import {useSelector} from "react-redux";
-import {storeState} from "../../stores/auth/authSlice";
+import {useDispatch, useSelector} from "react-redux";
+import {authClient, searchByEmail, searchByPhone, storeState} from "../../stores/auth/authSlice";
 import {Controller, useForm} from "react-hook-form";
+import {useEffect} from "react";
+import {store} from "../../stores/store";
+
+const {CSTM} = NativeModules;
 
 const { width, height } = Dimensions.get("window");
 
@@ -46,11 +50,59 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
 
     const { selectedTenant } = useSelector((state: { auth: storeState }) => state.auth);
 
-    const {phoneNumber}: any = route.params;
+    const {phoneNumber, email, realm, client_secret}: any = route.params;
 
     const onSubmit = ({pin, pinConfirmation}: FormData) => {
         console.log(pin, pinConfirmation);
     }
+
+    const {} = useSelector((state: { auth: storeState }) => state.auth);
+
+    type AppDispatch = typeof store.dispatch;
+
+    const dispatch : AppDispatch = useDispatch();
+
+    useEffect(() => {
+        let start = true;
+
+        (async () => {
+            const {type, payload} : any = await dispatch(authClient({realm, client_secret}))
+
+            if (type === 'authClient/fulfilled') {
+                const { access_token } = payload;
+
+                if (phoneNumber) {
+                    const response = await dispatch(searchByPhone({phoneNumber, access_token}))
+
+                    if (response.type === 'searchByPhone/fulfilled') {
+                        console.log('searchByPhone,,,', response.payload)
+
+                    } else {
+                        console.error('searchByPhone,error', response.payload)
+                    }
+                }
+
+                if (email) {
+                    const response = await dispatch(searchByEmail({email, access_token}))
+
+                    if (response.type === 'searchByEmail/fulfilled') {
+                        console.log('searchByEmail,,,', response.payload)
+
+                    } else {
+                        console.error('searchByEmail error', response.payload)
+                    }
+                }
+
+            } else {
+                CSTM.showToast("Couldn't authenticate client")
+            }
+            console.log(type)
+        })()
+
+        return () => {
+            start = false;
+        }
+    }, [])
 
     if (fontsLoaded) {
         return (

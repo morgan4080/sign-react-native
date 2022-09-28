@@ -899,21 +899,29 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dis
     }
 })
 
-export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async ({email, phoneNumber, deviceId}: { email?: string, phoneNumber?: string, deviceId: string }) => {
+export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async ({email, phoneNumber, deviceId, appName}: { email?: string, phoneNumber?: string, deviceId: string, appName: string}) => {
     try {
         const myHeaders = new Headers();
         myHeaders.append("api-key", "EqU.+vP\\_74Vu<'$jGxxfvwqN(z\"h46Z2\"*G=-ABs=rSDF&4.e");
         myHeaders.append("Content-Type", "application/json");
 
+        const [signature] = await getAppSignatures();
+
         const obj = phoneNumber ? {
             "phoneNumber": phoneNumber,
-            "deviceId": deviceId
+            "deviceId": deviceId,
+            "appName": appName,
+            "appSignature": signature
         } : {
             "email": email,
-            "deviceId": deviceId
+            "deviceId": deviceId,
+            "appName": appName,
+            "appSignature": signature
         };
 
         const raw = JSON.stringify(obj);
+
+        console.log("sendOtpBeforeToken,,,,,,,", raw);
 
         const requestOptions = {
             method: 'POST',
@@ -923,8 +931,7 @@ export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async (
 
         const response = await fetch("https://accounts.presta.co.ke/api/v1/users/verification", requestOptions);
         if (response.status === 200) {
-            const data = await response.json();
-            return Promise.resolve(data);
+            return Promise.resolve(true);
         } else {
             return Promise.reject(response.status);
         }
@@ -932,6 +939,110 @@ export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async (
         return Promise.reject(e.message);
     }
 })
+
+export const searchByPhone = createAsyncThunk('searchByPhone', async ({phoneNumber, access_token}: {phoneNumber: string, access_token: string}) => {
+    const phoneIdentifierUrl = `https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-email?email=${phoneNumber}`
+
+    const myHeaders = new Headers();
+
+    myHeaders.append("Authorization", `Bearer ${access_token}`);
+    myHeaders.append("Content-Type", 'application/json');
+
+    const raw = JSON.stringify([
+        `${phoneNumber}`
+    ])
+
+    const requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw
+    };
+
+    try {
+
+        const response = await fetch(phoneIdentifierUrl, requestOptions)
+
+        if (response.status === 200) {
+
+            const data = await response.json();
+
+            if (data.length > 0) {
+                if (data[0][phoneNumber]) {
+                    return Promise.resolve(data[0][phoneNumber])
+                }
+            } else {
+                return Promise.reject('Welcome to Imarisha Digital Loaning. Your account is not registered. To access this service, contact Imarisha for further help')
+            }
+
+        } else {
+            return Promise.reject('Welcome to Imarisha Digital Loaning. Your account is not registered. To access this service, contact Imarisha for further help')
+        }
+
+    } catch (e: any) {
+        return Promise.reject(e.message)
+    }
+})
+
+export const searchByEmail = createAsyncThunk('searchByEmail', async ({email, access_token}: {email: string | null, access_token: string}) => {
+    const emailIdentifierUrl = `https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-email?email=${email}`
+
+    const myHeaders = new Headers();
+
+    myHeaders.append("Authorization", `Bearer ${access_token}`);
+
+    const requestOptions = {
+        method: 'POST',
+        headers: myHeaders
+    };
+
+    console.log("verifying user", email)
+
+    try {
+        const response = await fetch(emailIdentifierUrl, requestOptions)
+
+        if (response.status === 200) {
+            const data = await response.json()
+
+            return Promise.resolve(data)
+        } else {
+            return Promise.reject('Welcome to Imarisha Digital Loaning. Your account is not registered. To access this service, contact Imarisha for further help')
+        }
+    } catch(e: any) {
+        return Promise.reject(e.message)
+    }
+});
+
+export const authClient = createAsyncThunk('authClient', async ({realm, client_secret}: { realm: string, client_secret: string }) => {
+    const url = `https://iam.presta.co.ke/auth/realms/${realm}/protocol/openid-connect/token`;
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+    const urlencoded = new URLSearchParams();
+    urlencoded.append("client_id", "direct-access");
+    urlencoded.append("client_secret", client_secret);
+    urlencoded.append("grant_type", "client_credentials");
+
+    const requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: urlencoded
+    };
+
+    console.log('client auth url', url)
+
+    console.log(client_secret);
+
+    fetch(url, requestOptions)
+        .then(response => response.json())
+        .then(result => {
+            console.log("client authentication", result)
+            return Promise.resolve(result);
+        })
+        .catch(error => {
+            console.log('error', error)
+            return Promise.reject(error);
+        });
+});
 
 export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', async ({identifier, deviceHash, verificationType, otp }: {identifier: string, deviceHash: string, verificationType: string, otp: string}) => {
     try {
@@ -2146,6 +2257,7 @@ const authSlice = createSlice({
             return state;
         },
         setSelectedTenant(state, action) {
+            console.log('setting tenant', action)
             state.selectedTenant = action.payload;
             return state;
         }

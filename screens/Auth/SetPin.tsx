@@ -13,8 +13,9 @@ import {RotateView} from "./VerifyOTP";
 import {useDispatch, useSelector} from "react-redux";
 import {authClient, searchByEmail, searchByPhone, storeState} from "../../stores/auth/authSlice";
 import {Controller, useForm} from "react-hook-form";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {store} from "../../stores/store";
+import {PayloadAction, SerializedError} from "@reduxjs/toolkit";
 
 const {CSTM} = NativeModules;
 
@@ -28,6 +29,8 @@ type FormData = {
 }
 
 const SetPin = ({ navigation, route }: NavigationProps) => {
+    const [userFound, setUserFound] = useState<boolean>(false)
+    const [errorSMS, setErrorSMS] = useState<string>("")
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -66,37 +69,44 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
         let start = true;
 
         (async () => {
-            const {type, payload} : any = await dispatch(authClient({realm, client_secret}))
+            try {
+                const {type, payload} : any = await dispatch(authClient({realm, client_secret}))
 
-            if (type === 'authClient/fulfilled') {
-                const { access_token } = payload;
+                if (type === 'authClient/fulfilled') {
+                    const { access_token } = payload;
 
-                if (phoneNumber) {
-                    const response = await dispatch(searchByPhone({phoneNumber, access_token}))
+                    console.log("start member verify", access_token)
 
-                    if (response.type === 'searchByPhone/fulfilled') {
-                        console.log('searchByPhone,,,', response.payload)
+                    if (phoneNumber && access_token) {
+                        const response: any = await dispatch(searchByPhone({phoneNumber, access_token}))
 
-                    } else {
-                        console.error('searchByPhone,error', response.payload)
+                        if (response.type === 'searchByPhone/rejected') {
+                            CSTM.showToast(response.error.message)
+                            setErrorSMS(response.error.message)
+                        } else {
+                            console.log('searchByPhone,,,', response.payload)
+                            setUserFound(true)
+                        }
                     }
-                }
 
-                if (email) {
-                    const response = await dispatch(searchByEmail({email, access_token}))
+                    if (email && access_token) {
+                        const response: any = await dispatch(searchByEmail({email, access_token}))
 
-                    if (response.type === 'searchByEmail/fulfilled') {
-                        console.log('searchByEmail,,,', response.payload)
-
-                    } else {
-                        console.error('searchByEmail error', response.payload)
+                        if (response.type === 'searchByPhone/rejected') {
+                            CSTM.showToast(response.error.message)
+                            setErrorSMS(response.error.message)
+                        } else {
+                            console.log('searchByEmail,,,', response.payload)
+                            setUserFound(true)
+                        }
                     }
-                }
 
-            } else {
-                CSTM.showToast("Couldn't authenticate client")
+                } else {
+                    CSTM.showToast("Couldn't authenticate client")
+                }
+            } catch (e: any) {
+                CSTM.showToast(e)
             }
-            console.log(type)
         })()
 
         return () => {
@@ -104,7 +114,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
         }
     }, [])
 
-    if (fontsLoaded) {
+    if (fontsLoaded && userFound) {
         return (
             <View style={styles.container}>
                 <Text allowFontScaling={false} style={{ color: '#489AAB', fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }} >Pin</Text>
@@ -175,8 +185,8 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
         )
     } else {
         return (
-            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-                <RotateView/>
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: height -200, width }}>
+                <Text allowFontScaling={false} style={{...styles.input, borderWidth: 0, height: 'auto'}}>{errorSMS}</Text>
             </View>
         )
     }

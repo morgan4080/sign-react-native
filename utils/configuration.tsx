@@ -15,7 +15,9 @@ const config = () => {
     })*/
     return [
         {
+            tenantName: 'Imarisha Sacco',
             tenantId: 't72767',
+            clientSecret: '238c4949-4c0a-4ef2-a3de-fa39bae8d9ce',
             employerInfo: false,
             guarantors: 'count',
             witness: true,
@@ -24,7 +26,9 @@ const config = () => {
             selfGuarantee: false
         },
         {
+            tenantName: 'Wanaanga Sacco',
             tenantId: 't74411',
+            clientSecret: '25dd3083-d494-4af5-89a1-104fa02ef782',
             employerInfo: true,
             guarantors: 'value',
             witness: false,

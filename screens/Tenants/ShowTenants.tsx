@@ -8,7 +8,14 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import {useDispatch, useSelector} from "react-redux";
-import {authenticate, storeState, setSelectedTenantId, getTenants} from "../../stores/auth/authSlice";
+import {
+    authenticate,
+    storeState,
+    setSelectedTenantId,
+    getTenants,
+    authClient,
+    searchByPhone, searchByEmail
+} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {
     FlatList,
@@ -20,11 +27,13 @@ import {
     TouchableOpacity,
     Dimensions
 } from "react-native";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {getSecureKey} from "../../utils/secureStore";
 import configuration from "../../utils/configuration";
 import {RotateView} from "../Auth/VerifyOTP";
+import {GestureHandlerRootView} from "react-native-gesture-handler";
+import BottomSheet, {BottomSheetBackdrop} from "@gorhom/bottom-sheet";
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
 
@@ -52,7 +61,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
 
     const dispatch : AppDispatch = useDispatch();
 
-    const CSTM = NativeModules.CSTM;
+    const {CSTM} = NativeModules;
 
     useEffect(() => {
         let fetching = true;
@@ -60,25 +69,34 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
             (async () => {
                 try {
                     let otpV = await getSecureKey('otp_verified');
+
                     setOtpVerified(otpV);
-                    if (route.params) {
-                        const { countryCode, phoneNumber }: any = route.params;
-                        if (countryCode && phoneNumber) {
-                            // get tenants
-                            let phone: string = '';
-                            let identifier: string = `${countryCode}${phoneNumber}`;
-                            if (identifier[0] === '+') {
-                                let number = identifier.substring(1);
-                                phone = `${number.replace(/ /g, "")}`;
-                            } else if (identifier[0] === '0') {
-                                let number = identifier.substring(1);
-                                phone = `254${number.replace(/ /g, "")}`;
-                            }
-                            const { type, error }: any = await dispatch(getTenants(phone));
+
+                    const { countryCode, phoneNumber, email }: any = route.params;
+
+                    if (email && countryCode) {
+
+                        console.log('fetch tenants', email);
+
+                        await dispatch(getTenants(email));
+
+                    } else if (phoneNumber && countryCode) {
+                        let phone: string = '';
+                        let identifier: string = `${countryCode}${phoneNumber}`;
+                        if (identifier[0] === '+') {
+                            let number = identifier.substring(1);
+                            phone = `${number.replace(/ /g, "")}`;
+                        } else if (identifier[0] === '0') {
+                            let number = identifier.substring(1);
+                            phone = `254${number.replace(/ /g, "")}`;
                         }
+                        console.log('fetch tenants', phone)
+
+                        await dispatch(getTenants(phone));
                     }
+
                 } catch (e:any) {
-                    console.log("getSecureKey otpVerified", e)
+                    console.log("getSecureKey otpVerified", e);
                 }
             })()
         }
@@ -107,6 +125,18 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
         }
     }, []);
 
+    const [userFound, setUserFound] = useState<boolean>(false);
+
+    const [errorSMS, setErrorSMS] = useState<string>("");
+
+    useEffect(() => {
+        if (!userFound) {
+            handleSnapPress(1);
+        } else {
+            handleClosePress();
+        }
+    }, [userFound])
+
 
     const renderItem = ({ item }: any) => {
         const backgroundColor = item.id === selectedTenantId ? "#489AAB" : "#FFFFFF";
@@ -123,7 +153,48 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
 
                     if (settings) {
                         dispatch(setSelectedTenantId(item.id));
-                        navigation.navigate('Login');
+
+                        console.log("selected tenant", settings);
+
+                        (async () => {
+                            const {type, payload, error} : any = await dispatch(authClient({realm: settings.tenantId, client_secret: settings.clientSecret}))
+
+                            if (type === 'authClient/fulfilled') {
+                                const { access_token } = payload;
+
+                                const { countryCode, phoneNumber, email }: any = route.params;
+
+                                console.log("the phone number", countryCode, phoneNumber, email)
+
+                                if (email && access_token) {
+                                    const response: any = await dispatch(searchByEmail({email: encodeURIComponent(email), access_token}))
+
+                                    if (response.type === 'searchByEmail/rejected') {
+                                        CSTM.showToast(response.error.message);
+                                        setErrorSMS(response.error.message);
+                                    } else {
+                                        setUserFound(true);
+                                        navigation.navigate('Login');
+                                    }
+                                } else if (phoneNumber && access_token) {
+                                    const response: any = await dispatch(searchByPhone({
+                                        phoneNumber: `${countryCode}${phoneNumber}`.replace('+', ''),
+                                        access_token
+                                    }))
+
+                                    if (response.type === 'searchByPhone/rejected') {
+                                        CSTM.showToast(response.error.message)
+                                        setErrorSMS(response.error.message)
+                                    } else {
+                                        console.log('searchByPhone', response.payload);
+                                        setUserFound(true);
+                                        navigation.navigate('Login');
+                                    }
+                                }
+                            } else {
+                                CSTM.showToast(error.message)
+                            }
+                        })()
                     } else {
                         CSTM.showToast(`${item.tenantName} is not yet supported`);
                     }
@@ -134,9 +205,38 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
         );
     };
 
+    const sheetRef = useRef<BottomSheet>(null);
+
+    const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
+
+    // callbacks
+    const handleSheetChange = useCallback((index: any) => {
+        console.log("handleSheetChange", index);
+    }, []);
+
+    const handleSnapPress = useCallback((index: any) => {
+        sheetRef.current?.snapToIndex(index);
+    }, []);
+
+    const handleClosePress = useCallback(() => {
+        sheetRef.current?.close();
+    }, []);
+
+    // disappearsOnIndex={1}
+    const renderBackdrop = useCallback(
+        (props: any) => (
+            <BottomSheetBackdrop
+                {...props}
+                disappearsOnIndex={-1}
+                appearsOnIndex={1}
+            />
+        ),
+        []
+    );
+
     if (fontsLoaded && !loading) {
         return (
-            <View style={{ flex: 1, position: 'relative' }}>
+            <GestureHandlerRootView style={{ flex: 1, position: 'relative' }}>
                 <View style={{
                     position: 'absolute',
                     left: 60,
@@ -178,7 +278,17 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                         ListFooterComponent={<View style={{height: 50}} />}
                     />
                 </SafeAreaView>
-            </View>
+
+                <BottomSheet
+                    ref={sheetRef}
+                    index={-1}
+                    snapPoints={snapPoints}
+                    onChange={handleSheetChange}
+                    backdropComponent={renderBackdrop}
+                >
+                    <></>
+                </BottomSheet>
+            </GestureHandlerRootView>
         )
     } else {
         return (

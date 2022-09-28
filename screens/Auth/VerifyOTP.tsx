@@ -11,7 +11,8 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    NativeModules
 } from 'react-native';
 
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -32,6 +33,8 @@ import {useEffect, useRef, useState} from "react";
 import {getSecureKey} from "../../utils/secureStore";
 import {EvilIcons} from "@expo/vector-icons";
 import {receiveVerificationSMS, removeAllListeners, startSmsUserConsent} from "../../utils/smsVerification";
+
+const {CSTM} = NativeModules;
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -104,7 +107,7 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
             if (error.message === '401') {
                 navigation.navigate('Login');
             }
-            console.log(error.message);
+            CSTM.showToast(error.message);
             return Promise.resolve(false)
         } else {
             await startSmsUserConsent();

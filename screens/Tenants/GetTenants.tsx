@@ -65,6 +65,10 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
 
     const [country, setCountry] = useState<{name: string, code: string, numericCode: string, flag: string}>()
 
+    const [deviceId, setDeviceId] = useState<string | null>(null)
+
+    const [tab, setTab] = useState<number>(0)
+
     const defaultValues = phn && phn !== "" ? {
         phoneNumber: phn,
         countryCode: code
@@ -113,7 +117,14 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
         let tenantsFetched = true;
 
         if (tenants.length > 0 && tenantsFetched) {
-            navigation.navigate('ShowTenants');
+            let payload = {
+                countryCode: getValues('countryCode'),
+                phoneNumber: tab === 0 ? getValues("phoneNumber"): undefined,
+                email: tab === 1 ? getValues("email") : undefined
+            };
+
+            console.log('payload', payload)
+            navigation.navigate('ShowTenants', payload);
         }  else {
             setError('phoneNumber', {type: 'custom', message: "Kindly check the number and try again"});
         }
@@ -122,11 +133,6 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
             tenantsFetched = false;
         };
     }, [tenants]);
-
-    const [deviceId, setDeviceId] = useState<string | null>(null)
-
-    const [tab, setTab] = useState<number>(1)
-
 
     useEffect(() => {
         if (code === '+254') {
@@ -214,7 +220,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
 
     const onSubmit = async (value: any): Promise<void> => {
         console.log("running submit");
-        if (value && code === '+254') {
+        if (value && code === '+254' && tab === 0) {
             try {
                 if (value.phoneNumber.length < 8) {
                     setError('phoneNumber', {type: 'custom', message: 'Please provide a valid phone number'});
@@ -245,13 +251,17 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
             } catch (e: any) {
                 console.log('Error Get Tenants', e);
             }
-        } else {
+        } else if (tab === 1) {
             try {
-                const { email, phoneNumber, countryCode } = value;
+                const { email, countryCode } = value;
 
-                if (email && phoneNumber && countryCode) {
+                console.log('process email', email);
+
+                if (email && countryCode) {
                     const { type, error, payload }: any = await dispatch(getTenants(email));
+
                     setSubmitted(true);
+
                     if (type === 'getTenants/rejected' && error) {
                         if (error.message === "Network request failed") {
                             CSTM.showToast(error.message);
@@ -259,14 +269,20 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                             setError('email', { type: 'custom', message: error.message });
                         }
                     } else {
-                        await saveSecureKey('account_email', email);
-                        await saveSecureKey('phone_number_code', countryCode);
-
-                        if (payload.length === 0)  setError('email', {type: 'custom', message: 'Please provide a valid email'});
+                        console.log(payload)
+                        if (payload.length === 0) {
+                            setError('email', {type: 'custom', message: 'Please provide a valid email'})
+                        } else {
+                            await saveSecureKey('account_email', email);
+                            await saveSecureKey('phone_number_code', countryCode);
+                        }
                     }
 
                 } else {
                     setError('email', {type: 'custom', message: 'Please provide a valid email'});
+                    setError('phoneNumber', {type: 'custom', message: 'Not available in your country'});
+                    console.log("email in question", email, countryCode);
+                    setSubmitted(true);
                 }
 
             } catch (e) {
@@ -395,17 +411,21 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                             />
                             {
                                 (errors.email && submitted) &&
-                                <Text  allowFontScaling={false}  style={styles.error}>{errors.email?.message ? errors.email?.message : 'Kindly use the required format'}</Text>
+                                <Text  allowFontScaling={false}  style={styles.error}>{errors.email.message ? errors.email.message : 'Kindly use the required format'}</Text>
                             }
 
                             {(deviceId && phn && code && (errors.email) && submitted) &&
                                 <Pressable style={{paddingTop: 10}} onPress={() => {
-                                    const payload = {
-                                        deviceId: deviceId,
-                                        phoneNumber: null,
-                                        email: getValues("email")
-                                    };
-                                    navigation.navigate('SelectTenant', payload);
+                                    if (getValues("email") && getValues("email") !== '') {
+                                        const payload = {
+                                            deviceId: deviceId,
+                                            phoneNumber: null,
+                                            email: getValues("email")
+                                        };
+                                        navigation.navigate('SelectTenant', payload);
+                                    } else {
+                                        CSTM.showToast('Missing Fields')
+                                    }
                                 }}>
                                     <Text allowFontScaling={false} style={{
                                         ...styles.error,

@@ -73,8 +73,6 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
 
             if (email && countryCode) {
 
-                console.log('fetch tenants', email);
-
                 await dispatch(getTenants(email));
 
             } else if (phoneNumber && countryCode) {
@@ -87,7 +85,6 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                     let number = identifier.substring(1);
                     phone = `254${number.replace(/ /g, "")}`;
                 }
-                console.log('fetch tenants', phone)
 
                 await dispatch(getTenants(phone));
             }
@@ -147,17 +144,17 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                     if (settings) {
                         dispatch(setSelectedTenantId(item.id));
 
-                        console.log("selected tenant", settings);
-
                         (async () => {
                             const {type, payload, error} : any = await dispatch(authClient({realm: settings.tenantId, client_secret: settings.clientSecret}))
 
                             if (type === 'authClient/fulfilled') {
                                 const { access_token } = payload;
 
-                                const { countryCode, phoneNumber, email }: any = route.params;
+                                let { countryCode, phoneNumber, email }: any = route.params;
 
-                                console.log("the phone number", countryCode, phoneNumber, email)
+                                if (!phoneNumber && !email) {
+                                    phoneNumber = await getSecureKey('phone_number_without');
+                                }
 
                                 if (email && access_token) {
                                     const response: any = await dispatch(searchByEmail({email: encodeURIComponent(email), access_token}))
@@ -180,11 +177,12 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                                         CSTM.showToast(response.error.message)
                                         setErrorSMS(response.error.message)
                                     } else {
-                                        console.log('searchByPhone', response.payload);
                                         // we can intercept and cereate otp here
                                         setUserFound(true);
                                         navigation.navigate('Login');
                                     }
+                                } else {
+                                    navigation.navigate('GetTenants');
                                 }
                             } else {
                                 CSTM.showToast(error.message)
@@ -284,7 +282,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                     onChange={handleSheetChange}
                     backdropComponent={renderBackdrop}
                 >
-                    <View style={{backgroundColor: '#FFFFFF'}}><Text>Sorry, kindly contact developer</Text></View>
+                    <View style={{backgroundColor: '#FFFFFF'}}><Text style={{textAlign: 'center'}}>Sorry, kindly contact developer</Text></View>
                 </BottomSheet>
             </GestureHandlerRootView>
         )

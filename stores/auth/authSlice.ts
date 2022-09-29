@@ -1665,6 +1665,48 @@ export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: str
     }
 })
 
+const emailApproval = createAsyncThunk('emailApproval', async ({ memberNumber, currentEmail, updatedEmail }: {memberNumber: string, currentEmail: string, updatedEmail: string}) => {
+    try {
+        const url = `https://eguarantorship-api.presta.co.ke/api/v1/members/send-email-approval`
+
+        const key = await getSecureKey('access_token');
+
+        if (!key) {
+            return Promise.reject("You are not authenticated");
+        }
+        const myHeaders = new Headers();
+
+        myHeaders.append("Authorization", `Bearer ${key}`);
+
+        const raw = JSON.stringify({
+            memberNumber,
+            currentEmail,
+            updatedEmail
+        })
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw
+        });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            return Promise.resolve(data);
+        } else if (response.status === 401) {
+            setAuthState(false);
+            return Promise.reject(response.status);
+        } else {
+            const data = await response.json();
+            console.log("status", response.status, data);
+            return Promise.reject("API response code: " + response.status);
+        }
+
+    } catch (e: any) {
+        return Promise.reject("Email approval Error");
+    }
+})
+
 export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: string | undefined, { getState, dispatch }) => {
     return new Promise(async (resolve, reject) => {
        try {
@@ -1683,7 +1725,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
            console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber}`);
            if (response.status === 200) {
                const data = await response.json();
-               console.log("Fetch Member Data", data);
+               console.log("Fetch Member Data", data.email);
                resolve(data);
            }  else if (response.status === 401) {
                // update refresh token and retry

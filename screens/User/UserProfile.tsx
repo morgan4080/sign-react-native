@@ -8,12 +8,12 @@ import {
     Dimensions,
     Platform,
     ImageBackground,
-    SectionList
+    SectionList, NativeModules
 } from 'react-native';
 
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
-import {useEffect} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {useDispatch, useSelector} from "react-redux";
 import {
@@ -28,12 +28,16 @@ import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
 import {getSecureKey} from "../../utils/secureStore";
+import BottomSheet, {BottomSheetBackdrop} from "@gorhom/bottom-sheet";
+import {GestureHandlerRootView} from "react-native-gesture-handler";
 
 // Types
 
 type NavigationProps = NativeStackScreenProps<any>
 
 const { width, height } = Dimensions.get("window");
+
+const { CSTM } = NativeModules;
 
 const greeting = () => {
     return ["Morning", "Afternoon", "Evening"].reduce((previousValue: string, currentValue: string, currentIndex: number, greetings: string[]): string => {
@@ -69,26 +73,27 @@ export default function UserProfile({ navigation }: NavigationProps) {
                 const [authStuff] = await Promise.all([
                     dispatch(authenticate())
                 ]);
-                const { type }: any = authStuff;
+                const { type, error, payload }: any = authStuff;
                 if (type === 'authenticate/rejected') {
                     navigation.navigate('GetTenants')
                 } else {
-                    /*let phone: string = ''
-                    let identifier: string = `${user?.phoneNumber}`
-                    if (identifier[0] === '+') {
-                        let number = identifier.substring(1);
-                        phone = `${number.replace(/ /g, "")}`;
-                    } else if (identifier[0] === '0') {
-                        let number = identifier.substring(1);
-                        phone = `254${number.replace(/ /g, "")}`;
-                    }*/
                     try {
-                        await Promise.all([
-                            dispatch(fetchMember(`${user?.phoneNumber}`)),
+                        const [a,b,c,d] = await Promise.all([
+                            dispatch(fetchMember(`${ payload.phoneNumber }`)),
                             dispatch(saveContactsToDb()),
                             dispatch(fetchLoanProducts()),
                             dispatch(setLoanCategories(signal))
                         ]);
+
+                        const { email, details }: any = a.payload;
+
+                        if (!email) {
+                            handleSnapPress(2);
+                        } else {
+                            if (details && details.email_approval && details.email_approval.value && details.email_approval.value !== email) {
+                                CSTM.showToast('Email Change Awaiting Approval')
+                            }
+                        }
                     } catch (e: any) {
                         console.log('promise rejection', e);
                     }
@@ -111,9 +116,47 @@ export default function UserProfile({ navigation }: NavigationProps) {
         Poppins_300Light
     });
 
+    // tme email = null enter pin
+    /*"email_approval": {
+        "value": "chepngenokirui20@gmail.com",
+            "type": "TEXT"
+    },
+        compare wil email if not same, awaiting approval
+
+    */
+
+    const sheetRef = useRef<BottomSheet>(null);
+
+    const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
+
+    // callbacks
+    const handleSheetChange = useCallback((index: any) => {
+        console.log("handleSheetChange", index);
+    }, []);
+
+    const handleSnapPress = useCallback((index: any) => {
+        sheetRef.current?.snapToIndex(index);
+    }, []);
+
+    const handleClosePress = useCallback(() => {
+        sheetRef.current?.close();
+    }, []);
+
+    // disappearsOnIndex={1}
+    const renderBackdrop = useCallback(
+        (props: any) => (
+            <BottomSheetBackdrop
+                {...props}
+                disappearsOnIndex={-1}
+                appearsOnIndex={1}
+            />
+        ),
+        []
+    );
+
     if (fontsLoaded) {
         return (
-            <SafeAreaView style={{ flex: 1, position: 'relative', backgroundColor: '#FFFFFF' }}>
+            <GestureHandlerRootView style={{ flex: 1, position: 'relative', backgroundColor: '#FFFFFF' }}>
                 <SectionList
                     refreshing={loading}
                     progressViewOffset={50}
@@ -215,8 +258,18 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     }}
                 />
 
+                <BottomSheet
+                    ref={sheetRef}
+                    index={-1}
+                    snapPoints={snapPoints}
+                    onChange={handleSheetChange}
+                    backdropComponent={renderBackdrop}
+                >
+                    <View style={{backgroundColor: '#FFFFFF'}}><Text>Sorry, kindly contact developer</Text></View>
+                </BottomSheet>
+
                 <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-            </SafeAreaView>
+            </GestureHandlerRootView>
         )
     } else {
         return (

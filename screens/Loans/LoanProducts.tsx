@@ -82,12 +82,6 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
     if (fontsLoaded) {
         return (
             <SafeAreaView style={{flex: 1, marginTop: Bar.currentHeight, position: 'relative'}}>
-                {
-                    loading &&
-                    <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
-                        <RotateView/>
-                    </View>
-                }
                 <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', left: -100, top: '20%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', right: -80, top: '10%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
@@ -106,6 +100,9 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                 </View>
                 <SectionList
                     style={{paddingHorizontal: 20}}
+                    refreshing={loading}
+                    progressViewOffset={5}
+                    onRefresh={() => dispatch(fetchLoanProducts())}
                     sections={loanProducts ? loanProducts.reduce((acc: {title: string, data: LoanProduct[]}[], product) => {
                         if (product.details.isFosa.value === 'N') {
                             acc[0].data = [...acc[0].data, product]

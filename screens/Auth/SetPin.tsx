@@ -104,7 +104,6 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                         const response: any = await dispatch(searchByEmail({email, access_token}))
 
                         if (response.type === 'searchByEmail/rejected') {
-                            CSTM.showToast(response.error.message)
                             setErrorSMS(response.error.message)
                         } else {
                             console.log('searchByEmail,,,', response.payload.refId)
@@ -165,7 +164,6 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                                     CSTM.showToast(error.message);
                                 } else {
                                     setError('pinConfirmation', {type: 'custom', message: error.message});
-                                    CSTM.showToast(error.message);
                                 }
                             } else {
                                 dispatch(setAuthState(true));
@@ -185,8 +183,13 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
             CSTM.showToast("We couldn't login")
         }
     }
-
-    if (fontsLoaded && userFound) {
+    if (loading) {
+        return (
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: height - 200, width }}>
+                <RotateView/>
+            </View>
+        )
+    } else if (fontsLoaded && userFound) {
         return (
             <View style={styles.container}>
                 <Text allowFontScaling={false} style={{ color: '#489AAB', fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }} >Pin</Text>

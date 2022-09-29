@@ -321,43 +321,45 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                         <Text allowFontScaling={false} style={styles.titleText}>Enter registered phone number</Text>
                         <Text allowFontScaling={false} style={styles.subTitleText}>Verify Membership</Text>
 
-                        {
+                        {/*{
                             code !== '+254' &&
-                            <View style={{display: 'flex', alignItems: 'center', flexDirection: 'row', paddingTop: 15}}>
-                                <TouchableOpacity onPress={() => {
-                                    setTab(0)
-                                }} style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    justifyContent: 'flex-start',
-                                    alignItems: 'flex-start'
-                                }}>
-                                    <Text allowFontScaling={false} style={[{
-                                        color: tab === 0 ? '#489AAB' : '#c6c6c6',
-                                        paddingHorizontal: 10
-                                    }, styles.tabTitle, {
-                                        borderBottomWidth: tab === 0 ? 2 : 0,
-                                        borderColor: '#489AAB'
-                                    }]}>Phone</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => {
-                                    setTab(1)
-                                }} style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    justifyContent: 'flex-start',
-                                    alignItems: 'flex-start'
-                                }}>
-                                    <Text allowFontScaling={false} style={[{
-                                        color: tab === 1 ? '#489AAB' : '#c6c6c6',
-                                        paddingHorizontal: 10
-                                    }, styles.tabTitle, {
-                                        borderBottomWidth: tab === 1 ? 2 : 0,
-                                        borderColor: '#489AAB'
-                                    }]}>Email</Text>
-                                </TouchableOpacity>
-                            </View>
-                        }
+
+                        }*/}
+
+                        <View style={{display: 'flex', alignItems: 'center', flexDirection: 'row', paddingTop: 15}}>
+                            <TouchableOpacity onPress={() => {
+                                setTab(0)
+                            }} style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'flex-start',
+                                alignItems: 'flex-start'
+                            }}>
+                                <Text allowFontScaling={false} style={[{
+                                    color: tab === 0 ? '#489AAB' : '#c6c6c6',
+                                    paddingHorizontal: 10
+                                }, styles.tabTitle, {
+                                    borderBottomWidth: tab === 0 ? 2 : 0,
+                                    borderColor: '#489AAB'
+                                }]}>Phone</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => {
+                                setTab(1)
+                            }} style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'flex-start',
+                                alignItems: 'flex-start'
+                            }}>
+                                <Text allowFontScaling={false} style={[{
+                                    color: tab === 1 ? '#489AAB' : '#c6c6c6',
+                                    paddingHorizontal: 10
+                                }, styles.tabTitle, {
+                                    borderBottomWidth: tab === 1 ? 2 : 0,
+                                    borderColor: '#489AAB'
+                                }]}>Email</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 )
             case 'country':
@@ -388,7 +390,8 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                     </View>
                 )
             case 'email':
-                if (code !== '+254' && tab === 1) {
+                // code !== '+254' &&
+                if (tab === 1) {
                     return (
                         <View style={{ paddingHorizontal: 30, marginTop: 10, position: 'relative' }}>
 
@@ -539,7 +542,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
 
                             {(deviceId && phn && code && (errors.phoneNumber) && submitted) &&
                                 <Pressable style={{paddingTop: 10}} onPress={async () => {
-                                    const [c, p] = await Promise.all([getSecureKey('phone_number_code'), getSecureKey('phone_number_without')]);
+                                    await Promise.all([saveSecureKey('phone_number_code', getValues("countryCode")), saveSecureKey('phone_number_without', getValues("phoneNumber"))]);
                                     const payload = {
                                         deviceId: deviceId,
                                         phoneNumber: `${getValues("countryCode")}${getValues("phoneNumber")}`,

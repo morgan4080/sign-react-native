@@ -3,7 +3,7 @@ import {deleteSecureKey, getSecureKey, saveSecureKey} from '../../utils/secureSt
 import {openDatabase} from "../../database";
 import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
-import {getAppSignatures, removeAllListeners} from "../../utils/smsVerification";
+import {getAppSignatures} from "../../utils/smsVerification";
 import {NativeModules} from "react-native";
 import {BaseThunkAPI} from "@reduxjs/toolkit/dist/createAsyncThunk";
 export let db: WebSQLDatabase
@@ -1107,9 +1107,6 @@ export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', asy
                 saveSecureKey('otp_verified', 'true'),
                 saveSecureKey('existing', 'true')
             ]);
-
-            removeAllListeners();
-
             return Promise.resolve(data);
         } else {
             return Promise.reject(response.status);
@@ -1119,7 +1116,7 @@ export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', asy
     }
 })
 
-export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memberNo: string, {dispatch, getState}) => {
+export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memberNo: string | undefined, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token');
 
@@ -1201,7 +1198,6 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
                     saveSecureKey('otp_verified', 'true'),
                     saveSecureKey('existing', 'true')
                 ]);
-                removeAllListeners();
                 return Promise.resolve(data);
             } else {
                 return Promise.reject("OTP Invalid");
@@ -1953,6 +1949,37 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
     })
 })
 
+export const fetchMyLoans = createAsyncThunk('fetchMyLoans', async (refId: string | undefined) => {
+    try {
+        const url = `https://eguarantorship-api.presta.co.ke/api/v1/loans?memberRefId=${refId}`
+
+        const key = await getSecureKey('access_token')
+        if (!key) {
+            return Promise.reject('You are not authenticated')
+        }
+
+        const myHeaders = new Headers()
+
+        myHeaders.append("Authorization", `Bearer ${key}`)
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: myHeaders,
+            redirect: 'follow'
+        })
+
+        if (response.status === 200) {
+            const data = await response.json()
+            return Promise.resolve(data)
+        } else {
+            return Promise.reject(response.status + 'Error: Loans')
+        }
+
+    } catch (e: any) {
+        return Promise.reject(e.message)
+    }
+})
+
 export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async (_, {dispatch, getState}) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/loans-products`
 
@@ -2015,7 +2042,7 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
     }
     const myHeaders = new Headers();
     myHeaders.append("Authorization", `Bearer ${key}`)
-    const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code', {
+    const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/core-banking/sasra-code', {
         method: 'GET',
         headers: myHeaders,
         redirect: 'follow',
@@ -2036,7 +2063,7 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
 
             let loanSubCategoriesData = loanCategories.reduce((acc: any[], curr: {code: string, name: string, options: {name: string, selected: boolean}[]}) => {
                 acc.push(new Promise(resolve => {
-                    fetch(`https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code?parent=${curr.code}`, {
+                    fetch(`https://eguarantorship-api.presta.co.ke/api/v1/core-banking/sasra-code?parent=${curr.code}`, {
                         method: 'GET',
                         headers: myHeaders,
                         redirect: 'follow',
@@ -2068,7 +2095,7 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
             const withAllOptions = loanSubCategories.reduce((accumulator: any[], currentValue) => {
                 let allSubOptionsPromises = currentValue.options.reduce((a: any, c) => {
                     a.push(new Promise(resolve => {
-                        fetch(`https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/sasra-code?parent=${currentValue.code}&child=${c.code}`, {
+                        fetch(`https://eguarantorship-api.presta.co.ke/api/v1/core-banking/sasra-code?parent=${currentValue.code}&child=${c.code}`, {
                             method: 'GET',
                             headers: myHeaders,
                             redirect: 'follow',

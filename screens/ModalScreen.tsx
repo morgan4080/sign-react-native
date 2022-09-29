@@ -215,7 +215,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
                     <MaterialCommunityIcons name="account" color="#FFFFFF" size={50}/>
                     <Ionicons style={{position: 'absolute', right: '-10%', backgroundColor: "#FFFFFF", bottom: 10, paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100}} name="add-circle-sharp" size={24} color="#489bab" />
                   </TouchableOpacity>}
-              <Text allowFontScaling={false} style={styles.titleText}>{`${member?.fullName}`}</Text>
+              <Text allowFontScaling={false} style={styles.titleText}>{`${member?.firstName} ${member?.lastName}`}</Text>
               <Text allowFontScaling={false} style={styles.subTitleText}>{`Member No: ${member?.memberNumber}`}</Text>
               <Text allowFontScaling={false} style={styles.subTitleText}>{`${user?.companyName}`}</Text>
             </View>

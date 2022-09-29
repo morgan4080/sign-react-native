@@ -12,7 +12,7 @@ import {StatusBar} from "expo-status-bar";
 import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 
 import {useDispatch, useSelector} from "react-redux";
-import {fetchMemberDetails, storeState} from "../../stores/auth/authSlice";
+import {fetchMemberDetails, fetchMyLoans, searchByMemberNo, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {
@@ -25,7 +25,7 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import { Circle as ProgressCircle } from 'react-native-progress';
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {RotateView} from "../Auth/VerifyOTP";
 
 type NavigationProps = NativeStackScreenProps<any>;
@@ -37,22 +37,27 @@ export const toMoney = (money: string): string => {
 };
 
 export default function LoanRequests ({ navigation }: NavigationProps) {
-    const { loading, user, member, memberDetails } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, user, member } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
 
+    const [loans, setLoans] = useState<any>(undefined)
+
     useEffect(() => {
         let fetching = true;
-        const controller = new AbortController();
-        const signal = controller.signal;
         if (fetching) {
             (async () => {
-                await dispatch(fetchMemberDetails({memberNo: member?.memberNumber, signal}))
+                const [x, y] = await Promise.all([
+                    dispatch(searchByMemberNo(member?.memberNumber)),
+                    dispatch(fetchMyLoans(member?.refId))
+                ])
+                setLoans(y.payload)
+
+                console.log('the loans', y.payload)
             })()
         }
         return () => {
-            controller.abort();
             fetching = false;
         }
     }, []);
@@ -76,7 +81,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                     <View style={styles.userPicBtn}>
                         <MaterialCommunityIcons name="account" color="#FFFFFF" size={50}/>
                     </View>
-                    <Text allowFontScaling={false} style={styles.titleText}>{ `${ member?.fullName }` }</Text>
+                    <Text allowFontScaling={false} style={styles.titleText}>{ `${member?.firstName} ${member?.lastName}` }</Text>
                     <Text allowFontScaling={false} style={styles.subTitleText}>{ `Member NO: ${member?.memberNumber}` }</Text>
                     <Text allowFontScaling={false} style={styles.organisationText}>{ `${user?.companyName}` }</Text>
                     <SafeAreaView style={{ flex: 1, width: width-20, height: height/2 }}>
@@ -88,7 +93,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, marginBottom: 20}}>
                                     <View>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>ACTIVE LOANS</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>{ memberDetails?.activeLoans ? memberDetails?.activeLoans?.length : 0 }</Text>
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 13 }}>{loans ? loans.length : 0}</Text>
                                     </View>
                                     <View>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>SHARES AMOUNT</Text>

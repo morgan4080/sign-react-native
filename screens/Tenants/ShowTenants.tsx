@@ -14,7 +14,7 @@ import {
     setSelectedTenantId,
     getTenants,
     authClient,
-    searchByPhone, searchByEmail
+    searchByPhone, searchByEmail, fetchGuarantorshipRequests
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {
@@ -63,47 +63,39 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
 
     const {CSTM} = NativeModules;
 
-    useEffect(() => {
-        let fetching = true;
-        if (fetching) {
-            (async () => {
-                try {
-                    let otpV = await getSecureKey('otp_verified');
+    const reFetch = async () => {
+        try {
+            let otpV = await getSecureKey('otp_verified');
 
-                    setOtpVerified(otpV);
+            setOtpVerified(otpV);
 
-                    const { countryCode, phoneNumber, email }: any = route.params;
+            const { countryCode, phoneNumber, email }: any = route.params;
 
-                    if (email && countryCode) {
+            if (email && countryCode) {
 
-                        console.log('fetch tenants', email);
+                console.log('fetch tenants', email);
 
-                        await dispatch(getTenants(email));
+                await dispatch(getTenants(email));
 
-                    } else if (phoneNumber && countryCode) {
-                        let phone: string = '';
-                        let identifier: string = `${countryCode}${phoneNumber}`;
-                        if (identifier[0] === '+') {
-                            let number = identifier.substring(1);
-                            phone = `${number.replace(/ /g, "")}`;
-                        } else if (identifier[0] === '0') {
-                            let number = identifier.substring(1);
-                            phone = `254${number.replace(/ /g, "")}`;
-                        }
-                        console.log('fetch tenants', phone)
-
-                        await dispatch(getTenants(phone));
-                    }
-
-                } catch (e:any) {
-                    console.log("getSecureKey otpVerified", e);
+            } else if (phoneNumber && countryCode) {
+                let phone: string = '';
+                let identifier: string = `${countryCode}${phoneNumber}`;
+                if (identifier[0] === '+') {
+                    let number = identifier.substring(1);
+                    phone = `${number.replace(/ /g, "")}`;
+                } else if (identifier[0] === '0') {
+                    let number = identifier.substring(1);
+                    phone = `254${number.replace(/ /g, "")}`;
                 }
-            })()
+                console.log('fetch tenants', phone)
+
+                await dispatch(getTenants(phone));
+            }
+
+        } catch (e:any) {
+            console.log("getSecureKey otpVerified", e);
         }
-        return () => {
-            fetching = false;
-        }
-    }, [])
+    }
 
     useEffect(() => {
         let authenticating = true;
@@ -111,6 +103,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
             (async () => {
                 const response = await dispatch(authenticate());
                 if (response.type === 'authenticate/rejected') {
+                    await reFetch();
                     return
                 }
                 if (response.type === 'authenticate/fulfilled') {
@@ -129,13 +122,13 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
 
     const [errorSMS, setErrorSMS] = useState<string>("");
 
-    useEffect(() => {
+    /*useEffect(() => {
         if (!userFound) {
             handleSnapPress(1);
         } else {
             handleClosePress();
         }
-    }, [userFound])
+    }, [userFound])*/
 
 
     const renderItem = ({ item }: any) => {
@@ -173,6 +166,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                                         CSTM.showToast(response.error.message);
                                         setErrorSMS(response.error.message);
                                     } else {
+                                        // we can intercept and cereate otp here
                                         setUserFound(true);
                                         navigation.navigate('Login');
                                     }
@@ -187,6 +181,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                                         setErrorSMS(response.error.message)
                                     } else {
                                         console.log('searchByPhone', response.payload);
+                                        // we can intercept and cereate otp here
                                         setUserFound(true);
                                         navigation.navigate('Login');
                                     }
@@ -234,7 +229,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
         []
     );
 
-    if (fontsLoaded && !loading) {
+    if (fontsLoaded) {
         return (
             <GestureHandlerRootView style={{ flex: 1, position: 'relative' }}>
                 <View style={{
@@ -272,6 +267,9 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                 }}/>
                 <SafeAreaView style={styles.container}>
                     <FlatList
+                        refreshing={loading}
+                        progressViewOffset={50}
+                        onRefresh={() => reFetch()}
                         data={tenants}
                         renderItem={renderItem}
                         keyExtractor={item => item.id}
@@ -286,7 +284,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                     onChange={handleSheetChange}
                     backdropComponent={renderBackdrop}
                 >
-                    <View style={{backgroundColor: '#FFFFFF'}}></View>
+                    <View style={{backgroundColor: '#FFFFFF'}}><Text>Sorry, kindly contact developer</Text></View>
                 </BottomSheet>
             </GestureHandlerRootView>
         )

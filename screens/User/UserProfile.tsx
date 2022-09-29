@@ -114,14 +114,10 @@ export default function UserProfile({ navigation }: NavigationProps) {
     if (fontsLoaded) {
         return (
             <SafeAreaView style={{ flex: 1, position: 'relative', backgroundColor: '#FFFFFF' }}>
-                {
-                    loading &&
-                    <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
-                        <RotateView color="#FFFFFF"/>
-                    </View>
-                }
-
                 <SectionList
+                    refreshing={loading}
+                    progressViewOffset={50}
+                    onRefresh={ async () => await fetchMember(user?.phoneNumber)}
                     sections={[
                         {
                             title: 'title',
@@ -144,7 +140,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                             <Text allowFontScaling={false} style={[styles.subTitleText, {fontSize: 12, color: '#FFFFFF', paddingRight: 10, fontFamily: 'Poppins_300Light'}]}>PROFILE</Text>
                                         </TouchableOpacity>
                                         <View>
-                                            <Text allowFontScaling={false} style={styles.titleText}>{ `Good ${ greeting() } ${ user?.firstName ? user?.firstName : '' }` }</Text>
+                                            <Text allowFontScaling={false} style={styles.titleText}>{ `Good ${ greeting() } ${ member?.firstName ? user?.firstName : '' }` }</Text>
                                             <Text allowFontScaling={false} style={styles.subTitleText}>{ `Your member NO: ${ member?.memberNumber ? member?.memberNumber : '' }` }</Text>
                                             <Text allowFontScaling={false} style={styles.subText}>{ `${ user?.companyName ? user?.companyName : '' }` }</Text>
                                         </View>

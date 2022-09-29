@@ -365,14 +365,14 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
             case 'country':
                 return (
                     <View style={{ paddingHorizontal: 30, marginTop: 20, position: 'relative' }}>
-                        <View style={{ ...styles.input, position: 'absolute', top: 7, left: width/14, width: width/5.5, borderRadius: 0, height: 35, paddingLeft: 0, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                        <View style={{ ...styles.input, paddingLeft: 0, paddingHorizontal: width/5, position: 'absolute', top: 7, left: width/14, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                             {
                                 country ? <Image source={{uri: country?.flag}} style={{width: 20, height: 15}}/>
                                     :
                                     <MaterialCommunityIcons name="diving-scuba-flag" size={20} color="#8d8d8d"/>
                             }
                         </View>
-                        <View style={{ ...styles.input, position: 'absolute', top: 7, right: width/12, width: width/5.5, borderRadius: 0, height: 35, paddingHorizontal: 15, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                        <View style={{ ...styles.input, paddingLeft: 0, paddingHorizontal: width/5, position: 'absolute', top: 7, right: width/12, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, paddingRight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                             <AntDesign name="right" size={20} color="#8d8d8d" />
                         </View>
 
@@ -468,19 +468,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                                     <TextInput
                                         ref={focusCountryCode}
                                         allowFontScaling={false}
-                                        style={{
-                                            ...styles.input,
-                                            position: 'absolute',
-                                            top: 7,
-                                            left: width / 11,
-                                            width: width / 5.5,
-                                            borderRadius: 0,
-                                            height: 35,
-                                            borderWidth: 0,
-                                            zIndex: 11,
-                                            paddingHorizontal: 15,
-                                            paddingRight: 0
-                                        }}
+                                        style={{position: 'absolute', color: errors.phoneNumber && submitted ? '#d53b39' : '#757575', top: 25, left: width/11, width: width/5.5, borderRadius: 0, height: 35, borderWidth: 0, zIndex: 11, paddingHorizontal: 15, paddingRight: 0}}
                                         editable={false}
                                         value={value}
                                         onChangeText={(e) => {
@@ -702,7 +690,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         height: 50,
         marginTop: 20,
-        paddingHorizontal: width/5,
+        paddingLeft: width/5,
         fontSize: 14,
         fontFamily: 'Poppins_400Regular',
         color: '#757575'

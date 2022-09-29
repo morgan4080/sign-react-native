@@ -74,36 +74,10 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
 
     const Item = ({ product }: { product: LoanProduct } ) => (
         <TouchableOpacity key={product.refId} style={styles.tile} onPress={() => navigation.navigate('LoanProduct', { loanProduct: product })}>
-            <Text allowFontScaling={false} style={{color: '#ADADAD', fontFamily: 'Poppins_400Regular', fontSize: 13}}>{ product.name }</Text>
+            <Text allowFontScaling={false} style={{color: '#575757', fontFamily: 'Poppins_400Regular', fontSize: 13}}>{ product.name }</Text>
             <MaterialIcons name="keyboard-arrow-right" size={40} color="#ADADAD"/>
         </TouchableOpacity>
     );
-
-    loanProducts?.reduce((acc: {title: string, data: {}[]}[], product) => {
-        if (product.details.isFosa.value === 'N') {
-            acc[0].data = [...acc[0].data, product]
-        } else {
-            acc[1].data = [...acc[1].data, product]
-        }
-        return acc
-    }, [
-        {
-            title: 'Bosa',
-            data: []
-        },
-        {
-            title: 'Fosa',
-            data: []
-        }
-    ])
-
-    const DATA: any = []
-
-    const getItem = (data: any, index: any) => (data[index]);
-
-    const getItemCount = (data: any) => {
-        return data ? data.length : 0
-    };
 
     if (fontsLoaded) {
         return (
@@ -124,19 +98,35 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                     width,
                     position: 'relative'
                 }}>
-                    <TouchableOpacity onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 12, left: 12 }}>
-                        <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={30} />
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', top: 12, left: 12 }}>
+                        <Ionicons name="chevron-back-sharp" size={30} style={{ paddingLeft: 2 }} color="#489AAB" />
                     </TouchableOpacity>
 
                     <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginVertical: 15 }}>Select Loan Product</Text>
                 </View>
                 <SectionList
                     style={{paddingHorizontal: 20}}
-                    sections={DATA}
+                    sections={loanProducts ? loanProducts.reduce((acc: {title: string, data: LoanProduct[]}[], product) => {
+                        if (product.details.isFosa.value === 'N') {
+                            acc[0].data = [...acc[0].data, product]
+                        } else {
+                            acc[1].data = [...acc[1].data, product]
+                        }
+                        return acc
+                    }, [
+                        {
+                            title: 'Bosa',
+                            data: []
+                        },
+                        {
+                            title: 'Fosa',
+                            data: []
+                        }
+                    ]) : []}
                     renderItem={({ item }) => <Item product={item} />}
                     keyExtractor={item => item.refId}
                     renderSectionHeader={({ section: { title } }) => (
-                        <Text style={{}}>{title}</Text>
+                        <Text style={{fontFamily: 'Poppins_600SemiBold', color: '#489AAB', fontSize: 15, paddingHorizontal: 20}}>{title}</Text>
                     )}
                 />
 

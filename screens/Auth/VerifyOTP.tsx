@@ -95,7 +95,18 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
         }
     })()
 
-    const { user, loading, otpResponse } = useSelector((state: { auth: storeState }) => state.auth);
+    useEffect(() => {
+        return () => {
+            navigation.addListener('blur', () => {
+                removeAllListeners();
+            });
+            navigation.addListener('beforeRemove', () => {
+                removeAllListeners();
+            });
+        }
+    }, [navigation]);
+
+    const { loading, otpResponse } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
@@ -138,7 +149,6 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
                             setValue('otpChar2', otp[1]);
                             setValue('otpChar3', otp[2]);
                             setValue('otpChar4', otp[3]);
-                            removeAllListeners();
                             setValueInput(`${otp}`);
                         }
                     }

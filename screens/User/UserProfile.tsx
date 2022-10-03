@@ -70,16 +70,27 @@ export default function UserProfile({ navigation }: NavigationProps) {
         const signal = controller.signal;
         if (authenticating) {
             (async () => {
-                const [authStuff] = await Promise.all([
-                    dispatch(authenticate())
+                const [authStuff, phone_no, country_code] = await Promise.all([
+                    dispatch(authenticate()),
+                    getSecureKey('phone_number_without'),
+                    getSecureKey('phone_number_code')
                 ]);
                 const { type, error, payload }: any = authStuff;
                 if (type === 'authenticate/rejected') {
                     navigation.navigate('GetTenants')
                 } else {
                     try {
+                        let phone: string = ''
+                        let identifier: string = `${user?.phoneNumber ? user?.phoneNumber : country_code+phone_no}`
+                        if (identifier[0] === '+') {
+                            let number = identifier.substring(1);
+                            phone = `${number.replace(/ /g, "")}`;
+                        } else if (identifier[0] === '0') {
+                            let number = identifier.substring(1);
+                            phone = `254${number.replace(/ /g, "")}`;
+                        }
                         const [a,b,c,d] = await Promise.all([
-                            dispatch(fetchMember(`${ payload.phoneNumber }`)),
+                            dispatch(fetchMember(`${ payload.phoneNumber ? user?.phoneNumber : phone }`)),
                             dispatch(saveContactsToDb()),
                             dispatch(fetchLoanProducts()),
                             dispatch(setLoanCategories(signal))

@@ -95,8 +95,6 @@ export default function Login({ navigation }: NavigationProps) {
 
     const tenant = tenants.find(t => t.id === selectedTenantId);
 
-    console.log(tenant)
-
     const dispatch : AppDispatch = useDispatch();
 
     let [fontsLoaded] = useFonts({

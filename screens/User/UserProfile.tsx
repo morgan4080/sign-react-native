@@ -20,9 +20,9 @@ import {
     storeState,
     fetchMember,
     saveContactsToDb,
-    setLoanCategories,
+    // setLoanCategories,
     authenticate,
-    fetchLoanProducts
+    // fetchLoanProducts
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
@@ -89,11 +89,11 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             let number = identifier.substring(1);
                             phone = `254${number.replace(/ /g, "")}`;
                         }
-                        const [a,b,c,d] = await Promise.all([
+                        const [a,b] = await Promise.all([
                             dispatch(fetchMember(`${ payload.phoneNumber ? user?.phoneNumber : phone }`)),
                             dispatch(saveContactsToDb()),
-                            dispatch(fetchLoanProducts()),
-                            dispatch(setLoanCategories(signal))
+                            // dispatch(fetchLoanProducts()),
+                            // dispatch(setLoanCategories(signal))
                         ]);
 
                         const { email, details }: any = a.payload;
@@ -276,7 +276,9 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     onChange={handleSheetChange}
                     backdropComponent={renderBackdrop}
                 >
-                    <View style={{backgroundColor: '#FFFFFF'}}><Text>Sorry, kindly contact developer</Text></View>
+                    <View style={{backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular'}}>Email Address Not Found</Text>
+                    </View>
                 </BottomSheet>
 
                 <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />

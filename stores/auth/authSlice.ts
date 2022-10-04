@@ -1001,8 +1001,6 @@ export const searchByPhone = createAsyncThunk('searchByPhone', async ({phoneNumb
 
         const response = await fetch(URL, requestOptions)
 
-        console.log('STATUSSSS', response.status)
-
         if (response.status === 200) {
 
             const data = await response.json();
@@ -1655,7 +1653,6 @@ export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: str
             return Promise.reject(response.status);
         } else {
             const data = await response.json();
-            console.log("status", response.status, data);
             return Promise.reject("API response code: " + response.status);
         }
 
@@ -1725,7 +1722,6 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
            console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber}`);
            if (response.status === 200) {
                const data = await response.json();
-               console.log("Fetch Member Data", data.email);
                resolve(data);
            }  else if (response.status === 401) {
                // update refresh token and retry

@@ -31,12 +31,12 @@ interface AuthData {
     phoneNumber: string,
 }
 
-interface MemberData {
+export interface MemberData {
     availableAmount: number,
     committedAmount: number,
     createdBy: string,
     details: {Age: { type: string, value: string }, EmployerName: { type: string, value: string }, Gender: { type: string, value: string }},
-    email: string,
+    email: string | null,
     firstName: string,
     fullName: string,
     idNumber: string,
@@ -837,7 +837,7 @@ export const logoutUser = createAsyncThunk('logoutUser', async () => {
     ]);
 });
 
-type memberPayloadType = {firstName: string, lastName: string, phoneNumber: string, idNumber: string, email: string, memberRefId?: string}
+type memberPayloadType = {firstName?: string, lastName?: string, phoneNumber?: string, idNumber?: string, email?: string, memberRefId?: string}
 
 export const editMember = createAsyncThunk('editMember', async (payload: memberPayloadType, {dispatch, getState}) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/members/${payload.memberRefId}`;
@@ -856,8 +856,6 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
         myHeaders.append("Content-Type", 'application/json');
 
         delete payload.memberRefId
-
-        console.log(payload)
 
         const response = await fetch(url, {
             method: 'PUT',
@@ -1749,9 +1747,10 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
                headers: myHeaders,
                redirect: 'follow'
            });
-           console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber}`);
+           console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/r${phoneNumber}`);
            if (response.status === 200) {
                const data = await response.json();
+               console.log('the data', data);
                resolve(data);
            }  else if (response.status === 401) {
                // update refresh token and retry

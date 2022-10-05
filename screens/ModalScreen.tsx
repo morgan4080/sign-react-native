@@ -38,7 +38,7 @@ type FormData = {
   lastName: string,
   idNumber: string,
   phoneNumber: string,
-  email: string,
+  email: any,
   fingerPrint: false,
 }
 

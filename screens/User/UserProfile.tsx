@@ -3,12 +3,12 @@ import {
     View,
     StyleSheet,
     TouchableOpacity,
-    SafeAreaView,
+    // SafeAreaView,
     Image,
     Dimensions,
     Platform,
     ImageBackground,
-    SectionList, NativeModules
+    SectionList, NativeModules, TextInput
 } from 'react-native';
 
 import { StatusBar } from 'expo-status-bar';
@@ -21,15 +21,16 @@ import {
     fetchMember,
     saveContactsToDb,
     // setLoanCategories,
-    authenticate, setLoanCategories, fetchLoanProducts,
+    authenticate, setLoanCategories, fetchLoanProducts, editMember, logoutUser,
     // fetchLoanProducts
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
 import {getSecureKey} from "../../utils/secureStore";
-import BottomSheet, {BottomSheetBackdrop} from "@gorhom/bottom-sheet";
+import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from "@gorhom/bottom-sheet";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
+import {Controller, useForm} from "react-hook-form";
 
 // Types
 
@@ -57,6 +58,10 @@ const greeting = () => {
     })
 }
 
+type FormData = {
+    email: string
+}
+
 export default function UserProfile({ navigation }: NavigationProps) {
     const { loading, user, member } = useSelector((state: { auth: storeState }) => state.auth);
 
@@ -65,6 +70,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
     const dispatch : AppDispatch = useDispatch();
 
     useEffect(() => {
+
         let authenticating = true;
         const controller = new AbortController();
         const signal = controller.signal;
@@ -82,22 +88,26 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     try {
                         const fmPayload = phone_no ? `${country_code}${phone_no}` : payload.username;
 
-                        const [a,b,c,d] = await Promise.all([
+                        const [a] = await Promise.all([
                             dispatch(fetchMember(fmPayload.replace('+', ''))),
-                            dispatch(saveContactsToDb()),
-                            dispatch(fetchLoanProducts()),
-                            dispatch(setLoanCategories(signal))
                         ]);
 
                         const { email, details }: any = a.payload;
 
                         if (!email) {
-                            handleSnapPress(2);
-                        } else {
+                            handleSnapPress(1);
+                        }
+                        /*else {
                             if (details && details.email_approval && details.email_approval.value && details.email_approval.value !== email) {
                                 CSTM.showToast('Email Change Awaiting Approval')
                             }
-                        }
+                        }*/
+
+                        await Promise.all([
+                            dispatch(saveContactsToDb()),
+                            dispatch(fetchLoanProducts()),
+                            dispatch(setLoanCategories(signal))
+                        ])
                     } catch (e: any) {
                         console.log('promise rejection', e);
                     }
@@ -158,13 +168,61 @@ export default function UserProfile({ navigation }: NavigationProps) {
         []
     );
 
+    type memberPayloadType = {firstName?: string, lastName?: string, phoneNumber?: string, idNumber?: string, email?: string, memberRefId?: string};
+
+    const {
+        control,
+        watch,
+        handleSubmit,
+        clearErrors,
+        setError,
+        setValue,
+        getValues,
+        formState: { errors }
+    } = useForm<FormData>({})
+
+    const reload = async () => {
+        await fetchMember(user?.phoneNumber)
+    }
+
+    const onSubmit = async ({email}: any): Promise<void> => {
+        try {
+            const payload: memberPayloadType = {
+                email,
+                memberRefId: member?.refId
+            }
+
+            const {type, error}: any = await dispatch(editMember(payload));
+
+            if (type === 'editMember/rejected' && error) {
+                if (error.message === "Network request failed") {
+                    CSTM.showToast("Network request failed");
+                } else if (error.message === "401") {
+                    await dispatch(logoutUser())
+                } else {
+                    CSTM.showToast(error.message);
+                }
+            } else {
+                CSTM.showToast('Successful');
+                handleClosePress();
+                await reload();
+            }
+        } catch (e) {
+            CSTM.showToast('Failed');
+        }
+    }
+
+    const onError = (errors: any, e: any) => {
+        console.log('the errors')
+    }
+
     if (fontsLoaded) {
         return (
             <GestureHandlerRootView style={{ flex: 1, position: 'relative', backgroundColor: '#FFFFFF' }}>
                 <SectionList
                     refreshing={loading}
                     progressViewOffset={50}
-                    onRefresh={ async () => await fetchMember(user?.phoneNumber)}
+                    onRefresh={ async () => await reload()}
                     sections={[
                         {
                             title: 'title',
@@ -269,9 +327,39 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     onChange={handleSheetChange}
                     backdropComponent={renderBackdrop}
                 >
-                    <View style={{backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular'}}>Email Address Not Found</Text>
-                    </View>
+                    <BottomSheetScrollView contentContainerStyle={{backgroundColor: '#FFFFFF', paddingHorizontal: 20}}>
+                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#8d8e93', fontSize: 12, padding: 5}}>Email</Text>
+                        <Controller
+                            control={control}
+                            rules={{
+                                required: true,
+                                pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i
+                            }}
+                            render={( { field: { onChange, onBlur, value } }) => (
+                                <TextInput
+                                    allowFontScaling={false}
+                                    style={styles.input}
+                                    value={value}
+                                    autoFocus={false}
+                                    onBlur={onBlur}
+                                    onChangeText={onChange}
+                                    onChange={() => clearErrors()}
+                                    placeholder="Your Email"
+                                    keyboardType="email-address"
+                                    secureTextEntry={true}
+                                />
+                            )}
+                            name="email"
+                        />
+                        {
+                            errors.email &&
+                            <Text  allowFontScaling={false}  style={styles.error}>{errors.email?.message ? errors.email?.message : 'Invalid Email'}</Text>
+                        }
+                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#C0C2C9', fontSize: 12, paddingHorizontal: 10, paddingVertical: 15}}>Kindly add your email address to proceed.</Text>
+                        <TouchableOpacity disabled={loading} onPress={handleSubmit(onSubmit, onError)} style={{padding: 10, backgroundColor: '#3D889A', borderRadius: 20}}>
+                            <Text allowFontScaling={false} style={{textAlign: 'center', color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_300Light'}}>Save Email</Text>
+                        </TouchableOpacity>
+                    </BottomSheetScrollView>
                 </BottomSheet>
 
                 <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
@@ -289,6 +377,24 @@ export default function UserProfile({ navigation }: NavigationProps) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#cccccc',
+        borderRadius: 20,
+        height: 45,
+        marginTop: 10,
+        paddingHorizontal: 20,
+        fontSize: 12,
+        color: '#767577',
+        fontFamily: 'Poppins_400Regular'
+    },
+    error: {
+        fontSize: 10,
+        color: '#d53b39',
+        fontFamily: 'Poppins_400Regular',
+        paddingHorizontal: 10,
+        marginTop: 5
     },
     subTitleText: {
         fontSize: 15,

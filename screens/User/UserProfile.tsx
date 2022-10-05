@@ -21,7 +21,7 @@ import {
     fetchMember,
     saveContactsToDb,
     // setLoanCategories,
-    authenticate,
+    authenticate, setLoanCategories, fetchLoanProducts,
     // fetchLoanProducts
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
@@ -80,20 +80,13 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     navigation.navigate('GetTenants')
                 } else {
                     try {
-                        let phone: string = ''
-                        let identifier: string = `${user?.phoneNumber ? user?.phoneNumber : country_code+phone_no}`
-                        if (identifier[0] === '+') {
-                            let number = identifier.substring(1);
-                            phone = `${number.replace(/ /g, "")}`;
-                        } else if (identifier[0] === '0') {
-                            let number = identifier.substring(1);
-                            phone = `254${number.replace(/ /g, "")}`;
-                        }
-                        const [a,b] = await Promise.all([
-                            dispatch(fetchMember(`${ payload.phoneNumber ? payload.phoneNumber : user ? user.phoneNumber: phone }`)),
+                        const fmPayload = phone_no ? `${country_code}${phone_no}` : payload.username;
+
+                        const [a,b,c,d] = await Promise.all([
+                            dispatch(fetchMember(fmPayload.replace('+', ''))),
                             dispatch(saveContactsToDb()),
-                            // dispatch(fetchLoanProducts()),
-                            // dispatch(setLoanCategories(signal))
+                            dispatch(fetchLoanProducts()),
+                            dispatch(setLoanCategories(signal))
                         ]);
 
                         const { email, details }: any = a.payload;

@@ -90,7 +90,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             phone = `254${number.replace(/ /g, "")}`;
                         }
                         const [a,b] = await Promise.all([
-                            dispatch(fetchMember(`${ payload.phoneNumber ? user?.phoneNumber : phone }`)),
+                            dispatch(fetchMember(`${ payload.phoneNumber ? payload.phoneNumber : user ? user.phoneNumber: phone }`)),
                             dispatch(saveContactsToDb()),
                             // dispatch(fetchLoanProducts()),
                             // dispatch(setLoanCategories(signal))

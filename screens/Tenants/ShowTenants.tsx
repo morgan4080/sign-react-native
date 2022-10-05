@@ -14,7 +14,7 @@ import {
     setSelectedTenantId,
     getTenants,
     authClient,
-    searchByPhone, searchByEmail, fetchGuarantorshipRequests
+    searchByPhone, searchByEmail, fetchGuarantorshipRequests, verifyOtpBeforeToken, sendOtpBeforeToken
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {
@@ -25,7 +25,7 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    Dimensions
+    Dimensions, TextInput, Pressable
 } from "react-native";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -33,7 +33,9 @@ import {getSecureKey} from "../../utils/secureStore";
 import configuration from "../../utils/configuration";
 import {RotateView} from "../Auth/VerifyOTP";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
-import BottomSheet, {BottomSheetBackdrop} from "@gorhom/bottom-sheet";
+import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from "@gorhom/bottom-sheet";
+import {Controller, useForm} from "react-hook-form";
+import {receiveVerificationSMS, startSmsUserConsent} from "../../utils/smsVerification";
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
 
@@ -42,6 +44,8 @@ const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
         <Text allowFontScaling={false} style={[styles.tenantName, textColor]}>{item.tenantName}</Text>
     </TouchableOpacity>
 );
+
+const {CSTM, DeviceInfModule} = NativeModules;
 
 const ShowTenants = ({ navigation, route }: NavigationProps) => {
     let [fontsLoaded] = useFonts({
@@ -55,21 +59,19 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
 
     const [otpVerified, setOtpVerified] = useState(undefined);
 
-    const { selectedTenantId, isLoggedIn, tenants, loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const { selectedTenantId, isLoggedIn, tenants, loading, organisations } = useSelector((state: { auth: storeState }) => state.auth);
 
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
 
-    const {CSTM} = NativeModules;
+    const { countryCode, phoneNumber, email }: any = route.params;
 
     const reFetch = async () => {
         try {
             let otpV = await getSecureKey('otp_verified');
 
             setOtpVerified(otpV);
-
-            const { countryCode, phoneNumber, email }: any = route.params;
 
             if (email && countryCode) {
 
@@ -127,6 +129,8 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
         }
     }, [userFound])*/
 
+    const [context, setContext] = useState<string | null>(null)
+
 
     const renderItem = ({ item }: any) => {
         const backgroundColor = item.id === selectedTenantId ? "#489AAB" : "#FFFFFF";
@@ -139,57 +143,80 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                     // if item doesn't exist in configuration
                     // communicate that it's not yet supported
 
-                    const settings = configuration.find(config => config.tenantId === item.tenantId);
+                    if (item.pinStatus === "SET") {
+                        const settings = configuration.find(config => config.tenantId === item.tenantId);
 
-                    if (settings) {
-                        dispatch(setSelectedTenantId(item.id));
+                        if (settings) {
+                            dispatch(setSelectedTenantId(item.id));
 
-                        (async () => {
-                            const {type, payload, error} : any = await dispatch(authClient({realm: settings.tenantId, client_secret: settings.clientSecret}))
+                            (async () => {
+                                const {type, payload, error} : any = await dispatch(authClient({realm: settings.tenantId, client_secret: settings.clientSecret}))
 
-                            if (type === 'authClient/fulfilled') {
-                                const { access_token } = payload;
+                                if (type === 'authClient/fulfilled') {
+                                    const { access_token } = payload;
 
-                                let { countryCode, phoneNumber, email }: any = route.params;
+                                    let { countryCode, phoneNumber, email }: any = route.params;
 
-                                if (!phoneNumber && !email) {
-                                    phoneNumber = await getSecureKey('phone_number_without');
-                                }
-
-                                if (email && access_token) {
-                                    const response: any = await dispatch(searchByEmail({email: encodeURIComponent(email), access_token}))
-
-                                    if (response.type === 'searchByEmail/rejected') {
-                                        CSTM.showToast(response.error.message);
-                                        setErrorSMS(response.error.message);
-                                    } else {
-                                        // we can intercept and cereate otp here
-                                        setUserFound(true);
-                                        navigation.navigate('Login');
+                                    if (!phoneNumber && !email) {
+                                        phoneNumber = await getSecureKey('phone_number_without');
                                     }
-                                } else if (phoneNumber && access_token) {
-                                    const response: any = await dispatch(searchByPhone({
-                                        phoneNumber: `${countryCode}${phoneNumber}`.replace('+', ''),
-                                        access_token
-                                    }))
 
-                                    if (response.type === 'searchByPhone/rejected') {
-                                        CSTM.showToast(response.error.message)
-                                        setErrorSMS(response.error.message)
+                                    if (email && access_token) {
+                                        const response: any = await dispatch(searchByEmail({email: encodeURIComponent(email), access_token}))
+
+                                        if (response.type === 'searchByEmail/rejected') {
+                                            CSTM.showToast(response.error.message);
+                                            setErrorSMS(response.error.message);
+                                        } else {
+                                            // we can intercept and cereate otp here
+                                            setUserFound(true);
+                                            navigation.navigate('Login');
+                                        }
+                                    } else if (phoneNumber && access_token) {
+                                        const response: any = await dispatch(searchByPhone({
+                                            phoneNumber: `${countryCode}${phoneNumber}`.replace('+', ''),
+                                            access_token
+                                        }))
+
+                                        if (response.type === 'searchByPhone/rejected') {
+                                            CSTM.showToast(response.error.message)
+                                            setErrorSMS(response.error.message)
+                                        } else {
+                                            // we can intercept and cereate otp here
+                                            setUserFound(true);
+                                            navigation.navigate('Login');
+                                        }
                                     } else {
-                                        // we can intercept and cereate otp here
-                                        setUserFound(true);
-                                        navigation.navigate('Login');
+                                        navigation.navigate('GetTenants');
                                     }
                                 } else {
-                                    navigation.navigate('GetTenants');
+                                    CSTM.showToast(error.message)
                                 }
-                            } else {
-                                CSTM.showToast(error.message)
-                            }
-                        })()
+                            })()
+                        } else {
+                            CSTM.showToast(`${item.tenantName} is not yet supported`);
+                        }
                     } else {
-                        CSTM.showToast(`${item.tenantName} is not yet supported`);
+                        dispatch(setSelectedTenantId(item.id));
+                        (async () => {
+                            const [deviceId] = await Promise.all([
+                                DeviceInfModule.getUniqueId(),
+                            ]);
+                            const appName = 'presta-sign';
+                            dispatch(sendOtpBeforeToken({
+                                email: email ? email : item.email,
+                                phoneNumber: phoneNumber ? phoneNumber : item.ussdPhoneNumber ? item.ussdPhoneNumber : item.phoneNumber,
+                                deviceId,
+                                appName
+                            })).then(response => {
+                                console.log("sendOtpBeforeToken", response.payload);
+                                CSTM.showToast("OTP sent please wait");
+                                handleSnapPress(1);
+                                setContext('OTP');
+                            }).catch(e => {
+                                console.log("Item: sendOtpBeforeToken", e.message)
+                            })
+                        })()
                     }
                 }}
                 backgroundColor={{ backgroundColor }}
@@ -197,6 +224,79 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
             />
         );
     };
+
+    useEffect(() => {
+
+        (async () => {
+            await startSmsUserConsent();
+            receiveVerificationSMS((error: any, message) => {
+                if (error) {
+                    // handle error
+                    if (error === 'error') {
+                        console.log("zzzz", error);
+                    }
+                } else if (message) {
+                    // parse the message to obtain the verification code
+                    const regex = /\d{4}/g;
+                    const otpArray = message.split(" ");
+                    const otp = otpArray.find(message => regex.exec(message));
+                    if (otp && otp.length === 4) {
+
+                        (async () => {
+                            setValue('otp', otp);
+
+                            const [deviceId] = await Promise.all([
+                                DeviceInfModule.getUniqueId(),
+                            ]);
+
+                            const currentTenant = tenants.find(tenant => tenant.id === selectedTenantId)
+
+                            if (currentTenant) {
+                                type organisationType = {
+                                    id: string,
+                                    tenantName: string,
+                                    tenantId: string,
+                                    clientSecret: string,
+                                }
+                                const organisation = organisations.find((org: organisationType) => org.tenantId === currentTenant.tenantId);
+                                const data = {
+                                    identifier: currentTenant.ussdPhoneNumber ? currentTenant.ussdPhoneNumber : phoneNumber ? phoneNumber: email,
+                                    deviceHash: deviceId,
+                                    verificationType: phoneNumber ? "PHONE_NUMBER" : "EMAIL",
+                                    otp
+                                }
+
+                                try {
+
+                                    const {meta, payload, type} = await dispatch(verifyOtpBeforeToken(data))
+
+                                    if (type === "verifyOtpBeforeToken/fulfilled" && payload) {
+                                        handleClosePress();
+                                        setTimeout(() => {
+                                            navigation.navigate('SetPin', {
+                                                phoneNumber,
+                                                email,
+                                                realm: currentTenant.tenantId,
+                                                client_secret: organisation?.clientSecret
+                                            })
+                                        }, 500);
+                                    } else {
+                                        setError('otp', {type: 'custom', message: 'Verification failed'});
+                                        console.log('verification failed', payload, type);
+                                    }
+
+                                } catch (e: any) {
+                                    console.log("verifyOtpBeforeToken", e.message)
+                                }
+                            }
+
+                        })()
+                    }
+                }
+            });
+        })()
+
+    }, [context])
 
     const sheetRef = useRef<BottomSheet>(null);
 
@@ -226,6 +326,92 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
         ),
         []
     );
+
+    type FormData = {
+        otp: string;
+    }
+
+    const {
+        control,
+        watch,
+        handleSubmit,
+        clearErrors,
+        setError,
+        setValue,
+        formState: { errors }
+    } = useForm<FormData>({})
+
+    const sendOtpHere = async () => {
+        console.log('sending again')
+        const [deviceId] = await Promise.all([
+            DeviceInfModule.getUniqueId(),
+        ]);
+        const appName = 'presta-sign';
+        const currentTenant = tenants.find(tenant => tenant.id === selectedTenantId)
+        dispatch(sendOtpBeforeToken({
+            email: email ? email : currentTenant?.email,
+            phoneNumber: phoneNumber ? phoneNumber : currentTenant?.ussdPhoneNumber ? currentTenant?.ussdPhoneNumber : currentTenant?.phoneNumber,
+            deviceId,
+            appName
+        })).then(response => {
+            console.log("sendOtpBeforeToken", response.payload);
+            CSTM.showToast("OTP sent please wait");
+        }).catch(e => {
+            console.log("Item: sendOtpBeforeToken", e.message)
+        })
+    }
+
+
+    const verifyOTP0 = async (otp: string) => {
+        const [deviceId] = await Promise.all([
+            DeviceInfModule.getUniqueId(),
+        ]);
+
+        const currentTenant = tenants.find(tenant => tenant.id === selectedTenantId)
+
+        type organisationType = {
+            id: string,
+            tenantName: string,
+            tenantId: string,
+            clientSecret: string,
+        }
+        const organisation = organisations.find((org: organisationType) => org.tenantId === currentTenant?.tenantId);
+
+        const data = {
+            identifier: currentTenant?.ussdPhoneNumber ? currentTenant?.ussdPhoneNumber : phoneNumber ? phoneNumber: email,
+            deviceHash: deviceId,
+            verificationType: (phoneNumber || currentTenant?.ussdPhoneNumber) ? "PHONE_NUMBER" : "EMAIL",
+            otp
+        }
+
+        console.log(data)
+
+        try {
+
+            const {meta, payload, type} = await dispatch(verifyOtpBeforeToken(data))
+
+            if (type === "verifyOtpBeforeToken/fulfilled" && payload) {
+                const data = {
+                    phoneNumber,
+                    email,
+                    realm: currentTenant?.tenantId,
+                    client_secret: organisation?.clientSecret
+                }
+
+                setTimeout(() => {
+                    navigation.navigate('SetPin', data)
+                }, 500);
+
+                handleClosePress();
+            } else {
+                setError('otp', {type: 'custom', message: 'Verification failed'});
+                console.log('verification failed', payload, type);
+            }
+
+        } catch (e: any) {
+            console.log("verifyOtpBeforeToken", e.message)
+        }
+    }
 
     if (fontsLoaded) {
         return (
@@ -282,7 +468,45 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                     onChange={handleSheetChange}
                     backdropComponent={renderBackdrop}
                 >
-                    <View style={{backgroundColor: '#FFFFFF'}}><Text style={{textAlign: 'center'}}>Sorry, kindly contact developer</Text></View>
+                    <BottomSheetScrollView style={{backgroundColor: '#FFFFFF'}}>
+                        <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                            <Text allowFontScaling={false} style={{fontFamily: 'Poppins_600SemiBold', color: '#489AAB', fontSize: 15, marginTop: 10}}>Verify OTP</Text>
+                        </View>
+
+                        <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 10 }}>
+                            <Controller
+                                control={control}
+                                render={( { field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={styles.input}
+                                        value={value}
+                                        autoFocus={false}
+                                        onBlur={onBlur}
+                                        onChangeText={onChange}
+                                        maxLength={4}
+                                        onChange={async ({ nativeEvent: { eventCount, target, text} }) => {
+                                            if(text.length === 4) {
+                                                await verifyOTP0(text)
+                                            }
+                                            clearErrors()
+                                        }}
+                                        keyboardType="numeric"
+                                    />
+                                )}
+                                name="otp"
+                            />
+                            {
+                                errors.otp &&
+                                <Text  allowFontScaling={false}  style={styles.error}>{errors.otp?.message ? errors.otp?.message : 'OTP not verified'}</Text>
+                            }
+                        </View>
+
+                        <Pressable style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 50 }} onPress={() => sendOtpHere()}>
+                            <Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_300Light', color: '#489AAB', textDecorationLine: 'underline' }}>Resend OTP</Text>
+                        </Pressable>
+
+                    </BottomSheetScrollView>
                 </BottomSheet>
             </GestureHandlerRootView>
         )
@@ -299,6 +523,22 @@ const styles = StyleSheet.create({
     container0: {
         flex: 1,
         position: 'relative'
+    },
+    error: {
+        fontSize: 10,
+        color: '#d53b39',
+        fontFamily: 'Poppins_400Regular',
+        paddingHorizontal: 10,
+        marginTop: 5
+    },
+    input: {
+        fontFamily: 'Poppins_500Medium',
+        fontSize: 15,
+        color: '#393a34',
+        borderBottomWidth: 1,
+        borderStyle: 'dashed',
+        width: width/4,
+        textAlign: 'center'
     },
     container: {
         flex: 1,

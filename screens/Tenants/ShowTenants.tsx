@@ -14,7 +14,7 @@ import {
     setSelectedTenantId,
     getTenants,
     authClient,
-    searchByPhone, searchByEmail, fetchGuarantorshipRequests, verifyOtpBeforeToken, sendOtpBeforeToken
+    searchByPhone, searchByEmail, fetchGuarantorshipRequests, verifyOtpBeforeToken, sendOtpBeforeToken, hasPinCheck
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {
@@ -142,82 +142,91 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                 onPress={() => {
                     // if item doesn't exist in configuration
                     // communicate that it's not yet supported
+                    (async () => {
+                        let { countryCode, phoneNumber, email }: any = route.params;
 
-                    if (item.pinStatus === "SET") {
                         const settings = configuration.find(config => config.tenantId === item.tenantId);
 
                         if (settings) {
                             dispatch(setSelectedTenantId(item.id));
 
-                            (async () => {
-                                const {type, payload, error} : any = await dispatch(authClient({realm: settings.tenantId, client_secret: settings.clientSecret}))
+                            let {type, payload, error} : any = await dispatch(authClient({realm: settings.tenantId, client_secret: settings.clientSecret}))
 
-                                if (type === 'authClient/fulfilled') {
-                                    const { access_token } = payload;
+                            if (type === 'authClient/fulfilled') {
+                                const { access_token } = payload;
 
-                                    let { countryCode, phoneNumber, email }: any = route.params;
+                                if (!phoneNumber && !email) {
+                                    phoneNumber = await getSecureKey('phone_number_without');
+                                }
 
-                                    if (!phoneNumber && !email) {
-                                        phoneNumber = await getSecureKey('phone_number_without');
-                                    }
+                                // check has pin here
 
-                                    if (email && access_token) {
-                                        const response: any = await dispatch(searchByEmail({email: encodeURIComponent(email), access_token}))
+                                if (access_token) {
+                                    let {type, payload, error}: any = await dispatch(hasPinCheck({
+                                        access_token: access_token,
+                                        phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : item.ussdPhoneNumber ? item.ussdPhoneNumber.replace('+', '') : item.phoneNumber.replace('+', '')
+                                    }))
 
-                                        if (response.type === 'searchByEmail/rejected') {
-                                            CSTM.showToast(response.error.message);
-                                            setErrorSMS(response.error.message);
+                                    console.log("has pin payload", payload);
+
+                                    if (payload.pinStatus === "SET" && type === 'hasPinCheck/fulfilled') {
+                                        if (email) {
+                                            const response: any = await dispatch(searchByEmail({email: encodeURIComponent(email), access_token}))
+
+                                            if (response.type === 'searchByEmail/rejected') {
+                                                CSTM.showToast(response.error.message);
+                                                setErrorSMS(response.error.message);
+                                            } else {
+                                                // we can intercept and cereate otp here
+                                                setUserFound(true);
+                                                navigation.navigate('Login');
+                                            }
+                                        } else if (phoneNumber) {
+                                            const response: any = await dispatch(searchByPhone({
+                                                phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : item.ussdPhoneNumber ? item.ussdPhoneNumber.replace('+', '') : item.phoneNumber.replace('+', ''),
+                                                access_token
+                                            }))
+
+                                            if (response.type === 'searchByPhone/rejected') {
+                                                CSTM.showToast(response.error.message)
+                                                setErrorSMS(response.error.message)
+                                            } else {
+                                                // we can intercept and cereate otp here
+                                                setUserFound(true);
+                                                navigation.navigate('Login');
+                                            }
                                         } else {
-                                            // we can intercept and cereate otp here
-                                            setUserFound(true);
-                                            navigation.navigate('Login');
-                                        }
-                                    } else if (phoneNumber && access_token) {
-                                        const response: any = await dispatch(searchByPhone({
-                                            phoneNumber: `${countryCode}${phoneNumber}`.replace('+', ''),
-                                            access_token
-                                        }))
-
-                                        if (response.type === 'searchByPhone/rejected') {
-                                            CSTM.showToast(response.error.message)
-                                            setErrorSMS(response.error.message)
-                                        } else {
-                                            // we can intercept and cereate otp here
-                                            setUserFound(true);
-                                            navigation.navigate('Login');
+                                            navigation.navigate('GetTenants');
                                         }
                                     } else {
-                                        navigation.navigate('GetTenants');
+
+                                        const [deviceId] = await Promise.all([
+                                            DeviceInfModule.getUniqueId(),
+                                        ]);
+                                        const appName = 'presta-sign';
+                                        dispatch(sendOtpBeforeToken({
+                                            email: email ? email : item.email,
+                                            phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : item.ussdPhoneNumber ? item.ussdPhoneNumber.replace('+', '') : item.phoneNumber.replace('+', ''),
+                                            deviceId,
+                                            appName
+                                        })).then(response => {
+                                            console.log("sendOtpBeforeToken", response.payload);
+                                            CSTM.showToast("OTP sent please wait");
+                                            handleSnapPress(1);
+                                            setContext('OTP');
+                                        }).catch(e => {
+                                            console.log("Item: sendOtpBeforeToken", e.message)
+                                        })
                                     }
-                                } else {
-                                    CSTM.showToast(error.message)
                                 }
-                            })()
+                            } else {
+                                CSTM.showToast(error.message)
+                            }
+
                         } else {
                             CSTM.showToast(`${item.tenantName} is not yet supported`);
                         }
-                    } else {
-                        dispatch(setSelectedTenantId(item.id));
-                        (async () => {
-                            const [deviceId] = await Promise.all([
-                                DeviceInfModule.getUniqueId(),
-                            ]);
-                            const appName = 'presta-sign';
-                            dispatch(sendOtpBeforeToken({
-                                email: email ? email : item.email,
-                                phoneNumber: phoneNumber ? phoneNumber : item.ussdPhoneNumber ? item.ussdPhoneNumber : item.phoneNumber,
-                                deviceId,
-                                appName
-                            })).then(response => {
-                                console.log("sendOtpBeforeToken", response.payload);
-                                CSTM.showToast("OTP sent please wait");
-                                handleSnapPress(1);
-                                setContext('OTP');
-                            }).catch(e => {
-                                console.log("Item: sendOtpBeforeToken", e.message)
-                            })
-                        })()
-                    }
+                    })()
                 }}
                 backgroundColor={{ backgroundColor }}
                 textColor={{ color }}
@@ -274,7 +283,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                                         handleClosePress();
                                         setTimeout(() => {
                                             navigation.navigate('SetPin', {
-                                                phoneNumber,
+                                                phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : currentTenant ? currentTenant.ussdPhoneNumber ? currentTenant.ussdPhoneNumber : currentTenant.phoneNumber: '',
                                                 email,
                                                 realm: currentTenant.tenantId,
                                                 client_secret: organisation?.clientSecret
@@ -391,15 +400,13 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
             const {meta, payload, type} = await dispatch(verifyOtpBeforeToken(data))
 
             if (type === "verifyOtpBeforeToken/fulfilled" && payload) {
-                const data = {
-                    phoneNumber,
-                    email,
-                    realm: currentTenant?.tenantId,
-                    client_secret: organisation?.clientSecret
-                }
-
                 setTimeout(() => {
-                    navigation.navigate('SetPin', data)
+                    navigation.navigate('SetPin', {
+                        phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : currentTenant ? currentTenant.ussdPhoneNumber ? currentTenant.ussdPhoneNumber : currentTenant.phoneNumber: '',
+                        email,
+                        realm: currentTenant?.tenantId,
+                        client_secret: organisation?.clientSecret
+                    })
                 }, 500);
 
                 handleClosePress();

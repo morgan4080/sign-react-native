@@ -81,16 +81,15 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     setAuthRes(payload);
                     const { access_token } = payload;
 
-                    console.log("start member verify", access_token)
+                    console.log("start member verify", email, phoneNumber);
 
-                    if (phoneNumber && access_token) {
-                        const response: any = await dispatch(searchByPhone({phoneNumber, access_token}))
-
-                        if (response.type === 'searchByPhone/rejected') {
-                            CSTM.showToast(response.error.message)
+                    if (email && access_token) {
+                        const response: any = await dispatch(searchByEmail({email, access_token}))
+                        console.log('search by email response', response);
+                        if (response.type === 'searchByEmail/rejected') {
                             setErrorSMS(response.error.message)
                         } else {
-                            console.log('searchByPhone,,,', response.payload.refId)
+                            console.log('searchByEmail,,,', response.payload.refId)
                             setSearchRes(response.payload)
                             setUserFound(true)
                             await Promise.all([
@@ -98,15 +97,14 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                                 setValue("access_token", access_token)
                             ])
                         }
-                    }
-
-                    if (email && access_token) {
-                        const response: any = await dispatch(searchByEmail({email, access_token}))
-
-                        if (response.type === 'searchByEmail/rejected') {
+                    } else if (phoneNumber && access_token) {
+                        const response: any = await dispatch(searchByPhone({phoneNumber, access_token}))
+                        console.log('search by phone number response', response);
+                        if (response.type === 'searchByPhone/rejected') {
+                            CSTM.showToast(response.error.message)
                             setErrorSMS(response.error.message)
                         } else {
-                            console.log('searchByEmail,,,', response.payload.refId)
+                            console.log('searchByPhone,,,', response.payload.refId)
                             setSearchRes(response.payload)
                             setUserFound(true)
                             await Promise.all([

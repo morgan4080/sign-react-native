@@ -266,6 +266,35 @@ const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> =
     }
 }
 
+export const hasPinCheck = createAsyncThunk('hasPinCheck', async ({access_token, phoneNumber}: {access_token: string, phoneNumber: string}) => {
+    try {
+        if (!access_token) {
+            return Promise.reject('You are not authenticated');
+        }
+
+        const myHeaders = new Headers();
+
+        myHeaders.append("Authorization", `Bearer ${access_token}`);
+        myHeaders.append("Content-Type", 'application/json');
+
+        const response = await fetch(`https://accounts.presta.co.ke/users-admin/api/v1/auth/ussd/has-pin/${phoneNumber}`, {
+            method: 'GET',
+            headers: myHeaders,
+        });
+
+        const { data, messages } = await response.json();
+
+        if (response.status === 200) {
+            return Promise.resolve(data)
+        } else {
+            return Promise.reject(JSON.stringify(messages))
+        }
+
+    } catch (e: any) {
+        return Promise.reject(e.message)
+    }
+})
+
 export const searchContactsInDB = createAsyncThunk('searchContactsInDB', async({searchTerm, setContacts}: {searchTerm: string, setContacts: any}) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
@@ -966,7 +995,7 @@ export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async (
 
         const raw = JSON.stringify(obj);
 
-        console.log("sendOtpBeforeToken,,,,,,,", raw);
+        console.log('otp verification sent', obj);
 
         const requestOptions = {
             method: 'POST',
@@ -975,7 +1004,9 @@ export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async (
         };
 
         const response = await fetch("https://accounts.presta.co.ke/api/v1/users/verification", requestOptions);
+
         if (response.status === 200) {
+            console.log('otp verification sent')
             return Promise.resolve(true);
         } else {
             return Promise.reject(response.status);
@@ -1099,7 +1130,6 @@ export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', asy
 
         const response = await fetch("https://accounts.presta.co.ke/api/v1/users/verification/validate", requestOptions);
         if (response.status === 200) {
-
             const [data, x, y] = await Promise.all([
                 response.json(),
                 saveSecureKey('otp_verified', 'true'),

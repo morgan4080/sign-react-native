@@ -269,9 +269,9 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                                 }
                                 const organisation = organisations.find((org: organisationType) => org.tenantId === currentTenant.tenantId);
                                 const data = {
-                                    identifier: currentTenant.ussdPhoneNumber ? currentTenant.ussdPhoneNumber : phoneNumber ? phoneNumber: email,
+                                    identifier: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : currentTenant ? currentTenant.ussdPhoneNumber ? currentTenant.ussdPhoneNumber : email : '',
                                     deviceHash: deviceId,
-                                    verificationType: phoneNumber ? "PHONE_NUMBER" : "EMAIL",
+                                    verificationType:  (phoneNumber && countryCode) ||  (currentTenant && currentTenant.ussdPhoneNumber) ? "PHONE_NUMBER" : "EMAIL",
                                     otp
                                 }
 

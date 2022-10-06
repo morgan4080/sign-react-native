@@ -86,7 +86,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     navigation.navigate('GetTenants')
                 } else {
                     try {
-                        const fmPayload = phone_no ? `${country_code}${phone_no}` : payload.username;
+                        const fmPayload = phone_no ? `${country_code}${phone_no}` : payload.phoneNumber;
 
                         const [a] = await Promise.all([
                             dispatch(fetchMember(fmPayload.replace('+', ''))),

@@ -302,6 +302,7 @@ export const searchContactsInDB = createAsyncThunk('searchContactsInDB', async({
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: any, { rows: { _array } } : any) => {
                     setContacts(_array)
+                    resolve(_array)
                 },
                 // failure callback which sends two things Transaction object and Error
                 (txObj:any, error: any) => {
@@ -659,7 +660,7 @@ export const getUserFromDB = createAsyncThunk('getUserFromDB', async ({setDBUser
 export const getContactsFromDB = createAsyncThunk('getContactsFromDB', async ({setContacts, from, to}: {setContacts: any, from: number, to: number}) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '50'`, undefined,
+            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '10'`, undefined,
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: any, { rows: { _array } } : any) => {
                     setContacts(_array)
@@ -680,6 +681,7 @@ export const checkForJWT = createAsyncThunk('checkForJWT', async () => {
 
 const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token, phoneNumber }: any) => {
     try {
+        console.log('access_token', access_token);
         await Promise.all([
             saveSecureKey('access_token', access_token),
             saveSecureKey('refresh_token', refresh_token),
@@ -1732,26 +1734,29 @@ const emailApproval = createAsyncThunk('emailApproval', async ({ memberNumber, c
     }
 })
 
-export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: string | undefined, { getState, dispatch }) => {
+export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState, dispatch }) => {
     return new Promise(async (resolve, reject) => {
        try {
            const key = await getSecureKey('access_token');
+
            if (!key) {
                reject("You are not authenticated");
            }
+
            const myHeaders = new Headers();
+
            myHeaders.append("Authorization", `Bearer ${key}`);
-           console.log(`fetching member: ${phoneNumber}`);
-           const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber}`, {
+
+           const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/context/current-user`, {
                method: 'GET',
                headers: myHeaders,
                redirect: 'follow'
            });
-           console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/r${phoneNumber}`);
+
            if (response.status === 200) {
                const data = await response.json();
-               console.log('the data', data);
-               resolve(data);
+               console.log('the member and org', data);
+               resolve(data.member);
            }  else if (response.status === 401) {
                // update refresh token and retry
                const state: any = getState();
@@ -1768,7 +1773,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (phoneNumber: s
                        client_secret: JSON.parse(currentTenant).clientSecret,
                        cb: async () => {
                            console.log('callback running');
-                           await dispatch(fetchMember(phoneNumber))
+                           await dispatch(fetchMember())
                        }
                    }
 

@@ -2,7 +2,7 @@ import {
     Dimensions,
     Platform,
     SafeAreaView,
-    ScrollView, SectionList,
+    SectionList,
     StatusBar as Bar,
     StyleSheet, Text,
     TouchableOpacity,

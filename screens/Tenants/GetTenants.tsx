@@ -59,15 +59,17 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
 
     const dispatch : AppDispatch = useDispatch();
 
-    const [phn, setPhn] = useState('')
+    const [phn, setPhn] = useState('');
 
-    const [code, setCode] = useState(route.params?.code ? `+${route.params.code}` : '+254')
+    const [code, setCode] = useState(route.params?.code ? `+${route.params.code}` : '+254');
 
-    const [country, setCountry] = useState<{name: string, code: string, numericCode: string, flag: string}>()
+    const [country, setCountry] = useState<{name: string, code: string, numericCode: string, alpha2Code: string, flag: string}>();
 
-    const [deviceId, setDeviceId] = useState<string | null>(null)
+    const [deviceId, setDeviceId] = useState<string | null>(null);
 
-    const [tab, setTab] = useState<number>(0)
+    const [submitted, setSubmitted] = useState<boolean>(false);
+
+    const [tab, setTab] = useState<number>(0);
 
     const defaultValues = phn && phn !== "" ? {
         phoneNumber: phn,
@@ -214,7 +216,17 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
         };
     }, [isLoggedIn, route.params?.code]);
 
-    const [submitted, setSubmitted] = useState(false)
+    useEffect(() => {
+        let settingAlpha = true;
+
+        if (settingAlpha && country) {
+            console.log("save to secure store for ghome and whome", country.alpha2Code);
+            saveSecureKey('alpha2Code', country.alpha2Code).catch(e => console.log(e))
+        }
+        return () => {
+            settingAlpha = false;
+        }
+    }, [country]);
 
     const onError = (errors: any, e: any) => {
         console.log(errors, e)

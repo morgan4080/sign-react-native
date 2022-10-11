@@ -69,6 +69,8 @@ export default function UserProfile({ navigation }: NavigationProps) {
 
     const dispatch : AppDispatch = useDispatch();
 
+    const [reload, setReload] = useState<boolean>(false)
+
     useEffect(() => {
 
         let authenticating = true;
@@ -86,10 +88,8 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     navigation.navigate('GetTenants')
                 } else {
                     try {
-                        const fmPayload = phone_no ? `${country_code}${phone_no}` : payload.phoneNumber;
-
                         const [a] = await Promise.all([
-                            dispatch(fetchMember(fmPayload.replace('+', ''))),
+                            dispatch(fetchMember()),
                         ]);
 
                         const { email, details }: any = a.payload;
@@ -118,7 +118,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
             controller.abort();
             authenticating = false;
         }
-    }, []);
+    }, [reload]);
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -181,8 +181,8 @@ export default function UserProfile({ navigation }: NavigationProps) {
         formState: { errors }
     } = useForm<FormData>({})
 
-    const reload = async () => {
-        await fetchMember(user?.phoneNumber)
+    const reloading = () => {
+        setReload(!reload);
     }
 
     const onSubmit = async ({email}: any): Promise<void> => {
@@ -205,7 +205,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
             } else {
                 CSTM.showToast('Successful');
                 handleClosePress();
-                await reload();
+                reloading();
             }
         } catch (e) {
             CSTM.showToast('Failed');
@@ -222,7 +222,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                 <SectionList
                     refreshing={loading}
                     progressViewOffset={50}
-                    onRefresh={ async () => await reload()}
+                    onRefresh={() => reloading()}
                     sections={[
                         {
                             title: 'title',

@@ -1,9 +1,9 @@
-import {SectionList, StyleSheet, Text, View, TouchableOpacity, NativeModules} from 'react-native';
-import {Ionicons} from "@expo/vector-icons";
+import {SectionList, StyleSheet, Text, View, TouchableOpacity, NativeModules, Dimensions} from 'react-native';
+import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 import {useState} from "react";
-import {updateContact, validateNumber} from "../stores/auth/authSlice";
+import {storeState, updateContact, validateNumber} from "../stores/auth/authSlice";
 import {store} from "../stores/store";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 const { CSTM } = NativeModules;
 
 type contactType = {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}
@@ -21,6 +21,8 @@ type propType = {
 const getAbrev = (name: string) => {
     return name[0]
 }
+
+const { width, height } = Dimensions.get("window");
 
 const Item = ({ contact, selectContact, contactList, section, onPress, setEmployerDetailsEnabled }: { contact: contactType, selectContact: any, contactList: any, section: any, setEmployerDetailsEnabled: any, onPress: any }) => {
     const isChecked = contactList.find((con: any ) => con.memberNumber === contact.memberNumber);
@@ -98,6 +100,8 @@ const Item = ({ contact, selectContact, contactList, section, onPress, setEmploy
 
 const ContactSectionList = ({contactsData, searching, addContactToList, removeContactFromList, contactList, onPress, setEmployerDetailsEnabled}: propType) => {
 
+    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
+
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
@@ -149,12 +153,15 @@ const ContactSectionList = ({contactsData, searching, addContactToList, removeCo
 
     return (
         <SectionList
+            refreshing={loading}
+            onRefresh={() => console.log('refresh')}
+            progressViewOffset={20}
             sections={contactsData}
             keyExtractor={(item, index) => item.name + index}
             renderItem={({ item, section }) => (<Item contact={item} section={section} selectContact={selectContact} contactList={contactList} onPress={onPress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} />)}
-            renderSectionHeader={({ section: { title, data } }) => data.length > 0 ? (<Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_300Light', paddingHorizontal: 20, paddingVertical: title !== 'OPTIONS' ? 10 : 0, backgroundColor: '#FFFFFF' }}>{title}</Text>) : (<></>)}
+            renderSectionHeader={({ section: { title, data } }) => (<Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_300Light', paddingHorizontal: 20, paddingVertical: title !== 'OPTIONS' ? 10 : 0, backgroundColor: '#FFFFFF' }}>{title}</Text>)}
             stickySectionHeadersEnabled={true}
-            refreshing={searching}
+            ListFooterComponent={<View style={{height: 75}} />}
         />
     )
 };

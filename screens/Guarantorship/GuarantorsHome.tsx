@@ -80,6 +80,8 @@ const { CSTM } = NativeModules;
 import {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../components/BottomSheet";
 import ContactSectionList from "../../components/ContactSectionList";
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackdrop, BottomSheetFlatList  } from "@gorhom/bottom-sheet";
+import {getContact} from "../../utils/smsVerification";
+import {getSecureKey} from "../../utils/secureStore";
 
 const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     StatusBar.setBackgroundColor('#FFFFFF', true);
@@ -129,6 +131,15 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     useEffect(() => {
         (async() => {
             try {
+                /*const alpha2Code = await getSecureKey("alpha2Code");
+                if (alpha2Code) {
+                    const [x] = await Promise.all([
+                        getContact(421, alpha2Code)
+                    ]);
+
+                    console.log("get User From Intent", x);
+                }*/
+
                 const {type, payload}: any = await dispatch(getUserFromDB({setDBUser}));
 
                 if (type === 'getUserFromDB/fulfilled') {
@@ -869,12 +880,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     );
     return (
         <GestureHandlerRootView style={styles.container}>
-            {
-                loading &&
-                <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
-                    <RotateView/>
-                </View>
-            }
             <View style={styles.searchableHeader}>
                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
                     <Pressable style={{alignSelf: 'flex-start'}} onPress={() => {

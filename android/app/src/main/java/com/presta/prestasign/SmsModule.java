@@ -1,13 +1,17 @@
 package com.presta.prestasign;
 
+import static com.google.i18n.phonenumbers.NumberParseException.ErrorType.NOT_A_NUMBER;
+
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+import android.provider.ContactsContract;
 
 import androidx.annotation.NonNull;
 
@@ -28,14 +32,18 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-
-import java.util.ArrayList;
+import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import com.google.gson.Gson;
 
 public class SmsModule extends ReactContextBaseJavaModule {
 
     private final int phoneNumberRequestCode = 420;
+    private final int contactRequestCode = 421;
     private int userConsentRequestCode = 69;
     private Promise promise;
     private static ReactApplicationContext reactContext;
@@ -113,6 +121,59 @@ public class SmsModule extends ReactContextBaseJavaModule {
                 promise.reject(String.valueOf(resultCode), "Unable to retrieve phone number");
             }
         }
+        if (requestCode == contactRequestCode && promise != null) {
+            if (resultCode == Activity.RESULT_OK) {
+                try {
+                    Cursor cursor;
+                    // Get the URI that points to the selected contact
+                    Uri contactUri = data.getData();
+                    // We only need the NUMBER column, because there will be only one row in the result
+                    String[] projection = {ContactsContract.CommonDataKinds.Phone.NUMBER};
+
+                    // Perform the query on the contact to get the NUMBER column
+                    // We don't need a selection or sort order (there's only one result for the given URI)
+                    // CAUTION: The query() method should be called from a separate thread to avoid blocking
+                    // your app's UI thread. (For simplicity of the sample, this code doesn't do that.)
+                    // Consider using CursorLoader to perform the query.
+                    cursor = activity.getContentResolver()
+                            .query(contactUri, projection, null, null, null);
+                    cursor.moveToFirst();
+
+                    // Retrieve the phone number from the NUMBER column
+
+                    int column = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+
+                    String number = cursor.getString(column);
+
+                    cursor.close();
+
+//                    String defaultCountry = data.getStringExtra("alpha2Code");
+                    String defaultCountry = "KE";
+
+                    // TODO: format phone number
+                    PhoneNumber phoneNumber = phoneUtil.parseAndKeepRawInput(number, defaultCountry);
+
+                    boolean isValid = phoneUtil.isValidNumber(phoneNumber);
+
+                    if (isValid) {
+                        String phone_number = Long.toString(phoneNumber.getNationalNumber());
+                        String country_code = Long.toString(phoneNumber.getCountryCode());
+                        HashMap<String, String> country_code_phone_number = new HashMap<String, String>();
+                        country_code_phone_number.put("country_code", country_code);
+                        country_code_phone_number.put("phone_no", phone_number);
+                        Gson gson = new Gson();
+                        String MapData = gson.toJson(country_code_phone_number);
+                        promise.resolve(MapData);
+                    } else {
+                        throw new NumberParseException(NOT_A_NUMBER, "Contact Phone Number Get failed");
+                    }
+                } catch (NumberParseException e) {
+                    promise.reject("Contact Phone Number Get failed", e);
+                }
+            } else {
+                promise.reject(String.valueOf(resultCode), "Unable to retrieve contact");
+            }
+        }
     }
 
     public static void sendEvent (String eventName, Object data) {
@@ -133,9 +194,35 @@ public class SmsModule extends ReactContextBaseJavaModule {
         promise.resolve(a*b+5);
     }
 
-    // mine
     @ReactMethod
-    public void requestPhoneNumber(int phoneNumberRequestCode,final Promise promise) {
+    public void getContact(int contactRequestCode, String alpha2Code, final Promise promise) {
+        Activity currentActivity = getCurrentActivity();
+
+        if (currentActivity == null) {
+            promise.reject("E_ACTIVITY_DOES_NOT_EXIST", "Activity doesn't exist");
+            return;
+        }
+        // Store the promise to resolve/reject when picker returns data
+        this.promise = promise;
+
+        try {
+            Intent contacts = new Intent(Intent.ACTION_PICK);
+            contacts.setDataAndType( ContactsContract.Contacts.CONTENT_URI, ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE);
+            contacts.putExtra("alpha2Code", alpha2Code);
+            currentActivity.startActivityForResult(contacts, contactRequestCode);
+        } catch (Exception e) {
+            this.promise.reject("E_FAILED_TO_SHOW_PICKER", e);
+            this.promise = null;
+        }
+    }
+
+    @ReactMethod
+    public void requestPhoneNumberFormat(String numberType, final Promise promise) {
+        // TODO: receive country identifier and return promise with string format example
+    }
+
+    @ReactMethod
+    public void requestPhoneNumber(int phoneNumberRequestCode, final Promise promise) {
         Activity currentActivity = getCurrentActivity();
 
         if (currentActivity == null) {
@@ -152,15 +239,15 @@ public class SmsModule extends ReactContextBaseJavaModule {
             Identity.getSignInClient(currentActivity)
                     .getPhoneNumberHintIntent(request)
                     .addOnSuccessListener( result -> {
-                          try {
-                              currentActivity.startIntentSenderForResult(result.getIntentSender(), phoneNumberRequestCode, null, 0, 0, 0);
-                          } catch(Exception e) {
-                              this.promise.reject("Launching the PendingIntent failed", e);
-                          }
-                  })
-                  .addOnFailureListener(e -> {
-                      this.promise.reject("Phone Number Hint failed", e);
-                  });
+                        try {
+                            currentActivity.startIntentSenderForResult(result.getIntentSender(), phoneNumberRequestCode, null, 0, 0, 0);
+                        } catch(Exception e) {
+                            this.promise.reject("Launching the PendingIntent failed", e);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        this.promise.reject("Phone Number Hint failed", e);
+                    });
 
         } catch (Exception e) {
             this.promise.reject("E_FAILED_TO_SHOW_PICKER", e);

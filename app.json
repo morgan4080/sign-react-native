@@ -14,7 +14,8 @@
       "backgroundColor": "#5A878C"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/7bd000d6-1807-438a-ace4-fa31b78301ee"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -22,7 +23,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.presta.prestasign",
-      "buildNumber": "1.0.0"
+      "buildNumber": "1.0.0",
+      "runtimeVersion": {
+        "policy": "sdkVersion"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -31,7 +35,8 @@
       },
       "package": "com.presta.prestasign",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 13
+      "versionCode": 13,
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"

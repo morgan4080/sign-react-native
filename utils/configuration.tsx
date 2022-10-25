@@ -23,7 +23,8 @@ const config = () => {
             witness: true,
             repaymentDisbursementModes: true,
             amounts: false,
-            selfGuarantee: false
+            selfGuarantee: false,
+            minGuarantors: 4
         },
         {
             tenantName: 'Wanaanga Sacco',
@@ -34,7 +35,8 @@ const config = () => {
             witness: false,
             repaymentDisbursementModes: true,
             amounts: true,
-            selfGuarantee: true
+            selfGuarantee: true,
+            minGuarantors: 1
         }
     ]
 }

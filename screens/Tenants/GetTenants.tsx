@@ -265,7 +265,13 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                             saveSecureKey('phone_number_without', value.phoneNumber)
                         ])
                     } else {
-                        setError('phoneNumber', {type: 'custom', message: "Kindly check your number and try again"});
+                        // setError('phoneNumber', {type: 'custom', message: "Kindly check your number and try again"});
+                        const payload = {
+                            deviceId: deviceId,
+                            phoneNumber: `${value.countryCode}${value.phoneNumber}`,
+                            email: null
+                        };
+                        navigation.navigate('SelectTenant', payload);
                     }
 
                 }

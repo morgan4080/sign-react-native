@@ -3,6 +3,7 @@ import { NativeModules, NativeEventEmitter } from 'react-native';
 type AndroidSmsVerificationApiType = {
     multiply(a: number, b: number): Promise<number>;
     requestPhoneNumber(requestCode?: number): Promise<string>;
+    requestPhoneNumberFormat(alpha2Code?: string, phone_number?: string): Promise<string>;
     getContact(requestCode?: number, alpha2Code?: string): Promise<string>;
     startSmsRetriever(): Promise<boolean>;
 
@@ -59,6 +60,9 @@ export const removeAllListeners = () => {
 
 export const requestPhoneNumber = (requestCode?: number) => {
     return AndroidSmsVerificationApi.requestPhoneNumber(requestCode || 420);
+};
+export const requestPhoneNumberFormat = (alpha2Code: string, phone_number: string) => {
+    return AndroidSmsVerificationApi.requestPhoneNumberFormat(alpha2Code, phone_number);
 };
 
 export const getContact = (requestCode?: number, alpha2Code?: string) => {

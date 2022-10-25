@@ -69,7 +69,11 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
 
     const reFetch = async () => {
         try {
-            let otpV = await getSecureKey('otp_verified');
+            let [otpV,phone_number_without, phone_number_code] = await Promise.all([
+                getSecureKey('otp_verified'),
+                getSecureKey('phone_number_without'),
+                getSecureKey('phone_number_code')
+            ]);
 
             setOtpVerified(otpV);
 
@@ -77,9 +81,15 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
 
                 await dispatch(getTenants(email));
 
-            } else if (phoneNumber && countryCode) {
+            } else if ((phoneNumber && countryCode) || (phone_number_without && phone_number_code)) {
                 let phone: string = '';
-                let identifier: string = `${countryCode}${phoneNumber}`;
+                let identifier: string = '';
+                if (phoneNumber && countryCode) {
+                    identifier = `${countryCode}${phoneNumber}`;
+                } else if (phone_number_without && phone_number_code) {
+                    identifier = `${phone_number_code}${phone_number_without}`;
+                }
+
                 if (identifier[0] === '+') {
                     let number = identifier.substring(1);
                     phone = `${number.replace(/ /g, "")}`;

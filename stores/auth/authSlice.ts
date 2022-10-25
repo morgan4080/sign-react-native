@@ -5,7 +5,6 @@ import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
 import {getAppSignatures} from "../../utils/smsVerification";
 import {NativeModules} from "react-native";
-import {BaseThunkAPI} from "@reduxjs/toolkit/dist/createAsyncThunk";
 export let db: WebSQLDatabase
 (async () => {
     db = await openDatabase();

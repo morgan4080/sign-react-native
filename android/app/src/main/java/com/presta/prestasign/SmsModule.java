@@ -77,7 +77,6 @@ public class SmsModule extends ReactContextBaseJavaModule {
                                 getCurrentActivity().startActivityForResult(consentIntent, userConsentRequestCode);
                             }
                         } catch (ActivityNotFoundException e) {
-                            // TODO: handle error
                             e.printStackTrace();
                         }
                         break;
@@ -150,17 +149,14 @@ public class SmsModule extends ReactContextBaseJavaModule {
 //                    String defaultCountry = data.getStringExtra("alpha2Code");
                     String defaultCountry = "KE";
 
-                    // TODO: format phone number
                     PhoneNumber phoneNumber = phoneUtil.parseAndKeepRawInput(number, defaultCountry);
 
                     boolean isValid = phoneUtil.isValidNumber(phoneNumber);
 
                     if (isValid) {
-                        String phone_number = Long.toString(phoneNumber.getNationalNumber());
-                        String country_code = Long.toString(phoneNumber.getCountryCode());
                         HashMap<String, String> country_code_phone_number = new HashMap<String, String>();
-                        country_code_phone_number.put("country_code", country_code);
-                        country_code_phone_number.put("phone_no", phone_number);
+                        country_code_phone_number.put("country_code", Long.toString(phoneNumber.getCountryCode()));
+                        country_code_phone_number.put("phone_no", Long.toString(phoneNumber.getNationalNumber()));
                         Gson gson = new Gson();
                         String MapData = gson.toJson(country_code_phone_number);
                         promise.resolve(MapData);
@@ -217,8 +213,26 @@ public class SmsModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void requestPhoneNumberFormat(String numberType, final Promise promise) {
+    public void requestPhoneNumberFormat(String alpha2Code, String phone_number, final Promise promise) {
         // TODO: receive country identifier and return promise with string format example
+        try {
+            PhoneNumber phoneNumber = phoneUtil.parseAndKeepRawInput(phone_number, alpha2Code);
+
+            boolean isValid = phoneUtil.isValidNumber(phoneNumber);
+
+            if (isValid) {
+                HashMap<String, String> country_code_phone_number = new HashMap<String, String>();
+                country_code_phone_number.put("country_code", Long.toString(phoneNumber.getCountryCode()));
+                country_code_phone_number.put("phone_no", Long.toString(phoneNumber.getNationalNumber()));
+                Gson gson = new Gson();
+                String MapData = gson.toJson(country_code_phone_number);
+                promise.resolve(MapData);
+            } else {
+                throw new NumberParseException(NOT_A_NUMBER, "Contact Phone Number Get failed");
+            }
+        } catch (NumberParseException e) {
+            promise.reject("Number parse error", e);
+        }
     }
 
     @ReactMethod

@@ -1,6 +1,6 @@
 import {
-    Dimensions, NativeModules,
-    Platform,
+    Dimensions,
+    NativeModules,
     SafeAreaView,
     ScrollView, StatusBar,
     StatusBar as Bar,
@@ -33,6 +33,7 @@ import {Controller, useForm} from "react-hook-form";
 import {useCallback, useEffect, useRef, useState} from "react";
 import {Picker} from "@react-native-picker/picker";
 import configuration from "../../utils/configuration";
+import Cry from "../../assets/images/cry.svg";
 const { width, height } = Dimensions.get("window");
 type FormData = {
     disbursement_mode: string,
@@ -93,6 +94,8 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
         Poppins_400Regular,
         Poppins_300Light
     });
+
+    const [loanError, setLoanError] = useState<string>("");
 
     const makeLoanRequest = async () => {
         let code = route.params?.category.options.filter((op: any) => op.selected)[0].options.filter((o: any) => o.selected)[0];
@@ -224,20 +227,24 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                         if (res.type === 'resubmitForSigning/fulfilled') {
                             navigation.navigate('LoanRequest', response.payload);
                         } else {
-                            console.log(res)
-                            CSTM.showToast('Loan Request resubmit failed');
+                            console.log(res);
+                            setLoanError("Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.");
+                            setContext("loanRequestError");
                         }
                     }
                 } else {
                     CSTM.showToast('Loan Request failed');
+                    setLoanError("Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.");
+                    setContext("loanRequestError");
                 }
             } else {
-                console.log('loan request error', response)
-                CSTM.showToast('Loan Request failed');
+                console.log('loan request error', response);
+                setLoanError(response.error.message ? response.error.message : "Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours");
+                setContext("loanRequestError");
             }
         } catch (error: any) {
-            console.log('loan request error', error)
-            CSTM.showToast('Loan Request failed');
+            setLoanError(error.error.message ? error.error.message : "Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours");
+            setContext("loanRequestError");
         }
     }
 
@@ -342,84 +349,98 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                     <SafeAreaView style={{display: 'flex', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
                         {
                             context === "repaymentDisbursement" &&
-                            <View style={{display: 'flex', alignItems: 'center', width}}>
-                                <Text allowFontScaling={false} style={[{ paddingHorizontal: 30, marginTop: 10 } ,styles.subtitle]}>Add Disbursement/Repayment Modes</Text>
-                                <Text style={{ fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 5, textAlign: 'left', alignSelf: 'flex-start', paddingHorizontal: 30 }} allowFontScaling={false}>Disbursement Mode</Text>
-                                <Controller
-                                    control={control}
-                                    render={( {field: {onChange, onBlur, value}}) => (
-                                        <View style={styles.input0}>
-                                            <Picker
-                                                itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                                style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                                onBlur={onBlur}
-                                                selectedValue={value}
-                                                onValueChange={(itemValue, itemIndex) => setValue('disbursement_mode', itemValue)}
-                                                mode="dropdown"
-                                            >
-                                                {[
-                                                    {
-                                                        name: "Cheque",
-                                                        value: "Cheque"
-                                                    },
-                                                    {
-                                                        name: "My Account",
-                                                        value: "My Account"
-                                                    },
-                                                    {
-                                                        name: "EFT",
-                                                        value: "EFT"
-                                                    }
-                                                ].map((p, i) =>(
-                                                    <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
-                                                ))}
-                                            </Picker>
-                                        </View>
-                                    )}
-                                    name="disbursement_mode"
-                                />
-                                <Text allowFontScaling={false} style={{ fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 5, textAlign: 'left', alignSelf: 'flex-start', paddingHorizontal: 30 }}>Repayment Mode</Text>
-                                <Controller
-                                    control={control}
-                                    render={( {field: {onChange, onBlur, value}}) => (
-                                        <View style={styles.input0}>
-                                            <Picker
-                                                itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                                style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                                onBlur={onBlur}
-                                                mode="dropdown"
-                                                selectedValue={value}
-                                                onValueChange={(itemValue, itemIndex) => setValue('repayment_mode', itemValue)}
-                                            >
-                                                {[
-                                                    {
-                                                        name: "Checkoff",
-                                                        value: "Checkoff"
-                                                    },
-                                                    {
-                                                        name: "Cash Paybill",
-                                                        value: "Cash Paybill"
-                                                    },
-                                                    {
-                                                        name: "Standing Offer",
-                                                        value: "Standing Offer"
-                                                    }
-                                                ].map((p, i) =>(
-                                                    <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
-                                                ))}
-                                            </Picker>
-                                        </View>
-                                    )}
-                                    name="repayment_mode"
-                                />
-                            </View>
+                            <>
+                                <View style={{display: 'flex', alignItems: 'center', width}}>
+                                    <Text allowFontScaling={false} style={[{ paddingHorizontal: 30, marginTop: 10 } ,styles.subtitle]}>Add Disbursement/Repayment Modes</Text>
+                                    <Text style={{ fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 5, textAlign: 'left', alignSelf: 'flex-start', paddingHorizontal: 30 }} allowFontScaling={false}>Disbursement Mode</Text>
+                                    <Controller
+                                        control={control}
+                                        render={( {field: {onChange, onBlur, value}}) => (
+                                            <View style={styles.input0}>
+                                                <Picker
+                                                    itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
+                                                    style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
+                                                    onBlur={onBlur}
+                                                    selectedValue={value}
+                                                    onValueChange={(itemValue, itemIndex) => setValue('disbursement_mode', itemValue)}
+                                                    mode="dropdown"
+                                                >
+                                                    {[
+                                                        {
+                                                            name: "Cheque",
+                                                            value: "Cheque"
+                                                        },
+                                                        {
+                                                            name: "My Account",
+                                                            value: "My Account"
+                                                        },
+                                                        {
+                                                            name: "EFT",
+                                                            value: "EFT"
+                                                        }
+                                                    ].map((p, i) =>(
+                                                        <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
+                                                    ))}
+                                                </Picker>
+                                            </View>
+                                        )}
+                                        name="disbursement_mode"
+                                    />
+                                    <Text allowFontScaling={false} style={{ fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 5, textAlign: 'left', alignSelf: 'flex-start', paddingHorizontal: 30 }}>Repayment Mode</Text>
+                                    <Controller
+                                        control={control}
+                                        render={( {field: {onChange, onBlur, value}}) => (
+                                            <View style={styles.input0}>
+                                                <Picker
+                                                    itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
+                                                    style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
+                                                    onBlur={onBlur}
+                                                    mode="dropdown"
+                                                    selectedValue={value}
+                                                    onValueChange={(itemValue, itemIndex) => setValue('repayment_mode', itemValue)}
+                                                >
+                                                    {[
+                                                        {
+                                                            name: "Checkoff",
+                                                            value: "Checkoff"
+                                                        },
+                                                        {
+                                                            name: "Cash Paybill",
+                                                            value: "Cash Paybill"
+                                                        },
+                                                        {
+                                                            name: "Standing Offer",
+                                                            value: "Standing Offer"
+                                                        }
+                                                    ].map((p, i) =>(
+                                                        <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
+                                                    ))}
+                                                </Picker>
+                                            </View>
+                                        )}
+                                        name="repayment_mode"
+                                    />
+                                </View>
+                                <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                                    <TouchableOpacity disabled={loading} onPress={() => submitModes()} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                                        {loading && <RotateView/>}
+                                        <Text allowFontScaling={false} style={styles.buttonText}>Save</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </>
                         }
-                        <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity disabled={loading} onPress={() => submitModes()} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                                {loading && <RotateView/>}
-                                <Text allowFontScaling={false} style={styles.buttonText}>Save</Text>
-                            </TouchableOpacity>
-                        </View>
+                        {
+                            context === "loanRequestError" && (
+                                <View style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+                                    <Cry width={width/2} height={height/3}/>
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#747474'}}>{ loanError }.</Text>
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#747474'}}>Loan request was received. Kindly go to loan requests to start replacing guarantors.</Text>
+                                    <TouchableOpacity onPress={() => navigation.navigate('LoanRequests')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#cccccc', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
+                                        <Text allowFontScaling={false} style={{...styles.buttonText, color: '#797979'}}>LOAN REQUESTS</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )
+                        }
                     </SafeAreaView>
                 </BottomSheet>
             </GestureHandlerRootView>

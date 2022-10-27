@@ -11,11 +11,11 @@ import {
     Text,
     View,
     Dimensions,
-    NativeModules, TouchableOpacity, Switch,
+    NativeModules, TouchableOpacity, Switch, Button,
 } from "react-native";
 type NavigationProps = NativeStackScreenProps<any>;
-import {Controller, EventType, useForm} from "react-hook-form";
-import {AntDesign, MaterialIcons} from "@expo/vector-icons";
+import {Controller, useForm} from "react-hook-form";
+import {AntDesign, Ionicons, MaterialIcons} from "@expo/vector-icons";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {getContact, requestPhoneNumberFormat} from "../../utils/smsVerification";
 import {getSecureKey} from "../../utils/secureStore";
@@ -23,7 +23,6 @@ import {cloneDeep} from "lodash";
 import configuration from "../../utils/configuration";
 import ContactSectionList from "../../components/ContactSectionList";
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackdrop, BottomSheetFlatList  } from "@gorhom/bottom-sheet";
-import {RotateView} from "../Auth/VerifyOTP";
 import {toMoney} from "../User/Account";
 const { CSTM } = NativeModules;
 const { width } = Dimensions.get("window");
@@ -63,6 +62,25 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const [allGuaranteedAmounts, setAllGuaranteedAmounts] = useState<string[]>([]);
 
     const [employerDetailsEnabled, setEmployerDetailsEnabled] = useState(false);
+
+    const [heldMember, setHeldMember] = useState<searchedMemberType | null>(null);
+
+    type employerPayloadType = {
+        employerName: string | undefined;
+        serviceNo: string | undefined;
+        grossSalary: string | undefined;
+        netSalary: string | undefined;
+        kraPin: string | undefined;
+    }
+    type businessPayloadType = {
+        businessLocation: string | undefined;
+        businessType: string | undefined;
+        kraPin: string | undefined;
+    }
+
+    const [employerPayload, setEmployerPayload] = useState<employerPayloadType>();
+
+    const [businessPayload, setBusinessPayload] = useState<businessPayloadType>();
 
     // set current guarantor on settings requiring amount
 
@@ -106,7 +124,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         const {payload, type, error}: {payload: any, type: string, error?: any} = await dispatch(searchByMemberNo(member_no));
 
         if (type === 'searchByMemberNo/rejected') {
-            CSTM.showToast(`${error.message}`);
+            CSTM.showToast(`${member_no}: is not a member.`);
             return undefined;
         }
 
@@ -137,7 +155,9 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 if (settings && settings.guarantors === 'value' && settings.amounts) {
                     setContext('amount');
 
+                    setHeldMember(searchedMember);
 
+                    handleSnapPress(1);
 
                 } else if (settings && settings.guarantors === 'count' && member) {
                     // calculate amount to guarantee
@@ -145,25 +165,32 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
                     const amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
 
-                    const newDeserializedCopy: any[] = cloneDeep(selectedContacts);
-
                     amountsToG.push(theAmount);
 
                     setAllGuaranteedAmounts(amountsToG);
+
+                    const newDeserializedCopy: any[] = cloneDeep(selectedContacts);
 
                     newDeserializedCopy.push(searchedMember);
 
                     setSelectedContacts(newDeserializedCopy);
 
                     setValue('searchTerm', '');
+
+                    handleClosePress();
                 }
             } else {
                 setValue('searchTerm', '');
                 CSTM.showToast("Duplicate Entry");
+                handleClosePress();
             }
-        } else {
-            CSTM.showToast('could not add contact');
         }
+    }
+
+    const [phonebook_contact_name, set_phonebook_contact_name] = useState("");
+
+    const un_guaranteed = () => {
+        return `${route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount)}`;
     }
 
     const {
@@ -175,23 +202,28 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         setValue,
         getValues,
         formState: { errors }
-    } = useForm<FormData>({});
+    } = useForm<FormData>({
+        defaultValues: {
+            amountToGuarantee: `${route.params? route.params.loanDetails.desiredAmount : 0}`
+        }
+    });
 
     useEffect(() => {
         let reactToSearch = true;
 
         if (reactToSearch && searching) {
             getSecureKey("alpha2Code")
-                .then(alpha2Code => getContact(421, alpha2Code))
-                .then(data => Promise.resolve(JSON.parse(data)))
-                .then(({ country_code, phone_no }) => {
-                    setValue('searchTerm', `${country_code}${phone_no}`);
-                    return searchMemberByPhone(`${country_code}${phone_no}`);
-                })
-                .then(addContactToList)
-                .catch(e => {
-                    CSTM.showToast(e.message);
-                });
+            .then(alpha2Code => getContact(421, alpha2Code))
+            .then(data => Promise.resolve(JSON.parse(data)))
+            .then((data) => {
+                set_phonebook_contact_name(`${data.name ? data.name : "" }`);
+                setValue('searchTerm', `${data.country_code}${data.phone_no}`);
+                return searchMemberByPhone(`${data.country_code}${data.phone_no}`);
+            })
+            .then(addContactToList)
+            .catch(e => {
+                CSTM.showToast(e.message);
+            });
         }
 
         return () => {
@@ -316,6 +348,8 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                             .catch(e => {
                                 CSTM.showToast(e.message);
                             });
+                        } else {
+                            handleClosePress();
                         }
                         return
                     }
@@ -340,61 +374,187 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
     const [tab, setTab] = useState<number>(0);
 
+    const submitEdit = () => {
+        const [phoneRegex, memberNoRegex] = [
+            /^([\d{1,2}[]?|)\d{3}[]?\d{3}[]?\d{4}$/i,
+            /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{3,9}$/i
+        ];
+        if (memberNoRegex.test(getValues("searchTerm"))) {
+            searchMemberByMemberNo(getValues("searchTerm"))
+                .then(addContactToList)
+                .catch(e => {
+                    CSTM.showToast(e.message);
+                });
+        } else if (phoneRegex.test(getValues("searchTerm"))) {
+            getSecureKey("alpha2Code")
+                .then(alpha2Code => requestPhoneNumberFormat(alpha2Code, getValues("searchTerm")))
+                .then((jsonDat) => Promise.resolve(JSON.parse(jsonDat)))
+                .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
+                .then(addContactToList)
+                .catch(e => {
+                    CSTM.showToast(e.message);
+                })
+        } else {
+            CSTM.showToast("Wrong Format: remove country code");
+        }
+    }
+
+    const submitAmount = () => {
+        let amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
+        amountsToG.push(getValues("amountToGuarantee"));
+        setAllGuaranteedAmounts(amountsToG);
+        setValue("amountToGuarantee", "");
+        handleClosePress();
+        const newDeserializedCopy: any[] = cloneDeep(selectedContacts);
+        newDeserializedCopy.push(heldMember);
+        setSelectedContacts(newDeserializedCopy);
+    }
+
+    const submitKYC = () => {
+        clearErrors();
+        if (tab === 0) {
+            // set payload for employer
+            // check em
+            if (getValues("employerName") === undefined || getValues("employerName") === "" || getValues("employerName") === null) {
+                setError("employerName", {type: 'custom', message: "required"});
+                return
+            }
+            if (getValues("serviceNo") === undefined || getValues("serviceNo") === "" || getValues("serviceNo") === null) {
+                setError("serviceNo", {type: 'custom', message: "required"});
+                return
+            }
+            if (getValues("grossSalary") === undefined || getValues("grossSalary") === "" || getValues("grossSalary") === null) {
+                setError("grossSalary", {type: 'custom', message: "required"});
+                return
+            }
+            if (getValues("netSalary") === undefined || getValues("netSalary") === "" || getValues("netSalary") === null) {
+                setError("netSalary", {type: 'custom', message: "required"});
+                return
+            }
+            if (getValues("kraPin") === undefined || getValues("kraPin") === "" || getValues("kraPin") === null) {
+                setError("kraPin", {type: 'custom', message: "required"});
+                return
+            }
+            let payloadCode = {
+                employerName: getValues("employerName"),
+                serviceNo: getValues("serviceNo"),
+                grossSalary: getValues("grossSalary"),
+                netSalary: getValues("netSalary"),
+                kraPin: getValues("kraPin")
+            };
+
+            console.log('employed', payloadCode);
+            setEmployerPayload(payloadCode);
+            handleClosePress();
+        } else if (tab === 1) {
+            if (getValues("businessLocation") === undefined || getValues("businessLocation") === "" || getValues("businessLocation") === null) {
+                setError("businessLocation", {type: 'custom', message: "required"});
+                return
+            }
+            if (getValues("businessType") === undefined || getValues("businessType") === "" || getValues("businessType") === null) {
+                setError("businessType", {type: 'custom', message: "required"});
+                return
+            }
+            if (getValues("kraPin") === undefined || getValues("kraPin") === "" || getValues("kraPin") === null) {
+                setError("kraPin", {type: 'custom', message: "required"});
+                return
+            }
+
+
+            let payloadCode = {
+                businessLocation: getValues("businessLocation"),
+                businessType: getValues("businessType"),
+                kraPin: getValues("kraPin")
+            };
+
+            console.log('business', payloadCode);
+
+            setBusinessPayload(payloadCode);
+        }
+    }
+
+    const navigateUser = async () => {
+        if (member && route.params && route.params.loanProduct && route.params.loanDetails && selectedContacts.length > 0) {
+            if (settings && settings.employerInfo  && !(employerPayload || businessPayload)) {
+                setEmployerDetailsEnabled(true);
+                onPress("employment");
+                return;
+            }
+
+            if (settings && settings.witness) {
+                navigation.navigate('WitnessesHome', {
+                    guarantors: selectedContacts.map((cont, i) => {
+                        if (settings.amounts) {
+                            cont = {
+                                ...cont,
+                                committedAmount: allGuaranteedAmounts[i]
+                            }
+                        }
+                        return cont
+                    }),
+                    employerPayload,
+                    businessPayload,
+                    ...route.params
+                })
+            } else if (settings && !settings.witness) {
+                navigation.navigate('LoanConfirmation', {
+                    witnesses: [],
+                    guarantors: selectedContacts.map((cont, i) => {
+                        if (settings.amounts) {
+                            cont = {
+                                ...cont,
+                                committedAmount: allGuaranteedAmounts[i]
+                            }
+                        }
+                        return cont
+                    }),
+                    employerPayload,
+                    businessPayload,
+                    ...route.params
+                })
+            }
+        } else {
+            CSTM.showToast(`CANNOT VALIDATE GUARANTORS`);
+        }
+    }
+
     return (
         <GestureHandlerRootView style={styles.container}>
             <View style={styles.searchableHeader}>
-                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <Pressable style={{alignSelf: 'flex-start'}} onPress={() => {
-                        navigation.goBack();
-                    }}>
-                        <AntDesign name="arrowleft" size={24} color="rgba(0,0,0,0.89)" />
-                    </Pressable>
+                <Pressable style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} onPress={submitEdit}>
+                    <AntDesign name="search1" size={15} color="rgba(0,0,0,0.89)" />
+                </Pressable>
+                <View style={{flex: 0.6, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                     <Controller
                         control={control}
                         render={( { field: { onChange, onBlur, value } }) => (
                             <TextInput
                                 allowFontScaling={false}
-                                style={{paddingLeft: 20, fontFamily: 'Poppins_500Medium', fontSize: 13, minWidth: width/1.5, color: '#393a34', textDecorationLine: "underline"}}
+                                style={{paddingLeft: 20, fontFamily: 'Poppins_400Regular', fontSize: 12, minWidth: width/1.5, color: '#393a34', textDecorationLine: "underline"}}
                                 onBlur={onBlur}
                                 onChangeText={onChange}
                                 value={value}
-                                placeholder={`Search Phone or Member No`}
+                                placeholder={`Mobile or Member No`}
                                 maxLength={12}
-                                onSubmitEditing={() => {
-                                    const [phoneRegex, memberNoRegex] = [
-                                        /^([\d{1,2}[]?|)\d{3}[]?\d{3}[]?\d{4}$/i,
-                                        /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{3,9}$/i
-                                    ];
-                                    if (memberNoRegex.test(getValues("searchTerm"))) {
-                                        console.log('member', getValues("searchTerm"));
-                                    } else if (phoneRegex.test(getValues("searchTerm"))) {
-                                        getSecureKey("alpha2Code")
-                                        .then(alpha2Code => requestPhoneNumberFormat(alpha2Code, getValues("searchTerm")))
-                                        .then((jsonDat) => Promise.resolve(JSON.parse(jsonDat)))
-                                        .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
-                                        .then(addContactToList)
-                                        .catch(e => {
-                                            CSTM.showToast(e.message);
-                                        })
-                                    } else {
-                                        CSTM.showToast("Invalid Identifier");
-                                    }
-                                }}
+                                onEndEditing={() => {set_phonebook_contact_name("")}}
+                                onSubmitEditing={submitEdit}
                                 clearButtonMode="while-editing"
                             />
                         )}
                         name="searchTerm"
                     />
                 </View>
-                <Pressable onPress={() => {
+                <Pressable style={{ flex: 0.3, display: "flex", flexDirection: "row", justifyContent: 'flex-end', alignItems: 'center'}} onPress={() => {
                     setSearching(!searching);
                 }}>
-                    <AntDesign style={{paddingHorizontal: 10}} name="search1" size={20} color="rgba(0,0,0,0.89)" />
+                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 10, marginRight: 10, color: '#737373'}}>{ phonebook_contact_name }</Text>
+                    <Ionicons style={{ paddingRight: 10, paddingVertical: 5 }} name="person" size={18} color="rgba(0,0,0,0.89)" />
                 </Pressable>
             </View>
             <ContactSectionList contactsData={
                 [
                     {
+                        id: 1,
                         title: 'OPTIONS',
                         data: [
                             {
@@ -403,11 +563,21 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         ]
                     },
                     {
-                        title: 'SELECTED GUARANTORS',
-                        data: selectedContacts
+                        id: 2,
+                        title:`SELECTED GUARANTORS (REQUIRES ${route.params?.loanProduct.requiredGuarantors} ${route.params?.loanProduct.requiredGuarantors == 1 ? 'GUARANTOR' : 'GUARANTORS'})`,
+                        data: selectedContacts.length > 0 ? selectedContacts : [
+                            {
+                                name: false
+                            }
+                        ]
                     }
                 ]
             } searching={searching} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} onPress={onPress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} />
+            <View style={{ position: 'absolute', bottom: 0, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                <TouchableOpacity disabled={ isDisabled() || loading } onPress={navigateUser} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                    <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
+                </TouchableOpacity>
+            </View>
             <BottomSheet
                 ref={sheetRef}
                 index={-1}
@@ -435,7 +605,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                             context === "amount" &&
                             <View style={{display: 'flex', alignItems: 'center', width, marginBottom: 10}}>
                                 <Text allowFontScaling={false} style={styles.subtitle}>Add {currentGuarantor?.name}'s Guarantorship Amount</Text>
-                                <Text allowFontScaling={false} style={{ alignSelf: 'flex-start', textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, paddingHorizontal: 30 }}>Un-guaranteed Amount <Text style={{textDecorationLine: 'underline'}}>{toMoney(`${route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount)}` )}</Text></Text>
+                                <Text allowFontScaling={false} style={{ alignSelf: 'flex-start', textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, paddingHorizontal: 30 }}>Un-guaranteed Amount <Text style={{textDecorationLine: 'underline'}}>{toMoney(un_guaranteed())}</Text></Text>
                                 <Controller
                                     control={control}
                                     render={({field: {onChange, onBlur, value}}) => (
@@ -452,7 +622,9 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                     name="amountToGuarantee"
                                 />
 
-
+                                <Pressable disabled={!heldMember} onPress={submitAmount} style={{marginTop: 20, backgroundColor: !heldMember ? "#CCCCCC" : "#489AAB", paddingHorizontal: 50, paddingVertical: 15, borderRadius: 25}}>
+                                    <Text allowFontScaling={false} style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_600SemiBold', textTransform: 'uppercase'}}>Submit Amount</Text>
+                                </Pressable>
                             </View>
                         }
                         { context === "employment" &&
@@ -604,30 +776,14 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                         {errors.kraPin &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.kraPin?.message ? errors.kraPin?.message : 'KRA pin required'}</Text>}
 
                                     </> }
-                            </View>
-                        }
-                        {
-                            context !== 'amount' &&
-                            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width, marginHorizontal: 20 }}>
-                                <Controller
-                                    control={control}
-                                    rules={{
-                                        required: true,
-                                    }}
-                                    render={( { field: { onChange, onBlur, value } }) => (
-                                        <Switch
-                                            trackColor={{ false: "#767577", true: "#489AAB" }}
-                                            thumbColor={employerDetailsEnabled ? "#FFFFFF" : "#f4f3f4"}
-                                            onValueChange={toggleEmployerDetailsEnabled}
-                                            value={employerDetailsEnabled}
-                                        />
-                                    )}
-                                    name="employerDetails"
-                                />
-                                <Text allowFontScaling={false} style={{ fontSize: 12, color: '#CCCCCC', fontFamily: 'Poppins_400Regular' }}>Enter Employer details</Text>
-                            </View>
-                        }
 
+                                <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                    <Pressable onPress={submitKYC} style={{marginTop: 20, backgroundColor: !heldMember ? "#CCCCCC" : "#489AAB", paddingHorizontal: 50, paddingVertical: 15, borderRadius: 25}}>
+                                        <Text allowFontScaling={false} style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_600SemiBold', textTransform: 'uppercase'}}>Submit Details</Text>
+                                    </Pressable>
+                                </View>
+                            </View>
+                        }
                     </BottomSheetScrollView>
                 }
             </BottomSheet>
@@ -639,16 +795,22 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingTop: StatusBar.currentHeight,
-        marginHorizontal: 0
+        marginHorizontal: 0,
+        backgroundColor: '#FFFFFF'
     },
     searchableHeader: {
         display: 'flex',
         flexDirection: 'row',
-        backgroundColor: "#FFFFFF",
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: 15,
-        shadowColor: 'rgba(0,0,0,0.7)', // IOS
+        backgroundColor: '#f4f3f4',
+        marginTop: 10,
+        marginBottom: 25,
+        marginHorizontal: 10,
+        borderRadius: 50,
+        paddingHorizontal: 5,
+        paddingVertical: 8,
+        shadowColor: 'rgba(0,0,0,0.2)', // IOS
         shadowOffset: { height: 1, width: 1 }, // IOS
         shadowOpacity: 1, // IOS
         shadowRadius: 1, // IOS
@@ -719,6 +881,12 @@ const styles = StyleSheet.create({
         fontSize: 14,
         paddingHorizontal: 30,
         marginBottom: 2
+    },
+    buttonText: {
+        fontSize: 15,
+        textAlign: 'center',
+        color: '#FFFFFF',
+        fontFamily: 'Poppins_600SemiBold'
     },
 });
 

@@ -14,7 +14,7 @@ import {
 import {RotateView} from "../Auth/VerifyOTP";
 const { width, height } = Dimensions.get("window");
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {requestPhoneNumber} from "../../utils/smsVerification";
+import {requestPhoneNumber, requestPhoneNumberFormat} from "../../utils/smsVerification";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -62,6 +62,8 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
     const [phn, setPhn] = useState('');
 
     const [code, setCode] = useState(route.params?.code ? `+${route.params.code}` : '+254');
+
+    const [alpha, setAlpha] = useState('KE');
 
     const [country, setCountry] = useState<{name: string, code: string, numericCode: string, alpha2Code: string, flag: string}>();
 
@@ -116,25 +118,6 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
     }, []);
 
     useEffect(() => {
-        let tenantsFetched = true;
-
-        if (tenants.length > 0 && tenantsFetched) {
-            let payload = {
-                countryCode: getValues('countryCode'),
-                phoneNumber: tab === 0 ? getValues("phoneNumber"): undefined,
-                email: tab === 1 ? getValues("email") : undefined
-            };
-
-            console.log('payload', payload)
-            navigation.navigate('ShowTenants', payload);
-        }
-
-        return () => {
-            tenantsFetched = false;
-        };
-    }, [tenants]);
-
-    useEffect(() => {
         if (code === '+254') {
             setTab(0)
         } else {
@@ -178,6 +161,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                                     ...country,
                                     flag: `https://flagcdn.com/28x21/${country.alpha2Code.toLowerCase()}.png`
                                 });
+                                setAlpha(country.alpha2Code);
                             } else {
                                 const countryLight = countries.find((country: {name: string, code: string, numericCode: string, alpha2Code: string}) => (country.code === codex.replace("+", "")));
                                 if (countryLight) {
@@ -185,6 +169,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                                         ...countryLight,
                                         flag: `https://flagcdn.com/28x21/${countryLight.alpha2Code.toLowerCase()}.png`
                                     });
+                                    setAlpha(countryLight.alpha2Code);
                                 }
                             }
                         }
@@ -201,6 +186,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                                     ...country,
                                     flag: `https://flagcdn.com/28x21/${country.alpha2Code.toLowerCase()}.png`
                                 });
+                                setAlpha(country.alpha2Code);
                             }
                         }
                         setCode(defaultValues.countryCode)
@@ -236,22 +222,26 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
         console.log("running submit");
         if (tab === 0) {
             try {
-                if (value.phoneNumber.length < 8) {
+                const isPh = /^([\d{1,2}[]?|)\d{3}[]?\d{3}[]?\d{3}[]?$/i.test(value.phoneNumber);
+
+                if (!isPh) {
                     setError('phoneNumber', {type: 'custom', message: 'Please provide a valid phone number'});
                     return
                 }
-                let phone: string = ''
-                let identifier: string = `${value.countryCode}${value.phoneNumber}`
-                if (identifier[0] === '+') {
-                    let number = identifier.substring(1);
-                    phone = `${number.replace(/ /g, "")}`;
-                } else if (identifier[0] === '0') {
-                    let number = identifier.substring(1);
-                    phone = `254${number.replace(/ /g, "")}`;
-                }
+                const phoneDataJson = await requestPhoneNumberFormat(alpha, value.phoneNumber);
+
+                const {country_code, phone_no} = JSON.parse(phoneDataJson);
+
+                const phone = `${country_code}${phone_no}`;
+
+                console.log('fixednumber', phone);
 
                 const { type, error, payload }: any = await dispatch(getTenants(phone !== '' ? phone : value.phoneNumber));
+
+                console.log(type);
+
                 setSubmitted(true);
+
                 if (type === 'getTenants/rejected' && error) {
                     if (error.message === "Network request failed") {
                         CSTM.showToast(error.message);
@@ -262,15 +252,23 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                     if (payload.length > 0) {
                         await Promise.all([
                             saveSecureKey('phone_number_code', value.countryCode),
-                            saveSecureKey('phone_number_without', value.phoneNumber)
-                        ])
+                            saveSecureKey('phone_number_without', phone_no)
+                        ]);
+                        const payload = {
+                            deviceId: deviceId,
+                            phoneNumber: phone,
+                            email: null
+                        };
+                        console.log(payload);
+                        navigation.navigate('ShowTenants', payload);
                     } else {
                         // setError('phoneNumber', {type: 'custom', message: "Kindly check your number and try again"});
                         const payload = {
                             deviceId: deviceId,
-                            phoneNumber: `${value.countryCode}${value.phoneNumber}`,
+                            phoneNumber: phone,
                             email: null
                         };
+                        console.log(payload);
                         navigation.navigate('SelectTenant', payload);
                     }
 
@@ -296,12 +294,18 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                             setError('email', { type: 'custom', message: error.message });
                         }
                     } else {
-                        console.log(payload)
                         if (payload.length === 0) {
                             setError('email', {type: 'custom', message: 'Please provide a valid email'})
                         } else {
                             await saveSecureKey('account_email', email);
                             await saveSecureKey('phone_number_code', countryCode);
+
+                            const payload = {
+                                deviceId: deviceId,
+                                phoneNumber: null,
+                                email: email
+                            };
+                            navigation.navigate('ShowTenants', payload);
                         }
                     }
 
@@ -513,7 +517,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                                 control={control}
                                 rules={{
                                     required: false,
-                                    maxLength: 12,
+                                    maxLength: 12
                                 }}
                                 render={({field: {onChange, value}}) => (
                                     <TextInput
@@ -541,7 +545,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                                 name="phoneNumber"
                             />
                             {
-                                (errors.phoneNumber && submitted) &&
+                                (errors.phoneNumber) &&
                                 <Text allowFontScaling={false}
                                       style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Kindly use the required format'}</Text>
                             }

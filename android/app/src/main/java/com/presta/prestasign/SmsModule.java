@@ -97,6 +97,8 @@ public class SmsModule extends ReactContextBaseJavaModule {
     }
 
     private void handleOnActivityResult (Activity activity, int requestCode, int resultCode, Intent data) {
+        Gson gson = new Gson();
+
         if (requestCode == userConsentRequestCode) {
             if (resultCode == Activity.RESULT_OK) {
                 String message = data.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE);
@@ -122,31 +124,45 @@ public class SmsModule extends ReactContextBaseJavaModule {
         }
         if (requestCode == contactRequestCode && promise != null) {
             if (resultCode == Activity.RESULT_OK) {
-                try {
-                    Cursor cursor;
-                    // Get the URI that points to the selected contact
-                    Uri contactUri = data.getData();
-                    // We only need the NUMBER column, because there will be only one row in the result
-                    String[] projection = {ContactsContract.CommonDataKinds.Phone.NUMBER};
+                Cursor cursor = null;
 
-                    // Perform the query on the contact to get the NUMBER column
-                    // We don't need a selection or sort order (there's only one result for the given URI)
-                    // CAUTION: The query() method should be called from a separate thread to avoid blocking
-                    // your app's UI thread. (For simplicity of the sample, this code doesn't do that.)
-                    // Consider using CursorLoader to perform the query.
+                try {
+                    Uri contactUri = data.getData();
+
+                    String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME};
+
                     cursor = activity.getContentResolver()
                             .query(contactUri, projection, null, null, null);
-                    cursor.moveToFirst();
 
-                    // Retrieve the phone number from the NUMBER column
+                    int count = cursor.getColumnCount();
 
-                    int column = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                    HashMap<String, String> column_index_column_name = new HashMap<String, String>();
 
-                    String number = cursor.getString(column);
 
-                    cursor.close();
 
-//                    String defaultCountry = data.getStringExtra("alpha2Code");
+                    for (int i = 0; i < count; i++) {
+                        StringBuilder stringIndex = new StringBuilder("");
+                        stringIndex.append(i);
+                        column_index_column_name.put("column_index", stringIndex.toString());
+                        column_index_column_name.put("column_name", cursor.getColumnName(i));
+                    }
+
+                    String number = "";
+
+                    String name = "";
+
+                    if (cursor.getCount() > 0) {
+                        if (cursor.moveToFirst()) {
+                            int column = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+
+                            number = cursor.getString(column);
+
+                            int column0 = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+
+                            name = cursor.getString(column0);
+                        }
+                    }
+
                     String defaultCountry = "KE";
 
                     PhoneNumber phoneNumber = phoneUtil.parseAndKeepRawInput(number, defaultCountry);
@@ -155,9 +171,10 @@ public class SmsModule extends ReactContextBaseJavaModule {
 
                     if (isValid) {
                         HashMap<String, String> country_code_phone_number = new HashMap<String, String>();
+                        country_code_phone_number.put("name", name);
                         country_code_phone_number.put("country_code", Long.toString(phoneNumber.getCountryCode()));
                         country_code_phone_number.put("phone_no", Long.toString(phoneNumber.getNationalNumber()));
-                        Gson gson = new Gson();
+                        country_code_phone_number.put("column_index_column_name", gson.toJson(column_index_column_name));
                         String MapData = gson.toJson(country_code_phone_number);
                         promise.resolve(MapData);
                     } else {
@@ -165,6 +182,10 @@ public class SmsModule extends ReactContextBaseJavaModule {
                     }
                 } catch (NumberParseException e) {
                     promise.reject("Contact Phone Number Get failed", e);
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
                 }
             } else {
                 promise.reject(String.valueOf(resultCode), "Unable to retrieve contact");

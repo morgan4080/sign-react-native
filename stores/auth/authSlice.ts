@@ -779,7 +779,7 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
 })
 type refreshTokenPayloadType = {client_id: string, grant_type: string, refresh_token: string, realm?: string, client_secret?: string, cb?: any}
 
-export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async ({client_id, grant_type, refresh_token, realm, client_secret,  cb} : refreshTokenPayloadType) => {
+export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async ({client_id, grant_type, refresh_token, realm, client_secret,  cb} : refreshTokenPayloadType, { dispatch }) => {
     try {
         const payload: any = {
             client_id,
@@ -815,11 +815,7 @@ export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async (
             }
             return Promise.resolve(data);
         } else {
-            console.log("refresh error:", {
-                ...data,
-                ...payload
-            });
-            return Promise.reject(response.status);
+            dispatch(setAuthState(false));
         }
 
     } catch(e: any) {
@@ -833,6 +829,8 @@ export const logoutUser = createAsyncThunk('logoutUser', async () => {
         deleteSecureKey('access_token'),
         deleteSecureKey('refresh_token'),
         deleteSecureKey('phone_number'),
+        deleteSecureKey('phone_number_code'),
+        deleteSecureKey('phone_number_without'),
         deleteSecureKey('existing'),
         deleteSecureKey('fingerPrint')
     ]);

@@ -1,15 +1,13 @@
 import {SectionList, StyleSheet, Text, View, TouchableOpacity, NativeModules, Dimensions} from 'react-native';
-import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
-import {useState} from "react";
-import {storeState, updateContact, validateNumber} from "../stores/auth/authSlice";
-import {store} from "../stores/store";
-import {useDispatch, useSelector} from "react-redux";
-const { CSTM } = NativeModules;
+import {Ionicons} from "@expo/vector-icons";
+import {storeState} from "../stores/auth/authSlice";
+import {useSelector} from "react-redux";
+import Cry from "../assets/images/cry.svg"
 
 type contactType = {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}
 
 type propType = {
-    contactsData: {title: string, data: contactType[]}[],
+    contactsData: {id: number, title: string, data: contactType[]}[],
     searching: any,
     addContactToList: any
     removeContactFromList: any
@@ -18,24 +16,20 @@ type propType = {
     setEmployerDetailsEnabled: any
 }
 
-const getAbrev = (name: string) => {
+const getAbbreviation = (name: string) => {
     return name[0]
 }
 
 const { width, height } = Dimensions.get("window");
 
-const Item = ({ contact, selectContact, contactList, section, onPress, setEmployerDetailsEnabled }: { contact: contactType, selectContact: any, contactList: any, section: any, setEmployerDetailsEnabled: any, onPress: any }) => {
+const Item = ({ contact, removeContact, contactList, section, onPress, setEmployerDetailsEnabled }: { contact: contactType, removeContact: any, contactList: any, section: any, setEmployerDetailsEnabled: any, onPress: any }) => {
     const isChecked = contactList.find((con: any ) => con.memberNumber === contact.memberNumber);
-    const [selectedContact, setSelectedContact] = useState<boolean>(false);
-    if (section.title === 'SELECTED GUARANTORS' || section.title === 'CONTACTS') {
-        return (
+    if (section.id === 2) {
+        return contact.name ? (
             <TouchableOpacity onPress={async () => {
-                try {
-                    const res = await selectContact(!selectedContact, contact);
-                    setSelectedContact(isChecked);
-                } catch (e) {
-                    console.log("selectContact", e)
-                }
+                removeContact({
+                    ...contact
+                });
             }} style={{
                 ...styles.item,
                 backgroundColor: isChecked ? 'rgba(72,154,171,0.77)' : '#FFFFFF'
@@ -66,7 +60,7 @@ const Item = ({ contact, selectContact, contactList, section, onPress, setEmploy
                             ...styles.title,
                             fontSize: 12,
                             color: '#FFFFFF'
-                        }}>{getAbrev(contact.name).toUpperCase()}</Text>
+                        }}>{getAbbreviation(contact.name).toUpperCase()}</Text>
                     </View>
                 </View>
                 <View style={{flex: 0.67}}>
@@ -82,8 +76,13 @@ const Item = ({ contact, selectContact, contactList, section, onPress, setEmploy
                     color: isChecked ? '#FFFFFF' : '#393a34'
                 }}>{contact.memberNumber}</Text>
             </TouchableOpacity>
+        ): (
+            <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 50}}>
+                <Cry width={width/2} height={height/3}/>
+                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 10, marginRight: 10, color: '#737373', textAlign: 'center', width: '66%'}}>Enter for your preferred guarantor’s phone number/ member number above. Or select “👤” to add members directly from your contacts’ list.</Text>
+            </View>
         )
-    } else {
+    } else if (section.id === 1) {
         return (
             <TouchableOpacity onPress={() => {
                 setEmployerDetailsEnabled(false);
@@ -95,6 +94,10 @@ const Item = ({ contact, selectContact, contactList, section, onPress, setEmploy
                 <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#000000', fontSize: 10, paddingLeft: 10 }}>OPTIONS</Text>
             </TouchableOpacity>
         )
+    } else {
+        return (
+            <></>
+        )
     }
 };
 
@@ -102,67 +105,24 @@ const ContactSectionList = ({contactsData, searching, addContactToList, removeCo
 
     const { loading } = useSelector((state: { auth: storeState }) => state.auth);
 
-    type AppDispatch = typeof store.dispatch;
-
-    const dispatch : AppDispatch = useDispatch();
-
-    const selectContact = async (newValue: boolean, contact: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}) => {
-        console.log("selecting contact", newValue, contact);
-        try {
-            let phone: string = ''
-            if (contact.phone[0] === '+') {
-                let number = contact.phone.substring(1);
-                phone = `${number.replace(/ /g, "")}`;
-            } else if (contact.phone[0] === '0') {
-                let number = contact.phone.substring(1);
-                phone = `254${number.replace(/ /g, "")}`;
-            }
-
-            const result: any = await dispatch(validateNumber(phone));
-            const {payload, type}: {payload: any, type: string} = result;
-
-            if (type === 'validateNumber/rejected') {
-                CSTM.showToast(`${contact.name} ${result.error.message}`);
-                return
-            }
-            // update contact with member id and ref id
-            let res: boolean = false;
-            if (type === "validateNumber/fulfilled") {
-                if (newValue) {
-                    const statement = `UPDATE contacts SET memberNumber = '${payload?.memberNumber}', memberRefId = '${payload?.refId}' WHERE contact_id = ${contact.contact_id};`;
-                    await dispatch(updateContact(statement));
-
-                    res = await addContactToList({
-                        ...contact,
-                        memberNumber: payload?.memberNumber,
-                        memberRefId: payload?.refId
-                    });
-                } else {
-                    removeContactFromList({
-                        ...contact,
-                        memberNumber: payload?.memberNumber,
-                        memberRefId: payload?.refId
-                    });
-                }
-                return res
-            }
-        } catch (e: any) {
-            console.log("error", e)
-        }
-    }
+    const removeContact = async (contact: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}) => {
+        removeContactFromList(contact);
+    };
 
     return (
-        <SectionList
-            refreshing={loading}
-            onRefresh={() => console.log('refresh')}
-            progressViewOffset={20}
-            sections={contactsData}
-            keyExtractor={(item, index) => item.name + index}
-            renderItem={({ item, section }) => (<Item contact={item} section={section} selectContact={selectContact} contactList={contactList} onPress={onPress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} />)}
-            renderSectionHeader={({ section: { title, data } }) => (<Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_300Light', paddingHorizontal: 20, paddingVertical: title !== 'OPTIONS' ? 10 : 0, backgroundColor: '#FFFFFF' }}>{title}</Text>)}
-            stickySectionHeadersEnabled={true}
-            ListFooterComponent={<View style={{height: 75}} />}
-        />
+        <>
+            <SectionList
+                refreshing={loading}
+                onRefresh={() => console.log('refresh')}
+                progressViewOffset={20}
+                sections={contactsData}
+                keyExtractor={(item, index) => item.name + index}
+                renderItem={({ item, section }) => (<Item contact={item} section={section} removeContact={removeContact} contactList={contactList} onPress={onPress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} />)}
+                renderSectionHeader={({ section: { title, data } }) => (<Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_300Light', paddingHorizontal: 20, paddingVertical: title !== 'OPTIONS' ? 10 : 0, backgroundColor: '#FFFFFF' }}>{title}</Text>)}
+                stickySectionHeadersEnabled={true}
+                ListFooterComponent={<View style={{height: 75}} />}
+            />
+        </>
     )
 };
 

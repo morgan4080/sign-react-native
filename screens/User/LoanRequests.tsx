@@ -196,7 +196,42 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
     const spin = rotateAnim.interpolate({
         inputRange: [0, 1],
         outputRange: ['0deg', '360deg']
-    })
+    });
+
+    const Item = ({item, section} : {item: any, section: any}) => {
+        const [expanded, setExpanded] = useState(false);
+
+        return (
+            <TouchableOpacity onPress={() => setExpanded(!expanded)} style={{display: 'flex', flexDirection: 'row', marginVertical: 10}}>
+                { !expanded ?
+                    <AntDesign name="caretright" size={12} color="#64748B" style={{padding: 3}}/>
+                    :
+                    <AntDesign name="caretdown" size={12} color="#64748B" style={{padding: 3}} />
+                }
+                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View style={{width: width/3}}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#727272', fontSize: 12 }}>{`${item.firstName} ${item.lastName}`}</Text>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 10 }}>{ item.committedAmount } Ksh</Text>
+                    </View>
+                    <View style={{ position: 'relative' }}>
+                        <View style={{position: 'absolute', left: 0, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
+                            <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isAccepted ? '#0bb962' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Accepted</Text>
+                        </View>
+                        <View style={{position: 'absolute', right: 80, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                            <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isSigned ? '#0bb962' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Signed</Text>
+                        </View>
+                        <View style={{position: 'absolute', right: 0, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end'}}>
+                            <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isApproved ? '#0bb962' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Approved</Text>
+                        </View>
+                        <ProgressBar progress={computeProgress(item)} color='#0bb962' width={width/2.1}/>
+                    </View>
+                </View>
+            </TouchableOpacity>
+        )
+    }
 
     if (fontsLoaded) {
         return (
@@ -248,10 +283,44 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                 <BottomSheet ref={ref}>
                     <View style={styles.guarantorContainer}>
                         <View style={{marginBottom: 10}}>
-                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#4f4f4f', fontSize: 16 }}>{loan?.loanRequestProgress}% COMPLETE</Text>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#4f4f4f', fontSize: 16 }}>{loan?.loanRequestProgress}% DONE</Text>
                         </View>
+
+                        {loan && !loan.applicantSigned &&
+                            <View style={{marginTop: 15}}>
+                                <Text allowFontScaling={false}
+                                      style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9AFF', fontSize: 12}}>
+                                    You are yet to sign the applicant form. Click on sign below to begin.
+                                </Text>
+                                <TouchableOpacity style={{marginTop: 5}} onPress={() => signDocument()}>
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#489AAB', fontSize: 12, textDecorationLine: 'underline'}}>
+                                        Sign Applicant Form
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        }
+
                         <View collapsable={false}>
-                            {loan && loan.guarantorList.map((item, key) => (
+                            {loan &&
+                                <SectionList
+                                    refreshing={loading}
+                                    sections={[
+                                        {
+                                            id: 1,
+                                            title: "GUARANTORS' STATUS",
+                                            data: loan.guarantorList
+                                        }
+                                    ]}
+                                    keyExtractor={(item, index) => item.refId + index}
+                                    renderItem={({ item, section }) => (<Item item={item} section={section} />)}
+                                    renderSectionHeader={({ section: { title, data } }) => (
+                                        <Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_300Light', marginBottom: 10, color: '#64748B' }}>{title}</Text>
+                                    )}
+                                    stickySectionHeadersEnabled={true}
+                                    ListFooterComponent={<View style={{height: 75}} />}
+                                />
+                            }
+                            {/*{loan && loan.guarantorList.map((item, key) => (
                                 <View key={key} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', }}>
                                     <View style={{width: width/3}}>
                                         <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#727272', fontSize: 12 }}>{`${item.firstName} ${item.lastName}`}</Text>
@@ -273,21 +342,8 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                         <ProgressBar progress={computeProgress(item)} color='#0bb962' width={width/2.1}/>
                                     </View>
                                 </View>
-                            ))}
+                            ))*/}
                         </View>
-                        {loan && !loan.applicantSigned &&
-                            <View style={{marginTop: 15}}>
-                                <Text allowFontScaling={false}
-                                      style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9AFF', fontSize: 12}}>
-                                    You are yet to sign the applicant form. Click on sign below to begin.
-                                </Text>
-                                <TouchableOpacity style={{marginTop: 5}} onPress={() => signDocument()}>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#489AAB', fontSize: 12, textDecorationLine: 'underline'}}>
-                                        Sign Applicant Form
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                        }
                     </View>
                 </BottomSheet>
             </GestureHandlerRootView>

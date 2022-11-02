@@ -431,10 +431,10 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                         }
                         {
                             context === "loanRequestError" && (
-                                <View style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+                                <View style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20}}>
                                     <Cry width={width/2} height={height/3}/>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#747474'}}>{ loanError }.</Text>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#747474'}}>Loan request was received. Kindly go to loan requests to start replacing guarantors.</Text>
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#ffc453', textAlign: 'center', fontSize: 12}}>{ loanError }.</Text>
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#747474', textAlign: 'center', fontSize: 12}}>Loan request was received. Kindly go to loan requests to start replacing guarantors.</Text>
                                     <TouchableOpacity onPress={() => navigation.navigate('LoanRequests')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#cccccc', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
                                         <Text allowFontScaling={false} style={{...styles.buttonText, color: '#797979'}}>LOAN REQUESTS</Text>
                                     </TouchableOpacity>

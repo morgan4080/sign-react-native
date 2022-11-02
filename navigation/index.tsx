@@ -41,6 +41,7 @@ import SelectTenant from "../screens/Auth/SelectTenant";
 import SetPin from "../screens/Auth/SetPin";
 import {useSelector} from "react-redux";
 import {storeState} from "../stores/auth/authSlice";
+import ReplaceActor from "../screens/Guarantorship/ReplaceActor";
 
 const Navigation = () => {
   const MyTheme = {
@@ -69,7 +70,7 @@ export default Navigation;
  */
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-const NonAuthNaigation = () => {
+const NonAuthNavigation = () => {
     return (
         <Stack.Navigator initialRouteName="GetStarted">
 
@@ -131,6 +132,7 @@ const AuthNavigation = () => {
             <Stack.Screen name="LoanProducts" component={LoanProducts} options={{ headerShown: false }} />
             <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
             <Stack.Screen name="LoanPurpose" component={LoanPurpose} options={{ headerShown: false }} />
+            <Stack.Screen name="ReplaceActor" component={ReplaceActor} options={{ headerShown: false }} />
             <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={{ headerShown: false }} />
             <Stack.Screen name="WitnessesHome" component={WitnessesHome} options={{ headerShown: false }} />
             <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={{ headerShown: false }} />
@@ -230,7 +232,7 @@ const AuthNavigation = () => {
 
 function RootNavigator() {
   const {isLoggedIn} = useSelector((state: { auth: storeState }) => state.auth);
-  return isLoggedIn ? AuthNavigation() : NonAuthNaigation()
+  return isLoggedIn ? AuthNavigation() : NonAuthNavigation()
 }
 
 /**

@@ -4,6 +4,7 @@
     "name": "Presta Sign",
     "slug": "presta-sign",
     "version": "1.1.0",
+    "sdkVersion": "46.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "presta-sign",

@@ -61,6 +61,7 @@ const linking: LinkingOptions<RootStackParamList> = {
       WitnessRequests: 'witness-requests',
       GuarantorshipStatus: 'guarantorship-status',
       WitnessStatus: 'witness-status',
+      ReplaceActor: 'replace-actor',
       SignDocumentRequest: 'signDocument-request',
       FavouriteGuarantors: 'favourite-guarantors',
       VerifyOTP: 'verify-otp',

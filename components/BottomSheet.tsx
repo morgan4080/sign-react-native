@@ -1,4 +1,4 @@
-import {Dimensions, StyleSheet, View, StatusBar, TouchableOpacity, Text} from 'react-native';
+import {Dimensions, StyleSheet, View, StatusBar} from 'react-native';
 import React, {useCallback, useImperativeHandle} from 'react';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 const { width, height } = Dimensions.get("window");

@@ -313,9 +313,9 @@ export default function ModalScreen({ navigation }: NavigationProps) {
               </TouchableOpacity>
             </View>
 
-            <Text allowFontScaling={false} style={{...styles.subtitle, marginTop: 40 }}>ACCOUNT SETTINGS</Text>
+            {/*<Text allowFontScaling={false} style={{...styles.subtitle, marginTop: 40 }}>ACCOUNT SETTINGS</Text>*/}
 
-            <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 25}}>
+            {/*<View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 25}}>
               <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Allow witness requests</Text>
               <Controller
                   control={control}
@@ -389,7 +389,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
                   )}
                   name="fingerPrint"
               />
-            </View>
+            </View>*/}
 
             <TouchableOpacity onPress={async () => await dispatch(logoutUser())} style={styles.helpLink}>
               <Text allowFontScaling={false} style={{fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium'}} >

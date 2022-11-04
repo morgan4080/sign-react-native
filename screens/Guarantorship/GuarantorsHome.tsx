@@ -534,7 +534,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                 onBlur={onBlur}
                                 onChangeText={onChange}
                                 value={value}
-                                placeholder={`Mobile or Member No`}
+                                placeholder={`Guarantor Mobile or Member No`}
                                 maxLength={12}
                                 onEndEditing={() => {set_phonebook_contact_name("")}}
                                 onSubmitEditing={submitEdit}
@@ -548,7 +548,8 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     setSearching(!searching);
                 }}>
                     <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 10, marginRight: 10, color: '#737373'}}>{ phonebook_contact_name }</Text>
-                    <Ionicons style={{ paddingRight: 10, paddingVertical: 5 }} name="person" size={18} color="rgba(0,0,0,0.89)" />
+
+                    <AntDesign style={{ paddingRight: 10, paddingVertical: 5 }} name="adduser" size={18} color="rgba(0,0,0,0.89)" />
                 </Pressable>
             </View>
             <ContactSectionList contactsData={

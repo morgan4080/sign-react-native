@@ -1,4 +1,4 @@
-import { NativeModules, NativeEventEmitter } from 'react-native';
+import {NativeModules, NativeEventEmitter, EmitterSubscription} from 'react-native';
 
 type AndroidSmsVerificationApiType = {
     multiply(a: number, b: number): Promise<number>;
@@ -29,9 +29,9 @@ let cb: Callback | null = null;
 
 const AndroidSmsVerificationApi: AndroidSmsVerificationApiType = NativeModules.AndroidSmsVerificationApi;
 // NativeModules.AndroidSmsVerificationApi
-const eventEmitter = new NativeEventEmitter(
+const eventEmitter = new NativeEventEmitter(NativeModules.AndroidSmsVerificationApi);
 
-);
+const subscriptions:  EmitterSubscription[] = [];
 
 const onMessageSuccess = (message: string) => {
     if (typeof cb === 'function') {
@@ -48,14 +48,18 @@ const onMessageError = (error: string) => {
 const startListeners = () => {
     // check if event exists, add listener if it doesn't
 
-    eventEmitter.addListener(EmitterMessages.SMS_RECEIVED, onMessageSuccess);
-
-    eventEmitter.addListener(EmitterMessages.SMS_ERROR, onMessageError);
+    const x = eventEmitter.addListener(EmitterMessages.SMS_RECEIVED, onMessageSuccess);
+    subscriptions.push(x);
+    const y = eventEmitter.addListener(EmitterMessages.SMS_ERROR, onMessageError);
+    subscriptions.push(y);
 };
 
 export const removeAllListeners = () => {
-    eventEmitter.removeAllListeners(EmitterMessages.SMS_RECEIVED);
-    eventEmitter.removeAllListeners(EmitterMessages.SMS_ERROR);
+    if(eventEmitter) {
+        for (let i = 0; i < subscriptions.length; i++) {
+            subscriptions[i].remove();
+        }
+    }
 };
 
 export const requestPhoneNumber = (requestCode?: number) => {

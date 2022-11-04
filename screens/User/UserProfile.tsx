@@ -31,6 +31,7 @@ import {getSecureKey} from "../../utils/secureStore";
 import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from "@gorhom/bottom-sheet";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {Controller, useForm} from "react-hook-form";
+import {removeAllListeners} from "../../utils/smsVerification";
 
 // Types
 
@@ -72,7 +73,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
     const [reload, setReload] = useState<boolean>(false)
 
     useEffect(() => {
-
+        removeAllListeners();
         let authenticating = true;
         const controller = new AbortController();
         const signal = controller.signal;

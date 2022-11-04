@@ -33,7 +33,7 @@ import {Controller, useForm} from "react-hook-form";
 import {useCallback, useEffect, useRef, useState} from "react";
 import {Picker} from "@react-native-picker/picker";
 import configuration from "../../utils/configuration";
-import Cry from "../../assets/images/cry.svg";
+import Puzzle from "../../assets/images/unpuzzled.svg";
 const { width, height } = Dimensions.get("window");
 type FormData = {
     disbursement_mode: string,
@@ -432,8 +432,8 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                         {
                             context === "loanRequestError" && (
                                 <View style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20}}>
-                                    <Cry width={width/2} height={height/3}/>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#ffc453', textAlign: 'center', fontSize: 12}}>{ loanError }.</Text>
+                                    <Puzzle width={width/2} height={height/3}/>
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: 'rgb(72,154,171)', textAlign: 'center', fontSize: 12}}>{ loanError }.</Text>
                                     <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#747474', textAlign: 'center', fontSize: 12}}>Loan request was received. Kindly go to loan requests to start replacing guarantors.</Text>
                                     <TouchableOpacity onPress={() => navigation.navigate('LoanRequests')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#cccccc', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
                                         <Text allowFontScaling={false} style={{...styles.buttonText, color: '#797979'}}>LOAN REQUESTS</Text>

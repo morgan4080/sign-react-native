@@ -234,6 +234,16 @@ public class SmsModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void addListener(String eventName) {
+
+    }
+
+    @ReactMethod
+    public void removeListeners(Integer count) {
+
+    }
+
+    @ReactMethod
     public void requestPhoneNumberFormat(String alpha2Code, String phone_number, final Promise promise) {
         // TODO: receive country identifier and return promise with string format example
         try {

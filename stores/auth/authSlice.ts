@@ -1752,7 +1752,6 @@ export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState,
 
            if (response.status === 200) {
                const data = await response.json();
-               console.log('the member and org', data);
                resolve(data.member);
            }  else if (response.status === 401) {
                // update refresh token and retry
@@ -2066,9 +2065,8 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async (_,
                 redirect: 'follow'
             })
             if (response.status === 200) {
-                const data = await response.json()
-                console.log("the loan products", data)
-                resolve(data.list)
+                const data = await response.json();
+                resolve(data.list);
             } else if (response.status === 401) {
                 // update refresh token and retry
                 const state: any = getState();

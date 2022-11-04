@@ -68,7 +68,7 @@ export default function LoanRequest ({loan, setLoan, onPress}: propInterface) {
         <View style={styles.main}>
             <TouchableOpacity style={styles.tile} onPress={() => {
                 setLoan(loan)
-                onPress('')
+                onPress()
             }}>
                 <View style={styles.progress}>
                     {

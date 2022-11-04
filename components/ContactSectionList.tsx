@@ -78,8 +78,9 @@ const Item = ({ contact, removeContact, contactList, section, onPress, setEmploy
             </TouchableOpacity>
         ): (
             <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 50}}>
-                <Cry width={width/2} height={height/3}/>
-                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 10, marginRight: 10, color: '#737373', textAlign: 'center', width: '66%'}}>Enter for your preferred guarantor’s phone number/ member number above. Or select “👤” to add members directly from your contacts’ list.</Text>
+                <Cry width={width/1.5} height={height/3}/>
+                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 12, marginRight: 10, color: '#737373', textAlign: 'center', width: '66%'}}>
+                    Enter guarantor’s phone or member number above. Or click on the top right button to search from your phonebook.</Text>
             </View>
         )
     } else if (section.id === 1) {

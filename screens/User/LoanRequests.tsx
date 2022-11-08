@@ -206,18 +206,18 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
             return (
                 <View>
                         <View style={{marginBottom: 10}}>
-                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#575757', fontSize: 13, textTransform: 'uppercase' }}>
+                            <Text style={{ fontFamily: 'Poppins_500Medium', color: '#575757', fontSize: 17, letterSpacing: 0.5, textTransform: 'uppercase' }}>
                                 {loan?.loanProductName}:  <Text allowFontScaling={false} style={{color: '#575757'}}>{ loan ? toMoney(`${loan?.loanAmount}`) : '0.00' }</Text>
                             </Text>
                             <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9A', fontSize: 10}}>{loan?.loanRequestProgress}% DONE</Text>
                         </View>
                         {loan && !loan.applicantSigned &&
-                            <View style={{marginVertical: 15}}>
+                            <View style={{marginVertical: 10}}>
                                 <Text allowFontScaling={false}
                                       style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9A', fontSize: 12}}>
                                     You are yet to sign the applicant form. Click on sign below to begin.
                                 </Text>
-                                <TouchableOpacity style={{marginVertical: 10, backgroundColor: '#489AAB', alignSelf: 'flex-start', borderRadius: 15, elevation: 5}} onPress={() => signDocument()}>
+                                <TouchableOpacity style={{marginVertical: 20, backgroundColor: '#489AAB', alignSelf: 'flex-start', borderRadius: 15, elevation: 5}} onPress={() => signDocument()}>
                                     <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF', fontSize: 12, paddingHorizontal: 10}}>
                                         Sign Applicant Form
                                     </Text>
@@ -251,13 +251,13 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                             </View>
                         </View>
                         { !expanded ?
-                            <TouchableOpacity onPress={() => setExpanded(!expanded)}>
+                            <TouchableOpacity style={{elevation: 5}} onPress={() => setExpanded(!expanded)}>
                                 <AntDesign name="caretright" size={12} color="#64748B" style={{padding: 3}}/>
                             </TouchableOpacity>
 
                             :
 
-                            <TouchableOpacity onPress={() => setExpanded(!expanded)}>
+                            <TouchableOpacity style={{elevation: 5}} onPress={() => setExpanded(!expanded)}>
                                 <AntDesign name="caretdown" size={12} color="#64748B" style={{padding: 3}} />
                             </TouchableOpacity>
 
@@ -331,12 +331,15 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                         </View>
 
                         {!item.isAccepted && <TouchableOpacity style={{
-                            marginVertical: 10,
+                            marginVertical: 20,
                             backgroundColor: '#489AAB',
                             alignSelf: 'flex-start',
                             borderRadius: 15,
                             elevation: 5
-                        }} onPress={() => navigation.navigate('ReplaceActor', item)}>
+                        }} onPress={() => navigation.navigate('ReplaceActor', {
+                            item,
+                            loan
+                        })}>
                             <Text allowFontScaling={false} style={{
                                 fontFamily: 'Poppins_500Medium',
                                 color: '#FFFFFF',

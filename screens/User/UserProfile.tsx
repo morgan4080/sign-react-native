@@ -3,7 +3,6 @@ import {
     View,
     StyleSheet,
     TouchableOpacity,
-    // SafeAreaView,
     Image,
     Dimensions,
     Platform,
@@ -20,9 +19,7 @@ import {
     storeState,
     fetchMember,
     saveContactsToDb,
-    // setLoanCategories,
     authenticate, setLoanCategories, fetchLoanProducts, editMember, logoutUser,
-    // fetchLoanProducts
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
@@ -246,12 +243,12 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                             <Text allowFontScaling={false} style={[styles.subTitleText, {fontSize: 12, color: '#FFFFFF', paddingRight: 10, fontFamily: 'Poppins_300Light'}]}>PROFILE</Text>
                                         </TouchableOpacity>
                                         <View>
-                                            <Text allowFontScaling={false} style={styles.titleText}>{ `Good ${ greeting() } ${ member?.firstName ? user?.firstName : '' }` }</Text>
+                                            <Text allowFontScaling={false} style={styles.titleText}>{ `Good ${ greeting() } ${ member?.firstName ? member?.firstName : '' }` }</Text>
                                             <Text allowFontScaling={false} style={styles.subTitleText}>{ `Your member NO: ${ member?.memberNumber ? member?.memberNumber : '' }` }</Text>
                                             <Text allowFontScaling={false} style={styles.subText}>{ `${ user?.companyName ? user?.companyName : '' }` }</Text>
                                         </View>
                                         <View style={{ position: 'absolute', left: width/4, zIndex: 2, bottom: -25 }}>
-                                            <TouchableOpacity onPress={() => navigation.navigate('Account')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginTop: -30 }}>
+                                            <TouchableOpacity onPress={() => navigation.navigate('Account')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, elevation: 2, borderRadius: 25, marginTop: -30 }}>
                                                 <Text allowFontScaling={false} style={styles.buttonText}>View balances</Text>
                                             </TouchableOpacity>
                                         </View>
@@ -260,7 +257,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             case 1:
                                 return (
                                     <View style={{ display: 'flex', flexDirection: 'row', marginTop: 50, justifyContent: 'space-between', paddingHorizontal: 10 }}>
-                                        <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#336DFF', position: 'relative' }}>
+                                        <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#336DFF',elevation: 2, position: 'relative' }}>
                                             <Text allowFontScaling={false} style={{ flex: 3, color: '#ffffff', fontSize: 11.5, marginLeft: 10, marginRight: 10, fontFamily: 'Poppins_600SemiBold' }}>
                                                 Apply For A Loan
                                             </Text>
@@ -270,7 +267,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                                 />
                                             </View>
                                         </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipRequests')} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, borderColor: '#CCCCCC', borderWidth: 1, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
+                                        <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipRequests')} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, backgroundColor: '#FFFFFF', elevation: 2, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
                                             {/*<View style={{backgroundColor: '#FC866C', position: 'absolute', top: 0, right: 0, paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: width/15, height: width/15, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                             <Text style={{fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#FFFFFF'}}>{ guarantorshipRequests?.length }</Text>
                                         </View>*/}
@@ -287,8 +284,8 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                 )
                             case 2:
                                 return (
-                                    <View style={{ display: 'flex', flexDirection: 'row', marginTop: 20, justifyContent: 'space-between', paddingHorizontal: 10 }}>
-                                        <TouchableOpacity onPress={() => navigation.navigate('FavouriteGuarantors')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderWidth: 1, borderColor: '#CCCCCC', borderRadius: 25, position: 'relative'  }}>
+                                    <View style={{ display: 'flex', flexDirection: 'row', marginVertical: 20, justifyContent: 'space-between', paddingHorizontal: 10 }}>
+                                        <TouchableOpacity onPress={() => navigation.navigate('FavouriteGuarantors')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, backgroundColor: '#FFFFFF', elevation: 2, borderRadius: 25, position: 'relative'  }}>
                                             <Text allowFontScaling={false} style={{ flex: 3, color: '#336DFF', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
                                                 Favorite Guarantors
                                             </Text>
@@ -298,7 +295,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                                 />
                                             </View>
                                         </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => navigation.navigate('WitnessRequests')} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, borderColor: '#CCCCCC', borderWidth: 1, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
+                                        <TouchableOpacity onPress={() => navigation.navigate('WitnessRequests')} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, backgroundColor: '#FFFFFF', elevation: 2, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
                                             {/*<View style={{backgroundColor: '#FC866C', position: 'absolute', top: 0, right: 0, paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: width/15, height: width/15, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                             <Text style={{fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#FFFFFF'}}>{ witnessRequests?.length }</Text>
                                         </View>*/}

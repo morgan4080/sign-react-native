@@ -47,19 +47,13 @@ const onMessageError = (error: string) => {
 
 const startListeners = () => {
     // check if event exists, add listener if it doesn't
-
-    const x = eventEmitter.addListener(EmitterMessages.SMS_RECEIVED, onMessageSuccess);
-    subscriptions.push(x);
-    const y = eventEmitter.addListener(EmitterMessages.SMS_ERROR, onMessageError);
-    subscriptions.push(y);
+    eventEmitter.addListener(EmitterMessages.SMS_RECEIVED, onMessageSuccess);
+    eventEmitter.addListener(EmitterMessages.SMS_ERROR, onMessageError);
 };
 
 export const removeAllListeners = () => {
-    if(eventEmitter) {
-        for (let i = 0; i < subscriptions.length; i++) {
-            subscriptions[i].remove();
-        }
-    }
+    eventEmitter.removeAllListeners(EmitterMessages.SMS_RECEIVED);
+    eventEmitter.removeAllListeners(EmitterMessages.SMS_ERROR);
 };
 
 export const requestPhoneNumber = (requestCode?: number) => {
@@ -92,8 +86,9 @@ export const startSmsUserConsent = (
     senderPhoneNumber?: string,
     userConsentRequestCode?: number
 ) => {
-    return AndroidSmsVerificationApi.startSmsUserConsent(
+    return AndroidSmsVerificationApi.startSmsRetriever();
+    /*return AndroidSmsVerificationApi.startSmsUserConsent(
         senderPhoneNumber || null,
         userConsentRequestCode || 69
-    );
+    );*/
 };

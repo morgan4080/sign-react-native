@@ -175,9 +175,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                                     let {type, payload, error}: any = await dispatch(hasPinCheck({
                                         access_token: access_token,
                                         phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : item.ussdPhoneNumber ? item.ussdPhoneNumber.replace('+', '') : item.phoneNumber.replace('+', '')
-                                    }))
-
-                                    console.log("has pin payload", payload);
+                                    }));
 
                                     if (payload.pinStatus === "SET" && type === 'hasPinCheck/fulfilled') {
                                         if (email) {
@@ -187,7 +185,6 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                                                 CSTM.showToast(response.error.message);
                                                 setErrorSMS(response.error.message);
                                             } else {
-                                                // we can intercept and cereate otp here
                                                 setUserFound(true);
                                                 navigation.navigate('Login');
                                             }

@@ -88,7 +88,7 @@ const Item = ({ contact, removeContact, contactList, section, onPress, setEmploy
             <TouchableOpacity onPress={() => {
                 setEmployerDetailsEnabled(false);
                 onPress('options');
-            }} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 20}}>
+            }} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', padding: 20}}>
                 <View style={styles.optionsButton} >
                     <Ionicons name="options-outline" size={20} color="white" style={{padding: 5}} />
                 </View>
@@ -119,7 +119,7 @@ const ContactSectionList = ({contactsData, searching, addContactToList, removeCo
                 sections={contactsData}
                 keyExtractor={(item, index) => item.name + index}
                 renderItem={({ item, section }) => (<Item contact={item} section={section} removeContact={removeContact} contactList={contactList} onPress={onPress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} />)}
-                renderSectionHeader={({ section: { title, data } }) => (<Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_300Light', paddingHorizontal: 20, paddingVertical: title !== 'OPTIONS' ? 10 : 0, backgroundColor: '#FFFFFF' }}>{title}</Text>)}
+                renderSectionHeader={({ section: { title, data } }) => (<Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_300Light', paddingHorizontal: 20, paddingVertical: title !== 'OPTIONS' ? 10 : 0 }}>{title}</Text>)}
                 stickySectionHeadersEnabled={true}
                 ListFooterComponent={<View style={{height: 75}} />}
             />

@@ -122,7 +122,6 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
             return Promise.resolve(false)
         } else {
             await startSmsUserConsent();
-            console.log(payload);
             return Promise.resolve(true)
         }
     }

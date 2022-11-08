@@ -315,19 +315,19 @@ public class SmsModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startSmsRetriever (Promise promise) {
+    public void startSmsRetriever () {
         SmsRetrieverClient client = SmsRetriever.getClient(getReactApplicationContext());
         Task<Void> task = client.startSmsRetriever();
         task.addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                promise.resolve(true);
+
             }
         });
         task.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                promise.reject(e);
+
             }
         });
     }

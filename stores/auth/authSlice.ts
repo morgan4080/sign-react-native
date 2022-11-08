@@ -3,7 +3,7 @@ import {deleteSecureKey, getSecureKey, saveSecureKey} from '../../utils/secureSt
 import {openDatabase} from "../../database";
 import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
-import {getAppSignatures} from "../../utils/smsVerification";
+import {getAppSignatures, removeAllListeners} from "../../utils/smsVerification";
 import {NativeModules} from "react-native";
 export let db: WebSQLDatabase
 (async () => {
@@ -899,6 +899,69 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
         return Promise.reject(e.message)
     }
 });
+
+export const replaceGuarantor = createAsyncThunk('replaceGuarantor', async ({loanRefId, newGuarantorRef, oldGuarantorRef} : {loanRefId: string, newGuarantorRef: string, oldGuarantorRef: string}, {dispatch, getState}) => {
+    try {
+        const key = await getSecureKey('access_token');
+        if (!key) {
+            return Promise.reject('You are not authenticated');
+        }
+
+        const myHeaders = new Headers();
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        myHeaders.append("Content-Type", 'application/json');
+
+        const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${loanRefId}/guarantor/${oldGuarantorRef}`;
+
+        console.log('rhhhejerjjer', url, newGuarantorRef);
+
+        const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({
+                memberRefId: newGuarantorRef
+            }),
+            headers: myHeaders
+        });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            console.log("data", data);
+        } else if (response.status === 401) {
+            // update refresh token and retry
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(replaceGuarantor({loanRefId, newGuarantorRef, oldGuarantorRef}))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
+        } else if (response.status === 400) {
+            const error = await response.json();
+            return Promise.reject(error.message);
+        } else {
+            return Promise.reject(`API error code: ${response.status}`);
+        }
+    } catch (e: any) {
+        return Promise.reject(e.message);
+    }
+})
 
 export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dispatch, getState}) => {
     try {
@@ -2391,6 +2454,7 @@ const authSlice = createSlice({
             return state;
         },
         setAuthState(state, action) {
+            removeAllListeners();
             state.isLoggedIn = action.payload;
             console.log('is logged in', state.isLoggedIn);
             return state;
@@ -2472,27 +2536,30 @@ const authSlice = createSlice({
         })
         builder.addCase(loginUser.fulfilled, (state,action) => {
             // state.isLoggedIn = true
-            state.loading = false
+            state.loading = false;
         })
         builder.addCase(loginUser.rejected, (state, error) => {
-            state.isJWT = false
-            state.isLoggedIn = false
-            state.loading = false
+            state.isJWT = false;
+            removeAllListeners();
+            state.isLoggedIn = false;
+            state.loading = false;
         })
 
         builder.addCase(authenticate.pending, state => {
-            state.loading = true
+            state.loading = true;
         })
         builder.addCase(authenticate.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
             state.user = payload;
+            removeAllListeners();
             state.isLoggedIn = true;
             state.loading = false;
         })
         builder.addCase(authenticate.rejected, state => {
-            state.isJWT = false
-            state.loading = false
-            state.isLoggedIn = false
-            state.isJWT = false
+            state.isJWT = false;
+            state.loading = false;
+            removeAllListeners();
+            state.isLoggedIn = false;
+            state.isJWT = false;
         })
 
 
@@ -2620,9 +2687,10 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(logoutUser.fulfilled, (state, action) => {
-            state.isJWT = false
-            state.loading = false
-            state.isLoggedIn = false
+            state.isJWT = false;
+            state.loading = false;
+            removeAllListeners();
+            state.isLoggedIn = false;
         })
         builder.addCase(logoutUser.rejected, state => {
             state.loading = false
@@ -2782,6 +2850,7 @@ const authSlice = createSlice({
         })
         builder.addCase(verifyOtp.fulfilled, (state, action: any) => {
             state.optVerified = true;
+            removeAllListeners();
             state.isLoggedIn = true;
             state.loading = false;
         })

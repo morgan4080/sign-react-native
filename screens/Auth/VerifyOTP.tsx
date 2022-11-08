@@ -32,7 +32,7 @@ import {
 import {useEffect, useRef, useState} from "react";
 import {getSecureKey} from "../../utils/secureStore";
 import {EvilIcons} from "@expo/vector-icons";
-import {receiveVerificationSMS, removeAllListeners, startSmsUserConsent} from "../../utils/smsVerification";
+import {receiveVerificationSMS, startSmsUserConsent} from "../../utils/smsVerification";
 
 const {CSTM} = NativeModules;
 
@@ -94,17 +94,6 @@ export default function VerifyOTP({ navigation }: NavigationProps) {
             console.log("getSecureKey phone_number", e)
         }
     })()
-
-    useEffect(() => {
-        return () => {
-            navigation.addListener('blur', () => {
-                removeAllListeners();
-            });
-            navigation.addListener('beforeRemove', () => {
-                removeAllListeners();
-            });
-        }
-    }, [navigation]);
 
     const { loading, otpResponse } = useSelector((state: { auth: storeState }) => state.auth);
 

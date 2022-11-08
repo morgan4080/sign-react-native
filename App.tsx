@@ -48,12 +48,12 @@ export default function App() {
                 console.log('registerForPushNotificationsAsync error', e);
             }
         })();
-
+        // https://play.google.com/store/apps/details?id=com.presta.prestasign
         const subscription = Notifications.addNotificationReceivedListener(notification => {
             if (notification.request.content.data.url) {
                 console.log("notification data foreground", notification.request.content.data.url);
                 (async () => {
-                    await Linking.openURL("presta-sign://app/loan-request");
+                    await Linking.openURL(notification.request.content.data.url as string);
                 })()
             }
         });

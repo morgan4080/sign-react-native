@@ -13,7 +13,12 @@ import {
 import {StatusBar} from "expo-status-bar";
 import {AntDesign, MaterialCommunityIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
-import {fetchLoanRequest, fetchLoanRequests, requestSignURL, storeState} from "../../stores/auth/authSlice";
+import {
+    fetchLoanRequest,
+    fetchLoanRequests,
+    requestSignURL, setActorChanged,
+    storeState
+} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {
@@ -34,6 +39,7 @@ import {GestureHandlerRootView} from "react-native-gesture-handler";
 import * as WebBrowser from "expo-web-browser";
 import {toMoney} from "./Account";
 import BottomSheet, { BottomSheetBackdrop, BottomSheetSectionList } from "@gorhom/bottom-sheet";
+import EmptyList from "../../assets/images/fullpix_adobe_express.svg"
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -80,16 +86,23 @@ interface LoanRequestData {
     "guarantorList": GuarantorData[],
 }
 
-export default function LoanRequests ({ navigation }: NavigationProps) {
-    const { loading, member, loanRequests } = useSelector((state: { auth: storeState }) => state.auth);
+export default function LoanRequests ({ navigation, route }: NavigationProps) {
+    const { loading, member, loanRequests, actorChanged } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
     const [loan, setLoan] = useState<LoanRequestData>();
     const dispatch : AppDispatch = useDispatch();
 
     useEffect(() => {
-        (async () => {
-            await dispatch(fetchLoanRequests(member?.refId as string));
-        })()
+        let starting = true;
+
+        if (starting) {
+            (async () => {
+                await dispatch(fetchLoanRequests(member?.refId as string));
+            })()
+        }
+        return () => {
+            starting = false;
+        }
     }, []);
 
     const CSTM = NativeModules.CSTM;
@@ -200,6 +213,13 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
         console.log("zohoSignPayloadType", payloadOut);
     }
 
+    useEffect(() => {
+        if (actorChanged) handleClosePress()
+        return () => {
+            setActorChanged(false);
+        }
+    }, [actorChanged]);
+
     const Item = ({item, section} : {item: any, section: any}) => {
         const [expanded, setExpanded] = useState(false);
         if (section.id === 1) {
@@ -218,7 +238,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                     You are yet to sign the applicant form. Click on sign below to begin.
                                 </Text>
                                 <TouchableOpacity style={{marginVertical: 20, backgroundColor: '#489AAB', alignSelf: 'flex-start', borderRadius: 15, elevation: 5}} onPress={() => signDocument()}>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF', fontSize: 12, paddingHorizontal: 10}}>
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF', fontSize: 12, paddingHorizontal: 10, paddingVertical: 5}}>
                                         Sign Applicant Form
                                     </Text>
                                 </TouchableOpacity>
@@ -236,18 +256,18 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                             </View>
                             <View style={{ position: 'relative' }}>
                                 <View style={{position: 'absolute', left: 0, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
-                                    <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isAccepted ? '#0bb962' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
+                                    <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isAccepted ? '#489AAB' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
                                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Accepted</Text>
                                 </View>
                                 <View style={{position: 'absolute', right: 80, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                                    <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isSigned ? '#0bb962' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
+                                    <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isSigned ? '#489aab' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
                                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Signed</Text>
                                 </View>
                                 <View style={{position: 'absolute', right: 0, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end'}}>
-                                    <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isApproved ? '#0bb962' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
+                                    <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isApproved ? '#489aab' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
                                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Approved</Text>
                                 </View>
-                                <ProgressBar progress={computeProgress(item)} color='#0bb962' width={width/2.1}/>
+                                <ProgressBar progress={computeProgress(item)} color='#489AAB' width={width/2.1}/>
                             </View>
                         </View>
                         { !expanded ?
@@ -258,7 +278,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                             :
 
                             <TouchableOpacity style={{elevation: 5}} onPress={() => setExpanded(!expanded)}>
-                                <AntDesign name="caretdown" size={12} color="#64748B" style={{padding: 3}} />
+                                <AntDesign name="caretdown" size={12} color="#489AAB" style={{padding: 3}} />
                             </TouchableOpacity>
 
                         }
@@ -344,7 +364,8 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                 fontFamily: 'Poppins_500Medium',
                                 color: '#FFFFFF',
                                 fontSize: 12,
-                                paddingHorizontal: 10
+                                paddingHorizontal: 10,
+                                paddingVertical: 5
                             }}>
                                 Replace Guarantor
                             </Text>
@@ -366,8 +387,6 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
             handleClosePress();
         }
     }
-
-    console.log(loan?.guarantorList);
 
     if (fontsLoaded) {
         return (
@@ -405,12 +424,16 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                     <></>
                                 )}
                                 ListEmptyComponent={
-                                    <View style={{width: '100%', height: height/3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                        <MaterialCommunityIcons name="delete-empty-outline" size={100} color="#CCCCCC" />
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 16 }}>Whooops!</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12 }}>No Data</Text>
+                                    <View style={{display: 'flex', marginTop: height/5, alignItems: 'center', justifyContent: 'center'}}>
+                                        <EmptyList width={width/3} height={height/4} />
+                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', fontSize: 15, color: '#489AAB' }}>No loan requests at the moment.</Text>
                                     </View>
                                 }
+                                removeClippedSubviews={true}
+                                initialNumToRender={2}
+                                maxToRenderPerBatch={1}
+                                updateCellsBatchingPeriod={100}
+                                windowSize={7}
                             />
                         </SafeAreaView>
                     </View>

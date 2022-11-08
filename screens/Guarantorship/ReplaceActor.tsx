@@ -16,12 +16,16 @@ import {Controller, useForm} from "react-hook-form";
 import {getSecureKey} from "../../utils/secureStore";
 import {getContact, requestPhoneNumberFormat} from "../../utils/smsVerification";
 import {AntDesign} from "@expo/vector-icons";
-import {replaceGuarantor, searchByMemberNo, storeState, validateNumber} from "../../stores/auth/authSlice";
+import {
+    replaceGuarantor,
+    searchByMemberNo,
+    storeState,
+    validateNumber
+} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
 import {cloneDeep} from "lodash";
 import ContactSectionList from "../../components/ContactSectionList";
-import {Bar as ProgressBar} from "react-native-progress";
 type NavigationProps = NativeStackScreenProps<any>;
 interface GuarantorData {
     refId: string,
@@ -71,7 +75,7 @@ type SearchedMemberType = { contact_id: string; memberNumber: string; memberRefI
 const { CSTM } = NativeModules;
 const { width } = Dimensions.get("window");
 const ReplaceActor = ({ navigation, route }: NavigationProps) => {
-    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, member } = useSelector((state: { auth: storeState }) => state.auth);
     const [loan, setLoan] = useState<LoanRequestData>()
     const [guarantor, setGuarantor] = useState<GuarantorData>()
     const [phonebook_contact_name, set_phonebook_contact_name] = useState("");
@@ -80,14 +84,13 @@ const ReplaceActor = ({ navigation, route }: NavigationProps) => {
     const [employerDetailsEnabled, setEmployerDetailsEnabled] = useState(false);
     const dispatch : AppDispatch = useDispatch();
     useEffect(() => {
-        let starting = true
+        let starting = true;
         if (starting) {
-            setGuarantor(route.params?.item)
-            setLoan(route.params?.loan)
-            console.log("route.params", route.params)
+            setGuarantor(route.params?.item);
+            setLoan(route.params?.loan);
         }
         return () => {
-            starting = false
+            starting = false;
         }
     }, []);
 
@@ -257,6 +260,7 @@ const ReplaceActor = ({ navigation, route }: NavigationProps) => {
                     if (loan && guarantor && !isDisabled()) {
                         dispatch(replaceGuarantor({
                             loanRefId : `${loan?.refId}`,
+                            memberRefId: member?.refId as string,
                             oldGuarantorRef: `${guarantor?.memberRefId}`,
                             newGuarantorRef: `${selectedContacts[0].memberRefId}`,
                         })).then((response) => {
@@ -274,7 +278,7 @@ const ReplaceActor = ({ navigation, route }: NavigationProps) => {
                         }).catch(error => {
                             console.warn(error.message);
                             CSTM.showToast(error.message ? error.message : "Couldn't replace guarantor");
-                        }).finally(() => setTimeout(() => navigation.navigate('LoanRequests'), 1000))
+                        }).finally(() => navigation.navigate('LoanRequests'))
                     } else {
                         CSTM.showToast("Missing Data");
                     }

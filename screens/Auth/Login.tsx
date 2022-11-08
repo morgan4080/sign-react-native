@@ -27,8 +27,7 @@ import { useForm, Controller } from "react-hook-form";
 import {loginUser, authenticate, setAuthState} from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
-import { storeState, loginUserType } from "../../stores/auth/authSlice"
-import {RotateView} from "./VerifyOTP";
+import { storeState, loginUserType } from "../../stores/auth/authSlice";
 import {FontAwesome5, Ionicons} from "@expo/vector-icons";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 const { width, height } = Dimensions.get("window");
@@ -450,11 +449,6 @@ export default function Login({ navigation }: NavigationProps) {
                             <TouchableOpacity onPress={() => navigation.navigate('GetTenants')} style={{marginTop: 45, marginBottom: 25, position: 'absolute', top: height/60, left: width/15}}>
                                 <Ionicons name="chevron-back-sharp" size={24} color="black" />
                             </TouchableOpacity>
-                            {loading &&
-                                <View style={{marginTop: 45, marginBottom: 25, position: 'absolute'}}>
-                                    <RotateView/>
-                                </View>
-                            }
                             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: height/9 }}>
                                 <Text allowFontScaling={false} style={{fontSize: 12, fontFamily: 'Poppins_500Medium'}}>{tenant?.firstName + " " + tenant?.lastName}</Text>
                                 <Text allowFontScaling={false} style={{fontSize: 10, fontFamily: 'Poppins_300Light'}}>{tenant?.ussdPhoneNumber}</Text>
@@ -602,11 +596,7 @@ export default function Login({ navigation }: NavigationProps) {
             </SafeAreaView>
         )
     }  else {
-        return (
-            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-                <RotateView/>
-            </View>
-        )
+        return (<></>)
     }
 }
 

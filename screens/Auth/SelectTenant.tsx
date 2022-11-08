@@ -28,7 +28,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useCallback, useEffect, useMemo, useRef} from "react";
 import {Controller, useForm} from "react-hook-form";
 import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from "@gorhom/bottom-sheet";
-import {receiveVerificationSMS, removeAllListeners, startSmsUserConsent} from "../../utils/smsVerification";
+import {receiveVerificationSMS, startSmsUserConsent} from "../../utils/smsVerification";
 
 const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
     <TouchableOpacity onPress={onPress} style={[styles.item, backgroundColor]}>
@@ -130,17 +130,6 @@ const SelectTenant = ({ navigation, route }: NavigationProps) => {
         ),
         []
     );
-
-    useEffect(() => {
-        return () => {
-            navigation.addListener('blur', () => {
-                removeAllListeners();
-            });
-            navigation.addListener('beforeRemove', () => {
-                removeAllListeners();
-            });
-        }
-    }, [navigation]);
 
     useEffect(() => {
         console.log('tenant set', selectedTenant)

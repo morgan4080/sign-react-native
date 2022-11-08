@@ -28,9 +28,10 @@ import {getSecureKey} from "../../utils/secureStore";
 import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from "@gorhom/bottom-sheet";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {Controller, useForm} from "react-hook-form";
-import {removeAllListeners} from "../../utils/smsVerification";
-
-// Types
+import ApplyLoan from "../../assets/images/apply-loan.svg";
+import GuarantorImg from "../../assets/images/guarantorship.svg";
+import Fav from "../../assets/images/fav.svg";
+import WitnessImg from "../../assets/images/witness.svg";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -70,7 +71,6 @@ export default function UserProfile({ navigation }: NavigationProps) {
     const [reload, setReload] = useState<boolean>(false)
 
     useEffect(() => {
-        removeAllListeners();
         let authenticating = true;
         const controller = new AbortController();
         const signal = controller.signal;
@@ -238,7 +238,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                         position: 'relative',
                                         height: height/2
                                     }}>
-                                        <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(51,109,255,0.4)', borderRadius: 100, top: 50, left: 10 }}>
+                                        <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(72,154,171,0.49)', borderRadius: 100, top: 50, left: 10 }}>
                                             <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                                             <Text allowFontScaling={false} style={[styles.subTitleText, {fontSize: 12, color: '#FFFFFF', paddingRight: 10, fontFamily: 'Poppins_300Light'}]}>PROFILE</Text>
                                         </TouchableOpacity>
@@ -248,7 +248,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                             <Text allowFontScaling={false} style={styles.subText}>{ `${ user?.companyName ? user?.companyName : '' }` }</Text>
                                         </View>
                                         <View style={{ position: 'absolute', left: width/4, zIndex: 2, bottom: -25 }}>
-                                            <TouchableOpacity onPress={() => navigation.navigate('Account')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#336DFF', width: width/2, paddingHorizontal: 20, paddingVertical: 15, elevation: 2, borderRadius: 25, marginTop: -30 }}>
+                                            <TouchableOpacity onPress={() => navigation.navigate('Account')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, elevation: 2, borderRadius: 25, marginTop: -30 }}>
                                                 <Text allowFontScaling={false} style={styles.buttonText}>View balances</Text>
                                             </TouchableOpacity>
                                         </View>
@@ -257,27 +257,20 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             case 1:
                                 return (
                                     <View style={{ display: 'flex', flexDirection: 'row', marginTop: 50, justifyContent: 'space-between', paddingHorizontal: 10 }}>
-                                        <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#336DFF',elevation: 2, position: 'relative' }}>
+                                        <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#489AAB',elevation: 5, position: 'relative' }}>
                                             <Text allowFontScaling={false} style={{ flex: 3, color: '#ffffff', fontSize: 11.5, marginLeft: 10, marginRight: 10, fontFamily: 'Poppins_600SemiBold' }}>
                                                 Apply For A Loan
                                             </Text>
                                             <View  style={{ flex: 1, marginRight: width/20 }}>
-                                                <Image
-                                                    source={require('../../assets/images/apply-loan.png')}
-                                                />
+                                                <ApplyLoan width={50} height={50} />
                                             </View>
                                         </TouchableOpacity>
                                         <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipRequests')} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, backgroundColor: '#FFFFFF', elevation: 2, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
-                                            {/*<View style={{backgroundColor: '#FC866C', position: 'absolute', top: 0, right: 0, paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: width/15, height: width/15, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                            <Text style={{fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#FFFFFF'}}>{ guarantorshipRequests?.length }</Text>
-                                        </View>*/}
-                                            <Text allowFontScaling={false} style={{ flex: 4, color: '#336DFF', fontSize: 11.5, marginLeft: 10, fontFamily: 'Poppins_600SemiBold' }}>
+                                            <Text allowFontScaling={false} style={{ flex: 4, color: '#489AAB', fontSize: 11.5, marginLeft: 10, fontFamily: 'Poppins_600SemiBold' }}>
                                                 Guarantorship Requests
                                             </Text>
                                             <View  style={{ flex: 1, marginRight: width/20 + 1 }}>
-                                                <Image
-                                                    source={require('../../assets/images/Guarantorship-Requests.jpg')}
-                                                />
+                                                <GuarantorImg width={50} height={50} />
                                             </View>
                                         </TouchableOpacity>
                                     </View>
@@ -286,26 +279,22 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                 return (
                                     <View style={{ display: 'flex', flexDirection: 'row', marginVertical: 20, justifyContent: 'space-between', paddingHorizontal: 10 }}>
                                         <TouchableOpacity onPress={() => navigation.navigate('FavouriteGuarantors')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, backgroundColor: '#FFFFFF', elevation: 2, borderRadius: 25, position: 'relative'  }}>
-                                            <Text allowFontScaling={false} style={{ flex: 3, color: '#336DFF', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
+                                            <Text allowFontScaling={false} style={{ flex: 3, color: '#489AAB', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
                                                 Favorite Guarantors
                                             </Text>
                                             <View  style={{ flex: 1, marginRight: width/20 }}>
-                                                <Image
-                                                    source={require('../../assets/images/favourite-guarantors.jpg')}
-                                                />
+                                                <Fav width={50} height={50} />
                                             </View>
                                         </TouchableOpacity>
                                         <TouchableOpacity onPress={() => navigation.navigate('WitnessRequests')} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, backgroundColor: '#FFFFFF', elevation: 2, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
                                             {/*<View style={{backgroundColor: '#FC866C', position: 'absolute', top: 0, right: 0, paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: width/15, height: width/15, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                             <Text style={{fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#FFFFFF'}}>{ witnessRequests?.length }</Text>
                                         </View>*/}
-                                            <Text allowFontScaling={false} style={{ flex: 3, color: '#336DFF', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
+                                            <Text allowFontScaling={false} style={{ flex: 3, color: '#489AAB', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
                                                 Witness Requests
                                             </Text>
                                             <View  style={{ flex: 1, marginRight: width/20 }}>
-                                                <Image
-                                                    source={require('../../assets/images/Witness-Requests.jpg')}
-                                                />
+                                                <WitnessImg width={50} height={50} />
                                             </View>
                                         </TouchableOpacity>
                                     </View>

@@ -3,7 +3,7 @@ import {deleteSecureKey, getSecureKey, saveSecureKey} from '../../utils/secureSt
 import {openDatabase} from "../../database";
 import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
-import {getAppSignatures, removeAllListeners} from "../../utils/smsVerification";
+import {getAppSignatures} from "../../utils/smsVerification";
 import {NativeModules} from "react-native";
 export let db: WebSQLDatabase
 (async () => {
@@ -244,6 +244,7 @@ export type storeState = {
     otpResponse: otpResponseType | null
     organisations: organisationType[]
     selectedTenant: organisationType | null
+    actorChanged: boolean
 }
 
 const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> => {
@@ -900,7 +901,7 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
     }
 });
 
-export const replaceGuarantor = createAsyncThunk('replaceGuarantor', async ({loanRefId, newGuarantorRef, oldGuarantorRef} : {loanRefId: string, newGuarantorRef: string, oldGuarantorRef: string}, {dispatch, getState}) => {
+export const replaceGuarantor = createAsyncThunk('replaceGuarantor', async ({loanRefId, memberRefId, newGuarantorRef, oldGuarantorRef} : {loanRefId: string, memberRefId: string, newGuarantorRef: string, oldGuarantorRef: string}, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token');
         if (!key) {
@@ -913,8 +914,6 @@ export const replaceGuarantor = createAsyncThunk('replaceGuarantor', async ({loa
 
         const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${loanRefId}/guarantor/${oldGuarantorRef}`;
 
-        console.log('rhhhejerjjer', url, newGuarantorRef);
-
         const response = await fetch(url, {
             method: 'POST',
             body: JSON.stringify({
@@ -925,7 +924,9 @@ export const replaceGuarantor = createAsyncThunk('replaceGuarantor', async ({loa
 
         if (response.status === 200) {
             const data = await response.json();
-            console.log("data", data);
+            dispatch(setActorChanged(true));
+            dispatch(fetchLoanRequests(memberRefId));
+            return Promise.resolve(data.message);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -942,14 +943,13 @@ export const replaceGuarantor = createAsyncThunk('replaceGuarantor', async ({loa
                     client_secret: JSON.parse(currentTenant).clientSecret,
                     cb: async () => {
                         console.log('callback running');
-                        await dispatch(replaceGuarantor({loanRefId, newGuarantorRef, oldGuarantorRef}))
+                        await dispatch(replaceGuarantor({loanRefId, memberRefId, newGuarantorRef, oldGuarantorRef}))
                     }
                 }
 
-                await dispatch(refreshAccessToken(refreshTokenPayload))
+                return dispatch(refreshAccessToken(refreshTokenPayload));
             } else {
                 setAuthState(false);
-
                 return Promise.reject(response.status);
             }
         } else if (response.status === 400) {
@@ -1910,7 +1910,7 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
 
 export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string, {dispatch, getState}) => {
     console.log(memberRefId);
-    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request?memberRefId=${memberRefId}&order=ASC&pageSize=10`
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request?memberRefId=${memberRefId}&order=ASC&pageSize=5`
     return new Promise(async (resolve, reject) => {
         try {
             const key = await getSecureKey('access_token')
@@ -1924,7 +1924,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                 headers: myHeaders,
                 redirect: 'follow'
             })
-            console.log("loan requests", response.status)
+
             if (response.status === 200) {
                 const data = await response.json();
                 const result: any = await Promise.all(data.content.map(async ({refId}: {refId: string}, i: number) => {
@@ -1961,7 +1961,6 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                         }
                     } else if (response0.status === 401) {
                         // update refresh token and retry
-                        console.log(response.status)
                         const state: any = getState();
                         if (state) {
                             const [refresh_token, currentTenant] = await Promise.all([
@@ -1983,7 +1982,6 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                             await dispatch(refreshAccessToken(refreshTokenPayload))
                         } else {
                             setAuthState(false);
-
                             reject(response.status);
                         }
                     }
@@ -1992,7 +1990,6 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                 resolve(result)
             } else if (response.status === 401) {
                 // update refresh token and retry
-                console.log(response.status)
                 const state: any = getState();
                 if (state) {
                     const [refresh_token, currentTenant] = await Promise.all([
@@ -2438,7 +2435,8 @@ const authSlice = createSlice({
                 clientSecret: '25dd3083-d494-4af5-89a1-104fa02ef782',
             }
         ],
-        selectedTenant: null
+        selectedTenant: null,
+        actorChanged: false
     },
     reducers: {
         createLoanProduct(state, action) {
@@ -2449,14 +2447,16 @@ const authSlice = createSlice({
             state.loading = action.payload;
             return state;
         },
+        setActorChanged(state, action) {
+          state.actorChanged = action.payload;
+          return state;
+        },
         setSelectedTenantId(state, action) {
             state.selectedTenantId = action.payload;
             return state;
         },
         setAuthState(state, action) {
-            removeAllListeners();
             state.isLoggedIn = action.payload;
-            console.log('is logged in', state.isLoggedIn);
             return state;
         },
         setSelectedTenant(state, action) {
@@ -2540,7 +2540,6 @@ const authSlice = createSlice({
         })
         builder.addCase(loginUser.rejected, (state, error) => {
             state.isJWT = false;
-            removeAllListeners();
             state.isLoggedIn = false;
             state.loading = false;
         })
@@ -2550,14 +2549,12 @@ const authSlice = createSlice({
         })
         builder.addCase(authenticate.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
             state.user = payload;
-            removeAllListeners();
             state.isLoggedIn = true;
             state.loading = false;
         })
         builder.addCase(authenticate.rejected, state => {
             state.isJWT = false;
             state.loading = false;
-            removeAllListeners();
             state.isLoggedIn = false;
             state.isJWT = false;
         })
@@ -2689,7 +2686,6 @@ const authSlice = createSlice({
         builder.addCase(logoutUser.fulfilled, (state, action) => {
             state.isJWT = false;
             state.loading = false;
-            removeAllListeners();
             state.isLoggedIn = false;
         })
         builder.addCase(logoutUser.rejected, state => {
@@ -2850,7 +2846,6 @@ const authSlice = createSlice({
         })
         builder.addCase(verifyOtp.fulfilled, (state, action: any) => {
             state.optVerified = true;
-            removeAllListeners();
             state.isLoggedIn = true;
             state.loading = false;
         })
@@ -2886,6 +2881,6 @@ const authSlice = createSlice({
 // Extract the action creators object and the reducer
 const { actions, reducer } = authSlice
 // Extract and export each action creator by name
-export const { createLoanProduct, setLoading, setSelectedTenantId, setAuthState, setSelectedTenant } = actions
+export const { createLoanProduct, setLoading, setSelectedTenantId, setAuthState, setSelectedTenant, setActorChanged } = actions
 // Export the reducer, either as a default or named export
 export const authReducer = reducer

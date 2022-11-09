@@ -2340,6 +2340,7 @@ export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (
     }
 })
 
+// discontinued
 export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string | undefined, signal: any}, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token')

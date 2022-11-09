@@ -12,7 +12,7 @@ import {StatusBar} from "expo-status-bar";
 import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 
 import {useDispatch, useSelector} from "react-redux";
-import {fetchMemberDetails, fetchMyLoans, searchByMemberNo, storeState} from "../../stores/auth/authSlice";
+import {fetchMyLoans, searchByMemberNo, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {

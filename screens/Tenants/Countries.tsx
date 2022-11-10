@@ -31,7 +31,7 @@ type NavigationProps = NativeStackScreenProps<any>;
 
 const { width, height } = Dimensions.get("window");
 
-const Countries = ({ navigation }: NavigationProps) => {
+const Countries = ({ navigation, route }: NavigationProps) => {
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -139,13 +139,22 @@ const Countries = ({ navigation }: NavigationProps) => {
         return () => subscription.unsubscribe();
     },[watch]);
 
-    const navigationSet = (code: string, numericCode?: string, alpha2Code?: string): void => {
+    const navigationSet = (code: string, numericCode?: string, alpha2Code?: string, flag?: string): void => {
+        if (route.params && route.params.previous) {
+            navigation.navigate(route.params.previous, {
+                code,
+                numericCode,
+                alpha2Code,
+                flag
+            })
+        } else {
+            navigation.navigate('GetTenants', {
+                code,
+                numericCode,
+                alpha2Code,
+            })
+        }
 
-        navigation.navigate('GetTenants', {
-            code,
-            numericCode,
-            alpha2Code,
-        })
     }
 
     if (fontsLoaded) {
@@ -157,7 +166,7 @@ const Countries = ({ navigation }: NavigationProps) => {
                             if (searching) {
                                 setSearching(!searching);
                             } else {
-                                navigation.navigate('GetTenants');
+                                navigation.goBack();
                             }
                         }}>
                             <AntDesign name="arrowleft" size={24} color="rgba(0,0,0,0.89)" />

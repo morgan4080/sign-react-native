@@ -13,12 +13,13 @@ import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {useEffect} from "react";
 import {store} from "../../stores/store";
-import {initializeDB} from "../../stores/auth/authSlice"
+import {initializeDB, pingBeacon} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
 import {getSecureKey} from "../../utils/secureStore";
 import {RotateView} from "../Auth/VerifyOTP";
 import Onboarding from "../../components/Onboarding";
+import Constants from "expo-constants"
 
 const { width, height } = Dimensions.get("window");
 
@@ -47,6 +48,7 @@ export default function GetStarted({ navigation }: NavigationProps) {
                         getSecureKey('phone_number_without'),
                         getSecureKey('phone_number_code'),
                         getSecureKey('account_email'),
+                        dispatch(pingBeacon({appName: Constants.manifest?.version, version: Constants.manifest?.version, notificationTok: }))
                     ]);
 
                     if (oldBoy === 'true') {
@@ -76,7 +78,7 @@ export default function GetStarted({ navigation }: NavigationProps) {
                     source={require('../../assets/images/landingGetStarted.jpg')}
                 />
                 <View style={{position: 'absolute',width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', bottom: 5, zIndex: 12}}>
-                    <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('GetTenants')}>
+                    <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('SetTenant')}>
                         <Text allowFontScaling={false} style={styles.buttonText}>Get Started</Text>
                     </TouchableHighlight>
                     <Text allowFontScaling={false} style={{ fontSize: 8, color: '#FFFFFF', textAlign: 'center', marginBottom: 10, fontFamily: 'Poppins_300Light', paddingHorizontal: 20, marginHorizontal: 30 }}>By continuing, you agree to Presta's Terms of Service and privacy policy.</Text>

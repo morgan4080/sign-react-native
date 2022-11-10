@@ -213,7 +213,7 @@ type membersFilter = {
     "loanCount": number
 };
 
-type organisationType = {
+export type organisationType = {
     id: string,
     tenantName: string,
     tenantId: string,
@@ -2401,6 +2401,67 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
     }
 })
 
+export const pingBeacon = createAsyncThunk("pingBeacon", async ({appName, notificationTok, version} : {appName: string | undefined, notificationTok: string | undefined, version: string | undefined}, {dispatch, getState}) => {
+    try {
+        const myHeaders = new Headers();
+
+        myHeaders.append("api-key", `EqU.+vP\\_74Vu<'$jGxxfvwqN(z"h46Z2"*G=-ABs=rSDF&4.e`);
+
+        const url = `https://eguarantorship-api.presta.co.ke/api/v1/resources/validate-app-version`;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: myHeaders,
+            body: JSON.stringify( {
+                appName,
+                notificationTok,
+                version
+            })
+        });
+
+        if (response.status === 200) {
+            const data = await response.json()
+
+            if (Array.isArray(data)) {
+                return Promise.resolve(data[0])
+            } else {
+                return Promise.resolve(data)
+            }
+        } else if (response.status === 401) {
+            // update refresh token and retry
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(pingBeacon({appName, notificationTok, version}))
+                    }
+                }
+
+                await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
+        } else {
+            return Promise.reject(response.status + ": API Error");
+        }
+    } catch (e: any) {
+        console.log(e.message);
+        return Promise.reject(e.message);
+    }
+})
+
 const authSlice = createSlice({
     name: 'auth',
     initialState: <storeState>{
@@ -2434,6 +2495,12 @@ const authSlice = createSlice({
                 tenantName: 'Wanaanga Sacco',
                 tenantId: 't74411',
                 clientSecret: '25dd3083-d494-4af5-89a1-104fa02ef782',
+            },
+            {
+                id: "3",
+                tenantName: 'Centrino',
+                tenantId: 't10099',
+                clientSecret: 'b50f4bf3-6d72-4865-b974-d589fd881268',
             }
         ],
         selectedTenant: null,

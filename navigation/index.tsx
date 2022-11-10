@@ -42,6 +42,7 @@ import SetPin from "../screens/Auth/SetPin";
 import {useSelector} from "react-redux";
 import {storeState} from "../stores/auth/authSlice";
 import ReplaceActor from "../screens/Guarantorship/ReplaceActor";
+import SetTenant from "../screens/Onboarding/SetTenant";
 
 const Navigation = () => {
   const MyTheme = {
@@ -76,6 +77,7 @@ const NonAuthNavigation = () => {
 
             {/*Before login*/}
             <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
+            <Stack.Screen name="SetTenant" component={SetTenant} options={{ headerShown: false }} />
             <Stack.Screen name="GetTenants" component={GetTenants} options={{ headerShown: false }} />
             <Stack.Screen name="SelectTenant" component={SelectTenant} options={{
                 headerShown: true,

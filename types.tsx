@@ -7,6 +7,7 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import SelectTenant from "./screens/Auth/SelectTenant";
+import SetTenant from "./screens/Onboarding/SetTenant";
 
 declare global {
   namespace ReactNavigation {
@@ -19,6 +20,7 @@ export type RootStackParamList = {
   Modal: undefined;
   NotFound: undefined;
   GetStarted: NavigatorScreenParams<RootTabParamList> | undefined;
+  SetTenant: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanProducts: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanProduct: NavigatorScreenParams<RootTabParamList> | undefined;
   GuarantorsHome: NavigatorScreenParams<RootTabParamList> | undefined;

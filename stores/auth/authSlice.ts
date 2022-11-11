@@ -235,16 +235,17 @@ export type storeState = {
     optVerified: boolean;
     searchedMembers: membersFilter;
     contacts: {contact_id: number, name: string, phone: string}[] | null;
-    loanCategories: CategoryType[] | null,
-    appInitialized: boolean,
-    witnessRequests: WitnessRequestType[] | []
-    guarantorshipRequests: GuarantorshipRequestType[] | []
-    tenants: TenantsType[] | []
-    selectedTenantId: string | null
-    otpResponse: otpResponseType | null
-    organisations: organisationType[]
-    selectedTenant: organisationType | null
-    actorChanged: boolean
+    loanCategories: CategoryType[] | null;
+    appInitialized: boolean;
+    witnessRequests: WitnessRequestType[] | [];
+    guarantorshipRequests: GuarantorshipRequestType[] | [];
+    tenants: TenantsType[] | [];
+    selectedTenantId: string | null;
+    otpResponse: otpResponseType | null;
+    organisations: organisationType[];
+    selectedTenant: organisationType | null;
+    actorChanged: boolean;
+    notificationTok: string | undefined;
 }
 
 const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> => {
@@ -1099,7 +1100,7 @@ export const searchByPhone = createAsyncThunk('searchByPhone', async ({phoneNumb
             return Promise.resolve(data)
 
         } else {
-            return Promise.reject('Welcome to Imarisha Digital Loaning. Your account is not registered. To access this service, contact Imarisha for further help')
+            return Promise.reject('Your account is not registered. To access this service, contact support@presta.co.ke for further help')
         }
 
     } catch (e: any) {
@@ -2350,7 +2351,7 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
         const myHeaders = new Headers();
         myHeaders.append("Authorization", `Bearer ${key}`);
 
-        const url = `https://eguarantorship-api.presta.co.ke/api/v1/jumbostar/member-details?memberId=${memberNo}`;
+        const url = `https://eguarantorship-api.presta.co.ke/api/v1/core-banking/member-details?memberId=${memberNo}`;
 
         const response = await fetch(url, {
             method: 'GET',
@@ -2462,6 +2463,81 @@ export const pingBeacon = createAsyncThunk("pingBeacon", async ({appName, notifi
     }
 })
 
+export const AuthenticateClient = createAsyncThunk("AuthenticateClient", async (selectedTenant: organisationType) => {
+    try {
+        const details: any = {
+            client_id: "direct-access",
+            grant_type: "client_credentials",
+            client_secret: `${selectedTenant?.clientSecret}`
+        }
+
+        let formBody: any = [];
+
+        for (const property in details) {
+            let encodedKey = encodeURIComponent(property);
+            let encodedValue = encodeURIComponent(details[property]);
+            formBody.push(encodedKey + "=" + encodedValue);
+        }
+
+        formBody = formBody.join("&");
+
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            },
+            body: formBody
+        };
+        const response = await fetch(`https://iam.presta.co.ke/auth/realms/${selectedTenant?.tenantId}/protocol/openid-connect/token`, requestOptions);
+
+        const data = await response.json();
+
+        if (response.status === 200) {
+            await saveSecureKey("access_token", data.access_token);
+            return Promise.resolve(data.access_token);
+        } else {
+            console.log('error', data)
+            return Promise.reject(response.status + ": API Error");
+        }
+    } catch (e: any) {
+        return Promise.reject(e)
+    }
+})
+
+export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string) => {
+    try {
+        const url = `https://eguarantorship-api.presta.co.ke/api/v1/core-banking/member-details${params}`
+        const key = await getSecureKey('access_token')
+        const myHeaders = new Headers()
+        myHeaders.append("Authorization", `Bearer ${key}`)
+        const requestOptions = {
+            method: 'GET',
+            headers: myHeaders
+        }
+        const response = await fetch(url, requestOptions)
+        console.log(url)
+        if (response.status === 200) {
+            let data = await response.json()
+            return Promise.resolve(data)
+        } else if (response.status === 201) {
+            return Promise.reject(response.status + ": The Identifier provided is not linked to any lender. Kindly confirm with your Organization")
+        }
+        else if (response.status === 500) {
+            let x = await response.json()
+            if (x.isTechnical) {
+                return Promise.reject("Error: " + response.status)
+            } else {
+                return Promise.reject("Error: " + x.message)
+            }
+        } else {
+            return Promise.reject("Error: " + response.status)
+        }
+    } catch (e: any) {
+        console.log(e)
+        return Promise.reject(e)
+    }
+});
+
 const authSlice = createSlice({
     name: 'auth',
     initialState: <storeState>{
@@ -2504,7 +2580,8 @@ const authSlice = createSlice({
             }
         ],
         selectedTenant: null,
-        actorChanged: false
+        actorChanged: false,
+        notificationTok: undefined
     },
     reducers: {
         createLoanProduct(state, action) {
@@ -2534,6 +2611,26 @@ const authSlice = createSlice({
         }
     },
     extraReducers: builder => {
+        builder.addCase(AuthenticateClient.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(AuthenticateClient.fulfilled, (state, action) => {
+            state.loading = false
+        })
+        builder.addCase(AuthenticateClient.rejected, (state) => {
+            state.loading = false
+        })
+
+        builder.addCase(OnboardUser.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(OnboardUser.fulfilled, (state, action) => {
+            state.loading = false
+        })
+        builder.addCase(OnboardUser.rejected, (state) => {
+            state.loading = false
+        })
+
         builder.addCase(initializeDB.pending, state => {
             state.loading = true
         })

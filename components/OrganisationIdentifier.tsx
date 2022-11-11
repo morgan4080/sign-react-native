@@ -1,8 +1,14 @@
 import {StyleSheet, Text, View} from "react-native";
 import OrganisationSelected from "./OrganisationSelected";
 import {useEffect, useState} from "react";
-import {organisationType, storeState} from "../stores/auth/authSlice";
-import {useSelector} from "react-redux";
+import {
+    AuthenticateClient,
+    logoutUser,
+    organisationType,
+    setSelectedTenant,
+    storeState
+} from "../stores/auth/authSlice";
+import {useDispatch, useSelector} from "react-redux";
 import {useForm, Controller} from "react-hook-form";
 import {Picker} from "@react-native-picker/picker";
 import {
@@ -15,11 +21,10 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-
-type FormData = {
-    organisationSelected: organisationType | undefined
-}
+import {store} from "../stores/store";
+import {deleteSecureKey} from "../utils/secureStore";
 type NavigationProps = NativeStackScreenProps<any>;
+type AppDispatch = typeof store.dispatch;
 const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -29,24 +34,40 @@ const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
         Poppins_400Regular,
         Poppins_300Light
     });
-    const {organisations} = useSelector((state: { auth: storeState }) => state.auth)
-    const [organisationSelected, setOrganisationSelected] = useState<organisationType | undefined>(undefined)
-
+    const {organisations, selectedTenant} = useSelector((state: { auth: storeState }) => state.auth)
+    const dispatch : AppDispatch = useDispatch();
+    useEffect(() => {
+        let changing = true;
+        if (selectedTenant && changing) {
+            dispatch(AuthenticateClient(selectedTenant)).then((response: any) => {
+                if (response.type === 'AuthenticateClient/rejected' && response.error) {
+                    console.log("AuthenticateClient", response.error.message)
+                }
+            }).catch(error => {
+                console.log("AuthenticateClient error", error)
+            })
+        }
+        return () => {
+            changing = false;
+        }
+    }, [selectedTenant])
     return (
         <View>
             <View style={styles.input0}>
                 <Picker
                     mode={"dialog"}
-                    selectedValue={organisationSelected}
+                    selectedValue={selectedTenant}
                     dropdownIconRippleColor={'#487588'}
                     onValueChange={(itemValue, itemIndex) => {
-                        setOrganisationSelected(itemValue);
+                        dispatch(logoutUser()).then(() => {
+                            dispatch(setSelectedTenant(itemValue));
+                        })
                     }}>
                     <Picker.Item fontFamily='Poppins_300Light' style={{fontSize: 16, color: 'rgba(9,16,29,0.34)'}} key={'custom'} label={'Select Organisation..'} value={undefined}/>
                     {organisations.map(org => <Picker.Item style={{fontSize: 16, color: '#101828'}} fontFamily='Poppins_300Light' key={org.clientSecret} label={org.tenantName.toUpperCase()} value={org}/>)}
                 </Picker>
             </View>
-            <OrganisationSelected tenantId={organisationSelected?.tenantId} nav={nav} />
+            <OrganisationSelected tenantId={selectedTenant?.tenantId} nav={nav} />
         </View>
     )
 }

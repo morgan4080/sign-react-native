@@ -268,8 +268,13 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                             phoneNumber: phone,
                             email: null
                         };
-                        console.log(payload);
-                        navigation.navigate('SelectTenant', payload);
+
+                        navigation.navigate('SetTenant', {
+                            code: "254",
+                            numericCode: "404",
+                            alpha2Code: "KE",
+                            flag: "https://flagcdn.com/28x21/ke.png"
+                        });
                     }
 
                 }
@@ -456,7 +461,12 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                                             phoneNumber: null,
                                             email: getValues("email")
                                         };
-                                        navigation.navigate('SelectTenant', payload);
+                                        navigation.navigate('SetTenant', {
+                                            code: "254",
+                                            numericCode: "404",
+                                            alpha2Code: "KE",
+                                            flag: "https://flagcdn.com/28x21/ke.png"
+                                        });
                                     } else {
                                         CSTM.showToast('Missing Fields')
                                     }
@@ -558,7 +568,12 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                                         phoneNumber: `${getValues("countryCode")}${getValues("phoneNumber")}`,
                                         email: null
                                     };
-                                    navigation.navigate('SelectTenant', payload);
+                                    navigation.navigate('SetTenant', {
+                                        code: "254",
+                                        numericCode: "404",
+                                        alpha2Code: "KE",
+                                        flag: "https://flagcdn.com/28x21/ke.png"
+                                    });
                                 }}>
                                     <Text allowFontScaling={false} style={{
                                         ...styles.error,

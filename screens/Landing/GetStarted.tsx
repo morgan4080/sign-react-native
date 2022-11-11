@@ -5,8 +5,7 @@ import {
     TouchableHighlight,
     Text,
     StatusBar as Bar,
-    Image,
-    NativeModules
+    Image, Linking
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
@@ -19,7 +18,9 @@ import {storeState} from "../../stores/auth/authSlice";
 import {getSecureKey} from "../../utils/secureStore";
 import {RotateView} from "../Auth/VerifyOTP";
 import Onboarding from "../../components/Onboarding";
-import Constants from "expo-constants"
+import {registerForPushNotificationsAsync, registerTask} from "../../utils/notificationService";
+import Constants from "expo-constants";
+import * as Notifications from "expo-notifications";
 
 const { width, height } = Dimensions.get("window");
 
@@ -40,15 +41,14 @@ export default function GetStarted({ navigation }: NavigationProps) {
 
     useEffect(() => {
         let initializing = true;
-        (async () => {
-            if (initializing) {
+        if (initializing) {
+            (async () => {
                 try {
                     const [oldBoy, phone, code, email] = await Promise.all([
                         getSecureKey('existing'),
                         getSecureKey('phone_number_without'),
                         getSecureKey('phone_number_code'),
-                        getSecureKey('account_email'),
-                        dispatch(pingBeacon({appName: Constants.manifest?.version, version: Constants.manifest?.version, notificationTok: }))
+                        getSecureKey('account_email')
                     ]);
 
                     if (oldBoy === 'true') {
@@ -63,10 +63,34 @@ export default function GetStarted({ navigation }: NavigationProps) {
                 } catch (e: any) {
                     console.log('promise error', e)
                 }
+                try {
+                    const token = await registerForPushNotificationsAsync();
+                    if (token) {
+                        await dispatch(pingBeacon({
+                            appName: Constants.manifest?.android?.package,
+                            notificationTok: token,
+                            version: Constants.manifest?.version
+                        }))
+                        registerTask();
+                    }
+                } catch (e: any) {
+                    console.log('registerForPushNotificationsAsync error', e);
+                }
+            })();
+        }
+        // https://play.google.com/store/apps/details?id=com.presta.prestasign
+        const subscription = Notifications.addNotificationReceivedListener(notification => {
+            if (notification.request.content.data.url) {
+                console.log("notification data foreground", notification.request.content.data.url);
+                (async () => {
+                    await Linking.openURL(notification.request.content.data.url as string);
+                })()
             }
-        })()
+        });
+
         return () => {
             initializing = false;
+            subscription.remove();
         };
     }, [appInitialized]);
 
@@ -78,7 +102,12 @@ export default function GetStarted({ navigation }: NavigationProps) {
                     source={require('../../assets/images/landingGetStarted.jpg')}
                 />
                 <View style={{position: 'absolute',width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', bottom: 5, zIndex: 12}}>
-                    <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('SetTenant')}>
+                    <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('SetTenant', {
+                        code: "254",
+                        numericCode: "404",
+                        alpha2Code: "KE",
+                        flag: "https://flagcdn.com/28x21/ke.png"
+                    })}>
                         <Text allowFontScaling={false} style={styles.buttonText}>Get Started</Text>
                     </TouchableHighlight>
                     <Text allowFontScaling={false} style={{ fontSize: 8, color: '#FFFFFF', textAlign: 'center', marginBottom: 10, fontFamily: 'Poppins_300Light', paddingHorizontal: 20, marginHorizontal: 30 }}>By continuing, you agree to Presta's Terms of Service and privacy policy.</Text>

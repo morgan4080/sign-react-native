@@ -4,14 +4,12 @@ import { useEffect, useState } from 'react';
 import {Linking} from 'react-native';
 
 import Navigation from './navigation';
-import { Provider } from 'react-redux';
+import {Provider, useDispatch, useSelector} from 'react-redux';
 import { store } from "./stores/store";
 import * as Notifications from 'expo-notifications';
 import {
     NotificationResponse,
-    registerForPushNotificationsAsync,
-    handleNotificationTask,
-    registerTask
+    handleNotificationTask
 } from "./utils/notificationService";
 
 const useMount = (func: () => void) => useEffect(() => func(), []);
@@ -20,8 +18,6 @@ export default function App() {
     // const isLoadingComplete = useCachedResources();
     handleNotificationTask();
     const lastNotificationResponse = NotificationResponse();
-    const [expoPushToken, setExpoPushToken] = useState('');
-
     useMount(() => {
         const getUrlAsync = async () => {
             // Get the deep link used to open the app
@@ -35,31 +31,6 @@ export default function App() {
 
         getUrlAsync();
     });
-
-    useEffect(() => {
-        (async () => {
-            try {
-                const token = await registerForPushNotificationsAsync();
-                if (token) {
-                    setExpoPushToken(token);
-                    registerTask();
-                }
-            } catch (e: any) {
-                console.log('registerForPushNotificationsAsync error', e);
-            }
-        })();
-        // https://play.google.com/store/apps/details?id=com.presta.prestasign
-        const subscription = Notifications.addNotificationReceivedListener(notification => {
-            if (notification.request.content.data.url) {
-                console.log("notification data foreground", notification.request.content.data.url);
-                (async () => {
-                    await Linking.openURL(notification.request.content.data.url as string);
-                })()
-            }
-        });
-
-        return () => subscription.remove();
-    }, [])
 
     useEffect(() => {
         (async () => {

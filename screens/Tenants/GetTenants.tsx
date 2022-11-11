@@ -268,7 +268,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                             phoneNumber: phone,
                             email: null
                         };
-
+                        console.log(payload);
                         navigation.navigate('SetTenant', {
                             code: "254",
                             numericCode: "404",

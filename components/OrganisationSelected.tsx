@@ -4,7 +4,8 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    KeyboardAvoidingView
+    KeyboardAvoidingView,
+    NativeModules
 } from "react-native";
 import {Controller, useForm} from "react-hook-form";
 import {AntDesign, Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
@@ -16,6 +17,7 @@ import {OnboardUser, storeState} from "../stores/auth/authSlice";
 import {requestPhoneNumber, requestPhoneNumberFormat} from "../utils/smsVerification";
 import {store} from "../stores/store";
 import {getSecureKey} from "../utils/secureStore";
+import Constants from "expo-constants";
 type FormData = {
     phoneNumber: string
     idNumber: string
@@ -23,6 +25,7 @@ type FormData = {
 }
 type NavigationProps = NativeStackScreenProps<any>;
 type AppDispatch = typeof store.dispatch;
+const {DeviceInfModule} = NativeModules;
 const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, nav: NavigationProps}) => {
     const [tab, setTab] = useState<number>(0);
     const {loading} = useSelector((state: { auth: storeState }) => state.auth);
@@ -42,6 +45,17 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
             }
         }
     );
+
+    useEffect(() => {
+        let changed = true
+
+        if (changed) {
+            clearErrors()
+        }
+        return () => {
+            changed = false
+        }
+    }, [tenantId])
 
     const EmailPhoneTabs = () => {
         return(
@@ -316,21 +330,22 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
         }
 
         if (phone !== "") {
-            onboard("phoneNumber", `?identifierType=PHONE_NUMBER&memberIdentifier=${phone}`)
+            await onboard("phoneNumber", `?identifierType=PHONE_NUMBER&memberIdentifier=${phone}`)
         }
 
         if (email !== "") {
-            onboard("email", `?identifierType=EMAIL&memberIdentifier=${email}`)
+            await onboard("email", `?identifierType=EMAIL&memberIdentifier=${email}`)
         }
 
         if (id !== "") {
-            onboard("idNumber", `?identifierType=ID_NUMBER&memberIdentifier=${id}`)
+            await onboard("idNumber", `?identifierType=ID_NUMBER&memberIdentifier=${id}`)
         }
 
     }
 
-    const onboard = (context: "email" | "phoneNumber" | "idNumber", qr: string) => {
-        dispatch(OnboardUser(qr)).then((response: any) => {
+    const onboard = async (context: "email" | "phoneNumber" | "idNumber", qr: string) => {
+        try {
+            const response: any = await dispatch(OnboardUser(qr))
             switch (response.type) {
                 case "OnboardUser/rejected":
                     setError(context, {type: 'custom', message: response.error.message})
@@ -341,13 +356,19 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                         setError(context, {type: 'custom', message: "Member Details Unavailable"})
                     } else {
                         // navigate to otp
-                        console.log('success', response.payload)
+                        const deviceId = await DeviceInfModule.getUniqueId()
+
+                        nav.navigation.navigate('OnboardingOTP', {
+                            ...response.payload,
+                            deviceId,
+                            appName: Constants.manifest?.android?.package
+                        })
                     }
                     break;
             }
-        }).catch(error => {
+        } catch (error: any) {
             setError(context, {type: 'custom', message: error.message})
-        })
+        }
     }
 
     return (

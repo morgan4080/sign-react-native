@@ -1056,8 +1056,6 @@ export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async (
 
         const raw = JSON.stringify(obj);
 
-        console.log('otp verification sent', obj);
-
         const requestOptions = {
             method: 'POST',
             headers: myHeaders,
@@ -1067,7 +1065,6 @@ export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async (
         const response = await fetch("https://accounts.presta.co.ke/api/v1/users/verification", requestOptions);
 
         if (response.status === 200) {
-            console.log('otp verification sent')
             return Promise.resolve(true);
         } else {
             return Promise.reject(response.status);
@@ -2527,7 +2524,7 @@ export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string
             if (x.isTechnical) {
                 return Promise.reject("Error: " + response.status)
             } else {
-                return Promise.reject("Error: " + x.message)
+                return Promise.reject("Error: " + response.status + " " + x.message)
             }
         } else {
             return Promise.reject("Error: " + response.status)

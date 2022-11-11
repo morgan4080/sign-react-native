@@ -37,6 +37,18 @@ const config = () => {
             amounts: true,
             selfGuarantee: true,
             minGuarantors: 1
+        },
+        {
+            tenantName: 'Centrino',
+            tenantId: 't10099',
+            clientSecret: 'b50f4bf3-6d72-4865-b974-d589fd881268',
+            employerInfo: false,
+            guarantors: 'count',
+            witness: true,
+            repaymentDisbursementModes: true,
+            amounts: false,
+            selfGuarantee: true,
+            minGuarantors: 4
         }
     ]
 }

@@ -470,6 +470,8 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             console.log('business', payloadCode);
 
             setBusinessPayload(payloadCode);
+
+            handleClosePress();
         }
     }
 
@@ -642,7 +644,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                         <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
                                     </TouchableOpacity>
                                 </View>
-                                { tab === 0 ?
+                                {   tab === 0 &&
                                     <>
                                         <Controller
                                             control={control}
@@ -726,7 +728,10 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                         />
                                         {errors.kraPin &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.kraPin?.message ? errors.kraPin?.message : 'KRA pin required'}</Text>}
                                     </>
-                                    :
+                                }
+
+                                {
+                                    tab === 1 &&
                                     <>
                                         <Controller
                                             control={control}
@@ -776,7 +781,8 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                         />
                                         {errors.kraPin &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.kraPin?.message ? errors.kraPin?.message : 'KRA pin required'}</Text>}
 
-                                    </> }
+                                    </>
+                                }
 
                                 <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                                     <Pressable onPress={submitKYC} style={{marginTop: 20, backgroundColor: !heldMember ? "#CCCCCC" : "#489AAB", paddingHorizontal: 50, paddingVertical: 15, borderRadius: 25}}>

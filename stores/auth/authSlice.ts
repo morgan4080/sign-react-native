@@ -826,16 +826,18 @@ export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async (
 })
 
 export const logoutUser = createAsyncThunk('logoutUser', async () => {
-    return await Promise.all([
-        deleteSecureKey('otp_verified'),
-        deleteSecureKey('access_token'),
-        deleteSecureKey('refresh_token'),
-        deleteSecureKey('phone_number'),
-        deleteSecureKey('phone_number_code'),
-        deleteSecureKey('phone_number_without'),
-        deleteSecureKey('existing'),
-        deleteSecureKey('fingerPrint')
-    ]);
+    return Promise.resolve(
+        Promise.all([
+            deleteSecureKey('otp_verified'),
+            deleteSecureKey('access_token'),
+            deleteSecureKey('refresh_token'),
+            deleteSecureKey('phone_number'),
+            deleteSecureKey('phone_number_code'),
+            deleteSecureKey('phone_number_without'),
+            deleteSecureKey('existing'),
+            deleteSecureKey('fingerPrint')
+        ])
+    );
 });
 
 type memberPayloadType = {firstName?: string, lastName?: string, phoneNumber?: string, idNumber?: string, email?: string, memberRefId?: string}
@@ -1177,8 +1179,6 @@ export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', asy
             "verificationType":verificationType,
             "otp":otp
         });
-
-        console.log(raw)
 
         const requestOptions = {
             method: 'POST',
@@ -2518,8 +2518,7 @@ export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string
             return Promise.resolve(data)
         } else if (response.status === 201) {
             return Promise.reject(response.status + ": The Identifier provided is not linked to any lender. Kindly confirm with your Organization")
-        }
-        else if (response.status === 500) {
+        } else if (response.status === 500) {
             let x = await response.json()
             if (x.isTechnical) {
                 return Promise.reject("Error: " + response.status)
@@ -2530,8 +2529,8 @@ export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string
             return Promise.reject("Error: " + response.status)
         }
     } catch (e: any) {
-        console.log(e)
-        return Promise.reject(e)
+        console.log(e.message)
+        return Promise.reject("Check your details and try again");
     }
 });
 

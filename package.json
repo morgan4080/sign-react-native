@@ -24,7 +24,7 @@
     "@reduxjs/toolkit": "^1.8.1",
     "@types/debounce": "^1.2.1",
     "debounce": "^1.2.1",
-    "expo": "^47.0.0",
+    "expo": "~47.0.3",
     "expo-asset": "~8.6.2",
     "expo-camera": "~13.0.0",
     "expo-checkbox": "~2.2.2",

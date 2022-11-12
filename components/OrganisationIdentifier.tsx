@@ -9,7 +9,6 @@ import {
     storeState
 } from "../stores/auth/authSlice";
 import {useDispatch, useSelector} from "react-redux";
-import {useForm, Controller} from "react-hook-form";
 import {Picker} from "@react-native-picker/picker";
 import {
     Poppins_300Light,

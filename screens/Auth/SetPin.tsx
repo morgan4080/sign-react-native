@@ -23,6 +23,7 @@ import {Controller, useForm} from "react-hook-form";
 import {useEffect, useState} from "react";
 import {store} from "../../stores/store";
 import {PayloadAction, SerializedError} from "@reduxjs/toolkit";
+import {saveSecureKey} from "../../utils/secureStore";
 
 const {CSTM} = NativeModules;
 
@@ -62,7 +63,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
         formState: { errors }
     } = useForm<FormData>({})
 
-    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, selectedTenant } = useSelector((state: { auth: storeState }) => state.auth);
 
     const {phoneNumber, email, realm, client_secret}: any = route.params;
 
@@ -156,6 +157,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                         console.log('logging in', loadOut);
 
                         try {
+                            await saveSecureKey('currentTenant', JSON.stringify(selectedTenant))
                             const {type, error}: any = await dispatch(loginUser(loadOut))
                             if (type === 'loginUser/rejected' && error) {
                                 if (error.message === "Network request failed") {

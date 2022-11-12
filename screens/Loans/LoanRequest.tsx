@@ -196,7 +196,7 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
                         height: 1/12 * height,
                         position: 'relative'
                     }}>
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', top: 10, left: 10 }}>
+                        <TouchableOpacity onPress={() => navigation.navigate('LoanRequests')} style={{ position: 'absolute', top: 10, left: 10 }}>
                             <Ionicons name="chevron-back-sharp" size={30} style={{ paddingLeft: 2 }} color="#489AAB" />
                         </TouchableOpacity>
                     </View>

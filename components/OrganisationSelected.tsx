@@ -9,14 +9,14 @@ import {
 } from "react-native";
 import {Controller, useForm} from "react-hook-form";
 import {AntDesign, Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RotateView} from "../screens/Auth/VerifyOTP";
 import {useDispatch, useSelector} from "react-redux";
-import {OnboardUser, storeState} from "../stores/auth/authSlice";
+import {AuthenticateClient, OnboardUser, storeState} from "../stores/auth/authSlice";
 import {requestPhoneNumber, requestPhoneNumberFormat} from "../utils/smsVerification";
 import {store} from "../stores/store";
-import {getSecureKey} from "../utils/secureStore";
+import {getSecureKey, saveSecureKey} from "../utils/secureStore";
 import Constants from "expo-constants";
 type FormData = {
     phoneNumber: string
@@ -28,7 +28,7 @@ type AppDispatch = typeof store.dispatch;
 const {DeviceInfModule} = NativeModules;
 const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, nav: NavigationProps}) => {
     const [tab, setTab] = useState<number>(0);
-    const {loading} = useSelector((state: { auth: storeState }) => state.auth);
+    const {loading, selectedTenant} = useSelector((state: { auth: storeState }) => state.auth);
     const dispatch : AppDispatch = useDispatch();
     const {
         control,
@@ -46,10 +46,17 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
         }
     );
 
+    const requestPh = useCallback(() => {
+        requestPhoneNumber().then(phone => setValue("phoneNumber", phone))
+    }, [])
+
     useEffect(() => {
         let changed = true
 
-        if (changed) {
+        if (changed && tenantId && selectedTenant) {
+            if (tenantId === 't72767' && tab === 0 || tenantId === 't74411') {
+                requestPh()
+            }
             clearErrors()
         }
         return () => {
@@ -99,19 +106,6 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
     };
 
     const PhoneInput = () => {
-        useEffect(() => {
-            let start = true
-            if (start) {
-                getSecureKey("access_token").then(token => {
-                    if (token && !getValues("phoneNumber")) {
-                        requestPhoneNumber().then(phone => setValue("phoneNumber", phone))
-                    }
-                })
-            }
-            return () => {
-                start = false
-            }
-        })
         return (
             <KeyboardAvoidingView behavior="padding"  style={{position: 'relative'}}>
                 <TouchableOpacity style={{position: 'absolute', top: '35%', left: '2%', zIndex: 10 }} onPress={() => {
@@ -134,10 +128,10 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                 </TouchableOpacity>
                 <Controller
                     control={control}
-                    rules={{
+                    /*rules={{
                         required: true
-                    }}
-                    render={({field: {onChange, value}}) => (
+                    }}*/
+                    render={({field: {onChange, onBlur, value}}) => (
                         <TextInput
                             style={{
                                 ...styles.input,
@@ -147,6 +141,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                             }}
                             keyboardType="number-pad"
                             onChangeText={onChange}
+                            onBlur={onBlur}
                             value={value}
                             autoFocus={false}
                             placeholder="Enter Phone Number"
@@ -165,10 +160,10 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
             <KeyboardAvoidingView behavior="padding" >
                 <Controller
                     control={control}
-                    rules={{
+                    /*rules={{
                         required: true
-                    }}
-                    render={( { field: { onChange, value } }) => (
+                    }}*/
+                    render={( { field: { onChange, onBlur, value } }) => (
                         <TextInput
                             value={value}
                             keyboardType="email-address"
@@ -177,6 +172,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                                 color: errors.email ? '#d53b39': '#101828',
                                 borderColor: errors.email ? '#d53b39': '#E3E5E5'
                             }}
+                            onBlur={onBlur}
                             placeholder="Enter Email"
                             onChangeText={onChange}
                             editable={!loading}
@@ -193,10 +189,10 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
             <KeyboardAvoidingView behavior="padding" >
                 <Controller
                     control={control}
-                    rules={{
+                    /*rules={{
                         required: true
-                    }}
-                    render={( { field: { onChange, value } }) => (
+                    }}*/
+                    render={( { field: { onChange, value,onBlur } }) => (
                         <TextInput
                             value={value}
                             keyboardType="number-pad"
@@ -205,6 +201,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                                 color: errors.idNumber ? '#d53b39': '#101828',
                                 borderColor: errors.idNumber ? '#d53b39': '#E3E5E5'
                             }}
+                            onBlur={onBlur}
                             placeholder="Enter ID Number"
                             onChangeText={onChange}
                             editable={!loading}
@@ -299,11 +296,14 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                 setError('phoneNumber', {type: 'custom', message: 'Please provide a valid phone number'});
                 return
             }
-
+            await saveSecureKey('alpha2Code', nav.route.params?.alpha2Code);
             const phoneDataJson = await requestPhoneNumberFormat(nav.route.params?.alpha2Code, value.phoneNumber);
 
             const {country_code, phone_no} = JSON.parse(phoneDataJson);
-
+            await Promise.all([
+                saveSecureKey('phone_number_code', country_code),
+                saveSecureKey('phone_number_without', phone_no)
+            ]);
             phone = `${country_code}${phone_no}`;
         }
 
@@ -330,15 +330,19 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
         }
 
         if (phone !== "") {
-            await onboard("phoneNumber", `?identifierType=PHONE_NUMBER&memberIdentifier=${phone}`)
+            if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("phoneNumber", `?identifierType=PHONE_NUMBER&memberIdentifier=${phone}`))
+            return
         }
 
         if (email !== "") {
-            await onboard("email", `?identifierType=EMAIL&memberIdentifier=${email}`)
+            await saveSecureKey('account_email', email);
+            if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("email", `?identifierType=EMAIL&memberIdentifier=${email}`))
+            return
         }
 
         if (id !== "") {
-            await onboard("idNumber", `?identifierType=ID_NUMBER&memberIdentifier=${id}`)
+            if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("idNumber", `?identifierType=ID_NUMBER&memberIdentifier=${id}`))
+            return
         }
 
     }
@@ -368,6 +372,10 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
             }
         } catch (error: any) {
             setError(context, {type: 'custom', message: error.message})
+        } finally {
+            setValue("phoneNumber", "")
+            setValue("email", "")
+            setValue("idNumber", "")
         }
     }
 

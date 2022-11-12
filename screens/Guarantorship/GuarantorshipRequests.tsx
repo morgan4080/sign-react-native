@@ -3,7 +3,6 @@ import {
     Platform,
     SafeAreaView,
     SectionList,
-    StatusBar as Bar,
     StyleSheet, Text,
     TouchableOpacity,
     View
@@ -13,7 +12,7 @@ import {StatusBar} from "expo-status-bar";
 import {MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 
 import {useDispatch, useSelector} from "react-redux";
-import {fetchGuarantorshipRequests, storeState} from "../../stores/auth/authSlice";
+import {fetchGuarantorshipRequests, setGuarantorsUpdated, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {
     Poppins_300Light,
@@ -24,20 +23,19 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {toMoney} from "../User/Account";
 import GuarantorTiles from "../User/Components/GuarantorTiles";
 import {store} from "../../stores/store";
 import {RotateView} from "../Auth/VerifyOTP";
-import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../components/BottomSheet";
-import LoanRequest from "../User/Components/LoanRequest";
+import BottomSheet, {BottomSheetBackdrop, BottomSheetView} from "@gorhom/bottom-sheet";
 
 type NavigationProps = NativeStackScreenProps<any>
 
 const { width, height } = Dimensions.get("window");
 
-export default function GuarantorshipRequests ({ navigation }: NavigationProps) {
-    const { loading, user, member, guarantorshipRequests } = useSelector((state: { auth: storeState }) => state.auth);
+export default function GuarantorshipRequests ({ navigation, route }: NavigationProps) {
+    const { loading, user, member, guarantorshipRequests, guarantorsUpdated } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
@@ -56,23 +54,38 @@ export default function GuarantorshipRequests ({ navigation }: NavigationProps) 
         Poppins_300Light
     });
 
-    const ref = useRef<BottomSheetRefProps>(null);
+    const sheetRef = useRef<BottomSheet>(null);
 
-    const sheet = ref?.current?.isActive();
+    const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
 
-    const onPress = useCallback(() => {
-        const isActive = ref?.current?.isActive();
-
-        if (isActive) {
-            ref?.current?.scrollTo(0);
-        } else {
-            ref?.current?.scrollTo(MAX_TRANSLATE_Y);
+    // callbacks
+    const handleSheetChange = useCallback((index: any) => {
+        if (index === -1) {
+            setPressed(false);
         }
     }, []);
 
+    const handleSnapPress = useCallback((index: any) => {
+        sheetRef.current?.snapToIndex(index);
+    }, []);
+
+    const handleClosePress = useCallback(() => {
+        sheetRef.current?.close();
+    }, []);
+
+    const renderBackdrop = useCallback(
+        (props: any) => (
+            <BottomSheetBackdrop
+                {...props}
+                disappearsOnIndex={-1}
+                appearsOnIndex={1}
+            />
+        ),
+        []
+    );
+
     useEffect(() => {
         let fetching = true;
-
         if (fetching) {
             (async () => {
                 await dispatch(fetchGuarantorshipRequests({ memberRefId: member?.refId}))
@@ -95,87 +108,107 @@ export default function GuarantorshipRequests ({ navigation }: NavigationProps) 
         };
     });
 
+    const onPress = () => {
+        if (!pressed) {
+            handleSnapPress(2);
+        } else {
+            handleClosePress();
+        }
+    }
+
+    useEffect(() => {
+        if (guarantorsUpdated) handleClosePress()
+        return () => {
+            setGuarantorsUpdated(false);
+        }
+    }, [guarantorsUpdated]);
+
     if (fontsLoaded) {
         return (
-        <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
-            <View style={{ position: 'absolute', right: -30, top: -10, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
-            <View style={styles.container}>
-                <SafeAreaView style={{ flex: 1, backgroundColor: accountHistory.length === 0 ? 'rgba(50,52,146,0)' : '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height }}>
-                    <SectionList
-                        style={{marginTop: 20}}
-                        sections={accountHistory.length > 0 ? [
-                            {
-                                title: '',
-                                data:  accountHistory
+            <GestureHandlerRootView style={{flex: 1, position: 'relative'}}>
+                <View style={{ position: 'absolute', right: -30, top: -10, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
+                <View style={styles.container}>
+                    <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.07)", width: width, height }}>
+                        <SectionList
+                            style={{marginTop: 20}}
+                            sections={accountHistory.length > 0 ? [
+                                {
+                                    title: '',
+                                    data:  accountHistory
+                                }
+                            ]: []}
+                            progressViewOffset={50}
+                            refreshing={loading}
+                            onRefresh={() => dispatch(fetchGuarantorshipRequests({ memberRefId: member?.refId}))}
+                            keyExtractor={(index) => index + Math.random().toString(12).substring(0)}
+                            renderItem={({ item }) => <GuarantorTiles pressed={pressed} setPressed={onPress} setRequest={setRequest} guarantor={item} />}
+                            renderSectionHeader={() => (
+                                <></>
+                            )}
+                            ListEmptyComponent={
+                                <View style={{width: '100%', height: height/3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                    <MaterialCommunityIcons name="delete-empty-outline" size={100} color="#CCCCCC" />
+                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 16 }}>Whooops!</Text>
+                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12 }}>No Data</Text>
+                                </View>
                             }
-                        ]: []}
-                        progressViewOffset={50}
-                        refreshing={loading}
-                        onRefresh={() => dispatch(fetchGuarantorshipRequests({ memberRefId: member?.refId}))}
-                        keyExtractor={(index) => index + Math.random().toString(12).substring(0)}
-                        renderItem={({ item }) => <GuarantorTiles pressed={pressed} setPressed={() => {
-                            setPressed(!pressed)
-                            onPress()
-                        }} setRequest={setRequest} guarantor={item} />}
-                        renderSectionHeader={() => (
-                            <></>
-                        )}
-                        ListEmptyComponent={
-                            <View style={{width: '100%', height: height/3, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                <MaterialCommunityIcons name="delete-empty-outline" size={100} color="#CCCCCC" />
-                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 16 }}>Whooops!</Text>
-                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12 }}>No Data</Text>
-                            </View>
-                        }
-                    />
+                        />
 
-                </SafeAreaView>
-            </View>
-
-            <BottomSheet ref={ref} setRequest={setRequest} setPressed={setPressed} pressed={pressed}>
-                <View style={{display: 'flex', alignItems: 'center'}}>
-                    <View style={styles.userPicBtn}>
-                        <MaterialCommunityIcons name="account" color="#FFFFFF" size={50}/>
-                    </View>
-                    <View>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#489AAB', fontSize: 20, textAlign: 'center', marginTop: (height/1.5)/30 }}>{request?.executor}</Text>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#489AAB', fontSize: 12, textAlign: 'center' }}>{ `${user?.companyName}` }</Text>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12, maxWidth: 250, textAlign: 'center', marginTop: (height/1.5)/20 }}>
-                            Kindly accept my request to add you as a guarantor  for this Loan Product valued :
-                        </Text>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#489AAB', fontSize: 20, textAlign: 'center', marginTop: (height/1.5)/20 }}>
-                            KES { request?.subject }
-                        </Text>
-                    </View>
-                    <View style={{height: (height/6), display: 'flex', flexDirection: 'row', marginTop:  (height/1.5)/20 }}>
-                        <TouchableOpacity onPress={() => {
-                            setPressed(false);
-                            setRequest(null);
-                            navigation.navigate('SignDocumentRequest', {
-                                guarantorshipRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId),
-                                guarantor: true
-                            })
-                        }}>
-                            <MaterialIcons name="check-circle" size={80} color="#78E49D" />
-                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', textAlign: 'center', color: '#78E49D'}}>Accept</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => {
-                            setPressed(false);
-                            setRequest(null);
-                            navigation.navigate('GuarantorshipStatus', {
-                                accepted: false,
-                                guarantor: request,
-                                loanRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId)
-                            })
-                        }}>
-                            <MaterialIcons name="cancel" size={80} color="#FF927A" />
-                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', textAlign: 'center', color: '#FF927A'}}>Decline</Text>
-                        </TouchableOpacity>
-                    </View>
+                    </SafeAreaView>
                 </View>
-            </BottomSheet>
-            <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'}/>
-        </GestureHandlerRootView>
+
+                <BottomSheet
+                    ref={sheetRef}
+                    index={-1}
+                    snapPoints={snapPoints}
+                    onChange={handleSheetChange}
+                    backdropComponent={renderBackdrop}
+                >
+                    <BottomSheetView style={{display: 'flex', alignItems: 'center'}}>
+                        <View style={styles.userPicBtn}>
+                            <MaterialCommunityIcons name="account" color="#FFFFFF" size={50}/>
+                        </View>
+                        <View>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#489AAB', fontSize: 20, textAlign: 'center', marginTop: (height/1.5)/30 }}>{request?.executor}</Text>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#489AAB', fontSize: 12, textAlign: 'center' }}>{ `${user?.companyName}` }</Text>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#9a9a9a', fontSize: 12, maxWidth: 250, textAlign: 'center', marginTop: (height/1.5)/20 }}>
+                                Kindly accept my request to add you as a guarantor  for this Loan Product valued :
+                            </Text>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#489AAB', fontSize: 20, textAlign: 'center', marginTop: (height/1.5)/20 }}>
+                                KES { request?.subject }
+                            </Text>
+                        </View>
+                        <View style={{height: (height/6), display: 'flex', flexDirection: 'row', marginTop:  (height/1.5)/20 }}>
+                            <TouchableOpacity onPress={() => {
+                                handleClosePress();
+                                setPressed(false);
+                                setRequest(null);
+                                navigation.navigate('SignDocumentRequest', {
+                                    guarantorshipRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId),
+                                    guarantor: true
+                                })
+                            }}>
+                                <MaterialIcons name="check-circle" size={80} color="#78E49D" />
+                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', textAlign: 'center', color: '#78E49D'}}>Accept</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => {
+                                handleClosePress();
+                                setPressed(false);
+                                setRequest(null);
+                                navigation.navigate('GuarantorshipStatus', {
+                                    accepted: false,
+                                    guarantor: request,
+                                    loanRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId)
+                                })
+                            }}>
+                                <MaterialIcons name="cancel" size={80} color="#FF927A" />
+                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', textAlign: 'center', color: '#FF927A'}}>Decline</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </BottomSheetView>
+                </BottomSheet>
+                <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'}/>
+            </GestureHandlerRootView>
     )
     } else {
         return (

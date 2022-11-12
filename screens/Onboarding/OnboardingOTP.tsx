@@ -7,6 +7,7 @@ import {sendOtpBeforeToken, storeState, verifyOtpBeforeToken, logoutUser} from "
 import {store} from "../../stores/store";
 import {useEffect, useState} from "react";
 import {receiveVerificationSMS, startSmsUserConsent} from "../../utils/smsVerification";
+import {deleteSecureKey} from "../../utils/secureStore";
 type NavigationProps = NativeStackScreenProps<any>;
 type FormData = {
     otp: string
@@ -74,7 +75,7 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                 await Promise.all([
                     sendOtpHere(),
                     startSmsUserConsent(),
-                    dispatch(logoutUser())
+                    deleteSecureKey("access_token")
                 ])
 
                 receiveVerificationSMS((error: any, message) => {

@@ -43,8 +43,8 @@ type FormData = {
 }
 
 const GetTenants = ({ navigation, route }: NavigationProps) => {
-
-    let [fontsLoaded] = useFonts({
+    return(<></>)
+    /*let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
         Poppins_800ExtraBold,
@@ -348,10 +348,10 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                         <Text allowFontScaling={false} style={styles.titleText}>Enter registered phone number</Text>
                         <Text allowFontScaling={false} style={styles.subTitleText}>Verify Membership</Text>
 
-                        {/*{
+                        {/!*{
                             code !== '+254' &&
 
-                        }*/}
+                        }*!/}
 
                         <View style={{display: 'flex', alignItems: 'center', flexDirection: 'row', paddingTop: 15}}>
                             <TouchableOpacity onPress={() => {
@@ -668,7 +668,7 @@ const GetTenants = ({ navigation, route }: NavigationProps) => {
                 <RotateView/>
             </View>
         )
-    }
+    }*/
 }
 
 const styles = StyleSheet.create({

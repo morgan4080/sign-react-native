@@ -58,7 +58,7 @@ const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
                     selectedValue={selectedTenant}
                     dropdownIconRippleColor={'#487588'}
                     onValueChange={(itemValue, itemIndex) => {
-                        dispatch(logoutUser()).then(() => {
+                        deleteSecureKey("access_token").then(() => {
                             dispatch(setSelectedTenant(itemValue));
                         })
                     }}>

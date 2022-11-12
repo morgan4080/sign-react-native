@@ -3,9 +3,9 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
-import {AntDesign, FontAwesome, MaterialCommunityIcons} from '@expo/vector-icons';
+import {AntDesign} from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import {NavigationContainer, DefaultTheme, useNavigationContainerRef} from '@react-navigation/native';
+import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
@@ -108,19 +108,7 @@ const NonAuthNavigation = () => {
                 }
             }} />
             <Stack.Screen name="Countries" component={Countries} options={{ headerShown: false }} />
-            <Stack.Screen name="ShowTenants" component={ShowTenants} options={{
-                headerShown: true,
-                title: 'Select Organization',
-                headerShadowVisible: false,
-                headerStyle: {
-                    backgroundColor: '#FFFFFF',
-                },
-                headerTintColor: '#489AAB',
-                headerTitleStyle: {
-                    fontSize: 20,
-                    fontFamily: 'Poppins_600SemiBold'
-                }
-            }} />
+            <Stack.Screen name="ShowTenants" component={ShowTenants} options={{headerShown: false}} />
             <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
             <Stack.Screen name="VerifyOTP" component={VerifyOTP} options={{ headerShown: false }} />
         </Stack.Navigator>
@@ -257,11 +245,11 @@ function BottomTabNavigator() {
       <BottomTab.Screen
         name="UserProfile"
         component={UserProfile}
-        options={({ navigation }: RootTabScreenProps<'UserProfile'>) => ({
-          title: 'Home',
-          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
-          headerShown: false
-        })}
+        options={{
+            title: 'Home',
+            tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+            headerShown: false
+        }}
       />
       <BottomTab.Screen
         name="LoanRequests"

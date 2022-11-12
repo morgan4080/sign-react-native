@@ -25,7 +25,7 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    Dimensions, TextInput, Pressable
+    Dimensions, TextInput, Pressable, StatusBar as Bar
 } from "react-native";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -36,6 +36,7 @@ import {GestureHandlerRootView} from "react-native-gesture-handler";
 import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from "@gorhom/bottom-sheet";
 import {Controller, useForm} from "react-hook-form";
 import {receiveVerificationSMS, startSmsUserConsent} from "../../utils/smsVerification";
+import {AntDesign} from "@expo/vector-icons";
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
 
@@ -68,6 +69,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
     const { countryCode, phoneNumber, email }: any = route.params;
 
     const reFetch = async () => {
+
         try {
             let [otpV,phone_number_without, phone_number_code] = await Promise.all([
                 getSecureKey('otp_verified'),
@@ -75,31 +77,11 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                 getSecureKey('phone_number_code')
             ]);
 
+            console.log(otpV,phone_number_without, phone_number_code)
+
             setOtpVerified(otpV);
 
-            if (email && countryCode) {
-
-                await dispatch(getTenants(email));
-
-            } else if ((phoneNumber && countryCode) || (phone_number_without && phone_number_code)) {
-                let phone: string = '';
-                let identifier: string = '';
-                if (phoneNumber && countryCode) {
-                    identifier = `${countryCode}${phoneNumber}`;
-                } else if (phone_number_without && phone_number_code) {
-                    identifier = `${phone_number_code}${phone_number_without}`;
-                }
-
-                if (identifier[0] === '+') {
-                    let number = identifier.substring(1);
-                    phone = `${number.replace(/ /g, "")}`;
-                } else if (identifier[0] === '0') {
-                    let number = identifier.substring(1);
-                    phone = `254${number.replace(/ /g, "")}`;
-                }
-
-                await dispatch(getTenants(phone));
-            }
+            await dispatch(getTenants(`${phone_number_code}${phone_number_without}`))
 
         } catch (e:any) {
             console.log("getSecureKey otpVerified", e);
@@ -430,52 +412,25 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
     if (fontsLoaded) {
         return (
             <GestureHandlerRootView style={{ flex: 1, position: 'relative' }}>
-                <View style={{
-                    position: 'absolute',
-                    left: 60,
-                    top: -120,
-                    backgroundColor: 'rgba(50,52,146,0.12)',
-                    paddingHorizontal: 5,
-                    paddingVertical: 5,
-                    borderRadius: 100,
-                    width: 200,
-                    height: 200
-                }}/>
-                <View style={{
-                    position: 'absolute',
-                    left: -100,
-                    top: '20%',
-                    backgroundColor: 'rgba(50,52,146,0.12)',
-                    paddingHorizontal: 5,
-                    paddingVertical: 5,
-                    borderRadius: 100,
-                    width: 200,
-                    height: 200
-                }}/>
-                <View style={{
-                    position: 'absolute',
-                    right: -80,
-                    top: '10%',
-                    backgroundColor: 'rgba(50,52,146,0.12)',
-                    paddingHorizontal: 5,
-                    paddingVertical: 5,
-                    borderRadius: 100,
-                    width: 150,
-                    height: 150
-                }}/>
                 <SafeAreaView style={styles.container}>
+                    <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-end', marginHorizontal: 10, paddingHorizontal: 5}}>
+                        <Pressable style={{paddingBottom: 6, paddingRight: 20}} onPress={() => navigation.goBack()}>
+                            <AntDesign name="arrowleft" size={24} color="#489AAB" />
+                        </Pressable>
+                        <Text allowFontScaling={false} style={{fontSize: 17, lineHeight: 22, letterSpacing: 0.5, paddingTop: 20, paddingBottom: 10 }}>Choose Organisation</Text>
+                    </View>
                     <FlatList
                         refreshing={loading}
                         progressViewOffset={50}
-                        onRefresh={() => reFetch()}
+                        onRefresh={reFetch}
                         data={tenants}
                         renderItem={renderItem}
                         keyExtractor={item => item.id}
                         ListFooterComponent={<View style={{height: 50}} />}
                     />
                 </SafeAreaView>
-
-                <BottomSheet
+                {/*change pin here too*/}
+                {/*<BottomSheet
                     ref={sheetRef}
                     index={-1}
                     snapPoints={snapPoints}
@@ -521,7 +476,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                         </Pressable>
 
                     </BottomSheetScrollView>
-                </BottomSheet>
+                </BottomSheet>*/}
             </GestureHandlerRootView>
         )
     } else {
@@ -557,6 +512,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         marginTop: 20,
+        backgroundColor: '#F6F6F6',
+        paddingTop: 10
     },
     item: {
         backgroundColor: '#f9c2ff',

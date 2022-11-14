@@ -1,40 +1,25 @@
-import {StyleSheet, Text, View} from "react-native";
+import {KeyboardAvoidingView, Pressable, StyleSheet, TextInput} from "react-native";
 import OrganisationSelected from "./OrganisationSelected";
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import {
-    AuthenticateClient,
-    logoutUser,
-    organisationType,
-    setSelectedTenant,
+    AuthenticateClient, setSelectedTenant,
     storeState
 } from "../stores/auth/authSlice";
 import {useDispatch, useSelector} from "react-redux";
-import {Picker} from "@react-native-picker/picker";
-import {
-    Poppins_300Light,
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-    Poppins_800ExtraBold,
-    Poppins_900Black,
-    useFonts
-} from "@expo-google-fonts/poppins";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../stores/store";
+import {AntDesign} from "@expo/vector-icons";
 import {deleteSecureKey} from "../utils/secureStore";
 type NavigationProps = NativeStackScreenProps<any>;
 type AppDispatch = typeof store.dispatch;
 const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
-    let [fontsLoaded] = useFonts({
-        Poppins_900Black,
-        Poppins_500Medium,
-        Poppins_800ExtraBold,
-        Poppins_600SemiBold,
-        Poppins_400Regular,
-        Poppins_300Light
-    });
-    const {organisations, selectedTenant} = useSelector((state: { auth: storeState }) => state.auth)
+    const {selectedTenant} = useSelector((state: { auth: storeState }) => state.auth)
     const dispatch : AppDispatch = useDispatch();
+    if (nav.route.params?.selectedTenant) {
+        deleteSecureKey("access_token").then(() => {
+            dispatch(setSelectedTenant(nav.route.params?.selectedTenant));
+        })
+    }
     useEffect(() => {
         let changing = true;
         if (selectedTenant && changing) {
@@ -51,34 +36,32 @@ const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
         }
     }, [selectedTenant])
     return (
-        <View>
-            <View style={styles.input0}>
-                <Picker
-                    mode={"dialog"}
-                    selectedValue={selectedTenant}
-                    dropdownIconRippleColor={'#487588'}
-                    onValueChange={(itemValue, itemIndex) => {
-                        deleteSecureKey("access_token").then(() => {
-                            dispatch(setSelectedTenant(itemValue));
-                        })
-                    }}>
-                    <Picker.Item fontFamily='Poppins_300Light' style={{fontSize: 16, color: 'rgba(9,16,29,0.34)'}} key={'custom'} label={'Select Organisation..'} value={undefined}/>
-                    {organisations.map(org => <Picker.Item style={{fontSize: 16, color: '#101828'}} fontFamily='Poppins_300Light' key={org.clientSecret} label={org.tenantName.toUpperCase()} value={org}/>)}
-                </Picker>
-            </View>
+        <KeyboardAvoidingView>
+            <Pressable style={{...styles.input, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}} onPress={() => nav.navigation.navigate('Organisations')}>
+                <TextInput
+                    style={{fontFamily: 'Poppins_400Regular', color: '#101828'}}
+                    placeholder="SELECT ORGANISATION"
+                    value={selectedTenant?.tenantName}
+                    editable={false}
+                />
+                <AntDesign name="right" size={20} color="#8d8d8d" />
+            </Pressable>
             <OrganisationSelected tenantId={selectedTenant?.tenantId} nav={nav} />
-        </View>
+        </KeyboardAvoidingView>
     )
 }
 
 const styles = StyleSheet.create({
-    input0: {
+    input: {
         borderWidth: 1,
-        borderColor: '#E3E5E5',
+        borderColor: '#8d8d8d',
         borderRadius: 8,
         height: 50,
+        fontSize: 14,
+        paddingHorizontal: 20,
         lineHeight: 1,
         fontFamily: 'Poppins_400Regular',
+        color: '#E3E5E5'
     },
 });
 

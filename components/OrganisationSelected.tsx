@@ -46,16 +46,14 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
         }
     );
 
-    const requestPh = useCallback(() => {
-        requestPhoneNumber().then(phone => setValue("phoneNumber", phone))
-    }, [])
-
     useEffect(() => {
         let changed = true
 
         if (changed && tenantId && selectedTenant) {
             if (tenantId === 't72767' && tab === 0 || tenantId === 't74411') {
-                requestPh()
+                requestPhoneNumber().then(phone => setValue("phoneNumber", phone)).catch(error => {
+                    console.log("requestPhoneNumber error", error)
+                })
             }
             clearErrors()
         }

@@ -44,6 +44,7 @@ import {storeState} from "../stores/auth/authSlice";
 import ReplaceActor from "../screens/Guarantorship/ReplaceActor";
 import SetTenant from "../screens/Onboarding/SetTenant";
 import OnboardingOTP from "../screens/Onboarding/OnboardingOTP";
+import Organisations from "../screens/Onboarding/Organisations";
 
 const Navigation = () => {
   const MyTheme = {
@@ -79,6 +80,7 @@ const NonAuthNavigation = () => {
             {/*Before login*/}
             <Stack.Screen name="GetStarted" component={GetStarted} options={{ headerShown: false }} />
             <Stack.Screen name="SetTenant" component={SetTenant} options={{ headerShown: false }} />
+            <Stack.Screen name="Organisations" component={Organisations} options={{ headerShown: false }} />
             <Stack.Screen name="OnboardingOTP" component={OnboardingOTP} options={{ headerShown: false }} />
             <Stack.Screen name="GetTenants" component={GetTenants} options={{ headerShown: false }} />
             <Stack.Screen name="SelectTenant" component={SelectTenant} options={{

@@ -9,6 +9,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import SelectTenant from "./screens/Auth/SelectTenant";
 import SetTenant from "./screens/Onboarding/SetTenant";
 import OnboardingOTP from "./screens/Onboarding/OnboardingOTP";
+import Organisations from "./screens/Onboarding/Organisations";
 
 declare global {
   namespace ReactNavigation {
@@ -22,6 +23,7 @@ export type RootStackParamList = {
   NotFound: undefined;
   GetStarted: NavigatorScreenParams<RootTabParamList> | undefined;
   SetTenant: NavigatorScreenParams<RootTabParamList> | undefined;
+  Organisations: NavigatorScreenParams<RootTabParamList> | undefined;
   OnboardingOTP: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanProducts: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanProduct: NavigatorScreenParams<RootTabParamList> | undefined;

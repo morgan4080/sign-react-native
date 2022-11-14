@@ -11,8 +11,8 @@ const CountrySectionList = ({countriesData, searching, navigationSet}: propType)
             <View style={{flex: 0.1}}>
                 <Image source={{uri: country?.flag}} style={{width: 20, height: 15}}/>
             </View>
-            <Text style={{...styles.title, flex: 0.8}}>{country.name}</Text>
-            <Text style={{...styles.title, fontSize: 16, flex: 0.1}}>{country.code}</Text>
+            <Text allowFontScaling={false} style={{...styles.title, flex: 0.8}}>{country.name}</Text>
+            <Text allowFontScaling={false} style={{...styles.title, fontSize: 14, flex: 0.1}}>{country.code}</Text>
         </Pressable>
     );
 
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
         padding: 20
     },
     title: {
-        fontSize: 20,
+        fontSize: 14,
         fontFamily: 'Poppins_400Regular'
     }
 })

@@ -1,4 +1,4 @@
-import {KeyboardAvoidingView, Pressable, StyleSheet, TextInput} from "react-native";
+import {Pressable, StyleSheet, TextInput, View} from "react-native";
 import OrganisationSelected from "./OrganisationSelected";
 import {useEffect} from "react";
 import {
@@ -36,10 +36,11 @@ const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
         }
     }, [selectedTenant])
     return (
-        <KeyboardAvoidingView>
+        <View>
             <Pressable style={{...styles.input, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}} onPress={() => nav.navigation.navigate('Organisations')}>
                 <TextInput
-                    style={{fontFamily: 'Poppins_400Regular', color: '#101828'}}
+                    allowFontScaling={false}
+                    style={{fontFamily: 'Poppins_400Regular', color: '#101828', fontSize: 13, width: '90%'}}
                     placeholder="SELECT ORGANISATION"
                     value={selectedTenant?.tenantName}
                     editable={false}
@@ -47,7 +48,7 @@ const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
                 <AntDesign name="right" size={20} color="#8d8d8d" />
             </Pressable>
             <OrganisationSelected tenantId={selectedTenant?.tenantId} nav={nav} />
-        </KeyboardAvoidingView>
+        </View>
     )
 }
 

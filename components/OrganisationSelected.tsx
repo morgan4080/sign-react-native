@@ -4,19 +4,19 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    KeyboardAvoidingView,
-    NativeModules
+    NativeModules,
+    View
 } from "react-native";
 import {Controller, useForm} from "react-hook-form";
 import {AntDesign, Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
-import {useCallback, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RotateView} from "../screens/Auth/VerifyOTP";
 import {useDispatch, useSelector} from "react-redux";
 import {AuthenticateClient, OnboardUser, storeState} from "../stores/auth/authSlice";
 import {requestPhoneNumber, requestPhoneNumberFormat} from "../utils/smsVerification";
 import {store} from "../stores/store";
-import {getSecureKey, saveSecureKey} from "../utils/secureStore";
+import {saveSecureKey} from "../utils/secureStore";
 import Constants from "expo-constants";
 type FormData = {
     phoneNumber: string
@@ -36,7 +36,6 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
         clearErrors,
         setError,
         setValue,
-        getValues,
         formState: { errors }
     } = useForm<FormData>(
         {
@@ -64,7 +63,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
 
     const EmailPhoneTabs = () => {
         return(
-            <KeyboardAvoidingView behavior="padding"  style={{display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'flex-end', paddingTop: 15}}>
+            <View style={{display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'flex-end', paddingTop: 15}}>
                 <TouchableOpacity onPress={() => {
                     setTab(0)
                     clearErrors()
@@ -99,30 +98,30 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                         borderColor: '#489AAB'
                     }]}>Email</Text>
                 </TouchableOpacity>
-            </KeyboardAvoidingView>
+            </View>
         )
     };
 
     const PhoneInput = () => {
         return (
-            <KeyboardAvoidingView behavior="padding"  style={{position: 'relative'}}>
+            <View style={{position: 'relative'}}>
                 <TouchableOpacity style={{position: 'absolute', top: '35%', left: '2%', zIndex: 10 }} onPress={() => {
                     clearErrors();
                     nav.navigation.navigate('Countries', {previous: nav.route.name});
                 }}>
-                    <KeyboardAvoidingView behavior="padding"  style={{padding: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+                    <View style={{padding: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
                         {
-                            nav.route.params?.flag ? <KeyboardAvoidingView behavior="padding"  style={{display: 'flex', flexDirection: 'row'}}>
+                            nav.route.params?.flag ? <View style={{display: 'flex', flexDirection: 'row'}}>
                                     <Image source={{uri: nav.route.params?.flag}} style={{width: 22, height: 18}}/>
-                                    <Text style={{fontSize: 16, marginLeft: 10,
+                                    <Text allowFontScaling={false} style={{fontSize: 14, marginLeft: 10,
                                         fontFamily: 'Poppins_400Regular',
                                         color: errors.email ? '#d53b39': '#101828'}}>{nav.route.params?.code}</Text>
-                                </KeyboardAvoidingView>
+                                </View>
                                 :
                                 <MaterialCommunityIcons name="diving-scuba-flag" size={20} color="#8d8d8d"/>
                         }
                         <AntDesign name="caretdown" size={8} color={nav.route.params?.code ? "#000000" : "#8d8d8d"} style={{marginLeft: 5, paddingBottom: 5}}/>
-                    </KeyboardAvoidingView>
+                    </View>
                 </TouchableOpacity>
                 <Controller
                     control={control}
@@ -131,6 +130,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                     }}*/
                     render={({field: {onChange, onBlur, value}}) => (
                         <TextInput
+                            allowFontScaling={false}
                             style={{
                                 ...styles.input,
                                 color: errors.phoneNumber ? '#d53b39': '#101828',
@@ -149,13 +149,13 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                     )}
                     name="phoneNumber"
                 />
-            </KeyboardAvoidingView>
+            </View>
         )
     };
 
     const EmailInput = () => {
         return (
-            <KeyboardAvoidingView behavior="padding" >
+            <View>
                 <Controller
                     control={control}
                     /*rules={{
@@ -163,6 +163,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                     }}*/
                     render={( { field: { onChange, onBlur, value } }) => (
                         <TextInput
+                            allowFontScaling={false}
                             value={value}
                             keyboardType="email-address"
                             style={{
@@ -178,13 +179,13 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                     )}
                     name="email"
                 />
-            </KeyboardAvoidingView>
+            </View>
         )
     };
 
     const IDInput = () => {
         return (
-            <KeyboardAvoidingView behavior="padding" >
+            <View>
                 <Controller
                     control={control}
                     /*rules={{
@@ -192,6 +193,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                     }}*/
                     render={( { field: { onChange, value,onBlur } }) => (
                         <TextInput
+                            allowFontScaling={false}
                             value={value}
                             keyboardType="number-pad"
                             style={{
@@ -207,80 +209,25 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                     )}
                     name="idNumber"
                 />
-            </KeyboardAvoidingView>
+            </View>
         )
     }
 
     const SubmitBtn = () => {
         return (
-            <KeyboardAvoidingView behavior="padding"  style={{ paddingVertical: 20 }}>
+            <View style={{ paddingVertical: 20 }}>
                 <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} style={{alignSelf: 'flex-end'}} >
                     {   !loading ?
                         <Ionicons name="arrow-forward-circle" size={70} color="#489AAB" />
                         :
-                        <KeyboardAvoidingView behavior="padding"  style={{display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#CCCCCC', borderRadius: 50, width: 65, height: 65}}>
+                        <View style={{display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#CCCCCC', borderRadius: 50, width: 65, height: 65}}>
                             <RotateView color="#FFFFFF"/>
-                        </KeyboardAvoidingView>
+                        </View>
                     }
                 </TouchableOpacity>
-            </KeyboardAvoidingView>
+            </View>
         )
     };
-
-    const SectionPerTenant = () => {
-        switch (tenantId) {
-            case 't72767': // imarisha
-                return (
-                    <KeyboardAvoidingView behavior="padding"  style={{ position: 'relative' }}>
-                        <EmailPhoneTabs/>
-                        {
-                            tab === 1 &&
-                            <EmailInput/>
-                        }
-
-                        {
-                            tab === 0 &&
-                            <PhoneInput/>
-                        }
-
-                        {
-                            (errors.email) &&
-                            <Text  allowFontScaling={false}  style={styles.error}>{errors.email.message ? errors.email.message : 'Required'}</Text>
-                        }
-                        {
-                            (errors.phoneNumber) &&
-                            <Text allowFontScaling={false}
-                                  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Required'}</Text>
-                        }
-                    </KeyboardAvoidingView>
-                )
-            case 't74411': // wanaanga
-                return (
-                    <KeyboardAvoidingView behavior="padding"  style={{ position: 'relative' }}>
-                        <PhoneInput/>
-                        {
-                            (errors.phoneNumber) &&
-                            <Text allowFontScaling={false}
-                                  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Required'}</Text>
-                        }
-                    </KeyboardAvoidingView>
-                )
-            case 't10099': // centrino
-                return (
-                    <KeyboardAvoidingView behavior="padding"  style={{ position: 'relative' }}>
-                        <IDInput/>
-                        {
-                            (errors.idNumber) &&
-                            <Text allowFontScaling={false} style={styles.error}>{errors.idNumber.message ? errors.idNumber.message : 'Required'}</Text>
-                        }
-                    </KeyboardAvoidingView>
-                )
-            default:
-                return (
-                    <></>
-                )
-        }
-    }
 
     const onSubmit =  async (value: any): Promise<void> => {
         let phone = "";
@@ -378,10 +325,64 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
     }
 
     return (
-        <KeyboardAvoidingView behavior="padding" >
-            <SectionPerTenant/>
-            {tenantId && <SubmitBtn/>}
-        </KeyboardAvoidingView>
+        <View>
+
+            {
+                tenantId === 't72767' &&
+                <View style={{position: 'relative'}}>
+                    <EmailPhoneTabs/>
+                    {
+                        tab === 1 &&
+                        <EmailInput/>
+                    }
+
+                    {
+                        tab === 0 &&
+                        <PhoneInput/>
+                    }
+
+                    {
+                        (errors.email) &&
+                        <Text allowFontScaling={false}
+                              style={styles.error}>{errors.email.message ? errors.email.message : 'Required'}</Text>
+                    }
+                    {
+                        (errors.phoneNumber) &&
+                        <Text allowFontScaling={false}
+                              style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Required'}</Text>
+                    }
+                </View>
+            }
+
+            {
+                tenantId === 't74411' &&
+                <View  style={{ position: 'relative' }}>
+                    <PhoneInput/>
+                    {
+                        (errors.phoneNumber) &&
+                        <Text allowFontScaling={false}
+                              style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Required'}</Text>
+                    }
+                </View>
+            }
+
+            {
+                tenantId === 't10099' &&
+
+                <View style={{ position: 'relative' }}>
+                    <IDInput/>
+                    {
+                        (errors.idNumber) &&
+                        <Text allowFontScaling={false} style={styles.error}>{errors.idNumber.message ? errors.idNumber.message : 'Required'}</Text>
+                    }
+                </View>
+            }
+
+            {
+                tenantId &&
+                <SubmitBtn/>
+            }
+        </View>
     )
 }
 
@@ -393,7 +394,7 @@ const styles = StyleSheet.create({
         height: 50,
         marginTop: 20,
         paddingLeft: 22,
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: 'Poppins_400Regular',
         color: '#757575'
     },

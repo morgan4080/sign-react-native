@@ -180,7 +180,7 @@ const Countries = ({ navigation, route }: NavigationProps) => {
                                     render={( { field: { onChange, onBlur, value } }) => (
                                         <TextInput
                                             allowFontScaling={false}
-                                            style={{paddingLeft: 20, fontFamily: 'Poppins_500Medium', fontSize: 18, minWidth: width/1.5}}
+                                            style={{paddingLeft: 20, fontFamily: 'Poppins_500Medium', fontSize: 14, minWidth: width/1.5}}
                                             onBlur={onBlur}
                                             onChangeText={onChange}
                                             value={value}
@@ -191,7 +191,7 @@ const Countries = ({ navigation, route }: NavigationProps) => {
                                     name="searchTerm"
                                 />
 
-                                : <Text style={styles.header}>Select a country</Text>
+                                : <Text allowFontScaling={false} style={styles.header}>Select a country</Text>
                         }
                     </View>
 

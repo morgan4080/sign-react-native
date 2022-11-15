@@ -1,5 +1,15 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {Dimensions, View, StyleSheet, TextInput, Text, StatusBar, Pressable, NativeModules} from "react-native";
+import {
+    Dimensions,
+    View,
+    StyleSheet,
+    TextInput,
+    Text,
+    StatusBar,
+    Pressable,
+    NativeModules,
+    TouchableHighlight
+} from "react-native";
 import {
     Poppins_300Light,
     Poppins_400Regular,

@@ -1,6 +1,6 @@
 import {Pressable, StyleSheet, TextInput, View} from "react-native";
 import OrganisationSelected from "./OrganisationSelected";
-import {useEffect} from "react";
+import {useCallback, useEffect} from "react";
 import {
     AuthenticateClient, setSelectedTenant,
     storeState
@@ -15,11 +15,16 @@ type AppDispatch = typeof store.dispatch;
 const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
     const {selectedTenant} = useSelector((state: { auth: storeState }) => state.auth)
     const dispatch : AppDispatch = useDispatch();
-    if (nav.route.params?.selectedTenant) {
-        deleteSecureKey("access_token").then(() => {
-            dispatch(setSelectedTenant(nav.route.params?.selectedTenant));
-        })
-    }
+    useEffect(() => {
+        let changing = true;
+        if (changing && nav.route.params?.selectedTenant) {
+            deleteSecureKey("access_token").then(() => dispatch(setSelectedTenant(nav.route.params?.selectedTenant))).catch(error => console.log(error))
+        }
+        return () => {
+            changing = false;
+        }
+    }, [nav.route.params?.selectedTenant])
+
     useEffect(() => {
         let changing = true;
         if (selectedTenant && changing) {
@@ -34,7 +39,7 @@ const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
         return () => {
             changing = false;
         }
-    }, [selectedTenant])
+    }, [selectedTenant, nav.route.params?.selectedTenant])
     return (
         <View>
             <Pressable style={{...styles.input, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}} onPress={() => nav.navigation.navigate('Organisations')}>

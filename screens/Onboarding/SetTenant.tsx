@@ -6,7 +6,8 @@ import {
     Dimensions,
     SafeAreaView,
     View,
-    ScrollView
+    ScrollView,
+    TouchableOpacity, Pressable, TouchableHighlight
 } from "react-native";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import Logo from "../../assets/images/Presta Sign Logo - colour.svg";

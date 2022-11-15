@@ -216,6 +216,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
     const SubmitBtn = () => {
         return (
             <View style={{ paddingVertical: 20 }}>
+
                 <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} style={{alignSelf: 'flex-end'}} >
                     {   !loading ?
                         <Ionicons name="arrow-forward-circle" size={70} color="#489AAB" />

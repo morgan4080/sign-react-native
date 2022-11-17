@@ -57,8 +57,6 @@ import cloneDeep from "lodash/cloneDeep";
 
 import {RotateView} from "../Auth/VerifyOTP";
 
-import configuration from "../../utils/configuration";
-
 import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../components/BottomSheet";
 
 type NavigationProps = NativeStackScreenProps<any>;
@@ -85,19 +83,19 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
 
     const dispatch : AppDispatch = useDispatch();
 
-    const { loading, tenants, selectedTenantId, user, member, isLoggedIn } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, tenants, selectedTenantId, user, member, isLoggedIn , organisations} = useSelector((state: { auth: storeState }) => state.auth);
 
     const [contacts, setContacts] = useState([]);
 
     const tenant = tenants.find(t => t.id === selectedTenantId);
 
-    const settings = configuration.find(config => config.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
+    const settings = organisations.find(org => org.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
 
     const CSTM = NativeModules.CSTM;
 
-    const [from, setFrom] = useState(0);
+    const from = 0;
 
-    const [to, setTo] = useState(15);
+    const to = 15;
 
     const [memberSearching, setMemberSearching] = useState<boolean>(false);
 

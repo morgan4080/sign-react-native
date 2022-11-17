@@ -75,7 +75,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
 
     const { loading, selectedTenant } = useSelector((state: { auth: storeState }) => state.auth);
 
-    const {phoneNumber, email, realm, client_secret}: any = route.params;
+    const {phoneNumber, email, realm, client_secret, isTermsAccepted}: any = route.params;
 
     type AppDispatch = typeof store.dispatch;
 
@@ -92,23 +92,11 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     setAuthRes(payload);
                     const { access_token } = payload;
 
+                    console.log('access_token_x', access_token);
+
                     console.log("start member verify", email, phoneNumber);
 
-                    if (email && access_token) {
-                        const response: any = await dispatch(searchByEmail({email, access_token}))
-                        console.log('search by email response', response);
-                        if (response.type === 'searchByEmail/rejected') {
-                            setErrorSMS(response.error.message)
-                        } else {
-                            console.log('searchByEmail,,,', response.payload.refId)
-                            setSearchRes(response.payload)
-                            setUserFound(true)
-                            await Promise.all([
-                                setValue("memberRefId", response.payload.refId),
-                                setValue("access_token", access_token)
-                            ])
-                        }
-                    } else if (phoneNumber && access_token) {
+                    if (phoneNumber && access_token) {
                         const response: any = await dispatch(searchByPhone({phoneNumber, access_token}))
                         console.log('search by phone number response', response);
                         if (response.type === 'searchByPhone/rejected') {
@@ -123,8 +111,21 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                                 setValue("access_token", access_token)
                             ])
                         }
+                    } else if (email && access_token) {
+                        const response: any = await dispatch(searchByEmail({email, access_token}))
+                        console.log('search by email response', response);
+                        if (response.type === 'searchByEmail/rejected') {
+                            setErrorSMS(response.error.message)
+                        } else {
+                            console.log('searchByEmail,,,', response.payload.refId)
+                            setSearchRes(response.payload)
+                            setUserFound(true)
+                            await Promise.all([
+                                setValue("memberRefId", response.payload.refId),
+                                setValue("access_token", access_token)
+                            ])
+                        }
                     }
-
                 } else {
                     CSTM.showToast("Couldn't authenticate client")
                 }
@@ -193,6 +194,32 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
             CSTM.showToast("We couldn't login")
         }
     }
+
+    const loginSubmit = async () => {
+        const loadOut: loginUserType = {
+            phoneNumber: searchRes.phoneNumber,
+            pin: getValues("pin"),
+            tenant: realm,
+            clientSecret:  client_secret
+        };
+
+        try {
+            await saveSecureKey('currentTenant', JSON.stringify(selectedTenant))
+            const {type, error}: any = await dispatch(loginUser(loadOut))
+            if (type === 'loginUser/rejected' && error) {
+                if (error.message === "Network request failed") {
+                    CSTM.showToast(error.message);
+                } else {
+                    setError('pinConfirmation', {type: 'custom', message: error.message});
+                }
+            } else {
+                dispatch(setAuthState(true));
+            }
+        } catch (e: any) {
+            CSTM.showToast(e.message)
+        }
+    }
+
     if (loading) {
         return (
             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: height - 200, width }}>
@@ -231,16 +258,16 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     errors.pin &&
                     <Text  allowFontScaling={false}  style={styles.error}>{errors.pin?.message ? errors.pin?.message : 'Invalid Pin'}</Text>
                 }
-                <Text allowFontScaling={false} style={{ color: '#489AAB', marginTop: 20, fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }}>Pin Confirmation</Text>
-                <Controller
+                {!isTermsAccepted && <Text allowFontScaling={false} style={{ color: '#489AAB', marginTop: 20, fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }}>Pin Confirmation</Text>}
+                {!isTermsAccepted && <Controller
                     control={control}
                     rules={{
-                        required: true,
+                        required: !isTermsAccepted,
                         maxLength: 4,
                         minLength: 4,
                         validate: value => value === getValues('pin')
                     }}
-                    render={( { field: { onChange, onBlur, value } }) => (
+                    render={({field: {onChange, onBlur, value}}) => (
                         <TextInput
                             allowFontScaling={false}
                             style={styles.input}
@@ -255,20 +282,53 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                         />
                     )}
                     name="pinConfirmation"
-                />
+                />}
                 {
                     errors.pinConfirmation &&
                     <Text  allowFontScaling={false}  style={styles.error}>{errors.pinConfirmation?.message ? errors.pinConfirmation?.message : 'Invalid Pin Confirmation'}</Text>
                 }
 
-                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 50, marginBottom: 5 }}>
+                {!isTermsAccepted && <View style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: 50,
+                    marginBottom: 5
+                }}>
                     <Pressable style={styles.button} onPress={handleSubmit(onSubmit)}>
-                        <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+                        <View style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
                             {loading && <RotateView color="#FFFFFF"/>}
                             <Text allowFontScaling={false} style={styles.buttonText}>Save</Text>
                         </View>
                     </Pressable>
-                </View>
+                </View>}
+
+                {isTermsAccepted && <View style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: 50,
+                    marginBottom: 5
+                }}>
+                    <Pressable style={styles.button} onPress={handleSubmit(loginSubmit)}>
+                        <View style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            {loading && <RotateView color="#FFFFFF"/>}
+                            <Text allowFontScaling={false} style={styles.buttonText}>Login</Text>
+                        </View>
+                    </Pressable>
+                </View>}
             </View>
         )
     } else {

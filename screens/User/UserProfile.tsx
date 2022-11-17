@@ -19,7 +19,12 @@ import {
     storeState,
     fetchMember,
     saveContactsToDb,
-    authenticate, setLoanCategories, fetchLoanProducts, editMember, logoutUser,
+    authenticate,
+    setLoanCategories,
+    fetchLoanProducts,
+    editMember,
+    logoutUser,
+    LoadOrganisation
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
@@ -104,7 +109,8 @@ export default function UserProfile({ navigation }: NavigationProps) {
                         await Promise.all([
                             dispatch(saveContactsToDb()),
                             dispatch(fetchLoanProducts()),
-                            dispatch(setLoanCategories(signal))
+                            dispatch(setLoanCategories(signal)),
+                            dispatch(LoadOrganisation())
                         ])
                     } catch (e: any) {
                         console.log('promise rejection', e);
@@ -238,6 +244,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                         position: 'relative',
                                         height: height/2
                                     }}>
+                                        <View style={{position: 'absolute', width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.2)'}}/>
                                         <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(72,154,171,0.49)', borderRadius: 100, top: 50, left: 10 }}>
                                             <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                                             <Text allowFontScaling={false} style={[styles.subTitleText, {fontSize: 12, color: '#FFFFFF', paddingRight: 10, fontFamily: 'Poppins_300Light'}]}>PROFILE</Text>
@@ -388,14 +395,16 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#FFFFFF',
         fontFamily: 'Poppins_600SemiBold',
-        elevation: 1
+        lineHeight: 22,
+        letterSpacing: 0.5,
     },
     subText: {
         fontSize: 14,
         textAlign: 'center',
         color: '#FFFFFF',
         fontFamily: 'Poppins_400Regular',
-        elevation: 1
+        lineHeight: 22,
+        letterSpacing: 0.5,
     },
     landingBg: {
         top: 0,
@@ -403,11 +412,12 @@ const styles = StyleSheet.create({
         height: height/1.7
     },
     titleText: {
-        fontSize: 22,
         textAlign: 'center',
         color: '#FFFFFF',
-        fontFamily: 'Poppins_700Bold',
-        elevation: 1
+        fontSize: 20,
+        lineHeight: 22,
+        letterSpacing: 0.5,
+        fontFamily: 'Poppins_600SemiBold',
     },
     buttonText: {
         fontSize: 15,

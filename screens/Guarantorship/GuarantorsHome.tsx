@@ -20,7 +20,6 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {getContact, requestPhoneNumberFormat} from "../../utils/smsVerification";
 import {getSecureKey} from "../../utils/secureStore";
 import {cloneDeep} from "lodash";
-import configuration from "../../utils/configuration";
 import ContactSectionList from "../../components/ContactSectionList";
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackdrop, BottomSheetFlatList  } from "@gorhom/bottom-sheet";
 import {toMoney} from "../User/Account";
@@ -51,11 +50,11 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
     const dispatch : AppDispatch = useDispatch();
 
-    const { loading, tenants, selectedTenantId, user, member, isLoggedIn } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, tenants, selectedTenantId, user, member, organisations } = useSelector((state: { auth: storeState }) => state.auth);
 
     const tenant = tenants.find(t => t.id === selectedTenantId);
 
-    const settings = configuration.find(config => config.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
+    const settings = organisations.find(org => org.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
 
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
 
@@ -87,7 +86,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const [currentGuarantor, setCurrentGuarantor] = useState<{contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}>()
 
     const requiredGuarantors = () => {
-        return settings ? settings.minGuarantors : 1;
+        return route.params?.loanProduct.requiredGuarantors ? route.params?.loanProduct.requiredGuarantors : settings ? settings.minGuarantors : 1;
     }
 
     const removeContactFromList = (contact2Remove: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): boolean => {

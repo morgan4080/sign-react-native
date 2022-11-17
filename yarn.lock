@@ -4966,10 +4966,10 @@ expo-web-browser@~12.0.0:
   dependencies:
     compare-urls "^2.0.0"
 
-expo@~47.0.5:
-  version "47.0.5"
-  resolved "https://registry.yarnpkg.com/expo/-/expo-47.0.5.tgz#fc3929b629ecece5cbb770805b393e689976aac9"
-  integrity sha512-eOnB+PIjx0ZSPA2NGybNfUdFdCOmIrL+e10LGHKZUTOh7DNCE9g6IuCr5zqaQ3G/GYzjRr70lc4z7ipLtydMGQ==
+expo@~47.0.6:
+  version "47.0.6"
+  resolved "https://registry.yarnpkg.com/expo/-/expo-47.0.6.tgz#4436bf0f667b6282f9189e987ddf67cd64807140"
+  integrity sha512-XFcTnkOWEbc5mbrpdgIkPq3Heuem+8OErdjnWshwiDtaCdqK0EKToJtE2ufhCxb/RzfeJ5k07mpk+8CRRayi4w==
   dependencies:
     "@babel/runtime" "^7.14.0"
     "@expo/cli" "0.4.9"

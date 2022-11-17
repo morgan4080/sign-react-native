@@ -103,7 +103,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                     refreshing={loading}
                     progressViewOffset={5}
                     onRefresh={() => dispatch(fetchLoanProducts())}
-                    sections={loanProducts ? loanProducts.reduce((acc: {title: string, data: LoanProduct[]}[], product) => {
+                    sections={loanProducts && Array.isArray(loanProducts) ? loanProducts.reduce((acc: {title: string, data: LoanProduct[]}[], product) => {
                         if (product.details.isFosa.value === 'N') {
                             acc[0].data = [...acc[0].data, product]
                         } else {
@@ -122,9 +122,9 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                     ]) : []}
                     renderItem={({ item }) => <Item product={item} />}
                     keyExtractor={item => item.refId}
-                    renderSectionHeader={({ section: { title } }) => (
+                    renderSectionHeader={({ section: { title, data } }) => data.length > 1 ? (
                         <Text style={{fontFamily: 'Poppins_600SemiBold', color: '#489AAB', fontSize: 15, paddingHorizontal: 20}}>{title}</Text>
-                    )}
+                    ) : (<></>)}
                 />
 
             </SafeAreaView>

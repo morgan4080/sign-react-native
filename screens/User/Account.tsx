@@ -137,7 +137,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                     </View>
                                 </View>
 
-                                <View style={{display: 'flex', width: '100%', borderRadius: 15, backgroundColor: '#1072e1', paddingHorizontal: 20, paddingVertical: 25, marginTop: 15, marginBottom: 50}}>
+                                {/*<View style={{display: 'flex', width: '100%', borderRadius: 15, backgroundColor: '#1072e1', paddingHorizontal: 20, paddingVertical: 25, marginTop: 15, marginBottom: 50}}>
                                     <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', color: '#ffffff', fontSize: 10 }}>LOAN PERFORMANCE</Text>
                                     <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                                         <View>
@@ -160,7 +160,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                             </View>
                                         </View>
                                     </View>
-                                </View>
+                                </View>*/}
                             </View>
                         </ScrollView>
                     </SafeAreaView>

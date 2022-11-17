@@ -1,22 +1,18 @@
 import {StyleSheet, View, Text, StatusBar, TextInput, Pressable, NativeModules, Dimensions} from "react-native";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {Controller, useForm} from "react-hook-form";
 import {RotateView} from "../Auth/VerifyOTP";
 import {useDispatch, useSelector} from "react-redux";
-import {sendOtpBeforeToken, storeState, verifyOtpBeforeToken, logoutUser} from "../../stores/auth/authSlice";
+import {sendOtpBeforeToken, storeState, verifyOtpBeforeToken} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {useEffect, useState} from "react";
 import {receiveVerificationSMS, startSmsUserConsent} from "../../utils/smsVerification";
 import {deleteSecureKey} from "../../utils/secureStore";
 type NavigationProps = NativeStackScreenProps<any>;
-type FormData = {
-    otp: string
-}
 type AppDispatch = typeof store.dispatch;
 const { width } = Dimensions.get("window");
 const { CSTM } = NativeModules;
 const OnboardingOTP = ({navigation, route}: NavigationProps) => {
-    const {email, phoneNumber, deviceId, appName}: any = route.params
+    const {email, phoneNumber, deviceId, appName, isTermsAccepted}: any = route.params
     const {loading, selectedTenant} = useSelector((state: { auth: storeState }) => state.auth)
     const dispatch : AppDispatch = useDispatch();
     const [valueInput, setValueInput] = useState("")
@@ -49,7 +45,8 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                         phoneNumber,
                         email,
                         realm: selectedTenant?.tenantId,
-                        client_secret: selectedTenant?.clientSecret
+                        client_secret: selectedTenant?.clientSecret,
+                        isTermsAccepted,
                     }
 
                     setTimeout(() => {

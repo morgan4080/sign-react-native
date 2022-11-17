@@ -24,15 +24,12 @@ import {store} from "../../stores/store";
 import {useDispatch, useSelector} from "react-redux";
 import {resubmitForSigning, storeState, submitLoanRequest} from "../../stores/auth/authSlice";
 import {Ionicons} from "@expo/vector-icons";
-import * as WebBrowser from "expo-web-browser";
-import * as Linking from 'expo-linking';
 import {RotateView} from "../Auth/VerifyOTP";
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../components/BottomSheet";
 import {Controller, useForm} from "react-hook-form";
 import {useCallback, useEffect, useRef, useState} from "react";
 import {Picker} from "@react-native-picker/picker";
-import configuration from "../../utils/configuration";
 import Puzzle from "../../assets/images/unpuzzled.svg";
 const { width, height } = Dimensions.get("window");
 type FormData = {
@@ -42,15 +39,13 @@ type FormData = {
 type NavigationProps = NativeStackScreenProps<any>
 
 export default function LoanConfirmation({navigation, route}: NavigationProps) {
-    const { loading, user, member, tenants, selectedTenantId } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, user, member, tenants, selectedTenantId, organisations } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
-
+    const CSTM = NativeModules.CSTM;
     const {
         control,
         watch,
-        handleSubmit,
-        setError,
         setValue,
         formState: { errors }
     } = useForm<FormData>();
@@ -81,7 +76,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
 
     const tenant = tenants.find(t => t.id === selectedTenantId);
 
-    const settings = configuration.find(config => config.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
+    const settings = organisations.find(org => org.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
 
     const ref = useRef<BottomSheetRefProps>(null);
 
@@ -207,11 +202,10 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
 
         if (payload.witnessRefId === undefined) delete payload.witnessRefId;
 
-        const CSTM = NativeModules.CSTM;
-
         try {
             const response: any = await dispatch(submitLoanRequest(payload));
-
+            console.log('submitLoanRequest payload', JSON.stringify(payload), response);
+            console.log('submitLoanRequest response', JSON.stringify(response));
             if (response.type === 'submitLoanRequest/fulfilled') {
                 const newPayload: any = response.payload;
 
@@ -219,6 +213,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                     if (newPayload.hasOwnProperty('pdfThumbNail')) {
                         navigation.navigate('LoanRequest', response.payload);
                     } else {
+
                         // resubmit for signing
                         const refId: any = response.payload.refId;
 
@@ -264,7 +259,11 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
 
     const submitModes = async () => {
         // set modes
-        await makeLoanRequest()
+        try {
+            await makeLoanRequest()
+        } catch (e) {
+            console.log('error in makeLoanRequest', e)
+        }
     }
 
     if (fontsLoaded) {
@@ -433,8 +432,11 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                             context === "loanRequestError" && (
                                 <View style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20}}>
                                     <Puzzle width={width/2} height={height/3}/>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: 'rgb(72,154,171)', textAlign: 'center', fontSize: 12}}>{ loanError }.</Text>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#747474', textAlign: 'center', fontSize: 12}}>Loan request was received. Kindly go to loan requests to start replacing guarantors.</Text>
+
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#747474', textAlign: 'center', fontSize: 12, maxWidth: '80%' }}>
+                                        Your loan request was received but it might require a few changes.
+                                        To proceed, head over to loan requests to start making changes.
+                                    </Text>
                                     <TouchableOpacity onPress={() => navigation.navigate('LoanRequests')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#cccccc', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
                                         <Text allowFontScaling={false} style={{...styles.buttonText, color: '#797979'}}>LOAN REQUESTS</Text>
                                     </TouchableOpacity>

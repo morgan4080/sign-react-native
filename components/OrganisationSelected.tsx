@@ -36,6 +36,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
         clearErrors,
         setError,
         setValue,
+        getValues,
         formState: { errors }
     } = useForm<FormData>(
         {
@@ -246,10 +247,6 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
             const phoneDataJson = await requestPhoneNumberFormat(nav.route.params?.alpha2Code, value.phoneNumber);
 
             const {country_code, phone_no} = JSON.parse(phoneDataJson);
-            await Promise.all([
-                saveSecureKey('phone_number_code', country_code),
-                saveSecureKey('phone_number_without', phone_no)
-            ]);
             phone = `${country_code}${phone_no}`;
         }
 
@@ -281,7 +278,6 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
         }
 
         if (email !== "") {
-            await saveSecureKey('account_email', email);
             if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("email", `?identifierType=EMAIL&memberIdentifier=${email}`))
             return
         }
@@ -306,13 +302,24 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                         setError(context, {type: 'custom', message: "Member Details Unavailable"})
                     } else {
                         // navigate to otp
-                        const deviceId = await DeviceInfModule.getUniqueId()
+                        const deviceId = await DeviceInfModule.getUniqueId();
+
+                        const phoneDataJson = await requestPhoneNumberFormat(nav.route.params?.alpha2Code, response.payload.phoneNumber);
+
+                        const {country_code, phone_no} = JSON.parse(phoneDataJson);
+
+                        console.log('on boarding', JSON.stringify({country_code, phone_no}));
+
+                        await Promise.all([
+                            saveSecureKey('phone_number_code', country_code),
+                            saveSecureKey('phone_number_without', phone_no),
+                        ]);
 
                         nav.navigation.navigate('OnboardingOTP', {
                             ...response.payload,
                             deviceId,
                             appName: Constants.manifest?.android?.package
-                        })
+                        });
                     }
                     break;
             }

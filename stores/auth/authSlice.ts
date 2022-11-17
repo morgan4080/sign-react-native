@@ -3,7 +3,7 @@ import {deleteSecureKey, getSecureKey, saveSecureKey} from '../../utils/secureSt
 import {openDatabase} from "../../database";
 import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
-import {getAppSignatures} from "../../utils/smsVerification";
+import {getAppSignatures, requestPhoneNumberFormat} from "../../utils/smsVerification";
 import {NativeModules} from "react-native";
 export let db: WebSQLDatabase
 (async () => {
@@ -218,6 +218,13 @@ export type organisationType = {
     tenantName: string,
     tenantId: string,
     clientSecret: string,
+    employerInfo: boolean,
+    guarantors: string,
+    witness: boolean,
+    repaymentDisbursementModes: boolean,
+    amounts: boolean,
+    selfGuarantee: boolean,
+    minGuarantors: number
 }
 
 export type storeState = {
@@ -2519,6 +2526,7 @@ export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string
         console.log(url)
         if (response.status === 200) {
             let data = await response.json()
+            console.log('save all data', data)
             return Promise.resolve(data)
         } else if (response.status === 204) {
             return Promise.reject(response.status + ": The Identifier provided is not linked to the organization. Kindly confirm with your Organization")
@@ -2534,6 +2542,40 @@ export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string
         }
     } catch (e: any) {
         console.log(e.message)
+        return Promise.reject("Check your details and try again");
+    }
+});
+
+export const LoadOrganisation = createAsyncThunk('LoadOrganisation', async () => {
+    try {
+        const myHeaders = new Headers();
+        const key = await getSecureKey('access_token');
+        if (!key) {
+            return Promise.reject("You are not authenticated");
+        }
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        myHeaders.append("Content-Type", 'application/json');
+
+        const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/clientSettings/loan-settings', {
+            method: 'GET',
+            headers: myHeaders
+        });
+
+        if (response.status === 200) {
+            let data = await response.json();
+            console.log('LoadOrganisation', data);
+            return Promise.resolve(data);
+        } else if (response.status === 204) {
+            console.log('LoadOrganisation', response.status);
+            return Promise.reject("Error: " + response.status);
+        } else if (response.status === 500) {
+            let data = await response.json();
+            console.log('LoadOrganisation', response.status, data);
+            return Promise.reject("Error: " + response.status);
+        }
+
+    } catch (e: any) {
+        console.log("Authorization", e.message);
         return Promise.reject("Check your details and try again");
     }
 });
@@ -2565,18 +2607,39 @@ const authSlice = createSlice({
                 tenantName: 'Imarisha Sacco',
                 tenantId: 't72767',
                 clientSecret: '238c4949-4c0a-4ef2-a3de-fa39bae8d9ce',
+                employerInfo: false,
+                guarantors: 'count',
+                witness: true,
+                repaymentDisbursementModes: true,
+                amounts: false,
+                selfGuarantee: false,
+                minGuarantors: 4
             },
             {
                 id: "2",
                 tenantName: 'Wanaanga Sacco',
                 tenantId: 't74411',
                 clientSecret: '25dd3083-d494-4af5-89a1-104fa02ef782',
+                employerInfo: true,
+                guarantors: 'value',
+                witness: false,
+                repaymentDisbursementModes: true,
+                amounts: true,
+                selfGuarantee: true,
+                minGuarantors: 1
             },
             {
                 id: "3",
                 tenantName: 'Centrino',
                 tenantId: 't10099',
                 clientSecret: 'b50f4bf3-6d72-4865-b974-d589fd881268',
+                employerInfo: false,
+                guarantors: 'count',
+                witness: true,
+                repaymentDisbursementModes: true,
+                amounts: true,
+                selfGuarantee: true,
+                minGuarantors: 4
             }
         ],
         selectedTenant: null,
@@ -2616,6 +2679,41 @@ const authSlice = createSlice({
         }
     },
     extraReducers: builder => {
+        builder.addCase(LoadOrganisation.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(LoadOrganisation.fulfilled, (state, action) => {
+            if (state.organisations) {
+                // state.organisations.findIndex(org => org.)
+                /*{
+                    "allowSelfGuarantee": false,
+                    "allowZeroGuarantors": false,
+                    "containsAttachments": true,
+                    "coreBankingIntegration": "CENTRINO",
+                    "customSMS": true,
+                    "identifierType": "ID_NUMBER",
+                    "isGuaranteedAmountShared": false,
+                    "loanProductMaxPeriod": "96",
+                    "notificationProvider": "DEFAULT",
+                    "organizationAlias": "Centrino",
+                    "organizationEmail": "centrino@presta.co.ke",
+                    "organizationLogoExtension": "jpeg",
+                    "organizationLogoName": "wanaanga_logo",
+                    "organizationName": "Centrino Sacco",
+                    "organizationPrimaryTheme": "#E6D817",
+                    "organizationSecondaryTheme": "#E84E58",
+                    "requireWitness": true,
+                    "supportEmail": "support@presta.co.ke",
+                    "useEmbeddedURL": true,
+                    "ussdCode": "*483*119#"
+                }*/
+            }
+            state.loading = false
+        })
+        builder.addCase(LoadOrganisation.rejected, (state) => {
+            state.loading = false
+        })
+
         builder.addCase(AuthenticateClient.pending, state => {
             state.loading = true
         })

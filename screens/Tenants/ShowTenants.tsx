@@ -29,12 +29,11 @@ import {
 } from "react-native";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {getSecureKey} from "../../utils/secureStore";
-import configuration from "../../utils/configuration";
+import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import {RotateView} from "../Auth/VerifyOTP";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
-import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from "@gorhom/bottom-sheet";
-import {Controller, useForm} from "react-hook-form";
+import BottomSheet, {BottomSheetBackdrop} from "@gorhom/bottom-sheet";
+import {useForm} from "react-hook-form";
 import {receiveVerificationSMS, startSmsUserConsent} from "../../utils/smsVerification";
 import {AntDesign} from "@expo/vector-icons";
 type NavigationProps = NativeStackScreenProps<any>;
@@ -71,13 +70,13 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
     const reFetch = async () => {
 
         try {
-            let [otpV,phone_number_without, phone_number_code] = await Promise.all([
+            let [otpV, phone_number_without, phone_number_code] = await Promise.all([
                 getSecureKey('otp_verified'),
                 getSecureKey('phone_number_without'),
                 getSecureKey('phone_number_code')
             ]);
 
-            console.log(otpV,phone_number_without, phone_number_code)
+            console.log(otpV, phone_number_without, phone_number_code)
 
             setOtpVerified(otpV);
 
@@ -137,7 +136,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                     (async () => {
                         let { countryCode, phoneNumber, email }: any = route.params;
 
-                        const settings = configuration.find(config => config.tenantId === item.tenantId);
+                        const settings = organisations.find(org => org.tenantId === item.tenantId);
 
                         if (settings) {
                             dispatch(setSelectedTenantId(item.id));

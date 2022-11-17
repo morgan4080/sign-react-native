@@ -11,7 +11,7 @@ import {
     SectionList
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
-import {AntDesign, MaterialCommunityIcons} from "@expo/vector-icons";
+import {AntDesign} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {
     fetchLoanRequest,
@@ -38,7 +38,7 @@ import {Bar as ProgressBar} from "react-native-progress";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import * as WebBrowser from "expo-web-browser";
 import {toMoney} from "./Account";
-import BottomSheet, { BottomSheetBackdrop, BottomSheetSectionList } from "@gorhom/bottom-sheet";
+import BottomSheet, {BottomSheetBackdrop, BottomSheetSectionList, BottomSheetView} from "@gorhom/bottom-sheet";
 import EmptyList from "../../assets/images/fullpix_adobe_express.svg"
 
 type NavigationProps = NativeStackScreenProps<any>
@@ -92,12 +92,20 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
     const [loan, setLoan] = useState<LoanRequestData>();
     const dispatch : AppDispatch = useDispatch();
 
+    const reFetch = async () => {
+        try {
+            await dispatch(fetchLoanRequests(member?.refId as string));
+        } catch (e: any) {
+            CSTM.showToast(e.message)
+        }
+    }
+
     useEffect(() => {
         let starting = true;
 
         if (starting) {
             (async () => {
-                await dispatch(fetchLoanRequests(member?.refId as string));
+                await reFetch()
             })()
         }
         return () => {
@@ -222,160 +230,132 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
 
     const Item = ({item, section} : {item: any, section: any}) => {
         const [expanded, setExpanded] = useState(false);
-        if (section.id === 1) {
-            return (
-                <View>
-                        <View style={{marginBottom: 10}}>
-                            <Text style={{ fontFamily: 'Poppins_500Medium', color: '#575757', fontSize: 17, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                                {loan?.loanProductName}:  <Text allowFontScaling={false} style={{color: '#575757'}}>{ loan ? toMoney(`${loan?.loanAmount}`) : '0.00' }</Text>
-                            </Text>
-                            <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9A', fontSize: 10}}>{loan?.loanRequestProgress}% DONE</Text>
+        return (
+            <View>
+                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10, alignItems: 'center'}}>
+                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <View style={{width: width/3}}>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#727272', fontSize: 12 }}>{`${item.firstName} ${item.lastName}`}</Text>
                         </View>
-                        {loan && !loan.applicantSigned &&
-                            <View style={{marginVertical: 10}}>
-                                <Text allowFontScaling={false}
-                                      style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9A', fontSize: 12}}>
-                                    You are yet to sign the applicant form. Click on sign below to begin.
-                                </Text>
-                                <TouchableOpacity style={{marginVertical: 20, backgroundColor: '#489AAB', alignSelf: 'flex-start', borderRadius: 15, elevation: 5}} onPress={() => signDocument()}>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF', fontSize: 12, paddingHorizontal: 10, paddingVertical: 5}}>
-                                        Sign Applicant Form
-                                    </Text>
-                                </TouchableOpacity>
+                        <View style={{ position: 'relative' }}>
+                            <View style={{position: 'absolute', left: 0, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
+                                <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isAccepted ? '#489AAB' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
+                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Accepted</Text>
                             </View>
-                        }
+                            <View style={{position: 'absolute', right: 80, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                                <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isSigned ? '#489aab' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
+                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Signed</Text>
+                            </View>
+                            <View style={{position: 'absolute', right: 0, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end'}}>
+                                <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isApproved ? '#489aab' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
+                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Approved</Text>
+                            </View>
+                            <ProgressBar progress={computeProgress(item)} color='#489AAB' width={width/2.1}/>
+                        </View>
                     </View>
-            )
-        } else if (section.id === 2) {
-            return (
-                <View>
-                    <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10, alignItems: 'center'}}>
-                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <View style={{width: width/3}}>
-                                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#727272', fontSize: 12 }}>{`${item.firstName} ${item.lastName}`}</Text>
-                            </View>
-                            <View style={{ position: 'relative' }}>
-                                <View style={{position: 'absolute', left: 0, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
-                                    <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isAccepted ? '#489AAB' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
-                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Accepted</Text>
-                                </View>
-                                <View style={{position: 'absolute', right: 80, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                                    <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isSigned ? '#489aab' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
-                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Signed</Text>
-                                </View>
-                                <View style={{position: 'absolute', right: 0, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end'}}>
-                                    <View style={{ width: 8, height: 8, borderRadius: 100, backgroundColor: item.isApproved ? '#489aab' : '#cccccc', borderWidth: 1, borderColor: '#ffffff' }}></View>
-                                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#9a9a9a', fontSize: 6 }}>Approved</Text>
-                                </View>
-                                <ProgressBar progress={computeProgress(item)} color='#489AAB' width={width/2.1}/>
-                            </View>
-                        </View>
-                        { !expanded ?
-                            <TouchableOpacity style={{elevation: 5}} onPress={() => setExpanded(!expanded)}>
-                                <AntDesign name="caretright" size={12} color="#64748B" style={{padding: 3}}/>
-                            </TouchableOpacity>
+                    { !expanded ?
+                        <TouchableOpacity style={{elevation: 5}} onPress={() => setExpanded(!expanded)}>
+                            <AntDesign name="caretright" size={12} color="#64748B" style={{padding: 3}}/>
+                        </TouchableOpacity>
 
-                            :
+                        :
 
-                            <TouchableOpacity style={{elevation: 5}} onPress={() => setExpanded(!expanded)}>
-                                <AntDesign name="caretdown" size={12} color="#489AAB" style={{padding: 3}} />
-                            </TouchableOpacity>
+                        <TouchableOpacity style={{elevation: 5}} onPress={() => setExpanded(!expanded)}>
+                            <AntDesign name="caretdown" size={12} color="#489AAB" style={{padding: 3}} />
+                        </TouchableOpacity>
 
-                        }
-                    </View>
-                    {expanded && <View style={{marginVertical: 5}}>
-                        <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
-                            <Text allowFontScaling={false}
-                                  style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Committed Amount: </Text>
-                            <Text allowFontScaling={false} style={{
-                                flex: 0.5,
-                                fontFamily: 'Poppins_300Light',
-                                color: '#9A9A9A',
-                                fontSize: 12
-                            }}>{ toMoney(`${item.committedAmount}`) } Ksh</Text>
-                        </View>
-                        <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
-                            <Text allowFontScaling={false}
-                                  style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Guarantorship
-                                Status: </Text>
-                            <Text allowFontScaling={false} style={{
-                                flex: 0.5,
-                                fontFamily: 'Poppins_300Light',
-                                color: '#9A9A9A',
-                                fontSize: 12
-                            }}>{item.isActive ? 'Active' : 'Inactive'}</Text>
-                        </View>
-                        <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
-                            <Text allowFontScaling={false}
-                                  style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Signature
-                                Status: </Text>
-                            <Text allowFontScaling={false} style={{
-                                flex: 0.5,
-                                fontFamily: 'Poppins_300Light',
-                                color: '#9A9A9A',
-                                fontSize: 12
-                            }}>{item.isSigned ? 'Signed' : 'Pending'}</Text>
-                        </View>
-                        <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
-                            <Text allowFontScaling={false}
-                                  style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Approval
-                                Status: </Text>
-                            <Text allowFontScaling={false} style={{
-                                flex: 0.5,
-                                fontFamily: 'Poppins_300Light',
-                                color: '#9A9A9A',
-                                fontSize: 12
-                            }}>{item.isApproved ? 'Approved' : 'Pending'}</Text>
-                        </View>
-                        <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
-                            <Text allowFontScaling={false}
-                                  style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Acceptance
-                                Status: </Text>
-                            <Text allowFontScaling={false} style={{
-                                flex: 0.5,
-                                fontFamily: 'Poppins_300Light',
-                                color: '#9A9A9A',
-                                fontSize: 12
-                            }}>{item.isAccepted ? 'Accepted' : 'Pending'}</Text>
-                        </View>
-                        <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
-                            <Text allowFontScaling={false}
-                                  style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Date
-                                Accepted: </Text>
-                            <Text allowFontScaling={false} style={{
-                                flex: 0.5,
-                                fontFamily: 'Poppins_300Light',
-                                color: '#9A9A9A',
-                                fontSize: 12
-                            }}>{item.dateAccepted}</Text>
-                        </View>
-
-                        {!item.isAccepted && <TouchableOpacity style={{
-                            marginVertical: 20,
-                            backgroundColor: '#489AAB',
-                            alignSelf: 'flex-start',
-                            borderRadius: 15,
-                            elevation: 5
-                        }} onPress={() => navigation.navigate('ReplaceActor', {
-                            item,
-                            loan
-                        })}>
-                            <Text allowFontScaling={false} style={{
-                                fontFamily: 'Poppins_500Medium',
-                                color: '#FFFFFF',
-                                fontSize: 12,
-                                paddingHorizontal: 10,
-                                paddingVertical: 5
-                            }}>
-                                Replace Guarantor
-                            </Text>
-                        </TouchableOpacity>}
-                    </View>}
+                    }
                 </View>
-            )
-        } else {
-            return (<></>)
-        }
+                { expanded && <View style={{marginVertical: 5}}>
+                    <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
+                        <Text allowFontScaling={false}
+                              style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Committed Amount: </Text>
+                        <Text allowFontScaling={false} style={{
+                            flex: 0.5,
+                            fontFamily: 'Poppins_300Light',
+                            color: '#9A9A9A',
+                            fontSize: 12
+                        }}>{ toMoney(`${item.committedAmount}`) } Ksh</Text>
+                    </View>
+                    <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
+                        <Text allowFontScaling={false}
+                              style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Guarantorship
+                            Status: </Text>
+                        <Text allowFontScaling={false} style={{
+                            flex: 0.5,
+                            fontFamily: 'Poppins_300Light',
+                            color: '#9A9A9A',
+                            fontSize: 12
+                        }}>{item.isActive ? 'Active' : 'Inactive'}</Text>
+                    </View>
+                    <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
+                        <Text allowFontScaling={false}
+                              style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Signature
+                            Status: </Text>
+                        <Text allowFontScaling={false} style={{
+                            flex: 0.5,
+                            fontFamily: 'Poppins_300Light',
+                            color: '#9A9A9A',
+                            fontSize: 12
+                        }}>{item.isSigned ? 'Signed' : 'Pending'}</Text>
+                    </View>
+                    <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
+                        <Text allowFontScaling={false}
+                              style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Approval
+                            Status: </Text>
+                        <Text allowFontScaling={false} style={{
+                            flex: 0.5,
+                            fontFamily: 'Poppins_300Light',
+                            color: '#9A9A9A',
+                            fontSize: 12
+                        }}>{item.isApproved ? 'Approved' : 'Pending'}</Text>
+                    </View>
+                    <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
+                        <Text allowFontScaling={false}
+                              style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Acceptance
+                            Status: </Text>
+                        <Text allowFontScaling={false} style={{
+                            flex: 0.5,
+                            fontFamily: 'Poppins_300Light',
+                            color: '#9A9A9A',
+                            fontSize: 12
+                        }}>{item.isAccepted ? 'Accepted' : 'Pending'}</Text>
+                    </View>
+                    <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
+                        <Text allowFontScaling={false}
+                              style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Date
+                            Accepted: </Text>
+                        <Text allowFontScaling={false} style={{
+                            flex: 0.5,
+                            fontFamily: 'Poppins_300Light',
+                            color: '#9A9A9A',
+                            fontSize: 12
+                        }}>{item.dateAccepted}</Text>
+                    </View>
+
+                    {!item.isAccepted && <TouchableOpacity style={{
+                        marginVertical: 20,
+                        backgroundColor: '#489AAB',
+                        alignSelf: 'flex-start',
+                        borderRadius: 15,
+                        elevation: 5
+                    }} onPress={() => navigation.navigate('ReplaceActor', {
+                        item,
+                        loan
+                    })}>
+                        <Text allowFontScaling={false} style={{
+                            fontFamily: 'Poppins_500Medium',
+                            color: '#FFFFFF',
+                            fontSize: 12,
+                            paddingHorizontal: 10,
+                            paddingVertical: 5
+                        }}>
+                            Replace Guarantor
+                        </Text>
+                    </TouchableOpacity>}
+                </View>}
+            </View>
+        )
     }
 
     const [bSActive, setBSActive] = useState(false);
@@ -417,7 +397,7 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
                                 ]: []}
                                 progressViewOffset={50}
                                 refreshing={loading}
-                                onRefresh={() => dispatch(fetchLoanRequests(member?.refId as string))}
+                                onRefresh={() => reFetch()}
                                 keyExtractor={(index) => index + Math.random().toString(12).substring(0)}
                                 renderItem={({ item }) => <LoanRequest loan={item} setLoan={setLoan} onPress={onPress}/>}
                                 renderSectionHeader={() => (
@@ -446,6 +426,27 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
                     onChange={handleSheetChange}
                     backdropComponent={renderBackdrop}
                 >
+                    <BottomSheetView style={{ paddingHorizontal: 20, paddingVertical: 25 }}>
+                        <View style={{marginBottom: 10}}>
+                            <Text style={{ fontFamily: 'Poppins_500Medium', color: '#575757', fontSize: 17, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                                {loan?.loanProductName}:  <Text allowFontScaling={false} style={{color: '#575757'}}>{ loan ? toMoney(`${loan?.loanAmount}`) : '0.00' }</Text>
+                            </Text>
+                            <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9A', fontSize: 10}}>{loan?.loanRequestProgress}% DONE</Text>
+                        </View>
+                        {loan && !loan.applicantSigned &&
+                            <View style={{marginVertical: 10}}>
+                                <Text allowFontScaling={false}
+                                      style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9A', fontSize: 12}}>
+                                    You are yet to sign the applicant form. Click on sign below to begin.
+                                </Text>
+                                <TouchableOpacity style={{marginVertical: 20, backgroundColor: '#489AAB', alignSelf: 'flex-start', borderRadius: 15, elevation: 5}} onPress={() => signDocument()}>
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF', fontSize: 12, paddingHorizontal: 10, paddingVertical: 5}}>
+                                        Sign Applicant Form
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        }
+                    </BottomSheetView>
 
                     <BottomSheetSectionList
                         style={styles.guarantorContainer}
@@ -453,11 +454,6 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
                         sections={[
                             {
                                 id: 1,
-                                title: "",
-                                data: loan ? loan.guarantorList : []
-                            },
-                            {
-                                id: 2,
                                 title: "GUARANTORS' STATUS",
                                 data: loan ? loan.guarantorList : []
                             }

@@ -1469,6 +1469,8 @@ export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest
         if (response.status === 200) {
             console.log('declined');
             const data = await response.json();
+            const state: any = getState()
+            if (state.member?.refId) dispatch(fetchGuarantorshipRequests({ memberRefId: state.member?.refId}))
             return Promise.resolve(data);
         } else if (response.status === 401) {
             // update refresh token and retry
@@ -1603,8 +1605,12 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
                     realm:JSON.parse(currentTenant).tenantId,
                     client_secret: JSON.parse(currentTenant).clientSecret,
                     cb: async () => {
-                        console.log('callback running');
-                        await dispatch(fetchFavouriteGuarantors({memberRefId, setFaveGuarantors}))
+                        try {
+                            console.log('callback running');
+                            await dispatch(fetchFavouriteGuarantors({memberRefId, setFaveGuarantors}))
+                        } catch (e: any) {
+                            console.log('error', e)
+                        }
                     }
                 }
 
@@ -2638,7 +2644,7 @@ const authSlice = createSlice({
                 witness: true,
                 repaymentDisbursementModes: true,
                 amounts: true,
-                selfGuarantee: true,
+                selfGuarantee: false,
                 minGuarantors: 4
             }
         ],

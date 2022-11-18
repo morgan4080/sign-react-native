@@ -60,7 +60,7 @@ const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
 const styles = StyleSheet.create({
     input: {
         borderWidth: 1,
-        borderColor: '#8d8d8d',
+        borderColor: '#E3E5E5',
         borderRadius: 8,
         height: 50,
         fontSize: 14,

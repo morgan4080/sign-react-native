@@ -228,11 +228,13 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
         }
     }, [actorChanged]);
 
+    console.log('current loan', JSON.stringify(loan));
+
     const Item = ({item, section} : {item: any, section: any}) => {
         const [expanded, setExpanded] = useState(false);
         return (
             <View>
-                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10, alignItems: 'center'}}>
+                <TouchableOpacity onPress={() => setExpanded(!expanded)} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10, alignItems: 'center'}}>
                     <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                         <View style={{width: width/3}}>
                             <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#727272', fontSize: 12 }}>{`${item.firstName} ${item.lastName}`}</Text>
@@ -254,18 +256,15 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
                         </View>
                     </View>
                     { !expanded ?
-                        <TouchableOpacity style={{elevation: 5}} onPress={() => setExpanded(!expanded)}>
-                            <AntDesign name="caretright" size={12} color="#64748B" style={{padding: 3}}/>
-                        </TouchableOpacity>
+
+                        <AntDesign name="caretright" size={12} color="#64748B" style={{padding: 3, elevation: 5}}/>
 
                         :
 
-                        <TouchableOpacity style={{elevation: 5}} onPress={() => setExpanded(!expanded)}>
-                            <AntDesign name="caretdown" size={12} color="#489AAB" style={{padding: 3}} />
-                        </TouchableOpacity>
+                        <AntDesign name="caretdown" size={12} color="#489AAB" style={{padding: 3, elevation: 5}} />
 
                     }
-                </View>
+                </TouchableOpacity>
                 { expanded && <View style={{marginVertical: 5}}>
                     <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
                         <Text allowFontScaling={false}
@@ -335,7 +334,7 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
 
                     {!item.isAccepted && <TouchableOpacity style={{
                         marginVertical: 20,
-                        backgroundColor: '#489AAB',
+                        backgroundColor: '#000000',
                         alignSelf: 'flex-start',
                         borderRadius: 15,
                         elevation: 5
@@ -427,24 +426,30 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
                     backdropComponent={renderBackdrop}
                 >
                     <BottomSheetView style={{ paddingHorizontal: 20, paddingVertical: 25 }}>
-                        <View style={{marginBottom: 10}}>
-                            <Text style={{ fontFamily: 'Poppins_500Medium', color: '#575757', fontSize: 17, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                                {loan?.loanProductName}:  <Text allowFontScaling={false} style={{color: '#575757'}}>{ loan ? toMoney(`${loan?.loanAmount}`) : '0.00' }</Text>
-                            </Text>
-                            <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9A', fontSize: 10}}>{loan?.loanRequestProgress}% DONE</Text>
-                        </View>
-                        {loan && !loan.applicantSigned &&
-                            <View style={{marginVertical: 10}}>
-                                <Text allowFontScaling={false}
-                                      style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9A', fontSize: 12}}>
-                                    You are yet to sign the applicant form. Click on sign below to begin.
-                                </Text>
-                                <TouchableOpacity style={{marginVertical: 20, backgroundColor: '#489AAB', alignSelf: 'flex-start', borderRadius: 15, elevation: 5}} onPress={() => signDocument()}>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF', fontSize: 12, paddingHorizontal: 10, paddingVertical: 5}}>
-                                        Sign Applicant Form
+                        {
+                            loan &&
+                            <>
+                                <View style={{marginBottom: 10}}>
+                                    <Text style={{ fontFamily: 'Poppins_500Medium', color: '#575757', fontSize: 17, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                                        {loan?.loanProductName}:  <Text allowFontScaling={false} style={{color: '#575757'}}>{ loan ? toMoney(`${loan?.loanAmount}`) : '0.00' }</Text>
                                     </Text>
-                                </TouchableOpacity>
-                            </View>
+                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9A', fontSize: 10}}>{loan?.loanRequestProgress}% DONE</Text>
+                                </View>
+                                {!loan.applicantSigned &&
+                                    <View style={{marginVertical: 10}}>
+                                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9A', fontSize: 12}}>Date: {loan?.loanDate}</Text>
+                                        <Text allowFontScaling={false}
+                                              style={{fontFamily: 'Poppins_500Medium', color: '#9A9A9A', fontSize: 12}}>
+                                            You are yet to sign the applicant form. Click on sign below to begin.
+                                        </Text>
+                                        <TouchableOpacity style={{ marginVertical: 20, alignSelf: 'flex-start' }} onPress={() => signDocument()}>
+                                            <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#489AAB', fontSize: 12, paddingVertical: 5, textDecorationLine: 'underline'}}>
+                                                Sign Applicant Form
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                }
+                            </>
                         }
                     </BottomSheetView>
 
@@ -461,7 +466,9 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
                         keyExtractor={(item, index) => item.refId + index}
                         renderItem={({ item, section }) => (<Item item={item} section={section} />)}
                         renderSectionHeader={({ section: { title, data } }) => (
-                            <Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_500Medium', marginBottom: 10, color: '#489AABFF' }}>{title}</Text>
+                            <View style={{ backgroundColor: 'rgba(255,255,255,0.9)' }}>
+                                <Text allowFontScaling={false} style={{ fontSize: 12, lineHeight: 22, letterSpacing: 0.5, fontFamily: 'Poppins_500Medium', marginBottom: 10, color: '#489AABFF' }}>{title}</Text>
+                            </View>
                         )}
                         stickySectionHeadersEnabled={true}
                         ListFooterComponent={<View style={{height: 75}} />}

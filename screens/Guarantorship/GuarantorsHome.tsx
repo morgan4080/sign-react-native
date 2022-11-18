@@ -314,14 +314,24 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         []
     );
 
-    const [guarantorshipOptions, setGuarantorshipOptions] = useState([
-        {
-            id: "1",
-            name: "Self Guarantee",
-            context: "self-guarantee",
-            icon: "self-improvement"
+    const [guarantorshipOptions, setGuarantorshipOptions] = useState<any[]>([]);
+
+    useEffect(() => {
+        let change = true;
+        if (change) {
+            if (settings && settings.selfGuarantee) {
+                setGuarantorshipOptions([...guarantorshipOptions, {
+                    id: "1",
+                    name: "Self Guarantee",
+                    context: "self-guarantee",
+                    icon: "self-improvement"
+                }]);
+            }
         }
-    ]);
+        return () => {
+            change = false;
+        }
+    }, [])
 
     const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
         <TouchableOpacity onPress={onPress} style={[styles.option, backgroundColor]}>
@@ -599,7 +609,13 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         data={guarantorshipOptions}
                         keyExtractor={item => item.id}
                         renderItem={renderItem}
-
+                        ListEmptyComponent={() => (
+                            <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 50}}>
+                                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 12, marginRight: 10, color: '#737373', textAlign: 'center', width: '66%'}}>
+                                    Options unavailable. Use the search bar on top to add a guarantor/ witness.
+                                </Text>
+                            </View>
+                        )}
                     />
                     :
                     <BottomSheetScrollView contentContainerStyle={{backgroundColor: "white"}}>

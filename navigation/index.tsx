@@ -5,7 +5,7 @@
  */
 import {AntDesign} from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
+import {NavigationContainer, DefaultTheme, RouteProp} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
@@ -241,15 +241,21 @@ function BottomTabNavigator() {
   return (
     <BottomTab.Navigator
       initialRouteName="UserProfile"
-      screenOptions={{
+      screenOptions={ ((props: { route: RouteProp<RootTabParamList, keyof RootTabParamList>; navigation: any; }) => ({
         tabBarActiveTintColor: Colors[colorScheme].tint,
-      }}>
+      }))}>
       <BottomTab.Screen
         name="UserProfile"
         component={UserProfile}
         options={{
             title: 'Home',
-            tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+            tabBarIcon: ({ focused, color, size }) => {
+                let iconName;
+                iconName = focused
+                    ? ''
+                    : 'home';
+                return <TabBarIcon name="home" color={color}/>
+            },
             headerShown: false
         }}
       />
@@ -258,7 +264,13 @@ function BottomTabNavigator() {
         component={LoanRequests}
         options={{
           title: 'Loan Requests',
-          tabBarIcon: ({ color }) => <TabBarIcon name="filetext1" color={color} />,
+          tabBarIcon: ({ focused, color, size }) => {
+              let iconName;
+              iconName = focused
+                  ? ''
+                  : 'filetext1';
+              return <TabBarIcon name="filetext1" color={color}/>
+          },
             headerShown: false
         }}
       />
@@ -267,7 +279,13 @@ function BottomTabNavigator() {
             component={Account}
             options={{
                 title: 'My Account',
-                tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+                tabBarIcon: ({ focused, color, size }) => {
+                    let iconName;
+                    iconName = focused
+                        ? ''
+                        : 'user';
+                    return <TabBarIcon name="user" color={color}/>
+                },
                 headerShown: false
             }}
         />
@@ -276,7 +294,13 @@ function BottomTabNavigator() {
         component={ModalScreen}
         options={{
             title: 'Settings',
-            tabBarIcon: ({ color }) => <TabBarIcon name="setting" color={color} />,
+            tabBarIcon: ({ focused, color, size }) => {
+                let iconName;
+                iconName = focused
+                    ? ''
+                    : 'setting';
+                return <TabBarIcon name="setting" color={color}/>
+            },
             headerShown: false
         }}
         />

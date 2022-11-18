@@ -434,8 +434,8 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                     <Puzzle width={width/2} height={height/3}/>
 
                                     <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#747474', textAlign: 'center', fontSize: 12, maxWidth: '80%' }}>
-                                        Your loan request was received but it might require a few changes.
-                                        To proceed, head over to loan requests to start making changes.
+                                        Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.
+                                        Proceed to loan requests, to review it.
                                     </Text>
                                     <TouchableOpacity onPress={() => navigation.navigate('LoanRequests')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#cccccc', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
                                         <Text allowFontScaling={false} style={{...styles.buttonText, color: '#797979'}}>LOAN REQUESTS</Text>

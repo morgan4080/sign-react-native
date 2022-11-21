@@ -1614,7 +1614,7 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
                     }
                 }
 
-                return await dispatch(refreshAccessToken(refreshTokenPayload));
+                await dispatch(refreshAccessToken(refreshTokenPayload));
             } else {
                 setAuthState(false);
 

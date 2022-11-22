@@ -3,7 +3,7 @@
     "jsEngine": "hermes",
     "name": "Presta Sign",
     "slug": "presta-sign",
-    "version": "1.1.7",
+    "version": "1.1.8",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "presta-sign",
@@ -35,7 +35,7 @@
       },
       "package": "com.presta.prestasign",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 21,
+      "versionCode": 22,
       "runtimeVersion": "1.0.0"
     },
     "web": {

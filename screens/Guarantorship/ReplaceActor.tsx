@@ -213,7 +213,7 @@ const ReplaceActor = ({ navigation, route }: NavigationProps) => {
     const submitEdit = () => {
         const [phoneRegex, memberNoRegex] = [
             /^([\d{1,2}[]?|)\d{3}[]?\d{3}[]?\d{4}$/i,
-            /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{3,9}$/i
+            /^(?=.*[0-9a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{3,8}$/i
         ];
         if (memberNoRegex.test(getValues("searchTerm"))) {
             searchMemberByMemberNo(getValues("searchTerm"))

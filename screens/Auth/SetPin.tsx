@@ -8,7 +8,6 @@ import {
     StatusBar,
     Pressable,
     NativeModules,
-    TouchableHighlight
 } from "react-native";
 import {
     Poppins_300Light,
@@ -23,7 +22,7 @@ import {RotateView} from "./VerifyOTP";
 import {useDispatch, useSelector} from "react-redux";
 import {
     authClient,
-    createPin, loginUser,
+    createPin, hasPinCheck, loginUser,
     loginUserType,
     searchByEmail,
     searchByPhone, setAuthState,
@@ -32,7 +31,6 @@ import {
 import {Controller, useForm} from "react-hook-form";
 import {useEffect, useState} from "react";
 import {store} from "../../stores/store";
-import {PayloadAction, SerializedError} from "@reduxjs/toolkit";
 import {saveSecureKey} from "../../utils/secureStore";
 
 const {CSTM} = NativeModules;
@@ -51,6 +49,7 @@ type FormData = {
 const SetPin = ({ navigation, route }: NavigationProps) => {
     const [userFound, setUserFound] = useState<boolean>(false)
     const [errorSMS, setErrorSMS] = useState<string>("")
+    const [pinStatus, setPinStatus] = useState<string>("")
     const [authRes, setAuthRes] = useState<any>(null)
     const [searchRes, setSearchRes] = useState<any>(null)
     let [fontsLoaded] = useFonts({
@@ -64,7 +63,6 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
 
     const {
         control,
-        watch,
         handleSubmit,
         clearErrors,
         setError,
@@ -75,7 +73,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
 
     const { loading, selectedTenant } = useSelector((state: { auth: storeState }) => state.auth);
 
-    const {phoneNumber, email, realm, client_secret, isTermsAccepted}: any = route.params;
+    let {phoneNumber, email, realm, client_secret, isTermsAccepted}: any = route.params;
 
     type AppDispatch = typeof store.dispatch;
 
@@ -97,6 +95,13 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     console.log("start member verify", email, phoneNumber);
 
                     if (phoneNumber && access_token) {
+                        let {type, payload, error}: any = await dispatch(hasPinCheck({
+                            access_token: access_token,
+                            phoneNumber: phoneNumber
+                        }));
+                        if (payload.pinStatus === 'TEMPORARY') {
+                            setPinStatus(payload.pinStatus);
+                        }
                         const response: any = await dispatch(searchByPhone({phoneNumber, access_token}))
                         console.log('search by phone number response', response);
                         if (response.type === 'searchByPhone/rejected') {
@@ -258,11 +263,11 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     errors.pin &&
                     <Text  allowFontScaling={false}  style={styles.error}>{errors.pin?.message ? errors.pin?.message : 'Invalid Pin'}</Text>
                 }
-                {!isTermsAccepted && <Text allowFontScaling={false} style={{ color: '#489AAB', marginTop: 20, fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }}>Pin Confirmation</Text>}
-                {!isTermsAccepted && <Controller
+                {!isTermsAccepted || pinStatus === 'TEMPORARY' && <Text allowFontScaling={false} style={{ color: '#489AAB', marginTop: 20, fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }}>Pin Confirmation</Text>}
+                {!isTermsAccepted || pinStatus === 'TEMPORARY' && <Controller
                     control={control}
                     rules={{
-                        required: !isTermsAccepted,
+                        required: !isTermsAccepted || pinStatus === 'TEMPORARY',
                         maxLength: 4,
                         minLength: 4,
                         validate: value => value === getValues('pin')
@@ -288,7 +293,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     <Text  allowFontScaling={false}  style={styles.error}>{errors.pinConfirmation?.message ? errors.pinConfirmation?.message : 'Invalid Pin Confirmation'}</Text>
                 }
 
-                {!isTermsAccepted && <View style={{
+                {!isTermsAccepted || pinStatus === 'TEMPORARY' && <View style={{
                     display: 'flex',
                     flexDirection: 'row',
                     justifyContent: 'center',
@@ -309,7 +314,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     </Pressable>
                 </View>}
 
-                {isTermsAccepted && <View style={{
+                {(isTermsAccepted &&  pinStatus !== 'TEMPORARY') && <View style={{
                     display: 'flex',
                     flexDirection: 'row',
                     justifyContent: 'center',
@@ -334,7 +339,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
     } else {
         return (
             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: height -200, width }}>
-                <Text allowFontScaling={false} style={{...styles.input, borderWidth: 0, height: 'auto'}}>{errorSMS}</Text>
+                <Text allowFontScaling={false} style={{...styles.input, borderWidth: 0, height: 'auto', textAlign: 'center'}}>{errorSMS}</Text>
             </View>
         )
     }

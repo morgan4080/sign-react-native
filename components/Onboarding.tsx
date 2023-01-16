@@ -29,7 +29,7 @@ const Onboarding = () => {
                     bounces={false}
                     keyExtractor={(item) => item.id}
                     onScroll={Animated.event([{ nativeEvent: {contentOffset: { x: scrollX}}}], {
-                            useNativeDriver: false
+                        useNativeDriver: false
                     })}
                     scrollEventThrottle={32}
                     onViewableItemsChanged={viewableItemsChanged}

@@ -48,8 +48,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF'
     },
     inner: {
+        position: 'relative',
         padding: 24,
-        flex: 1,
+        flex: 1
     },
     header: {
         fontSize: 18,

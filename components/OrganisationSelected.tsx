@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
     Image,
     StyleSheet,
@@ -5,7 +6,7 @@ import {
     TextInput,
     TouchableOpacity,
     NativeModules,
-    View
+    View,
 } from "react-native";
 import {Controller, useForm} from "react-hook-form";
 import {AntDesign, Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
@@ -36,7 +37,6 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
         clearErrors,
         setError,
         setValue,
-        getValues,
         formState: { errors }
     } = useForm<FormData>(
         {
@@ -216,8 +216,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
 
     const SubmitBtn = () => {
         return (
-            <View style={{ paddingVertical: 20 }}>
-
+            <View style={{ paddingVertical: 20, position: 'absolute', bottom: 0, right: 20 }}>
                 <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} style={{alignSelf: 'flex-end'}} >
                     {   !loading ?
                         <Ionicons name="arrow-forward-circle" size={70} color="#489AAB" />
@@ -333,11 +332,11 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
     }
 
     return (
-        <View>
+        <>
 
             {
                 tenantId === 't72767' &&
-                <View style={{position: 'relative'}}>
+                <View style={{ position: 'relative' }}>
                     <EmailPhoneTabs/>
                     {
                         tab === 1 &&
@@ -390,7 +389,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                 tenantId &&
                 <SubmitBtn/>
             }
-        </View>
+        </>
     )
 }
 

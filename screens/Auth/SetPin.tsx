@@ -339,7 +339,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
     } else {
         return (
             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: height -200, width }}>
-                <Text allowFontScaling={false} style={{...styles.input, borderWidth: 0, height: 'auto'}}>{errorSMS}</Text>
+                <Text allowFontScaling={false} style={{...styles.input, borderWidth: 0, height: 'auto', textAlign: 'center'}}>{errorSMS}</Text>
             </View>
         )
     }

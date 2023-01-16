@@ -1,8 +1,10 @@
+import * as React from 'react';
 import {Pressable, StyleSheet, TextInput, View} from "react-native";
 import OrganisationSelected from "./OrganisationSelected";
-import {useCallback, useEffect} from "react";
+import {useEffect} from "react";
 import {
-    AuthenticateClient, setSelectedTenant,
+    AuthenticateClient,
+    setSelectedTenant,
     storeState
 } from "../stores/auth/authSlice";
 import {useDispatch, useSelector} from "react-redux";
@@ -41,7 +43,7 @@ const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
         }
     }, [selectedTenant, nav.route.params?.selectedTenant])
     return (
-        <View>
+        <>
             <Pressable style={{...styles.input, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}} onPress={() => nav.navigation.navigate('Organisations')}>
                 <TextInput
                     allowFontScaling={false}
@@ -53,7 +55,7 @@ const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
                 <AntDesign name="right" size={20} color="#8d8d8d" />
             </Pressable>
             <OrganisationSelected tenantId={selectedTenant?.tenantId} nav={nav} />
-        </View>
+        </>
     )
 }
 

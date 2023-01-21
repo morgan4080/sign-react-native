@@ -34,7 +34,11 @@ const SetTenant = (props: NavigationProps) => {
                         <Text allowFontScaling={false} style={styles.header}>Start your Digital Journey here</Text>
                         <Text allowFontScaling={false} style={styles.tagLine}>Guarantee and sign loan forms digitally from anywhere, anytime.</Text>
                         <OrganisationIdentifier nav={props} />
-                        <Text allowFontScaling={false} style={{ paddingTop: '50%', fontSize: 10, color: '#090A0A', textAlign: 'center', marginBottom: 10, fontFamily: 'Poppins_300Light' }}>By continuing, you agree to Presta's Terms of Service and privacy policy.</Text>
+                        <View style={{ position: 'absolute', bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', width, paddingHorizontal: 30 }}>
+                            <Text allowFontScaling={false} style={{ fontSize: 10, color: '#090A0A', textAlign: 'center', marginBottom: 10, fontFamily: 'Poppins_300Light' }}>
+                                By continuing, you agree to Presta's Terms of Service and privacy policy.
+                            </Text>
+                        </View>
                     </View>
                 </TouchableWithoutFeedback>
             </ScrollView>
@@ -50,7 +54,8 @@ const styles = StyleSheet.create({
     inner: {
         position: 'relative',
         padding: 24,
-        flex: 1
+        flex: 1,
+        height
     },
     header: {
         fontSize: 18,

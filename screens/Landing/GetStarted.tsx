@@ -12,7 +12,7 @@ import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {useEffect} from "react";
 import {store} from "../../stores/store";
-import {initializeDB, pingBeacon} from "../../stores/auth/authSlice"
+import {getTenants, initializeDB, pingBeacon} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
 import {getSecureKey} from "../../utils/secureStore";
@@ -44,19 +44,24 @@ export default function GetStarted({ navigation }: NavigationProps) {
         if (initializing) {
             (async () => {
                 try {
-                    const [oldBoy, phone, code, email] = await Promise.all([
+                    const [oldBoy, phone, code, email, currentTenantId] = await Promise.all([
                         getSecureKey('existing'),
                         getSecureKey('phone_number_without'),
                         getSecureKey('phone_number_code'),
-                        getSecureKey('account_email')
+                        getSecureKey('account_email'),
+                        getSecureKey('currentTenantId'),
                     ]);
 
-                    if (oldBoy === 'true') {
-                        navigation.navigate('ShowTenants', {
-                            countryCode: code,
-                            phoneNumber: phone,
-                            email
-                        });
+                    if (oldBoy === 'true' && currentTenantId) {
+                        await dispatch(getTenants(`${code}${phone}`)).then(tenants => {
+                            navigation.navigate('Login', {
+                                countryCode: code,
+                                phoneNumber: phone,
+                                email
+                            });
+                        }).catch(error => {
+                            console.log("old boy error", error)
+                        })
                     } else {
                         await dispatch(initializeDB())
                     }

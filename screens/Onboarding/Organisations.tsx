@@ -1,9 +1,8 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {FlatList, KeyboardAvoidingView, StyleSheet, Text, TouchableOpacity, View, StatusBar} from "react-native";
 import {useDispatch, useSelector} from "react-redux";
-import {setSelectedTenant, storeState} from "../../stores/auth/authSlice";
+import {storeState} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
-import {deleteSecureKey} from "../../utils/secureStore";
 type AppDispatch = typeof store.dispatch;
 type NavigationProps = NativeStackScreenProps<any>;
 

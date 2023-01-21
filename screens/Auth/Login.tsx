@@ -19,17 +19,26 @@ import Animated, {
     withRepeat,
     withTiming
 } from "react-native-reanimated";
-import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
+import {
+    useFonts,
+    Poppins_900Black,
+    Poppins_800ExtraBold,
+    Poppins_600SemiBold,
+    Poppins_500Medium,
+    Poppins_400Regular,
+    Poppins_300Light
+} from '@expo-google-fonts/poppins';
 import {useEffect, useState} from "react";
 import * as LocalAuthentication from 'expo-local-authentication';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import {loginUser, authenticate, setAuthState} from "../../stores/auth/authSlice";
+import {loginUser, authenticate, setAuthState, TenantsType} from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { storeState, loginUserType } from "../../stores/auth/authSlice";
 import {FontAwesome5, Ionicons} from "@expo/vector-icons";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
+import {RotateView} from "./VerifyOTP";
 const { width, height } = Dimensions.get("window");
 
 type NavigationProps = NativeStackScreenProps<any>;
@@ -72,27 +81,60 @@ const Ring = ({ delay, loading }: {delay: number, loading: boolean}) => {
     return <Animated.View style={[styles.ring, ringStyle]} />;
 };
 
+const alertComponent = (title: string, mess: string | undefined, btnText: any, btnFunc: any) => {
+    return Alert.alert(title, mess, [
+        {
+            text: btnText,
+            onPress: btnFunc,
+        }
+    ])
+}
+const CUSTOM = NativeModules.CSTM;
 export default function Login({ navigation }: NavigationProps) {
-    const { tenants, selectedTenantId, loading, organisations } = useSelector((state: { auth: storeState }) => state.auth);
+    const { tenants, isLoggedIn, loading, organisations } = useSelector((state: { auth: storeState }) => state.auth);
     const [otpVerified, setOtpVerified] = useState(undefined);
     const [fingerPrint, setFingerPrint] = useState<string | null>(null);
     const [localLogin, setLocalLogin] = useState<boolean>(false);
     const [currentTenant, setCurrentTenant] = useState<{tenantName: string, tenantId: string, clientSecret: string} | undefined>(undefined);
-
-    (async () => {
-        try {
-            let otpV = await getSecureKey('otp_verified');
-            setOtpVerified(otpV);
-        } catch (e:any) {
-            console.log("getSecureKey otpVerified", e)
-        }
-    })()
-
+    const [tenant, setTenant] = useState<TenantsType | undefined>(undefined);
     type AppDispatch = typeof store.dispatch;
 
-    const CUSTOM = NativeModules.CSTM;
-
-    const tenant = tenants.find(t => t.id === selectedTenantId);
+    useEffect(() => {
+        let authenticating = true;
+        if (authenticating) {
+            (async () => {
+                try {
+                    const [response, currentTenantId, fP] = await Promise.all([
+                        dispatch(authenticate()),
+                        getSecureKey('currentTenantId'),
+                        getSecureKey('fingerPrint')
+                    ]);
+                    setFingerPrint(fP);
+                    if (response.type === 'authenticate/fulfilled') {
+                        if (isLoggedIn) {
+                            navigation.navigate('ProfileMain')
+                        }
+                    } else if (response.type === 'authenticate/fulfilled') {
+                        if (otpVerified === 'true') {
+                            dispatch(setAuthState(true));
+                        }
+                    }
+                    let t = tenants.find(t => t.tenantId === currentTenantId);
+                    setTenant(t);
+                    const CT = organisations.find(org => org.tenantId === currentTenantId)
+                    if (CT) {
+                        setCurrentTenant(CT)
+                        await saveSecureKey('currentTenant', JSON.stringify(CT))
+                    }
+                } catch (e) {
+                    console.log("LOGGGGGIN AUTH ERROR",e)
+                }
+            })()
+        }
+        return () => {
+            authenticating = false
+        }
+    }, []);
 
     const dispatch : AppDispatch = useDispatch();
 
@@ -108,40 +150,17 @@ export default function Login({ navigation }: NavigationProps) {
     const [isBiometricSupported, setIsBiometricSupported] = useState(false);
 
     useEffect(() => {
-        let authenticating = true;
-        if (authenticating) {
-            (async () => {
-                const CT = organisations.find(org => org.tenantId === tenant?.tenantId)
-                if (CT) {
-                    setCurrentTenant(CT)
-                    await saveSecureKey('currentTenant', JSON.stringify(CT))
-                }
-                const fP = await getSecureKey('fingerPrint');
-                setFingerPrint(fP);
-                const response = await dispatch(authenticate());
-                if (response.type === 'authenticate/rejected') {
-                    return
-                }
-                if (response.type === 'authenticate/fulfilled') {
-                    if (otpVerified === 'true') {
-                        dispatch(setAuthState(true));
-                    } else {
-                        navigation.navigate('VerifyOTP')
-                    }
-                }
-            })()
-        }
-        return () => {
-            authenticating = false
-        }
-    }, []);
-
-    useEffect(() => {
         (async () => {
-            const compatible = await LocalAuthentication.hasHardwareAsync();
-            setIsBiometricSupported(compatible);
+            try {
+                const compatible = await LocalAuthentication.hasHardwareAsync();
+                setIsBiometricSupported(compatible);
+                let otpV = await getSecureKey('otp_verified');
+                setOtpVerified(otpV);
+            } catch (e:any) {
+                console.log("getSecureKey otpVerified", e)
+            }
         })()
-    });
+    },[]);
 
     useEffect(() => {
         let launching = true;
@@ -178,15 +197,6 @@ export default function Login({ navigation }: NavigationProps) {
 
     const fallBackToDefaultAuth = () => {
         console.log("fallback to phone and pin authentication")
-    }
-
-    const alertComponent = (title: string, mess: string | undefined, btnText: any, btnFunc: any) => {
-        return Alert.alert(title, mess, [
-            {
-                text: btnText,
-                onPress: btnFunc,
-            }
-        ])
     }
 
     /*const TwoButtonAlert = () => {
@@ -252,9 +262,10 @@ export default function Login({ navigation }: NavigationProps) {
                 setCancelFingerPrint(false);
                 if (otpVerified === 'true') {
                     dispatch(setAuthState(true));
-                } else {
-                    navigation.navigate('VerifyOTP');
                 }
+                /*else {
+                    navigation.navigate('VerifyOTP');
+                }*/
             } else {
                 // check fingerPrint Secure Key and perform login process
                 let fP = await getSecureKey('fingerPrint');
@@ -280,9 +291,10 @@ export default function Login({ navigation }: NavigationProps) {
                             setCancelFingerPrint(false);
                             if (otpVerified === 'true') {
                                 dispatch(setAuthState(true));
-                            } else {
-                                navigation.navigate('VerifyOTP');
                             }
+                            /*else {
+                                navigation.navigate('VerifyOTP');
+                            }*/
                         }
                     } catch (e: any) {
                         CUSTOM.showToast(e.message)
@@ -403,9 +415,10 @@ export default function Login({ navigation }: NavigationProps) {
                                     setCancelFingerPrint(true);
                                     if (otpVerified === 'true') {
                                         dispatch(setAuthState(true));
-                                    } else {
-                                        navigation.navigate('VerifyOTP');
                                     }
+                                    /* else {
+                                        navigation.navigate('VerifyOTP');
+                                    }*/
                                 },
                                 style: 'cancel'
                             },
@@ -426,9 +439,10 @@ export default function Login({ navigation }: NavigationProps) {
                     } else {
                         if (otpVerified === 'true') {
                             dispatch(setAuthState(true));
-                        } else {
-                            navigation.navigate('VerifyOTP');
                         }
+                        /*else {
+                            navigation.navigate('VerifyOTP');
+                        }*/
                         return;
                     }
                 }
@@ -440,13 +454,13 @@ export default function Login({ navigation }: NavigationProps) {
         }
     }
 
-    if (fontsLoaded) {
+    if (fontsLoaded && !loading) {
         return (
             <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                 <ScrollView contentContainerStyle={styles.container} >
                     <View style={{height: height/2, display: 'flex', justifyContent: 'space-between', position: 'relative'}}>
                         <View style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                            <TouchableOpacity onPress={() => navigation.navigate('GetTenants')} style={{marginTop: 45, marginBottom: 25, position: 'absolute', top: height/60, left: width/15}}>
+                            <TouchableOpacity onPress={() => navigation.navigate('GetStarted')} style={{marginTop: 45, marginBottom: 25, position: 'absolute', top: height/60, left: width/15}}>
                                 <Ionicons name="chevron-back-sharp" size={24} color="black" />
                             </TouchableOpacity>
                             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: height/9 }}>
@@ -596,7 +610,11 @@ export default function Login({ navigation }: NavigationProps) {
             </SafeAreaView>
         )
     }  else {
-        return (<></>)
+        return (
+            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+                <RotateView/>
+            </View>
+        )
     }
 }
 

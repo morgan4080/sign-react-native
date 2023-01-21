@@ -194,6 +194,22 @@ const IDInput = ({errors, control, loading, handleSubmit, onSubmit}: PropType) =
         </View>
     )
 }
+
+ const SubmitBtn = ({handleSubmit, onSubmit, loading}: PropType) => {
+        return (
+            <View style={{ paddingVertical: 20, position: 'absolute', bottom: 50, right: 20 }}>
+                <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} style={{alignSelf: 'flex-end'}} >
+                    {   !loading ?
+                        <Ionicons name="arrow-forward-circle" size={70} color="#489AAB" />
+                        :
+                        <View style={{display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#CCCCCC', borderRadius: 50, width: 65, height: 65}}>
+                            <RotateView color="#FFFFFF"/>
+                        </View>
+                    }
+                </TouchableOpacity>
+            </View>
+        )
+    };
 const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, nav: NavigationProps}) => {
     const [tab, setTab] = useState<number>(0);
     const {loading, selectedTenant} = useSelector((state: { auth: storeState }) => state.auth);
@@ -219,90 +235,77 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
         if (changed && tenantId && selectedTenant) {
             if (tenantId === 't72767' && tab === 0 || tenantId === 't74411') {
                 requestPhoneNumber().then(phone => setValue("phoneNumber", phone)).catch(error => {
-                    console.log("requestPhoneNumber error", error)
+                    console.log(error)
                 })
             }
-            clearErrors()
+            setTimeout(() => {
+                clearErrors()
+            }, 2000)
         }
         return () => {
             changed = false
         }
     }, [tenantId])
 
-
-
-   /* const SubmitBtn = () => {
-        return (
-            <View style={{ paddingVertical: 20, position: 'absolute', bottom: 0, right: 20 }}>
-                <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} style={{alignSelf: 'flex-end'}} >
-                    {   !loading ?
-                        <Ionicons name="arrow-forward-circle" size={70} color="#489AAB" />
-                        :
-                        <View style={{display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#CCCCCC', borderRadius: 50, width: 65, height: 65}}>
-                            <RotateView color="#FFFFFF"/>
-                        </View>
-                    }
-                </TouchableOpacity>
-            </View>
-        )
-    };*/
-
     const onSubmit =  async (value: any): Promise<void> => {
-        let phone = "";
-        let id = "";
-        let email = "";
+        try {
+            let phone = "";
+            let id = "";
+            let email = "";
 
-        if (value.phoneNumber) {
-            const isPh = /^([\d{1,2}[]?|)\d{3}[]?\d{3}[]?\d{3}[]?$/i.test(value.phoneNumber);
+            if (value.phoneNumber) {
+                const isPh = /^([\d{1,2}[]?|)\d{3}[]?\d{3}[]?\d{3}[]?$/i.test(value.phoneNumber);
 
-            if (!isPh) {
-                setError('phoneNumber', {type: 'custom', message: 'Please provide a valid phone number'});
-                return
-            }
-            await saveSecureKey('alpha2Code', nav.route.params?.alpha2Code);
-            const phoneDataJson = await requestPhoneNumberFormat(nav.route.params?.alpha2Code, value.phoneNumber);
+                if (!isPh) {
+                    setError('phoneNumber', {type: 'custom', message: 'Please provide a valid phone number'});
+                    return
+                }
+                await saveSecureKey('alpha2Code', nav.route.params?.alpha2Code);
+                const phoneDataJson = await requestPhoneNumberFormat(nav.route.params?.alpha2Code, value.phoneNumber);
 
-            const {country_code, phone_no} = JSON.parse(phoneDataJson);
-            phone = `${country_code}${phone_no}`;
-        }
-
-        if (value.idNumber) {
-            const isId = /^\d+$/i.test(value.idNumber)
-
-            if (!isId) {
-                setError('idNumber', {type: 'custom', message: 'Please provide a valid ID number'});
-                return
+                const {country_code, phone_no} = JSON.parse(phoneDataJson);
+                phone = `${country_code}${phone_no}`;
             }
 
-            id = value.idNumber
-        }
+            if (value.idNumber) {
+                const isId = /^\d+$/i.test(value.idNumber)
 
-        if (value.email) {
-            const isEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value.email)
+                if (!isId) {
+                    setError('idNumber', {type: 'custom', message: 'Please provide a valid ID number'});
+                    return
+                }
 
-            if (!isEmail) {
-                setError('email', {type: 'custom', message: 'Please provide a valid email address'});
+                id = value.idNumber
+            }
+
+            if (value.email) {
+                const isEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value.email)
+
+                if (!isEmail) {
+                    setError('email', {type: 'custom', message: 'Please provide a valid email address'});
+                    return
+                }
+
+                email = value.email
+            }
+
+            if (phone !== "") {
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("phoneNumber", `?identifierType=PHONE_NUMBER&memberIdentifier=${phone}`))
                 return
             }
 
-            email = value.email
-        }
+            if (email !== "") {
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("email", `?identifierType=EMAIL&memberIdentifier=${email}`))
+                return
+            }
 
-        if (phone !== "") {
-            if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("phoneNumber", `?identifierType=PHONE_NUMBER&memberIdentifier=${phone}`))
-            return
+            if (id !== "") {
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("idNumber", `?identifierType=ID_NUMBER&memberIdentifier=${id}`))
+                return
+            }
+        } catch (e: any) {
+            setError('phoneNumber', {type: 'custom', message: e.message})
         }
-
-        if (email !== "") {
-            if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("email", `?identifierType=EMAIL&memberIdentifier=${email}`))
-            return
-        }
-
-        if (id !== "") {
-            if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("idNumber", `?identifierType=ID_NUMBER&memberIdentifier=${id}`))
-            return
-        }
-
     }
 
     const onboard = async (context: "email" | "phoneNumber" | "idNumber", qr: string) => {
@@ -402,10 +405,10 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                 </View>
             }
 
-            {/*{
+            {
                 tenantId &&
-                <SubmitBtn/>
-            }*/}
+                <SubmitBtn onSubmit={onSubmit} handleSubmit={handleSubmit} loading={loading}/>
+            }
         </>
     )
 }

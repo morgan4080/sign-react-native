@@ -14,7 +14,7 @@ import {
     setSelectedTenantId,
     getTenants,
     authClient,
-    searchByPhone, searchByEmail, fetchGuarantorshipRequests, verifyOtpBeforeToken, sendOtpBeforeToken, hasPinCheck
+    searchByPhone, searchByEmail, verifyOtpBeforeToken, sendOtpBeforeToken, hasPinCheck
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {
@@ -38,6 +38,7 @@ import {receiveVerificationSMS, startSmsUserConsent} from "../../utils/smsVerifi
 import {AntDesign} from "@expo/vector-icons";
 type NavigationProps = NativeStackScreenProps<any>;
 const { width, height } = Dimensions.get("window");
+const {CSTM, DeviceInfModule} = NativeModules;
 
 const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
     <TouchableOpacity onPress={onPress} style={[styles.item, backgroundColor]}>
@@ -45,7 +46,104 @@ const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
     </TouchableOpacity>
 );
 
-const {CSTM, DeviceInfModule} = NativeModules;
+const ItemToRender = ({ item, selectedTenantId, organisations, route, dispatch, setErrorSMS, navigation, setUserFound, handleSnapPress, setContext }: any) => {
+    const backgroundColor = item.id === selectedTenantId ? "#489AAB" : "#FFFFFF";
+    const color = item.id === selectedTenantId ? 'white' : 'black';
+
+    return (
+        <Item
+            item={item}
+            onPress={() => {
+                // if item doesn't exist in configuration
+                // communicate that it's not yet supported
+                (async () => {
+                    let { countryCode, phoneNumber, email }: any = route.params;
+
+                    const settings = organisations.find((org: any) => org.tenantId === item.tenantId);
+
+                    if (settings) {
+                        dispatch(setSelectedTenantId(item.id));
+
+                        let {type, payload, error} : any = await dispatch(authClient({realm: settings.tenantId, client_secret: settings.clientSecret}))
+
+                        if (type === 'authClient/fulfilled') {
+                            const { access_token } = payload;
+
+                            if (!phoneNumber && !email) {
+                                phoneNumber = await getSecureKey('phone_number_without');
+                            }
+
+                            // check has pin here
+
+                            if (access_token) {
+                                let {type, payload, error}: any = await dispatch(hasPinCheck({
+                                    access_token: access_token,
+                                    phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : item.ussdPhoneNumber ? item.ussdPhoneNumber.replace('+', '') : item.phoneNumber.replace('+', '')
+                                }));
+
+                                if (payload.pinStatus === "SET" && type === 'hasPinCheck/fulfilled') {
+                                    if (email) {
+                                        const response: any = await dispatch(searchByEmail({email: encodeURIComponent(email), access_token}))
+
+                                        if (response.type === 'searchByEmail/rejected') {
+                                            CSTM.showToast(response.error.message);
+                                            setErrorSMS(response.error.message);
+                                        } else {
+                                            setUserFound(true);
+                                            navigation.navigate('Login');
+                                        }
+                                    } else if (phoneNumber) {
+                                        const response: any = await dispatch(searchByPhone({
+                                            phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : item.ussdPhoneNumber ? item.ussdPhoneNumber.replace('+', '') : item.phoneNumber.replace('+', ''),
+                                            access_token
+                                        }))
+
+                                        if (response.type === 'searchByPhone/rejected') {
+                                            CSTM.showToast(response.error.message)
+                                            setErrorSMS(response.error.message)
+                                        } else {
+                                            // we can intercept and cereate otp here
+                                            setUserFound(true);
+                                            navigation.navigate('Login');
+                                        }
+                                    } else {
+                                        navigation.navigate('GetTenants');
+                                    }
+                                } else {
+
+                                    const [deviceId] = await Promise.all([
+                                        DeviceInfModule.getUniqueId(),
+                                    ]);
+                                    const appName = 'presta-sign';
+                                    dispatch(sendOtpBeforeToken({
+                                        email: email ? email : item.email,
+                                        phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : item.ussdPhoneNumber ? item.ussdPhoneNumber.replace('+', '') : item.phoneNumber.replace('+', ''),
+                                        deviceId,
+                                        appName
+                                    })).then((response: any) => {
+                                        console.log("sendOtpBeforeToken", response.payload);
+                                        CSTM.showToast("OTP sent please wait");
+                                        handleSnapPress(1);
+                                        setContext('OTP');
+                                    }).catch((e: any) => {
+                                        console.log("Item: sendOtpBeforeToken", e.message)
+                                    })
+                                }
+                            }
+                        } else {
+                            CSTM.showToast(error.message)
+                        }
+
+                    } else {
+                        CSTM.showToast(`${item.tenantName} is not yet supported`);
+                    }
+                })()
+            }}
+            backgroundColor={{ backgroundColor }}
+            textColor={{ color }}
+        />
+    );
+};
 
 const ShowTenants = ({ navigation, route }: NavigationProps) => {
     let [fontsLoaded] = useFonts({
@@ -121,106 +219,6 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
     }, [userFound])*/
 
     const [context, setContext] = useState<string | null>(null)
-
-
-    const renderItem = ({ item }: any) => {
-        const backgroundColor = item.id === selectedTenantId ? "#489AAB" : "#FFFFFF";
-        const color = item.id === selectedTenantId ? 'white' : 'black';
-
-        return (
-            <Item
-                item={item}
-                onPress={() => {
-                    // if item doesn't exist in configuration
-                    // communicate that it's not yet supported
-                    (async () => {
-                        let { countryCode, phoneNumber, email }: any = route.params;
-
-                        const settings = organisations.find(org => org.tenantId === item.tenantId);
-
-                        if (settings) {
-                            dispatch(setSelectedTenantId(item.id));
-
-                            let {type, payload, error} : any = await dispatch(authClient({realm: settings.tenantId, client_secret: settings.clientSecret}))
-
-                            if (type === 'authClient/fulfilled') {
-                                const { access_token } = payload;
-
-                                if (!phoneNumber && !email) {
-                                    phoneNumber = await getSecureKey('phone_number_without');
-                                }
-
-                                // check has pin here
-
-                                if (access_token) {
-                                    let {type, payload, error}: any = await dispatch(hasPinCheck({
-                                        access_token: access_token,
-                                        phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : item.ussdPhoneNumber ? item.ussdPhoneNumber.replace('+', '') : item.phoneNumber.replace('+', '')
-                                    }));
-
-                                    if (payload.pinStatus === "SET" && type === 'hasPinCheck/fulfilled') {
-                                        if (email) {
-                                            const response: any = await dispatch(searchByEmail({email: encodeURIComponent(email), access_token}))
-
-                                            if (response.type === 'searchByEmail/rejected') {
-                                                CSTM.showToast(response.error.message);
-                                                setErrorSMS(response.error.message);
-                                            } else {
-                                                setUserFound(true);
-                                                navigation.navigate('Login');
-                                            }
-                                        } else if (phoneNumber) {
-                                            const response: any = await dispatch(searchByPhone({
-                                                phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : item.ussdPhoneNumber ? item.ussdPhoneNumber.replace('+', '') : item.phoneNumber.replace('+', ''),
-                                                access_token
-                                            }))
-
-                                            if (response.type === 'searchByPhone/rejected') {
-                                                CSTM.showToast(response.error.message)
-                                                setErrorSMS(response.error.message)
-                                            } else {
-                                                // we can intercept and cereate otp here
-                                                setUserFound(true);
-                                                navigation.navigate('Login');
-                                            }
-                                        } else {
-                                            navigation.navigate('GetTenants');
-                                        }
-                                    } else {
-
-                                        const [deviceId] = await Promise.all([
-                                            DeviceInfModule.getUniqueId(),
-                                        ]);
-                                        const appName = 'presta-sign';
-                                        dispatch(sendOtpBeforeToken({
-                                            email: email ? email : item.email,
-                                            phoneNumber: (phoneNumber && countryCode) ? `${countryCode}${phoneNumber}`.replace('+', '') : item.ussdPhoneNumber ? item.ussdPhoneNumber.replace('+', '') : item.phoneNumber.replace('+', ''),
-                                            deviceId,
-                                            appName
-                                        })).then(response => {
-                                            console.log("sendOtpBeforeToken", response.payload);
-                                            CSTM.showToast("OTP sent please wait");
-                                            handleSnapPress(1);
-                                            setContext('OTP');
-                                        }).catch(e => {
-                                            console.log("Item: sendOtpBeforeToken", e.message)
-                                        })
-                                    }
-                                }
-                            } else {
-                                CSTM.showToast(error.message)
-                            }
-
-                        } else {
-                            CSTM.showToast(`${item.tenantName} is not yet supported`);
-                        }
-                    })()
-                }}
-                backgroundColor={{ backgroundColor }}
-                textColor={{ color }}
-            />
-        );
-    };
 
     useEffect(() => {
 
@@ -423,7 +421,7 @@ const ShowTenants = ({ navigation, route }: NavigationProps) => {
                         progressViewOffset={50}
                         onRefresh={reFetch}
                         data={tenants}
-                        renderItem={renderItem}
+                        renderItem={(item) => <ItemToRender item={item} selectedTenantId={selectedTenantId} organisations={organisations} route={route} dispatch={dispatch} setErrorSMS={setErrorSMS} navigation={navigation} setUserFound={setUserFound} handleSnapPress={handleSnapPress} setContext={setContext}/>}
                         keyExtractor={item => item.id}
                         ListFooterComponent={<View style={{height: 50}} />}
                     />

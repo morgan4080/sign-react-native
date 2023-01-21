@@ -94,7 +94,8 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
 
     const reFetch = async () => {
         try {
-            await dispatch(fetchLoanRequests(member?.refId as string));
+            const response = await dispatch(fetchLoanRequests(`${member?.refId}`));
+            // alert(JSON.stringify(response))
         } catch (e: any) {
             CSTM.showToast(e.message)
         }
@@ -178,7 +179,7 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
             );
 
             if (result.type === "dismiss") {
-                const {type, error, payload}: any  = await dispatch(fetchLoanRequest(loan?.refId as string))
+                const {type, error, payload}: any  = await dispatch(fetchLoanRequest(`${loan?.refId}`))
 
                 if (type === 'fetchLoanRequest/fulfilled') {
                     // if status is signed
@@ -227,8 +228,6 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
             setActorChanged(false);
         }
     }, [actorChanged]);
-
-    console.log('current loan', JSON.stringify(loan));
 
     const Item = ({item, section} : {item: any, section: any}) => {
         const [expanded, setExpanded] = useState(false);

@@ -40,7 +40,7 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
 
                 const {meta, payload, type} = await dispatch(verifyOtpBeforeToken(data))
 
-                if (type === "verifyOtpBeforeToken/fulfilled" && payload) {
+                if (type === "verifyOtpBeforeToken/fulfilled") {
                     const data = {
                         phoneNumber,
                         email,
@@ -54,7 +54,6 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                     }, 500);
 
                 } else {
-                    CSTM.showToast('verification failed');
                     console.log('verification failed', payload, type);
                 }
 

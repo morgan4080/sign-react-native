@@ -144,7 +144,7 @@ type GuarantorshipRequestType = {
     refId: string
 }
 
-type TenantsType = {
+export type TenantsType = {
     "id": string,
     "keycloakId": string,
     "username": string,
@@ -843,7 +843,8 @@ export const logoutUser = createAsyncThunk('logoutUser', async () => {
             deleteSecureKey('phone_number_code'),
             deleteSecureKey('phone_number_without'),
             deleteSecureKey('existing'),
-            deleteSecureKey('fingerPrint')
+            deleteSecureKey('fingerPrint'),
+            deleteSecureKey('currentTenantId'),
         ])
     );
 });
@@ -1923,7 +1924,7 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
 })
 
 export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string, {dispatch, getState}) => {
-    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request?memberRefId=${memberRefId}&order=ASC&pageSize=5`
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}`;
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
@@ -1935,7 +1936,9 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
             method: 'GET',
             headers: myHeaders,
             redirect: 'follow'
-        })
+        });
+
+        console.log(response.status);
 
         if (response.status === 200) {
             const data = await response.json();
@@ -1944,9 +1947,10 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                     method: 'GET',
                     headers: myHeaders,
                     redirect: 'follow'
-                })
+                });
+                console.log(response0.status);
                 if (response0.status === 200) {
-                    const data0 = await response0.json()
+                    const data0 = await response0.json();
                     return {
                         "refId": data.content[i].refId,
                         "loanDate": data.content[i].loanDate,
@@ -2671,7 +2675,9 @@ const authSlice = createSlice({
           return state;
         },
         setSelectedTenantId(state, action) {
-            state.selectedTenantId = action.payload;
+            saveSecureKey('currentTenantId', action.payload).then(() => {
+                state.selectedTenantId = action.payload;
+            })
             return state;
         },
         setAuthState(state, action) {
@@ -2679,7 +2685,6 @@ const authSlice = createSlice({
             return state;
         },
         setSelectedTenant(state, action) {
-            console.log('setting tenant', action)
             state.selectedTenant = action.payload;
             return state;
         }

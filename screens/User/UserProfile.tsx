@@ -3,7 +3,6 @@ import {
     View,
     StyleSheet,
     TouchableOpacity,
-    Image,
     Dimensions,
     Platform,
     ImageBackground,
@@ -24,7 +23,7 @@ import {
     fetchLoanProducts,
     editMember,
     logoutUser,
-    LoadOrganisation
+    LoadOrganisation, setSelectedTenantId
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
@@ -77,49 +76,50 @@ export default function UserProfile({ navigation }: NavigationProps) {
 
     useEffect(() => {
         let authenticating = true;
-        const controller = new AbortController();
-        const signal = controller.signal;
         if (authenticating) {
             (async () => {
-                const [authStuff, phone_no, country_code] = await Promise.all([
-                    dispatch(authenticate()),
-                    getSecureKey('phone_number_without'),
-                    getSecureKey('phone_number_code')
-                ]);
-                const { type, error, payload }: any = authStuff;
-                if (type === 'authenticate/rejected') {
-                    navigation.navigate('GetTenants')
-                } else {
-                    try {
-                        const [a] = await Promise.all([
-                            dispatch(fetchMember()),
-                        ]);
+                try {
+                    const [authStuff, phone_no, country_code] = await Promise.all([
+                        dispatch(authenticate()),
+                        getSecureKey('phone_number_without'),
+                        getSecureKey('phone_number_code')
+                    ]);
+                    const { type, error, payload }: any = authStuff;
 
-                        const { email, details }: any = a.payload;
+                    if (payload && payload.tenantId) {
+                            const [a,b] = await Promise.all([
+                                dispatch(setSelectedTenantId(payload.tenantId)),
+                                dispatch(fetchMember()),
+                            ]);
 
-                        if (!email) {
-                            handleSnapPress(1);
-                        }
-                        /*else {
-                            if (details && details.email_approval && details.email_approval.value && details.email_approval.value !== email) {
-                                CSTM.showToast('Email Change Awaiting Approval')
+                            if (b.type === 'fetchMember/rejected') {
+                                await dispatch(logoutUser())
                             }
-                        }*/
 
-                        await Promise.all([
-                            dispatch(saveContactsToDb()),
-                            dispatch(fetchLoanProducts()),
-                            dispatch(setLoanCategories(signal)),
-                            dispatch(LoadOrganisation())
-                        ])
-                    } catch (e: any) {
-                        console.log('promise rejection', e);
+                            const { email, details }: any = b.payload;
+
+                            if (!email) {
+                                handleSnapPress(1);
+                            }
+                            /*else {
+                                if (details && details.email_approval && details.email_approval.value && details.email_approval.value !== email) {
+                                    CSTM.showToast('Email Change Awaiting Approval')
+                                }
+                            }*/
+
+                            await Promise.all([
+                                dispatch(saveContactsToDb()),
+                                dispatch(fetchLoanProducts()),
+                                dispatch(LoadOrganisation())
+                            ])
+
                     }
+                } catch (e: any) {
+                    console.log('promise rejection', e);
                 }
             })()
         }
         return () => {
-            controller.abort();
             authenticating = false;
         }
     }, [reload]);

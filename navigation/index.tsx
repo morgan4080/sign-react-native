@@ -30,7 +30,7 @@ import LoanProduct from "../screens/Loans/LoanProduct";
 import LoanPurpose from "../screens/Loans/LoanPurpose";
 import LoanConfirmation from "../screens/Loans/LoanConfirmation";
 import LoanRequest from "../screens/Loans/LoanRequest";
-import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
+import { RootStackParamList, RootTabParamList } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import GuarantorshipStatus from "../screens/Guarantorship/GuarantorshipStatus";
 import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";

@@ -7,13 +7,13 @@ import {
     StyleSheet,
     TouchableOpacity,
     View,
-    Text
+    Text, RefreshControl, NativeModules
 } from "react-native";
 
 import {StatusBar} from "expo-status-bar";
 import {Ionicons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
-import {setLoading, storeState} from "../../stores/auth/authSlice";
+import {setLoanCategories, storeState} from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {
@@ -29,39 +29,41 @@ import {
 import {useEffect, useState} from "react";
 import LoanPurposeTile from './Components/LoanPurposeTile'
 import {RotateView} from "../Auth/VerifyOTP";
+const CSTM = NativeModules.CSTM;
 
 type NavigationProps = NativeStackScreenProps<any>
 
 const { width, height } = Dimensions.get("window");
 
-interface FormData {
-    trade: string[] | undefined,
-    social: string[] | undefined,
-    business: string[] | undefined,
-    wholesale: string[] | undefined,
-}
-
 export default function LoanPurpose ({ navigation, route }: NavigationProps) {
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
-    const { loading, loanCategories } = useSelector((state: { auth: storeState }) => state.auth);
-
+    const { loanCategories } = useSelector((state: { auth: storeState }) => state.auth);
     type CategoryType = {code: string, name: string, options: {code: string, name: string, options: {code: string, name: string,selected: boolean}[], selected: boolean}[]}
 
     const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null)
+    const [refreshing, setRefreshing] = useState(false);
+    const fetchLoanCategories = async () => {
+        setRefreshing(true);
+        const controller = new AbortController();
+        const signal = controller.signal;
+        dispatch(setLoanCategories(signal)).finally(() => {
+            setRefreshing(false);
+            controller.abort();
+        });
+    }
 
     useEffect(() => {
-        if (loading) {
-            if (loanCategories && loanCategories.length > 0) {
-                dispatch(setLoading(false));
-            } else {
-                dispatch(setLoading(true));
-            }
+        let catLoading = true;
+        if (catLoading) {
+            fetchLoanCategories().catch(error => {
+                CSTM.showToast("Pull Down To Load")
+            })
         }
         return () => {
-            dispatch(setLoading(false));
-        };
-    }, [loanCategories]);
+            catLoading = false
+        }
+    }, [])
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -86,15 +88,10 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
             setSelectedCategory(null);
         }
     }
+
     if (fontsLoaded) {
         return (
             <SafeAreaView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
-                {
-                    loading &&
-                    <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
-                        <RotateView/>
-                    </View>
-                }
                 <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', left: -100, top: '20%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', right: -80, top: '10%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
@@ -114,15 +111,17 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
 
                             <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginTop: 15, marginBottom: 10 }}>Loan Purpose Category</Text>
                         </View>
-                        <SafeAreaView style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0)', borderTopLeftRadius: 25, borderTopRightRadius: 25, width }}>
-                            <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 120 }}>
+                        <View style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0)', borderTopLeftRadius: 25, borderTopRightRadius: 25, width }}>
+                            <ScrollView refreshControl={
+                                <RefreshControl refreshing={refreshing} onRefresh={fetchLoanCategories} />
+                            } contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 120 }}>
                                 { loanCategories &&
                                     loanCategories.map((category, index: number) => (
                                         <LoanPurposeTile key={category.code} componentIndex={index} currentOpenIndex={currentOpenIndex} isOpen={isOpen} setFormData={setFormData} category={category} />
                                     ))
                                 }
                             </ScrollView>
-                        </SafeAreaView>
+                        </View>
                         <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                             <TouchableOpacity disabled={!optionSelected} onPress={() => selectedCategory ? navigation.navigate('GuarantorsHome', {
                                 category: selectedCategory,

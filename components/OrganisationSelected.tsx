@@ -26,7 +26,174 @@ type FormData = {
 }
 type NavigationProps = NativeStackScreenProps<any>;
 type AppDispatch = typeof store.dispatch;
+type PropType = {
+    errors?: any;
+    control?: any;
+    loading?: any;
+    handleSubmit?: any;
+    onSubmit?: any;
+    setTab?: any;
+    tab?: any;
+    clearErrors?: any;
+    nav?: any;
+}
+
 const {DeviceInfModule} = NativeModules;
+
+const EmailPhoneTabs = ({setTab, clearErrors, tab}: PropType) => {
+    return(
+        <View style={{display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'flex-end', paddingTop: 15}}>
+            <TouchableOpacity onPress={() => {
+                setTab(0)
+                clearErrors()
+            }} style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start'
+            }}>
+                <Text allowFontScaling={false} style={[{
+                    color: tab === 0 ? '#489AAB' : '#c6c6c6',
+                    paddingHorizontal: 10
+                }, {
+                    borderBottomWidth: tab === 0 ? 2 : 0,
+                    borderColor: '#489AAB'
+                }]}>Phone</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => {
+                setTab(1)
+                clearErrors()
+            }} style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start'
+            }}>
+                <Text allowFontScaling={false} style={[{
+                    color: tab === 1 ? '#489AAB' : '#c6c6c6',
+                    paddingHorizontal: 10
+                }, {
+                    borderBottomWidth: tab === 1 ? 2 : 0,
+                    borderColor: '#489AAB'
+                }]}>Email</Text>
+            </TouchableOpacity>
+        </View>
+    )
+};
+
+const PhoneInput = ({errors, control, loading, handleSubmit, onSubmit, clearErrors, nav}: PropType) => {
+    return (
+        <View style={{position: 'relative'}}>
+            <TouchableOpacity style={{position: 'absolute', top: '35%', left: '2%', zIndex: 10 }} onPress={() => {
+                clearErrors();
+                nav.navigation.navigate('Countries', {previous: nav.route.name});
+            }}>
+                <View style={{padding: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+                    {
+                        nav.route.params?.flag ? <View style={{display: 'flex', flexDirection: 'row'}}>
+                                <Image source={{uri: nav.route.params?.flag}} style={{width: 22, height: 18}}/>
+                                <Text allowFontScaling={false} style={{fontSize: 14, marginLeft: 10,
+                                    fontFamily: 'Poppins_400Regular',
+                                    color: errors.email ? '#d53b39': '#101828'}}>{nav.route.params?.code}</Text>
+                            </View>
+                            :
+                            <MaterialCommunityIcons name="diving-scuba-flag" size={20} color="#8d8d8d"/>
+                    }
+                    <AntDesign name="caretdown" size={8} color={nav.route.params?.code ? "#000000" : "#8d8d8d"} style={{marginLeft: 5, paddingBottom: 5}}/>
+                </View>
+            </TouchableOpacity>
+            <Controller
+                control={control}
+                /*rules={{
+                    required: true
+                }}*/
+                render={({field: {onChange, onBlur, value}}) => (
+                    <TextInput
+                        allowFontScaling={false}
+                        style={{
+                            ...styles.input,
+                            color: errors.phoneNumber ? '#d53b39': '#101828',
+                            borderColor: errors.phoneNumber ? '#d53b39': '#E3E5E5',
+                            paddingLeft: nav.route.params?.flag ? 100 : 60
+                        }}
+                        keyboardType="number-pad"
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        value={value}
+                        autoFocus={false}
+                        placeholder="Enter Phone Number"
+                        maxLength={12}
+                        editable={!loading}
+                        onSubmitEditing={handleSubmit(onSubmit)}
+                    />
+                )}
+                name="phoneNumber"
+            />
+        </View>
+    )
+};
+
+const EmailInput = ({errors, control, loading, handleSubmit, onSubmit}: PropType) => {
+    return (
+        <View>
+            <Controller
+                control={control}
+                /*rules={{
+                    required: true
+                }}*/
+                render={( { field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                        allowFontScaling={false}
+                        value={value}
+                        keyboardType="email-address"
+                        style={{
+                            ...styles.input,
+                            color: errors.email ? '#d53b39': '#101828',
+                            borderColor: errors.email ? '#d53b39': '#E3E5E5'
+                        }}
+                        onBlur={onBlur}
+                        placeholder="Enter Email"
+                        onChangeText={onChange}
+                        editable={!loading}
+                        onSubmitEditing={handleSubmit(onSubmit)}
+                    />
+                )}
+                name="email"
+            />
+        </View>
+    )
+};
+
+const IDInput = ({errors, control, loading, handleSubmit, onSubmit}: PropType) => {
+    return (
+        <View>
+            <Controller
+                control={control}
+                /*rules={{
+                    required: true
+                }}*/
+                render={( { field: { onChange, value,onBlur } }) => (
+                    <TextInput
+                        allowFontScaling={false}
+                        value={value}
+                        keyboardType="number-pad"
+                        style={{
+                            ...styles.input,
+                            color: errors.idNumber ? '#d53b39': '#101828',
+                            borderColor: errors.idNumber ? '#d53b39': '#E3E5E5'
+                        }}
+                        onBlur={onBlur}
+                        placeholder="Enter ID Number"
+                        onChangeText={onChange}
+                        editable={!loading}
+                        onSubmitEditing={handleSubmit(onSubmit)}
+                    />
+                )}
+                name="idNumber"
+            />
+        </View>
+    )
+}
 const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, nav: NavigationProps}) => {
     const [tab, setTab] = useState<number>(0);
     const {loading, selectedTenant} = useSelector((state: { auth: storeState }) => state.auth);
@@ -62,159 +229,9 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
         }
     }, [tenantId])
 
-    const EmailPhoneTabs = () => {
-        return(
-            <View style={{display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'flex-end', paddingTop: 15}}>
-                <TouchableOpacity onPress={() => {
-                    setTab(0)
-                    clearErrors()
-                }} style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'flex-start',
-                    alignItems: 'flex-start'
-                }}>
-                    <Text allowFontScaling={false} style={[{
-                        color: tab === 0 ? '#489AAB' : '#c6c6c6',
-                        paddingHorizontal: 10
-                    }, {
-                        borderBottomWidth: tab === 0 ? 2 : 0,
-                        borderColor: '#489AAB'
-                    }]}>Phone</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => {
-                    setTab(1)
-                    clearErrors()
-                }} style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'flex-start',
-                    alignItems: 'flex-start'
-                }}>
-                    <Text allowFontScaling={false} style={[{
-                        color: tab === 1 ? '#489AAB' : '#c6c6c6',
-                        paddingHorizontal: 10
-                    }, {
-                        borderBottomWidth: tab === 1 ? 2 : 0,
-                        borderColor: '#489AAB'
-                    }]}>Email</Text>
-                </TouchableOpacity>
-            </View>
-        )
-    };
 
-    const PhoneInput = () => {
-        return (
-            <View style={{position: 'relative'}}>
-                <TouchableOpacity style={{position: 'absolute', top: '35%', left: '2%', zIndex: 10 }} onPress={() => {
-                    clearErrors();
-                    nav.navigation.navigate('Countries', {previous: nav.route.name});
-                }}>
-                    <View style={{padding: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
-                        {
-                            nav.route.params?.flag ? <View style={{display: 'flex', flexDirection: 'row'}}>
-                                    <Image source={{uri: nav.route.params?.flag}} style={{width: 22, height: 18}}/>
-                                    <Text allowFontScaling={false} style={{fontSize: 14, marginLeft: 10,
-                                        fontFamily: 'Poppins_400Regular',
-                                        color: errors.email ? '#d53b39': '#101828'}}>{nav.route.params?.code}</Text>
-                                </View>
-                                :
-                                <MaterialCommunityIcons name="diving-scuba-flag" size={20} color="#8d8d8d"/>
-                        }
-                        <AntDesign name="caretdown" size={8} color={nav.route.params?.code ? "#000000" : "#8d8d8d"} style={{marginLeft: 5, paddingBottom: 5}}/>
-                    </View>
-                </TouchableOpacity>
-                <Controller
-                    control={control}
-                    /*rules={{
-                        required: true
-                    }}*/
-                    render={({field: {onChange, onBlur, value}}) => (
-                        <TextInput
-                            allowFontScaling={false}
-                            style={{
-                                ...styles.input,
-                                color: errors.phoneNumber ? '#d53b39': '#101828',
-                                borderColor: errors.phoneNumber ? '#d53b39': '#E3E5E5',
-                                paddingLeft: nav.route.params?.flag ? 100 : 60
-                            }}
-                            keyboardType="number-pad"
-                            onChangeText={onChange}
-                            onBlur={onBlur}
-                            value={value}
-                            autoFocus={false}
-                            placeholder="Enter Phone Number"
-                            maxLength={12}
-                            editable={!loading}
-                        />
-                    )}
-                    name="phoneNumber"
-                />
-            </View>
-        )
-    };
 
-    const EmailInput = () => {
-        return (
-            <View>
-                <Controller
-                    control={control}
-                    /*rules={{
-                        required: true
-                    }}*/
-                    render={( { field: { onChange, onBlur, value } }) => (
-                        <TextInput
-                            allowFontScaling={false}
-                            value={value}
-                            keyboardType="email-address"
-                            style={{
-                                ...styles.input,
-                                color: errors.email ? '#d53b39': '#101828',
-                                borderColor: errors.email ? '#d53b39': '#E3E5E5'
-                            }}
-                            onBlur={onBlur}
-                            placeholder="Enter Email"
-                            onChangeText={onChange}
-                            editable={!loading}
-                        />
-                    )}
-                    name="email"
-                />
-            </View>
-        )
-    };
-
-    const IDInput = () => {
-        return (
-            <View>
-                <Controller
-                    control={control}
-                    /*rules={{
-                        required: true
-                    }}*/
-                    render={( { field: { onChange, value,onBlur } }) => (
-                        <TextInput
-                            allowFontScaling={false}
-                            value={value}
-                            keyboardType="number-pad"
-                            style={{
-                                ...styles.input,
-                                color: errors.idNumber ? '#d53b39': '#101828',
-                                borderColor: errors.idNumber ? '#d53b39': '#E3E5E5'
-                            }}
-                            onBlur={onBlur}
-                            placeholder="Enter ID Number"
-                            onChangeText={onChange}
-                            editable={!loading}
-                        />
-                    )}
-                    name="idNumber"
-                />
-            </View>
-        )
-    }
-
-    const SubmitBtn = () => {
+   /* const SubmitBtn = () => {
         return (
             <View style={{ paddingVertical: 20, position: 'absolute', bottom: 0, right: 20 }}>
                 <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={loading} style={{alignSelf: 'flex-end'}} >
@@ -228,7 +245,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                 </TouchableOpacity>
             </View>
         )
-    };
+    };*/
 
     const onSubmit =  async (value: any): Promise<void> => {
         let phone = "";
@@ -337,15 +354,15 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
             {
                 tenantId === 't72767' &&
                 <View style={{ position: 'relative' }}>
-                    <EmailPhoneTabs/>
+                    <EmailPhoneTabs setTab={setTab} clearErrors={clearErrors} tab={tab} />
                     {
                         tab === 1 &&
-                        <EmailInput/>
+                        <EmailInput errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} />
                     }
 
                     {
                         tab === 0 &&
-                        <PhoneInput/>
+                        <PhoneInput errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={nav}/>
                     }
 
                     {
@@ -364,7 +381,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
             {
                 tenantId === 't74411' &&
                 <View  style={{ position: 'relative' }}>
-                    <PhoneInput/>
+                    <PhoneInput errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={nav}/>
                     {
                         (errors.phoneNumber) &&
                         <Text allowFontScaling={false}
@@ -377,7 +394,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                 tenantId === 't10099' &&
 
                 <View style={{ position: 'relative' }}>
-                    <IDInput/>
+                    <IDInput errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} />
                     {
                         (errors.idNumber) &&
                         <Text allowFontScaling={false} style={styles.error}>{errors.idNumber.message ? errors.idNumber.message : 'Required'}</Text>
@@ -385,10 +402,10 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                 </View>
             }
 
-            {
+            {/*{
                 tenantId &&
                 <SubmitBtn/>
-            }
+            }*/}
         </>
     )
 }

@@ -31,10 +31,10 @@ const SetTenant = (props: NavigationProps) => {
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <View style={styles.inner}>
                         <Logo style={{alignSelf: 'center', marginTop: 30}} width={width/2} height={height/4} />
-                        {/*<Text allowFontScaling={false} style={styles.header}>Start your Digital Journey here</Text>*/}
+                        <Text allowFontScaling={false} style={styles.header}>Start your Digital Journey here</Text>
                         <Text allowFontScaling={false} style={styles.tagLine}>Guarantee and sign loan forms digitally from anywhere, anytime.</Text>
                         <OrganisationIdentifier nav={props} />
-                        {/*<Text allowFontScaling={false} style={{ paddingTop: '50%', fontSize: 10, color: '#090A0A', textAlign: 'center', marginBottom: 10, fontFamily: 'Poppins_300Light' }}>By continuing, you agree to Presta's Terms of Service and privacy policy.</Text>*/}
+                        <Text allowFontScaling={false} style={{ paddingTop: '50%', fontSize: 10, color: '#090A0A', textAlign: 'center', marginBottom: 10, fontFamily: 'Poppins_300Light' }}>By continuing, you agree to Presta's Terms of Service and privacy policy.</Text>
                     </View>
                 </TouchableWithoutFeedback>
             </ScrollView>

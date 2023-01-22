@@ -191,7 +191,6 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
 
                 } catch (e: any) {
                     console.log(e)
-
                     CSTM.showToast(e)
                 }
             })()
@@ -212,10 +211,12 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
             await saveSecureKey('currentTenant', JSON.stringify(selectedTenant))
             const {type, error}: any = await dispatch(loginUser(loadOut))
             if (type === 'loginUser/rejected' && error) {
+                console.log(type, error);
                 if (error.message === "Network request failed") {
                     CSTM.showToast(error.message);
                 } else {
                     setError('pinConfirmation', {type: 'custom', message: error.message});
+                    setError('pin', {type: 'custom', message: error.message});
                 }
             } else {
                 dispatch(setAuthState(true));
@@ -225,14 +226,13 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
         }
     }
 
-    if (loading) {
+    console.log("isTermsAccepted", isTermsAccepted)
+    console.log("pinStatus", pinStatus)
+
+    if (fontsLoaded && userFound) {
         return (
-            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: height - 200, width }}>
-                <RotateView/>
-            </View>
-        )
-    } else if (fontsLoaded && userFound) {
-        return (
+            (isTermsAccepted && pinStatus === 'SET') ?
+
             <View style={styles.container}>
                 <Text allowFontScaling={false} style={{ color: '#489AAB', fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }} >Pin</Text>
                 <Controller
@@ -263,8 +263,63 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     errors.pin &&
                     <Text  allowFontScaling={false}  style={styles.error}>{errors.pin?.message ? errors.pin?.message : 'Invalid Pin'}</Text>
                 }
-                {!isTermsAccepted || pinStatus === 'TEMPORARY' && <Text allowFontScaling={false} style={{ color: '#489AAB', marginTop: 20, fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }}>Pin Confirmation</Text>}
-                {!isTermsAccepted || pinStatus === 'TEMPORARY' && <Controller
+
+                <View style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: 50,
+                    marginBottom: 5
+                }}>
+                    <Pressable style={styles.button} onPress={handleSubmit(loginSubmit)}>
+                        <View style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            {loading && <RotateView color="#FFFFFF"/>}
+                            <Text allowFontScaling={false} style={styles.buttonText}>Login</Text>
+                        </View>
+                    </Pressable>
+                </View>
+            </View>
+
+            :
+
+            <View style={styles.container}>
+                <Text allowFontScaling={false} style={{ color: '#489AAB', fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }} >Pin</Text>
+                <Controller
+                    control={control}
+                    rules={{
+                        required: true,
+                        maxLength: 4,
+                        minLength: 4
+                    }}
+                    render={( { field: { onChange, onBlur, value } }) => (
+                        <TextInput
+                            allowFontScaling={false}
+                            style={styles.input}
+                            value={value}
+                            autoFocus={false}
+                            onBlur={onBlur}
+                            onChangeText={onChange}
+                            maxLength={4}
+                            onChange={() => clearErrors()}
+                            placeholder="Enter Pin"
+                            keyboardType="number-pad"
+                            secureTextEntry={true}
+                        />
+                    )}
+                    name="pin"
+                />
+                {
+                    errors.pin &&
+                    <Text  allowFontScaling={false}  style={styles.error}>{errors.pin?.message ? errors.pin?.message : 'Invalid Pin'}</Text>
+                }
+                <Text allowFontScaling={false} style={{ color: '#489AAB', marginTop: 20, fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }}>Pin Confirmation</Text>
+                <Controller
                     control={control}
                     rules={{
                         required: !isTermsAccepted || pinStatus === 'TEMPORARY',
@@ -287,13 +342,13 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                         />
                     )}
                     name="pinConfirmation"
-                />}
+                />
                 {
                     errors.pinConfirmation &&
                     <Text  allowFontScaling={false}  style={styles.error}>{errors.pinConfirmation?.message ? errors.pinConfirmation?.message : 'Invalid Pin Confirmation'}</Text>
                 }
 
-                {!isTermsAccepted || pinStatus === 'TEMPORARY' && <View style={{
+                <View style={{
                     display: 'flex',
                     flexDirection: 'row',
                     justifyContent: 'center',
@@ -312,28 +367,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                             <Text allowFontScaling={false} style={styles.buttonText}>Save</Text>
                         </View>
                     </Pressable>
-                </View>}
-
-                {(isTermsAccepted &&  pinStatus !== 'TEMPORARY') && <View style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: 50,
-                    marginBottom: 5
-                }}>
-                    <Pressable style={styles.button} onPress={handleSubmit(loginSubmit)}>
-                        <View style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                        }}>
-                            {loading && <RotateView color="#FFFFFF"/>}
-                            <Text allowFontScaling={false} style={styles.buttonText}>Login</Text>
-                        </View>
-                    </Pressable>
-                </View>}
+                </View>
             </View>
         )
     } else {

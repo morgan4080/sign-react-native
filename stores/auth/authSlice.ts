@@ -756,6 +756,9 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
             scope: 'openid'
         }
 
+        console.log(JSON.stringify(details))
+        console.log(tenant)
+
         let formBody: any = [];
         for (const property in details) {
             let encodedKey = encodeURIComponent(property);
@@ -1924,7 +1927,7 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
 })
 
 export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string, {dispatch, getState}) => {
-    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}`;
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}&isActive=true`;
     try {
         const key = await getSecureKey('access_token')
         if (!key) {

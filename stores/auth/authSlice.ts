@@ -729,14 +729,10 @@ export const createPin = createAsyncThunk('createPin', async ({pinConfirmation, 
             const response = await fetch("https://eguarantorship-api.presta.co.ke/api/v1/members/update-terms-pin", requestOptions);
 
             if (response.status === 200) {
-                const data = await response.json()
+                const data = await response.json();
 
-                console.log('pin create results', data)
-
-                resolve(data)
+                resolve(data);
             } else {
-                console.log('Process Failed')
-
                 reject('Process Failed')
             }
         } catch(e: any) {

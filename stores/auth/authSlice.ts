@@ -752,9 +752,6 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
             scope: 'openid'
         }
 
-        console.log(JSON.stringify(details))
-        console.log(tenant)
-
         let formBody: any = [];
         for (const property in details) {
             let encodedKey = encodeURIComponent(property);

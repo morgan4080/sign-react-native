@@ -1331,7 +1331,10 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
 export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( payload: any, {dispatch, getState}) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const key = await getSecureKey('access_token');
+            const [key, notification_token] = await Promise.all([
+                getSecureKey('access_token'),
+                getSecureKey('notification-id')
+            ]);
 
             if (!key) {
                 reject('You are not authenticated');
@@ -1341,6 +1344,7 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
 
             myHeaders.append("Authorization", `Bearer ${key}`);
             myHeaders.append("Content-Type", 'application/json');
+            myHeaders.append("Notification-Id", notification_token);
 
             const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v2/loan-request', {
                 method: 'POST',

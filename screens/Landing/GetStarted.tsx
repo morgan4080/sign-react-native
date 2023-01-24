@@ -15,7 +15,7 @@ import {store} from "../../stores/store";
 import {getTenants, initializeDB, pingBeacon} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
-import {getSecureKey} from "../../utils/secureStore";
+import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import {RotateView} from "../Auth/VerifyOTP";
 import Onboarding from "../../components/Onboarding";
 import {registerForPushNotificationsAsync, registerTask} from "../../utils/notificationService";
@@ -71,11 +71,15 @@ export default function GetStarted({ navigation }: NavigationProps) {
                 try {
                     const token = await registerForPushNotificationsAsync();
                     if (token) {
-                        await dispatch(pingBeacon({
-                            appName: Constants.manifest?.android?.package,
-                            notificationTok: token,
-                            version: Constants.manifest?.version
-                        }))
+                        await Promise.allSettled([
+                            saveSecureKey('notification_id', token),
+                            dispatch(pingBeacon({
+                                appName: Constants.manifest?.android?.package,
+                                notificationTok: token,
+                                version: Constants.manifest?.version
+                            }))
+                        ])
+
                         registerTask();
                     }
                 } catch (e: any) {

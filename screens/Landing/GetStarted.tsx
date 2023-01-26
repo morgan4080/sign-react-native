@@ -46,7 +46,10 @@ export default function GetStarted({ navigation }: NavigationProps) {
             (async () => {
                 try {
                     checkToStartUpdate();
-
+                } catch (e: any) {
+                    console.log('checkToStartUpdate', e)
+                }
+                try {
                     const [oldBoy, phone, code, email, currentTenantId] = await Promise.all([
                         getSecureKey('existing'),
                         getSecureKey('phone_number_without'),

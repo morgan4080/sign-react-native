@@ -4,8 +4,8 @@ type ImmediateAppUpdateType = {
     startInAppUpdate(requestCode: number): void;
 }
 
-const GooglePlay: ImmediateAppUpdateType = NativeModules.GooglePlay;
+const GooglePlayApis: ImmediateAppUpdateType = NativeModules.GooglePlayApis;
 
 export const checkToStartUpdate = (requestCode?: number) => {
-    return GooglePlay.startInAppUpdate(requestCode || 14);
+    return GooglePlayApis.startInAppUpdate(requestCode || 14);
 };

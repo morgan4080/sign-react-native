@@ -39,6 +39,7 @@ public class MainApplication extends Application implements ReactApplication {
       packages.add(new SmsModulePackage());
       packages.add(new CountriesModulePackage());
       packages.add(new DeviceInfModulePackage());
+      packages.add(new GooglePlayModulePackage());
       return packages;
     }
 

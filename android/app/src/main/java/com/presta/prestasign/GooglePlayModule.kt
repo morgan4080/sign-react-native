@@ -96,6 +96,6 @@ class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContext
     }
 
     override fun getName(): String {
-        return "GooglePlay"
+        return "GooglePlayApis"
     }
 }

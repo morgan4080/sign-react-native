@@ -1,17 +1,24 @@
-package com.presta.prestasign;
+package com.presta.prestasign
 
-import com.facebook.react.bridge.NativeModule
+import android.content.IntentSender
+import android.view.ViewGroup
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import android.app.Activity
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.play.core.appupdate.AppUpdateInfo
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
 
-public class GooglePlayModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+
+class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     private var snackbar: Snackbar? = null
     @ReactMethod
     fun startInAppUpdate (requestCode: Int) {
-        val appUpdateManager = AppUpdateManagerFactory.create(context)
+        val appUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(reactContext)
 
         // Returns an intent object that you use to check for an update.
         val appUpdateInfoTask = appUpdateManager.appUpdateInfo
@@ -32,51 +39,62 @@ public class GooglePlayModule(reactContext: ReactApplicationContext) : ReactCont
 
                 // Request the update.
 
-                startAppUpdateImmediate(appUpdateInfo)
+                startAppUpdateImmediate(appUpdateInfo, requestCode)
 
             }
 
-            // if update in progress and triggered
-            if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
-                if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
-                    popupSnackbarForUserConfirmation("Update Already Downloaded");
-                } else {
-                    popupSnackbarForUserConfirmation("Update In Progress");
+            val activity = currentActivity
+
+            if (activity != null) {
+                val view: ViewGroup = activity.window.decorView.findViewById(android.R.id.content)
+
+                // if update in progress and triggered
+                if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                    if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                        popSnackBarForUserConfirmation("Update Already Downloaded", view)
+                    } else {
+                        popSnackBarForUserConfirmation("Update In Progress", view)
+                    }
                 }
             }
         }
     }
 
-    fun startAppUpdateImmediate(appUpdateInfo: AppUpdateInfo) {
+    private fun startAppUpdateImmediate(appUpdateInfo: AppUpdateInfo, requestCode: Int) {
         try {
-            val currentActivity: Activity = getCurrentActivity()
-
-            appUpdateManager.startUpdateFlowForResult(
-                    // Pass the intent that is returned by 'getAppUpdateInfo()'.
-                    appUpdateInfo,
-                    // Or 'AppUpdateType.FLEXIBLE' for flexible updates.
-                    AppUpdateType.IMMEDIATE,
-                    // The current activity making the update request.
-                    currentActivity,
-                    // Include a request code to later monitor this update request.
-                    requestCode)
+            val appUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(reactContext)
+            val activity = currentActivity
+            if (currentActivity != null) {
+                if (activity != null) {
+                    appUpdateManager.startUpdateFlowForResult(
+                        // Pass the intent that is returned by 'getAppUpdateInfo()'.
+                        appUpdateInfo,
+                        // Or 'AppUpdateType.FLEXIBLE' for flexible updates.
+                        AppUpdateType.IMMEDIATE,
+                        // The current activity making the update request.
+                        activity,
+                        // Include a request code to later monitor this update request.
+                        requestCode)
+                }
+            }
         } catch (e: IntentSender.SendIntentException) {
-
+            e.printStackTrace()
         }
     }
 
-    fun popupSnackbarForUserConfirmation(message: String) {
-        if (snackbar != null && snackbar.isShownOrQueued()) {
-            snackbar.dismiss();
+    private fun popSnackBarForUserConfirmation(message: String, view: ViewGroup) {
+        if (snackbar != null && snackbar!!.isShownOrQueued) {
+            snackbar!!.dismiss()
         }
-        val currentActivity: Activity = getCurrentActivity()
-        snackbar = Snackbar.make(currentActivity,
-                message,
-                Snackbar.LENGTH_INDEFINITE)
-        snackbar.show()
+
+        snackbar = Snackbar.make(
+            view,
+            message,
+            Snackbar.LENGTH_INDEFINITE
+        )
+        snackbar?.show()
     }
-
-
+    
     override fun getName(): String {
         return "GooglePlay"
     }

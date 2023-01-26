@@ -7,6 +7,7 @@ import {
     StatusBar as Bar,
     Image, Linking
 } from 'react-native';
+import {checkToStartUpdate} from "../../utils/immediateUpdate"
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -44,6 +45,8 @@ export default function GetStarted({ navigation }: NavigationProps) {
         if (initializing) {
             (async () => {
                 try {
+                    checkToStartUpdate();
+
                     const [oldBoy, phone, code, email, currentTenantId] = await Promise.all([
                         getSecureKey('existing'),
                         getSecureKey('phone_number_without'),

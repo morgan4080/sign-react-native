@@ -94,7 +94,7 @@ class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContext
         )
         snackbar?.show()
     }
-    
+
     override fun getName(): String {
         return "GooglePlay"
     }

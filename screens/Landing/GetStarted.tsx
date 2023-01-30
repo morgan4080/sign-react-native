@@ -7,7 +7,6 @@ import {
     StatusBar as Bar,
     Image, Linking
 } from 'react-native';
-import {checkToStartUpdate} from "../../utils/immediateUpdate"
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -16,10 +15,11 @@ import {store} from "../../stores/store";
 import {getTenants, initializeDB, pingBeacon} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
-import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import {RotateView} from "../Auth/VerifyOTP";
 import Onboarding from "../../components/Onboarding";
 import {registerForPushNotificationsAsync, registerTask} from "../../utils/notificationService";
+import {checkToStartUpdate, showSnack} from "../../utils/immediateUpdate";
+import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 
@@ -46,6 +46,9 @@ export default function GetStarted({ navigation }: NavigationProps) {
             (async () => {
                 try {
                     checkToStartUpdate();
+                    /*showSnack("Hey testing", "SUCCESS", "Retry", () => {
+                        console.log("testing callback")
+                    });*/
                 } catch (e: any) {
                     console.log('checkToStartUpdate', e)
                 }

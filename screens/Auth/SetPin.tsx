@@ -229,7 +229,11 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
     console.log("isTermsAccepted", isTermsAccepted)
     console.log("pinStatus", pinStatus)
 
-    if (fontsLoaded && userFound) {
+    if (loading) {
+        return <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+            <RotateView/>
+        </View>
+    } else if (fontsLoaded && userFound) {
         return (
             (isTermsAccepted && pinStatus === 'SET') ?
 

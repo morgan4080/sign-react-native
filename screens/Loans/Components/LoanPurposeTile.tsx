@@ -12,7 +12,7 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-type categoryType = {code: string, name: string, options: {code: string, name: string, selected: boolean, options: {code: string, name: string, selected: boolean}[]}[]}
+type categoryType = {code: string, name: string, options: { code: string, name: string, selected: boolean, options: { code: string, name: string, selected: boolean }[]}[]}
 interface propsInterface {
     category: categoryType,
     componentIndex: number,
@@ -54,12 +54,11 @@ export default function LoanPurposeTile({category, componentIndex, currentOpenIn
         }
     }
 
-    const updateSubCopyCategory = (checkBoxVal: boolean, index: number, i: number) => {
+    const updateSubCopyCategory = (checkBVal: boolean, index: number, i: number) => {
         let copyCategory = cloneDeep(selectedCategory)
-
         if (copyCategory) {
             copyCategory.options[index].selected = true;
-            copyCategory.options[index].options[i].selected = checkBoxVal;
+            copyCategory.options[index].options[i].selected = checkBVal;
             setSelectedCategory(copyCategory)
             setFormData(copyCategory)
         }
@@ -99,7 +98,14 @@ export default function LoanPurposeTile({category, componentIndex, currentOpenIn
                                                         onValueChange={(newValue) => updateSubCopyCategory(newValue, i, index)}
                                                         color={o.selected ? 'rgb(141,141,141)' : '#FFFFFF'}
                                                     />
-                                                    <Text allowFontScaling={false} style={{ ...styles.label, fontSize: 12, letterSpacing: 1 }}>{ o.name }</Text>
+                                                    <Text onPress={() => {
+                                                        if (selectedCategory) {
+                                                            updateSubCopyCategory(!selectedCategory.options[index].options[i].selected, i, index)
+                                                        } else {
+                                                            updateSubCopyCategory(true, i, index)
+                                                        }
+                                                    }
+                                                    } allowFontScaling={false} style={{ ...styles.label, fontSize: 12, letterSpacing: 1 }}>{ o.name }</Text>
                                                 </View>
                                             )
                                         })

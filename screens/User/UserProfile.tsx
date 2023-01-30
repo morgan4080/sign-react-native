@@ -245,7 +245,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                         height: height/2
                                     }}>
                                         <View style={{position: 'absolute', width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.2)'}}/>
-                                        <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(72,154,171,0.49)', borderRadius: 100, top: 50, left: 10 }}>
+                                        <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(72,154,171,0.49)', borderRadius: 100, top: '8%', left: 10 }}>
                                             <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                                             <Text allowFontScaling={false} style={[styles.subTitleText, {fontSize: 12, color: '#FFFFFF', paddingRight: 10, fontFamily: 'Poppins_300Light'}]}>PROFILE</Text>
                                         </TouchableOpacity>

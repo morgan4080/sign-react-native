@@ -1536,7 +1536,7 @@ export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', a
                     getSecureKey('refresh_token'),
                     getSecureKey('currentTenant')
                 ])
-                const refreshTokenPayload: refreshTokenPayloadType = {
+                /*const refreshTokenPayload: refreshTokenPayloadType = {
                     client_id: 'direct-access',
                     grant_type: 'refresh_token',
                     refresh_token,
@@ -1548,7 +1548,7 @@ export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', a
                     }
                 }
 
-                return await dispatch(refreshAccessToken(refreshTokenPayload))
+                return await dispatch(refreshAccessToken(refreshTokenPayload))*/
             } else {
                 setAuthState(false);
 
@@ -1599,7 +1599,7 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
                     getSecureKey('refresh_token'),
                     getSecureKey('currentTenant')
                 ])
-                const refreshTokenPayload: refreshTokenPayloadType = {
+                /*const refreshTokenPayload: refreshTokenPayloadType = {
                     client_id: 'direct-access',
                     grant_type: 'refresh_token',
                     refresh_token,
@@ -1615,7 +1615,7 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
                     }
                 }
 
-                await dispatch(refreshAccessToken(refreshTokenPayload));
+                await dispatch(refreshAccessToken(refreshTokenPayload));*/
             } else {
                 setAuthState(false);
 
@@ -1653,7 +1653,7 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
                     getSecureKey('refresh_token'),
                     getSecureKey('currentTenant')
                 ])
-                const refreshTokenPayload: refreshTokenPayloadType = {
+                /*const refreshTokenPayload: refreshTokenPayloadType = {
                     client_id: 'direct-access',
                     grant_type: 'refresh_token',
                     refresh_token,
@@ -1667,7 +1667,7 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
 
                 const rf = await dispatch(refreshAccessToken(refreshTokenPayload))
 
-                return Promise.resolve(rf)
+                return Promise.resolve(rf)*/
             } else {
                 setAuthState(false);
 
@@ -1838,7 +1838,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState,
                     getSecureKey('refresh_token'),
                     getSecureKey('currentTenant')
                 ])
-                const refreshTokenPayload: refreshTokenPayloadType = {
+                /*const refreshTokenPayload: refreshTokenPayloadType = {
                     client_id: 'direct-access',
                     grant_type: 'refresh_token',
                     refresh_token,
@@ -1852,7 +1852,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState,
 
                 const rf = await dispatch(refreshAccessToken(refreshTokenPayload))
 
-                return Promise.resolve(rf)
+                return Promise.resolve(rf)*/
             } else {
                 setAuthState(false);
 
@@ -1895,7 +1895,7 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
                     getSecureKey('refresh_token'),
                     getSecureKey('currentTenant')
                 ])
-                const refreshTokenPayload: refreshTokenPayloadType = {
+                /*const refreshTokenPayload: refreshTokenPayloadType = {
                     client_id: 'direct-access',
                     grant_type: 'refresh_token',
                     refresh_token,
@@ -1909,7 +1909,7 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
 
                 const rf = await dispatch(refreshAccessToken(refreshTokenPayload))
 
-                return Promise.resolve(rf)
+                return Promise.resolve(rf)*/
             } else {
                 setAuthState(false);
 
@@ -1995,9 +1995,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                             }
                         }
 
-                        const rf = await dispatch(refreshAccessToken(refreshTokenPayload))
-
-                        return Promise.resolve(rf)
+                        return await dispatch(refreshAccessToken(refreshTokenPayload))
                     } else {
                         setAuthState(false);
                         return Promise.reject(response.status);
@@ -2026,9 +2024,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                     }
                 }
 
-                const rf = await dispatch(refreshAccessToken(refreshTokenPayload))
-
-                return Promise.resolve(rf)
+                return await dispatch(refreshAccessToken(refreshTokenPayload))
             } else {
                 setAuthState(false);
 
@@ -2080,9 +2076,7 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
                     }
                 }
 
-                const rf = await dispatch(refreshAccessToken(refreshTokenPayload))
-
-                return Promise.resolve(rf)
+                return await dispatch(refreshAccessToken(refreshTokenPayload))
             } else {
                 setAuthState(false);
 
@@ -2165,9 +2159,7 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async (_,
                     }
                 }
 
-                const rf = await dispatch(refreshAccessToken(refreshTokenPayload))
-
-                return Promise.resolve(rf)
+                return await dispatch(refreshAccessToken(refreshTokenPayload))
             } else {
                 setAuthState(false);
 

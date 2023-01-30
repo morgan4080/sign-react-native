@@ -80,9 +80,16 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
     }
     const [optionSelected, setOptionSelected] = useState<boolean>(false);
     const setFormData = (data: CategoryType) => {
-        if (data.options.some((element) => element.selected)) {
+        const expected: any = data.options.reduce((acc:CategoryType | {}, curr) => {
+            if (curr.selected) {
+                let sel = curr.options.some(element => element.selected)
+                if (sel) acc = curr
+            }
+            return acc
+        }, {});
+        if (Object.keys(expected).length !== 0) {
             setOptionSelected(true);
-            setSelectedCategory(data);
+            setSelectedCategory(expected)
         } else {
             setOptionSelected(false);
             setSelectedCategory(null);
@@ -123,10 +130,12 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
                             </ScrollView>
                         </View>
                         <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity disabled={!optionSelected} onPress={() => selectedCategory ? navigation.navigate('GuarantorsHome', {
-                                category: selectedCategory,
-                                ...route.params
-                            }) : null} style={{ display: 'flex', alignItems: 'center', backgroundColor: !optionSelected? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                            <TouchableOpacity disabled={!optionSelected} onPress={() => {
+                                selectedCategory ? navigation.navigate('GuarantorsHome', {
+                                    category: selectedCategory,
+                                    ...route.params
+                                }) : null
+                            }} style={{ display: 'flex', alignItems: 'center', backgroundColor: optionSelected? '#489AAB' : '#CCCCCC', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                                 <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                             </TouchableOpacity>
                         </View>

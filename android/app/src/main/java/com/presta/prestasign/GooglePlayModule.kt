@@ -1,7 +1,10 @@
 package com.presta.prestasign
 
 import android.content.IntentSender
+import android.graphics.Color
+import android.view.View
 import android.view.ViewGroup
+import com.facebook.react.bridge.Callback
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -38,23 +41,17 @@ class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContext
               */
 
                 // Request the update.
-
+                popSnackBarForUserConfirmation("Starting Update", null, null, null)
                 startAppUpdateImmediate(appUpdateInfo, requestCode)
 
             }
 
-            val activity = currentActivity
-
-            if (activity != null) {
-                val view: ViewGroup = activity.window.decorView.findViewById(android.R.id.content)
-
-                // if update in progress and triggered
-                if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
-                    if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
-                        popSnackBarForUserConfirmation("Update Already Downloaded", view)
-                    } else {
-                        popSnackBarForUserConfirmation("Update In Progress", view)
-                    }
+            // if update in progress and triggered
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                    popSnackBarForUserConfirmation("Update Already Downloaded", "SUCCESS", null, null)
+                } else {
+                    popSnackBarForUserConfirmation("Update In Progress", "SUCCESS", null, null)
                 }
             }
         }
@@ -82,17 +79,46 @@ class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContext
         }
     }
 
-    private fun popSnackBarForUserConfirmation(message: String, view: ViewGroup) {
-        if (snackbar != null && snackbar!!.isShownOrQueued) {
-            snackbar!!.dismiss()
-        }
+    @ReactMethod
+    private fun popSnackBarForUserConfirmation(
+        message: String,
+        status: String?,
+        actionText: String?,
+        callback: Callback?
+    ) {
+        val activity = currentActivity
 
-        snackbar = Snackbar.make(
-            view,
-            message,
-            Snackbar.LENGTH_INDEFINITE
-        )
-        snackbar?.show()
+        if (activity != null) {
+            val view: ViewGroup = activity.window.decorView.findViewById(android.R.id.content)
+
+            if (snackbar != null && snackbar!!.isShownOrQueued) {
+                snackbar!!.dismiss()
+            }
+
+            snackbar = Snackbar.make(
+                view,
+                message,
+                Snackbar.LENGTH_LONG
+            )
+
+            if (actionText != null && callback != null) {
+                snackbar?.setActionTextColor(Color.parseColor("#FFFFFF"))
+                snackbar!!.setAction(actionText, View.OnClickListener {
+                    callback.invoke()
+                })
+            }
+
+            snackbar?.setTextColor(Color.parseColor("#FFFFFF"))
+
+            when (status) {
+                "SUCCESS" -> snackbar?.view?.setBackgroundColor(Color.parseColor("#80BFAD"))
+                "WARNING" -> snackbar?.view?.setBackgroundColor(Color.parseColor("#F29979"))
+                "ERROR" -> snackbar?.view?.setBackgroundColor(Color.parseColor("#D95F5F"))
+                else -> snackbar?.view?.setBackgroundColor(Color.parseColor("#3D889A"))
+            }
+
+            snackbar?.show()
+        }
     }
 
     override fun getName(): String {

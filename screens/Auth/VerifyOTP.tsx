@@ -12,7 +12,7 @@ import {
     TextInput,
     TouchableOpacity,
     View,
-    NativeModules
+    NativeModules, ActivityIndicator
 } from 'react-native';
 
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -52,32 +52,9 @@ interface RotateViewProps {
 }
 
 export const RotateView = ({color}: RotateViewProps) => {
-    const rotateAnim = useRef(new Animated.Value(0)).current
-
-    useEffect(() => {
-        Animated.loop(
-            Animated.timing(
-                rotateAnim,
-                {
-                    toValue: 1,
-                    duration: 3000,
-                    easing: Easing.linear,
-                    useNativeDriver: true
-                }
-            )
-        ).start();
-    }, [rotateAnim])
-
-    const spin = rotateAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg']
-    })
-
-    return (
-        <Animated.View style={{transform: [{rotate: spin}] }}>
-            <EvilIcons name="spinner-3" size={24} color={color ? color: "#489AAB"} />
-        </Animated.View>
-    );
+    return(
+        <ActivityIndicator size="small" color={color ? color: "#489AAB"} />
+    )
 }
 
 export default function VerifyOTP({ navigation }: NavigationProps) {

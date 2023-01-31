@@ -5,12 +5,11 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Switch,
   ScrollView,
   NativeModules,
   Image
 } from 'react-native';
-import {Camera, CameraCapturedPicture} from 'expo-camera';
+// import {Camera, CameraCapturedPicture} from 'expo-camera';
 import { Text, View } from 'react-native';
 import {editMember, logoutUser, storeState} from "../stores/auth/authSlice";
 import {
@@ -68,8 +67,9 @@ export default function ModalScreen({ navigation }: NavigationProps) {
     if (permCheck) {
       (async () => {
         setTakingPhoto(false);
-        const { status } = await Camera.requestCameraPermissionsAsync();
-        setHasPermission(status === 'granted');
+        // const { status } = await Camera.requestCameraPermissionsAsync();
+        // setHasPermission(status === 'granted');
+        setHasPermission(false);
       })();
     }
     return () => {
@@ -179,7 +179,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
     }
   }, [isLoggedIn, photo]);
 
-  if (takingPhoto) {
+  /*if (takingPhoto) {
     return (
         <Camera ratio="16:9" style={{...styles.container, width, height}} ref={cameraRef}>
           <View style={{position: 'absolute', bottom: 20, width, display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
@@ -202,12 +202,15 @@ export default function ModalScreen({ navigation }: NavigationProps) {
           </View>
         </Camera>
     );
-  } else {
+  } else {*/
     return (
         <View style={styles.container}>
           <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', paddingBottom: 50}}>
             <View style={{paddingTop: 50, width, display: 'flex', alignItems: 'center'}}>
-              {photo ? <TouchableOpacity onPress={() => takePic()} style={{...styles.userPicBtn, overflow: 'hidden'}}>
+              {photo ? <TouchableOpacity onPress={() => {
+                    // takePic()
+                    console.log("disabled camera")
+                  }} style={{...styles.userPicBtn, overflow: 'hidden'}}>
                     <Image style={{width: 108, height: 108, borderRadius: 50}} source={{ uri: "data:image/jpg;base64," + photo?.base64 }} />
                   </TouchableOpacity>
                   :
@@ -402,7 +405,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
           <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
         </View>
     );
-  }
+  /*}*/
 }
 
 const styles = StyleSheet.create({

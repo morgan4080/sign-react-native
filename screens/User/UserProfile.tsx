@@ -212,6 +212,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                 reloading();
             }
         } catch (e) {
+            console.log("user profile screen error", e)
             CSTM.showToast('Failed');
         }
     }

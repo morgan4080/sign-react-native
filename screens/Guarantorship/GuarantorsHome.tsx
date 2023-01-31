@@ -560,7 +560,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 }}>
                     <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 10, marginRight: 10, color: '#737373'}}>{ phonebook_contact_name }</Text>
 
-                    <AntDesign style={{ paddingRight: 10, paddingVertical: 5 }} name="adduser" size={18} color="rgba(0,0,0,0.89)" />
+                    <AntDesign style={{ paddingRight: 10, paddingVertical: 5, paddingLeft: 5, borderLeftWidth: 1, borderLeftColor: '#cccccc' }} name="contacts" size={18} color="rgba(0,0,0,0.89)" />
                 </Pressable>
             </View>
             <ContactSectionList contactsData={

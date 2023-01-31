@@ -257,21 +257,25 @@ export type storeState = {
 }
 
 const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> => {
-    const { status } = await Contacts.requestPermissionsAsync();
-    if (status === 'granted') {
-        const { data } = await Contacts.getContactsAsync();
-        if (data.length > 0) {
-            return data.reduce((acc: any[], contact: any) => {
-                if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-                    acc.push({name: contact.name, phone: contact.phoneNumbers[0].number})
-                }
-                return acc
-            }, [])
+    try {
+        const { status } = await Contacts.requestPermissionsAsync();
+        if (status === 'granted') {
+            const { data } = await Contacts.getContactsAsync();
+            if (data.length > 0) {
+                return data.reduce((acc: any[], contact: any) => {
+                    if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
+                        acc.push({name: contact.name, phone: contact.phoneNumbers[0].number})
+                    }
+                    return acc
+                }, [])
+            } else {
+                return []
+            }
         } else {
             return []
         }
-    } else {
-        return []
+    } catch (e: any) {
+        return Promise.reject("Could not retrieve contacts")
     }
 }
 

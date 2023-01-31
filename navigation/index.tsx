@@ -3,7 +3,7 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
-import {AntDesign} from '@expo/vector-icons';
+import {AntDesign, Ionicons} from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {NavigationContainer, DefaultTheme, RouteProp} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
@@ -45,6 +45,7 @@ import ReplaceActor from "../screens/Guarantorship/ReplaceActor";
 import SetTenant from "../screens/Onboarding/SetTenant";
 import OnboardingOTP from "../screens/Onboarding/OnboardingOTP";
 import Organisations from "../screens/Onboarding/Organisations";
+import {Button, TouchableOpacity} from "react-native";
 
 const Navigation = () => {
   const MyTheme = {
@@ -263,6 +264,7 @@ function BottomTabNavigator() {
         name="LoanRequests"
         component={LoanRequests}
         options={{
+            tabBarStyle: { display: "none" },
           title: 'Loan Requests',
           tabBarIcon: ({ focused, color, size }) => {
               let iconName;
@@ -292,8 +294,9 @@ function BottomTabNavigator() {
         <BottomTab.Screen
         name="ModalScreen"
         component={ModalScreen}
-        options={{
-            title: 'Settings',
+        options={({ navigation, route }) => ({
+            tabBarStyle: { display: "none" },
+            title: 'Account Settings',
             tabBarIcon: ({ focused, color, size }) => {
                 let iconName;
                 iconName = focused
@@ -301,8 +304,20 @@ function BottomTabNavigator() {
                     : 'setting';
                 return <TabBarIcon name="setting" color={color}/>
             },
-            headerShown: false
-        }}
+            headerShown: true,
+            headerStyle: {
+                backgroundColor: 'rgba(204,204,204,0.28)',
+            },
+            headerTintColor: '#489AAB',
+            headerTitleStyle: {
+                fontFamily: 'Poppins_600SemiBold'
+            },
+            headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Ionicons name="chevron-back-sharp" size={30} style={{ paddingLeft: 2 }} color="#489AAB" />
+                </TouchableOpacity>
+            ),
+        })}
         />
     </BottomTab.Navigator>
   );

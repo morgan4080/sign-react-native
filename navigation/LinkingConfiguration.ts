@@ -8,11 +8,12 @@ import { LinkingOptions } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 
 import { RootStackParamList } from '../types';
-import SelectTenant from "../screens/Auth/SelectTenant";
+
+const prefix = Linking.createURL('/');
 
 const linking: LinkingOptions<RootStackParamList> = {
-  prefixes: [Linking.createURL('presta-sign://app')],
-  config: {
+  prefixes: [prefix],
+  /*config: {
     screens: {
       Root: {
         screens: {
@@ -67,7 +68,7 @@ const linking: LinkingOptions<RootStackParamList> = {
       VerifyOTP: 'verify-otp',
       SignStatus: 'sign-status',
     },
-  },
+  },*/
 };
 
 export default linking;

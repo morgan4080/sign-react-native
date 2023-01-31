@@ -57,6 +57,7 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
         let catLoading = true;
         if (catLoading) {
             fetchLoanCategories().catch(error => {
+                console.log("reload categories error", error)
                 CSTM.showToast("Pull Down To Load")
             })
         }
@@ -89,7 +90,7 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
         }, {});
         if (Object.keys(expected).length !== 0) {
             setOptionSelected(true);
-            setSelectedCategory(expected)
+            setSelectedCategory(data)
         } else {
             setOptionSelected(false);
             setSelectedCategory(null);

@@ -121,7 +121,6 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
         let loan_purpose_2: string[] = [];
 
         let loan_purpose_3: string[] = [];
-
         route.params?.category.options.map((op: any) => {
             if (op.selected) {
                 op.options.map((o: any) => {

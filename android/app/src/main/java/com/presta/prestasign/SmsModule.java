@@ -251,16 +251,18 @@ public class SmsModule extends ReactContextBaseJavaModule {
 
             boolean isValid = phoneUtil.isValidNumber(phoneNumber);
 
-            if (isValid) {
-                HashMap<String, String> country_code_phone_number = new HashMap<String, String>();
-                country_code_phone_number.put("country_code", Long.toString(phoneNumber.getCountryCode()));
-                country_code_phone_number.put("phone_no", Long.toString(phoneNumber.getNationalNumber()));
-                Gson gson = new Gson();
-                String MapData = gson.toJson(country_code_phone_number);
-                promise.resolve(MapData);
+            HashMap<String, String> country_code_phone_number = new HashMap<String, String>();
+            country_code_phone_number.put("country_code", Long.toString(phoneNumber.getCountryCode()));
+            country_code_phone_number.put("phone_no", Long.toString(phoneNumber.getNationalNumber()));
+            Gson gson = new Gson();
+            String MapData = gson.toJson(country_code_phone_number);
+            promise.resolve(MapData);
+
+            /*if (isValid) {
+
             } else {
                 throw new NumberParseException(NOT_A_NUMBER, "Contact Phone Number Get failed");
-            }
+            }*/
         } catch (NumberParseException e) {
             promise.reject("Number parse error", e);
         }

@@ -322,7 +322,6 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                     } else {
                         // navigate to otp
                         const deviceId = await DeviceInfModule.getUniqueId();
-
                         const phoneDataJson = await requestPhoneNumberFormat(nav.route.params?.alpha2Code, response.payload.phoneNumber);
 
                         const {country_code, phone_no} = JSON.parse(phoneDataJson);

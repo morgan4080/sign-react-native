@@ -1841,8 +1841,9 @@ export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState,
                 const [refresh_token, currentTenant] = await Promise.all([
                     getSecureKey('refresh_token'),
                     getSecureKey('currentTenant')
-                ])
-                /*const refreshTokenPayload: refreshTokenPayloadType = {
+                ]);
+
+                const refreshTokenPayload: refreshTokenPayloadType = {
                     client_id: 'direct-access',
                     grant_type: 'refresh_token',
                     refresh_token,
@@ -1854,9 +1855,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState,
                     }
                 }
 
-                const rf = await dispatch(refreshAccessToken(refreshTokenPayload))
-
-                return Promise.resolve(rf)*/
+                return await dispatch(refreshAccessToken(refreshTokenPayload))
             } else {
                 setAuthState(false);
 
@@ -1898,8 +1897,9 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
                 const [refresh_token, currentTenant] = await Promise.all([
                     getSecureKey('refresh_token'),
                     getSecureKey('currentTenant')
-                ])
-                /*const refreshTokenPayload: refreshTokenPayloadType = {
+                ]);
+
+                const refreshTokenPayload: refreshTokenPayloadType = {
                     client_id: 'direct-access',
                     grant_type: 'refresh_token',
                     refresh_token,
@@ -1909,11 +1909,9 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
                         console.log('callback running');
                         await  dispatch(fetchWitnessRequests({memberRefId}))
                     }
-                }
+                };
 
-                const rf = await dispatch(refreshAccessToken(refreshTokenPayload))
-
-                return Promise.resolve(rf)*/
+                return await dispatch(refreshAccessToken(refreshTokenPayload));
             } else {
                 setAuthState(false);
 
@@ -2671,9 +2669,10 @@ const authSlice = createSlice({
           return state;
         },
         setSelectedTenantId(state, action) {
-            saveSecureKey('currentTenantId', action.payload).then(() => {
-                state.selectedTenantId = action.payload;
-            })
+            (async() => {
+                await saveSecureKey('currentTenantId', action.payload);
+            })()
+            state.selectedTenantId = action.payload;
             return state;
         },
         setAuthState(state, action) {

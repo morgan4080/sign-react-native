@@ -531,6 +531,12 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
     return (
         <GestureHandlerRootView style={styles.container}>
+            <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-end', marginHorizontal: 10, paddingHorizontal: 5}}>
+                <Pressable style={{paddingBottom: 6, paddingRight: 20}} onPress={() => navigation.goBack()}>
+                    <AntDesign name="arrowleft" size={24} color="#489AAB" />
+                </Pressable>
+                <Text style={{fontSize: 17, lineHeight: 22, letterSpacing: 0.5, paddingTop: 20, paddingBottom: 10 }}>Add Guarantors</Text>
+            </View>
             <View style={styles.searchableHeader}>
                 <Pressable style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} onPress={submitEdit}>
                     <AntDesign name="search1" size={15} color="rgba(0,0,0,0.89)" />

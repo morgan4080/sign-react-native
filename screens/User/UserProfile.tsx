@@ -23,7 +23,8 @@ import {
     fetchLoanProducts,
     editMember,
     logoutUser,
-    LoadOrganisation, setSelectedTenantId
+    LoadOrganisation,
+    setSelectedTenantId
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
@@ -86,33 +87,16 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     ]);
                     const { type, error, payload }: any = authStuff;
 
-                    if (payload && payload.tenantId) {
-                            const [a,b] = await Promise.all([
-                                dispatch(setSelectedTenantId(payload.tenantId)),
-                                dispatch(fetchMember()),
-                            ]);
+                    if (error) {
+                        return await dispatch(logoutUser())
+                    }
+                    if (type === 'authenticate/fulfilled') {
+                        if (payload && payload.tenantId) {
 
-                            if (b.type === 'fetchMember/rejected') {
-                                await dispatch(logoutUser())
-                            }
-
-                            const { email, details }: any = b.payload;
-
-                            if (!email) {
-                                handleSnapPress(1);
-                            }
-                            /*else {
-                                if (details && details.email_approval && details.email_approval.value && details.email_approval.value !== email) {
-                                    CSTM.showToast('Email Change Awaiting Approval')
-                                }
-                            }*/
-
-                            await Promise.all([
-                                dispatch(saveContactsToDb()),
-                                dispatch(fetchLoanProducts()),
-                                dispatch(LoadOrganisation())
-                            ])
-
+                            await loadUser(payload.tenantId)
+                        }
+                    } else {
+                        return await dispatch(logoutUser())
                     }
                 } catch (e: any) {
                     console.log('promise rejection', e);
@@ -123,6 +107,33 @@ export default function UserProfile({ navigation }: NavigationProps) {
             authenticating = false;
         }
     }, [reload]);
+
+    const loadUser = async (tenantID: any) => {
+        try {
+            const [a,{type, error, payload}, c, d, e]: any = await Promise.all([
+                dispatch(setSelectedTenantId(tenantID)),
+                dispatch(fetchMember()),
+                dispatch(LoadOrganisation()),
+                dispatch(saveContactsToDb()),
+                dispatch(fetchLoanProducts()),
+            ]);
+
+            if (error || type === 'fetchMember/rejected') {
+                return dispatch(logoutUser())
+            }
+        } catch (e: any) {
+            console.log("User Profile", e)
+            return dispatch(logoutUser())
+        }
+
+        /*const { email, details }: any = payload;
+
+        if (!email) {
+            handleSnapPress(1);
+        }*/
+
+        // details && details.email_approval && details.email_approval.value && details.email_approval.value !== email
+    }
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,

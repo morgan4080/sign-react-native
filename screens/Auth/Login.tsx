@@ -39,6 +39,7 @@ import { storeState, loginUserType } from "../../stores/auth/authSlice";
 import {FontAwesome5, Ionicons} from "@expo/vector-icons";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import {RotateView} from "./VerifyOTP";
+import {showSnack} from "../../utils/immediateUpdate";
 const { width, height } = Dimensions.get("window");
 
 type NavigationProps = NativeStackScreenProps<any>;
@@ -120,14 +121,19 @@ export default function Login({ navigation }: NavigationProps) {
                         }
                     }
                     let t = tenants.find(t => t.tenantId === currentTenantId);
-                    setTenant(t);
-                    const CT = organisations.find(org => org.tenantId === currentTenantId)
-                    if (CT) {
-                        setCurrentTenant(CT)
-                        await saveSecureKey('currentTenant', JSON.stringify(CT))
+                    if (t) {
+                        setTenant(t);
+                        const CT = organisations.find(org => org.tenantId === currentTenantId)
+                        if (CT) {
+                            setCurrentTenant(CT)
+                            await saveSecureKey('currentTenant', JSON.stringify(CT))
+                        }
+                    } else {
+                        navigation.navigate('GetStarted')
                     }
-                } catch (e) {
+                } catch (e: any) {
                     console.log("LOGGGGGIN AUTH ERROR",e)
+                    showSnack(`Login Error: ${e.message}`, "ERROR");
                 }
             })()
         }
@@ -588,7 +594,7 @@ export default function Login({ navigation }: NavigationProps) {
                             </View>
                         </View>
                     </View>
-                    <View style={{height: height/2.8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap'}}>
+                    <View style={{height: height/2.8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', paddingBottom: height/2.5}}>
                         {[1,2,3,4,5,6,7,8,9,-2,0,-1].map(num => (
                             <TouchableHighlight disabled={inputDisabled} underlayColor='#CCCCCC' onPress={() => onPressed(num)} key={num} style={{width: width/3, height: height/11, display: 'flex', justifyContent: 'center'}}>
                                 {

@@ -14,7 +14,8 @@ import {
     authenticate,
     fetchLoanProducts,
     storeState,
-    LoanProduct, checkExistingProduct
+    LoanProduct,
+    checkExistingProduct
 } from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
@@ -31,6 +32,7 @@ import {
 import {useEffect} from "react";
 import {RotateView} from "../Auth/VerifyOTP";
 import {showSnack} from "../../utils/immediateUpdate";
+import {LoanRequestData} from "../User/LoanRequests";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -80,10 +82,29 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
         console.log(payloadOut)
         dispatch(checkExistingProduct(payloadOut)).then(({type, error, payload}: any) => {
             if (type === 'checkExistingProduct/rejected') {
-                showSnack(error.message, "ERROR")
+                showSnack(`Error checking existing loans: ${error.message}`, "ERROR")
             } else {
-                // navigation.navigate('LoanProduct', { loanProduct: product })
-                console.log("fulfilled", payload)
+                if (payload && payload.empty) {
+                    navigation.navigate('LoanProduct', { loanProduct: product })
+                } else {
+                    const applicationCompleted= payload.content.some((loan_request: any) => loan_request.applicationStatus === 'COMPLETED');
+                    const applicationInProgress= payload.content.some((loan_request: any) => loan_request.applicationStatus === 'INPROGRESS');
+                    const signingCompleted = payload.content.some((loan_request: any) => loan_request.signingStatus === 'COMPLETED');
+
+                    if (applicationCompleted && signingCompleted) {
+                        const existingInProgress = payload.content.find((curr: LoanRequestData) => curr.applicationStatus === 'COMPLETED' && curr.signingStatus === 'INPROGRESS')
+                        if (existingInProgress) {
+                            console.log(existingInProgress)
+                        } else {
+                            const existingCompleted = payload.content.find((curr: LoanRequestData) => curr.applicationStatus === 'COMPLETED' && curr.signingStatus === 'COMPLETED')
+                            showSnack(`The same loan product was requested lastly on: ${existingCompleted.loanDate}`)
+                            navigation.navigate('LoanProduct', { loanProduct: product })
+                        }
+                    } else if (applicationInProgress) {
+                        console.log("applicationInProgress", applicationInProgress)
+                    }
+                    // console.log(payload)
+                }
             }
         }, (test) => {
             console.log("rejected", test)

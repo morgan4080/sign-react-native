@@ -259,6 +259,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                             placeholder="Enter Pin"
                             keyboardType="number-pad"
                             secureTextEntry={true}
+                            onSubmitEditing={handleSubmit(loginSubmit)}
                         />
                     )}
                     name="pin"

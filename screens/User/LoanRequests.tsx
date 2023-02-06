@@ -61,7 +61,7 @@ interface GuarantorData {
     availableAmount: number,
     totalDeposits: number
 }
-interface LoanRequestData {
+export interface LoanRequestData {
     "refId": string,
     "loanDate": string,
     "loanRequestNumber": string,

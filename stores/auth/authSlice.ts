@@ -279,9 +279,10 @@ const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> =
     }
 }
 
-export const checkExistingProduct = createAsyncThunk('checkExistingProduct', async ({productRefId, memberRefId}: { productRefId: string, memberRefId: string }) => {
+export const checkExistingProduct = createAsyncThunk('checkExistingProduct', async ({productRefId, memberRefId}: { productRefId: string, memberRefId: string }, {dispatch, getState}) => {
     //&loanReqStatus=OPEN&order=ASC&pageSize=10&isActive=false productRefId=${productRefId}&
-    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}`
+    // https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=eBodx2asJRjwSn1E&order=ASC&pageSize=10&pageIndex=0&isActive=true
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}&productRefId=${productRefId}&order=ASC&pageSize=10&pageIndex=0&isActive=true`
     try {
         const key = await getSecureKey('access_token');
         if (!key) {
@@ -302,6 +303,32 @@ export const checkExistingProduct = createAsyncThunk('checkExistingProduct', asy
 
         if (response.status === 200) {
             return Promise.resolve(data)
+        } else if (response.status === 401) {
+            // update refresh token and retry
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await dispatch(checkExistingProduct({productRefId, memberRefId}))
+                    }
+                }
+
+                return await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+
+                return Promise.reject(response.status);
+            }
         } else {
             if (data) {
                 return Promise.reject(data)
@@ -1958,7 +1985,7 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
 })
 
 export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string, {dispatch, getState}) => {
-    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}&isActive=true`;
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}&order=ASC&pageSize=10&pageIndex=0&isActive=true`;
     try {
         const key = await getSecureKey('access_token')
         if (!key) {

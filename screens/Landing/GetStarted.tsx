@@ -60,14 +60,18 @@ export default function GetStarted({ navigation }: NavigationProps) {
                         getSecureKey('account_email'),
                         getSecureKey('currentTenantId'),
                     ]);
-
                     if (oldBoy === 'true' && currentTenantId) {
-                        await dispatch(getTenants(`${code}${phone}`)).then(tenants => {
-                            navigation.navigate('Login', {
-                                countryCode: code,
-                                phoneNumber: phone,
-                                email
-                            });
+                        dispatch(getTenants(`${code}${phone}`))
+                        .then(({type, meta, error}: any) => {
+                            if (type === 'getTenants/rejected' && error) {
+                                showSnack(`Tenants not found: ${error.message}`, "ERROR");
+                            } else {
+                                navigation.navigate('Login', {
+                                    countryCode: code,
+                                    phoneNumber: phone,
+                                    email
+                                });
+                            }
                         }).catch(error => {
                             console.log("old boy error", error)
                         })

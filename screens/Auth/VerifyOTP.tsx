@@ -1,7 +1,5 @@
 import {
-    Animated,
     Dimensions,
-    Easing,
     Image,
     Keyboard,
     SafeAreaView,
@@ -12,7 +10,8 @@ import {
     TextInput,
     TouchableOpacity,
     View,
-    NativeModules, ActivityIndicator
+    NativeModules,
+    ActivityIndicator
 } from 'react-native';
 
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -31,7 +30,6 @@ import {
 } from '@expo-google-fonts/poppins';
 import {useEffect, useRef, useState} from "react";
 import {getSecureKey} from "../../utils/secureStore";
-import {EvilIcons} from "@expo/vector-icons";
 import {receiveVerificationSMS, startSmsUserConsent} from "../../utils/smsVerification";
 
 const {CSTM} = NativeModules;

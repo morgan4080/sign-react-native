@@ -279,6 +279,40 @@ const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> =
     }
 }
 
+export const checkExistingProduct = createAsyncThunk('checkExistingProduct', async ({productRefId, memberRefId}: { productRefId: string, memberRefId: string }) => {
+    //&loanReqStatus=OPEN&order=ASC&pageSize=10&isActive=false productRefId=${productRefId}&
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}`
+    try {
+        const key = await getSecureKey('access_token');
+        if (!key) {
+            return Promise.reject('You are not authenticated');
+        }
+
+        const myHeaders = new Headers();
+
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        myHeaders.append("Content-Type", 'application/json');
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: myHeaders,
+        });
+
+        const data = await response.json();
+
+        if (response.status === 200) {
+            return Promise.resolve(data)
+        } else {
+            if (data) {
+                return Promise.reject(data)
+            }
+            return Promise.reject(response.status + ": Could not check for existing loan")
+        }
+    } catch (e: any) {
+        return Promise.reject(e)
+    }
+})
+
 export const hasPinCheck = createAsyncThunk('hasPinCheck', async ({access_token, phoneNumber}: {access_token: string, phoneNumber: string}) => {
     try {
         if (!access_token) {
@@ -1003,8 +1037,6 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dis
             const data = await response.json();
             console.log("data in sendOtp", data);
             if (data.success) {
-                const { CSTM } = NativeModules;
-                CSTM.showToast('Please Wait');
                 return Promise.resolve(data);
             } else {
                 return Promise.reject(data.message);
@@ -2809,7 +2841,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(loginUser.fulfilled, (state,action) => {
-            // state.isLoggedIn = true
+            state.isLoggedIn = true
             state.loading = false;
         })
         builder.addCase(loginUser.rejected, (state, error) => {
@@ -3120,7 +3152,7 @@ const authSlice = createSlice({
         })
         builder.addCase(verifyOtp.fulfilled, (state, action: any) => {
             state.optVerified = true;
-            state.isLoggedIn = true;
+            // state.isLoggedIn = true;
             state.loading = false;
         })
         builder.addCase(verifyOtp.rejected, (state, action) => {

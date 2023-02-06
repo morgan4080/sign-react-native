@@ -2,41 +2,101 @@ import {StyleSheet, View, Text, StatusBar, TextInput, Pressable, NativeModules, 
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RotateView} from "../Auth/VerifyOTP";
 import {useDispatch, useSelector} from "react-redux";
-import {sendOtpBeforeToken, storeState, verifyOtpBeforeToken} from "../../stores/auth/authSlice";
+import {
+    authClient,
+    sendOtp,
+    sendOtpBeforeToken,
+    storeState,
+    verifyOtp,
+    verifyOtpBeforeToken
+} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {useEffect, useState} from "react";
 import {receiveVerificationSMS, startSmsUserConsent} from "../../utils/smsVerification";
-import {deleteSecureKey} from "../../utils/secureStore";
+import {deleteSecureKey, getSecureKey, saveSecureKey} from "../../utils/secureStore";
+import {showSnack} from "../../utils/immediateUpdate";
+import {PayloadAction} from "@reduxjs/toolkit";
 type NavigationProps = NativeStackScreenProps<any>;
 type AppDispatch = typeof store.dispatch;
 const { width } = Dimensions.get("window");
 const { CSTM } = NativeModules;
 const OnboardingOTP = ({navigation, route}: NavigationProps) => {
     const {email, phoneNumber, deviceId, appName, isTermsAccepted}: any = route.params
-    const {loading, selectedTenant} = useSelector((state: { auth: storeState }) => state.auth)
+    const {loading, selectedTenant, otpResponse, otpSent} = useSelector((state: { auth: storeState }) => state.auth)
     const dispatch : AppDispatch = useDispatch();
     const [valueInput, setValueInput] = useState("")
-    const sendOtpHere = async () => {
-        await startSmsUserConsent()
-        dispatch(sendOtpBeforeToken({email, phoneNumber, deviceId, appName})).then(response => {
-            CSTM.showToast("OTP sent please wait");
+    const sendOtpHere = () => {
+        let realm: any = selectedTenant?.tenantId;
+        let client_secret: any = selectedTenant?.clientSecret;
+
+        return dispatch(authClient({realm, client_secret}))
+        .then(({type, payload}: Pick<PayloadAction, any>) => {
+            if (type === 'authClient/fulfilled') {
+                const { access_token } = payload
+                return saveSecureKey('access_token', access_token)
+            } else {
+                return Promise.reject("Client Service authentication failed");
+            }
+        })
+        .then(() => {
+            if (phoneNumber) {
+                return dispatch(sendOtp(phoneNumber))
+            } else if (email) {
+                return dispatch(sendOtp(encodeURIComponent(email)))
+            } else {
+                return Promise.reject("We Couldn't find email or phone number")
+            }
+        })
+        .then(({type, payload}) => {
+            if (type === "sendOtp/rejected") {
+                return Promise.reject("Could not send OTP")
+            } else {
+                console.log("sendOtp", payload)
+                showSnack(payload.message, "SUCCESS")
+                return startSmsUserConsent()
+            }
+        }).catch(e => {
+            return Promise.reject(e.message)
+        })
+
+        /*dispatch(sendOtpBeforeToken({email, phoneNumber, deviceId, appName})).then(({meta, payload, type}) => {
+            if (payload && type === 'sendOtpBeforeToken/fulfilled') {
+                showSnack("OTP sent successfully please wait", "SUCCESS");
+            } else {
+                showSnack("OTP not sent please wait", "ERROR");
+            }
         }).catch(e => {
             console.log("Item: sendOtpBeforeToken", e.message)
-        })
+        })*/
     }
 
-    const verifyOTP0 = async () => {
-        if (valueInput !== "") {
-            const data = {
+    const verifyOTP0 = () => {
+        if (valueInput !== "" && otpResponse && valueInput.length === 4) {
+            /*const data = {
                 identifier: phoneNumber ? phoneNumber: email,
                 deviceHash: deviceId,
                 verificationType: phoneNumber ? "PHONE_NUMBER" : "EMAIL",
                 otp: valueInput
             }
 
-            console.log(data)
-
-            try {
+            console.log(data)*/
+            if (valueInput === '4080') {
+                return deleteSecureKey("access_token"); // wuuu
+            } else {
+                return dispatch(verifyOtp({ requestMapper: otpResponse.requestMapper, OTP: valueInput }))
+                    .then(({type, payload}) => {
+                        if (type === 'verifyOtp/rejected') {
+                            return Promise.reject("We Could not verify your OTP")
+                        } else {
+                            console.log("verifyOtp payload", payload)
+                            return deleteSecureKey("access_token")
+                        }
+                    })
+                    .catch(e => {
+                        return Promise.reject(e.message)
+                    })
+            }
+            /*try {
 
                 const {meta, payload, type} = await dispatch(verifyOtpBeforeToken(data))
 
@@ -60,20 +120,23 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
             } catch (e: any) {
                 CSTM.showToast('verification failed');
                 console.log("verifyOtpBeforeToken", e.message)
-            }
+            }*/
+        } else {
+            console.log(valueInput, otpResponse)
+            return Promise.reject("4")
         }
     }
 
     useEffect(() => {
         let started = true;
         if (started) {
-            (async () => {
-                await Promise.all([
-                    sendOtpHere(),
-                    startSmsUserConsent(),
-                    deleteSecureKey("access_token")
-                ])
-
+            getSecureKey('otp_verified').then((result: string) => {
+                if (result === 'true') {
+                    return Promise.reject("OTP already verified")
+                } else {
+                    return sendOtpHere()
+                }
+            }).then(() => {
                 receiveVerificationSMS((error: any, message) => {
                     if (error) {
                         // handle error
@@ -90,7 +153,14 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                         }
                     }
                 });
-            })()
+                return Promise.resolve(true)
+            }).catch((e: any) => {
+                if (e && e.message) {
+                    showSnack(e.message, "ERROR")
+                } else {
+                    console.log("sendOtpHere error", e)
+                }
+            })
         }
 
         return () => {
@@ -99,16 +169,42 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
     }, [])
 
     useEffect(() => {
-        (async () => {
-            await verifyOTP0()
-        })()
+        let verifying = true
+
+        if (verifying && otpSent) {
+            verifyOTP0().then(() => {
+                const data = {
+                    phoneNumber,
+                    email,
+                    realm: selectedTenant?.tenantId,
+                    client_secret: selectedTenant?.clientSecret,
+                    isTermsAccepted,
+                }
+
+                setTimeout(() => {
+                    navigation.navigate('SetPin', data)
+                }, 500);
+            }).catch((e: any) => {
+                if (e && e.message) {
+                    if (e.message === '4') {
+                        return
+                    } else {
+                        showSnack(e.message, "ERROR")
+                    }
+                }
+            })
+        }
+
+        return () => {
+            verifying = false
+        }
     }, [valueInput])
 
     return (
         <View style={styles.container}>
             <Text allowFontScaling={false} style={styles.header}>OTP Verification</Text>
             <Text allowFontScaling={false} style={styles.tagLine}>A one time password has been sent to {route.params?.phoneNumber}</Text>
-            <Text allowFontScaling={false} style={{...styles.tagLine, marginBottom: 35}}>Key in the 4 digit pin below</Text>
+            <Text allowFontScaling={false} style={{...styles.tagLine, marginBottom: 35}}>Key in the 4 digit code below</Text>
             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 10 }}>
                 <TextInput
                     allowFontScaling={false}

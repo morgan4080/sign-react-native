@@ -5,7 +5,8 @@ import {
     StyleSheet,
     TouchableOpacity,
     View,
-    Text, VirtualizedList, SectionList
+    Text,
+    SectionList
 } from "react-native";
 import {Ionicons, MaterialIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
@@ -13,7 +14,7 @@ import {
     authenticate,
     fetchLoanProducts,
     storeState,
-    LoanProduct
+    LoanProduct, checkExistingProduct
 } from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
@@ -29,13 +30,15 @@ import {
 } from "@expo-google-fonts/poppins";
 import {useEffect} from "react";
 import {RotateView} from "../Auth/VerifyOTP";
+import {showSnack} from "../../utils/immediateUpdate";
 
 type NavigationProps = NativeStackScreenProps<any>
 
 const { width, height } = Dimensions.get("window");
 
+// https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?productRefId=productRefId&memberRefId=memberRefId&loanReqStatus=OPEN&order=ASC&pageSize=10&isActive=false
 export default function LoanProducts ({ navigation }: NavigationProps) {
-    const { loading, loanProducts } = useSelector((state: { auth: storeState }) => state.auth);
+    const { loading, loanProducts, member } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
 
     const dispatch : AppDispatch = useDispatch();
@@ -72,8 +75,25 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
         Poppins_300Light
     });
 
+    const checkPendingLoan = (product: LoanProduct) => {
+        const payloadOut = {productRefId: product.refId, memberRefId: `${member?.refId}`}
+        console.log(payloadOut)
+        dispatch(checkExistingProduct(payloadOut)).then(({type, error, payload}: any) => {
+            if (type === 'checkExistingProduct/rejected') {
+                showSnack(error.message, "ERROR")
+            } else {
+                // navigation.navigate('LoanProduct', { loanProduct: product })
+                console.log("fulfilled", payload)
+            }
+        }, (test) => {
+            console.log("rejected", test)
+        }).catch(e => {
+            console.log(e)
+        })
+    }
+
     const Item = ({ product }: { product: LoanProduct } ) => (
-        <TouchableOpacity key={product.refId} style={styles.tile} onPress={() => navigation.navigate('LoanProduct', { loanProduct: product })}>
+        <TouchableOpacity key={product.refId} style={styles.tile} onPress={() => checkPendingLoan(product)}>
             <Text allowFontScaling={false} style={{color: '#575757', fontFamily: 'Poppins_400Regular', fontSize: 13}}>{ product.name }</Text>
             <MaterialIcons name="keyboard-arrow-right" size={40} color="#ADADAD"/>
         </TouchableOpacity>

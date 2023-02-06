@@ -99,7 +99,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                             access_token: access_token,
                             phoneNumber: phoneNumber
                         }));
-                        if (payload.pinStatus === 'TEMPORARY') {
+                        if (payload.pinStatus) {
                             setPinStatus(payload.pinStatus);
                         }
                         const response: any = await dispatch(searchByPhone({phoneNumber, access_token}))

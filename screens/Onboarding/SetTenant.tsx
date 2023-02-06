@@ -13,10 +13,14 @@ import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import Logo from "../../assets/images/Presta Sign Logo - colour.svg";
 import OrganisationIdentifier from "../../components/OrganisationIdentifier";
 import {useEffect, useRef} from "react";
+import {saveSecureKey} from "../../utils/secureStore";
 const { width, height } = Dimensions.get("window");
 type NavigationProps = NativeStackScreenProps<any>;
 const SetTenant = (props: NavigationProps) => {
     useEffect(() => {
+        (async () =>{
+            await saveSecureKey('otp_verified', 'false')
+        })()
         return () => {
             Keyboard.removeAllListeners('keyboardDidShow');
         }

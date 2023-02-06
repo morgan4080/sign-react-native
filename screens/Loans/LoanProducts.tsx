@@ -6,7 +6,8 @@ import {
     TouchableOpacity,
     View,
     Text,
-    SectionList
+    SectionList,
+    Alert
 } from "react-native";
 import {Ionicons, MaterialIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
@@ -31,8 +32,9 @@ import {
 } from "@expo-google-fonts/poppins";
 import {useEffect} from "react";
 import {RotateView} from "../Auth/VerifyOTP";
-import {showSnack} from "../../utils/immediateUpdate";
+import {dismissSnack, showSnack} from "../../utils/immediateUpdate";
 import {LoanRequestData} from "../User/LoanRequests";
+import {toMoney} from "../User/Account";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -94,7 +96,26 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                     if (applicationCompleted && signingCompleted) {
                         const existingInProgress = payload.content.find((curr: LoanRequestData) => curr.applicationStatus === 'COMPLETED' && curr.signingStatus === 'INPROGRESS')
                         if (existingInProgress) {
-                            console.log(existingInProgress)
+                            console.log("existingInProgress",JSON.stringify(existingInProgress));
+                            showSnack(`An existing ${existingInProgress.loanProductName} of ${toMoney(existingInProgress.loanAmount)} is in progress from: ${existingInProgress.loanDate}`, "", "Resolve", true, () => {
+                                dismissSnack()
+                                return Alert.alert(`Resolve ${existingInProgress.loanProductName}`, `You can proceed to create a new loan request or resolve existing ${existingInProgress.loanRequestNumber} of ${toMoney(existingInProgress.loanAmount)} created on ${existingInProgress.loanDate}`, [
+                                    {
+                                        text: 'Proceed',
+                                        onPress: () => navigation.navigate('LoanProduct', { loanProduct: product }),
+                                        style: 'cancel'
+                                    },
+                                    {
+                                        text: 'Resolve',
+                                        onPress: () => {
+                                            navigation.navigate("LoanRequests", {
+                                                loan: existingInProgress
+                                            })
+                                        },
+                                    }
+                                ])
+                                // dismiss snack here before performing next action
+                            });
                         } else {
                             const existingCompleted = payload.content.find((curr: LoanRequestData) => curr.applicationStatus === 'COMPLETED' && curr.signingStatus === 'COMPLETED')
                             showSnack(`The same loan product was requested lastly on: ${existingCompleted.loanDate}`)

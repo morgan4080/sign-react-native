@@ -3029,7 +3029,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(requestSignURL.fulfilled, (state, action: any) => {
-            console.log("requestSignURL", action.payload)
+            // console.log("requestSignURL", action.payload)
             state.loading = false
         })
         builder.addCase(requestSignURL.rejected, (state, action) => {

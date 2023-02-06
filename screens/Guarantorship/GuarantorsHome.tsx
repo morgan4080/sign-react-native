@@ -11,11 +11,12 @@ import {
     Text,
     View,
     Dimensions,
-    NativeModules, TouchableOpacity, Switch, Button,
+    NativeModules,
+    TouchableOpacity
 } from "react-native";
 type NavigationProps = NativeStackScreenProps<any>;
 import {Controller, useForm} from "react-hook-form";
-import {AntDesign, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {AntDesign, MaterialIcons} from "@expo/vector-icons";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {getContact, requestPhoneNumberFormat} from "../../utils/smsVerification";
 import {getSecureKey} from "../../utils/secureStore";

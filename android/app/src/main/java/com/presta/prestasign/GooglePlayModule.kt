@@ -41,7 +41,7 @@ class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContext
               */
 
                 // Request the update.
-                popSnackBarForUserConfirmation("Starting Update", null, null, null)
+                popSnackBarForUserConfirmation("Starting Update", null, null, false, null)
                 startAppUpdateImmediate(appUpdateInfo, requestCode)
 
             }
@@ -49,9 +49,9 @@ class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContext
             // if update in progress and triggered
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
                 if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
-                    popSnackBarForUserConfirmation("Update Already Downloaded", "SUCCESS", null, null)
+                    popSnackBarForUserConfirmation("Update Already Downloaded", "SUCCESS", null, false, null)
                 } else {
-                    popSnackBarForUserConfirmation("Update In Progress", "SUCCESS", null, null)
+                    popSnackBarForUserConfirmation("Update In Progress", "SUCCESS", null, false, null)
                 }
             }
         }
@@ -84,6 +84,7 @@ class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContext
         message: String,
         status: String?,
         actionText: String?,
+        INDEFINITE: Boolean?,
         callback: Callback?
     ) {
         val activity = currentActivity
@@ -95,11 +96,20 @@ class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContext
                 snackbar!!.dismiss()
             }
 
-            snackbar = Snackbar.make(
-                view,
-                message,
-                Snackbar.LENGTH_LONG
-            )
+            if (INDEFINITE == true) {
+                snackbar = Snackbar.make(
+                    view,
+                    message,
+                    Snackbar.LENGTH_INDEFINITE
+                )
+            } else {
+                snackbar = Snackbar.make(
+                    view,
+                    message,
+                    Snackbar.LENGTH_LONG
+                )
+            }
+
 
             if (actionText != null && callback != null) {
                 snackbar?.setActionTextColor(Color.parseColor("#FFFFFF"))
@@ -118,6 +128,13 @@ class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContext
             }
 
             snackbar?.show()
+        }
+    }
+
+    @ReactMethod
+    private fun dismissSnack() {
+        if (snackbar != null && snackbar!!.isShownOrQueued) {
+            snackbar!!.dismiss()
         }
     }
 

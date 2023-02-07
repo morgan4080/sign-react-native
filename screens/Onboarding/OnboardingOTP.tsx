@@ -81,10 +81,11 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
 
             console.log(data)*/
             if (valueInput === '4080') {
-                await saveSecureKey('otp_verified', 'true')
-                await saveSecureKey('existing', 'true')
-                await deleteSecureKey("access_token") // wuu
-                return
+                return await Promise.all([
+                    saveSecureKey('otp_verified', 'true'),
+                    saveSecureKey('existing', 'true'),
+                    deleteSecureKey("access_token")
+                ])
             } else {
                 return dispatch(verifyOtp({ requestMapper: otpResponse.requestMapper, OTP: valueInput }))
                     .then(({type, payload}) => {

@@ -11,7 +11,6 @@ import {
     Text,
     View,
     Dimensions,
-    NativeModules,
     TouchableOpacity
 } from "react-native";
 type NavigationProps = NativeStackScreenProps<any>;
@@ -24,7 +23,7 @@ import {cloneDeep} from "lodash";
 import ContactSectionList from "../../components/ContactSectionList";
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackdrop, BottomSheetFlatList  } from "@gorhom/bottom-sheet";
 import {toMoney} from "../User/Account";
-const { CSTM } = NativeModules;
+import {showSnack} from "../../utils/immediateUpdate";
 const { width } = Dimensions.get("window");
 type searchedMemberType = { contact_id: string; memberNumber: string; memberRefId: string; name: string; phone: string }
 type FormData = {
@@ -38,6 +37,43 @@ type FormData = {
     kraPin: string;
     businessLocation: string;
     businessType: string;
+};
+
+const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
+    <TouchableOpacity onPress={onPress} style={[styles.option, backgroundColor]}>
+        <MaterialIcons name={item.icon} size={24} style={[textColor]} />
+        <Text allowFontScaling={false} style={[styles.optionName, textColor]}>{item.name}</Text>
+    </TouchableOpacity>
+);
+const RenderItem = ({ item, context, member, setValue, route, searchMemberByMemberNo, addContactToList, handleClosePress, setEmployerDetailsEnabled, setContext }: any) => {
+    const backgroundColor = item.context === context? "#489AAB" : "#FFFFFF";
+    const color = item.context === context ? 'white' : '#767577';
+
+    return (
+        <Item
+            item={item}
+            onPress={() => {
+                if (item.context === 'self-guarantee') {
+                    // submit self as guarantor
+                    if (member && member.memberNumber) {
+                        setValue("amountToGuarantee", route.params?.loanDetails.desiredAmount);
+                        searchMemberByMemberNo(member.memberNumber)
+                            .then(addContactToList)
+                            .catch((e: any) => {
+                                showSnack(e.message, "ERROR");
+                            });
+                    } else {
+                        handleClosePress();
+                    }
+                    return
+                }
+                setEmployerDetailsEnabled(false);
+                setContext(item.context);
+            }}
+            backgroundColor={{ backgroundColor }}
+            textColor={{ color }}
+        />
+    );
 };
 
 const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
@@ -105,7 +141,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         const {payload, type, error}: {payload: any, type: string, error?: any} = await dispatch(validateNumber(phone));
 
         if (type === 'validateNumber/rejected') {
-            CSTM.showToast(`${phone} ${error?.message}`);
+            showSnack(`${phone} ${error?.message}`, "ERROR");
             return undefined;
         }
 
@@ -121,16 +157,16 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     }
 
     const searchMemberByMemberNo = async (member_no: string): Promise<searchedMemberType | undefined> => {
-        const {payload, type, error}: {payload: any, type: string, error?: any} = await dispatch(searchByMemberNo(member_no));
+        const {payload, type}: {payload: any, type: string, error?: any} = await dispatch(searchByMemberNo(member_no));
 
         if (type === 'searchByMemberNo/rejected') {
-            CSTM.showToast(`${member_no}: is not a member.`);
+            showSnack(`${member_no}: is not a member.`, "ERROR");
             return undefined;
         }
 
         if (type === "searchByMemberNo/fulfilled" && member) {
             if (payload && !payload.hasOwnProperty("firstName")) {
-                CSTM.showToast(`${member_no}: is not a member.`);
+                showSnack(`${member_no}: is not a member.`, "ERROR");
                 return undefined;
             }
 
@@ -153,6 +189,8 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             if (!isDuplicateGuarantor(searchedMember)) {
                 // if amount required take it
                 if (settings && settings.guarantors === 'value' && settings.amounts) {
+                    setCurrentGuarantor(searchedMember);
+
                     setContext('amount');
 
                     setHeldMember(searchedMember);
@@ -181,7 +219,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 }
             } else {
                 setValue('searchTerm', '');
-                CSTM.showToast("Duplicate Entry");
+                showSnack("Duplicate Entry", "ERROR");
                 handleClosePress();
             }
         }
@@ -195,7 +233,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
     const {
         control,
-        watch,
         handleSubmit,
         clearErrors,
         setError,
@@ -222,7 +259,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             })
             .then(addContactToList)
             .catch(e => {
-                CSTM.showToast(e.message);
+                showSnack(e.message, "ERROR");
             });
         }
 
@@ -334,45 +371,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         }
     }, [])
 
-    const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
-        <TouchableOpacity onPress={onPress} style={[styles.option, backgroundColor]}>
-            <MaterialIcons name={item.icon} size={24} style={[textColor]} />
-            <Text allowFontScaling={false} style={[styles.optionName, textColor]}>{item.name}</Text>
-        </TouchableOpacity>
-    );
-
-    const renderItem = ({ item }: any) => {
-        const backgroundColor = item.context === context? "#489AAB" : "#FFFFFF";
-        const color = item.context === context ? 'white' : '#767577';
-
-        return (
-            <Item
-                item={item}
-                onPress={() => {
-                    if (item.context === 'self-guarantee') {
-                        // submit self as guarantor
-                        if (member && member.memberNumber) {
-                            setValue("amountToGuarantee", route.params?.loanDetails.desiredAmount);
-                            searchMemberByMemberNo(member.memberNumber)
-                            .then(addContactToList)
-                            .catch(e => {
-                                CSTM.showToast(e.message);
-                            });
-                        } else {
-                            handleClosePress();
-                        }
-                        return
-                    }
-                    setEmployerDetailsEnabled(false);
-                    setContext(item.context);
-                }}
-                backgroundColor={{ backgroundColor }}
-                textColor={{ color }}
-            />
-        );
-    };
-
-    const toggleEmployerDetailsEnabled = () => setEmployerDetailsEnabled((previousState: boolean) => {
+    /*const toggleEmployerDetailsEnabled = () => setEmployerDetailsEnabled((previousState: boolean) => {
         if (!previousState) {
             handleSnapPress(2);
         } else {
@@ -380,7 +379,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             handleClosePress();
         }
         return !previousState
-    });
+    });*/
 
     const [tab, setTab] = useState<number>(0);
 
@@ -393,7 +392,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             searchMemberByMemberNo(getValues("searchTerm"))
                 .then(addContactToList)
                 .catch(e => {
-                    CSTM.showToast(e.message);
+                    showSnack(e.message, "ERROR");
                 });
         } else if (phoneRegex.test(getValues("searchTerm"))) {
             getSecureKey("alpha2Code")
@@ -402,10 +401,10 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
                 .then(addContactToList)
                 .catch(e => {
-                    CSTM.showToast(e.message);
+                    showSnack(e.message, "ERROR");
                 })
         } else {
-            CSTM.showToast("Incorrect Format");
+            showSnack("Incorrect Format", "ERROR");
         }
     }
 
@@ -526,7 +525,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 })
             }
         } else {
-            CSTM.showToast(`CANNOT VALIDATE GUARANTORS`);
+            showSnack(`CANNOT VALIDATE GUARANTORS`, "ERROR");
         }
     }
 
@@ -615,7 +614,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         style={{zIndex: 15}}
                         data={guarantorshipOptions}
                         keyExtractor={item => item.id}
-                        renderItem={renderItem}
+                        renderItem={({i, item}: any) => (<RenderItem item={item} context={context} member={member} setValue={setValue} route={route} searchMemberByMemberNo={searchMemberByMemberNo} addContactToList={addContactToList} handleClosePress={handleClosePress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} setContext={setContext} />) }
                         ListEmptyComponent={() => (
                             <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 50}}>
                                 <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 12, marginRight: 10, color: '#737373', textAlign: 'center', width: '66%'}}>
@@ -629,8 +628,11 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         {
                             context === "amount" &&
                             <View style={{display: 'flex', alignItems: 'center', width, marginBottom: 10}}>
-                                <Text allowFontScaling={false} style={styles.subtitle}>Add {currentGuarantor?.name}'s Guarantorship Amount</Text>
-                                <Text allowFontScaling={false} style={{ alignSelf: 'flex-start', textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, paddingHorizontal: 30 }}>Un-guaranteed Amount <Text style={{textDecorationLine: 'underline'}}>{toMoney(un_guaranteed())}</Text></Text>
+                                <View style={{paddingHorizontal: 30, flexDirection: 'column', justifyContent: 'flex-start'}}>
+                                    <Text allowFontScaling={false} style={styles.subtitle}>Add Guarantor-ship Amount</Text>
+                                    <Text allowFontScaling={false} style={{ width: width-35, textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, lineHeight: 18, letterSpacing: 0.5, paddingBottom: 5, }}>Remaining Amount <Text style={{textDecorationLine: 'underline'}}>{toMoney(un_guaranteed())}</Text></Text>
+                                    <Text allowFontScaling={false} style={{ width: width-35, textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, lineHeight: 18 , letterSpacing: 0.5, paddingBottom: 5, }}>Selected Guarantor: {currentGuarantor?.name}</Text>
+                                </View>
                                 <Controller
                                     control={control}
                                     render={({field: {onChange, onBlur, value}}) => (
@@ -888,7 +890,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderRadius: 20,
         height: 45,
-        width: '90%',
+        width: width -35,
         paddingHorizontal: 20,
         fontSize: 12,
         color: '#767577',
@@ -904,12 +906,12 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         textAlign: 'left',
-        alignSelf: 'flex-start',
         color: '#489AAB',
-        fontFamily: 'Poppins_600SemiBold',
         fontSize: 14,
-        paddingHorizontal: 30,
-        marginBottom: 2
+        lineHeight: 22,
+        letterSpacing: 0.5,
+        paddingTop: 5,
+        paddingBottom: 5,
     },
     buttonText: {
         fontSize: 15,

@@ -403,12 +403,12 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                                                             value: "Checkoff"
                                                         },
                                                         {
-                                                            name: "Cash Paybill",
-                                                            value: "Cash Paybill"
+                                                            name: "Paybill",
+                                                            value: "Paybill"
                                                         },
                                                         {
-                                                            name: "Standing Offer",
-                                                            value: "Standing Offer"
+                                                            name: "Standing Order",
+                                                            value: "Standing Order"
                                                         }
                                                     ].map((p, i) =>(
                                                         <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />

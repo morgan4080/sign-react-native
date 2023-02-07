@@ -2728,9 +2728,6 @@ const authSlice = createSlice({
           return state;
         },
         setSelectedTenantId(state, action) {
-            (async() => {
-                await saveSecureKey('currentTenantId', action.payload);
-            })()
             state.selectedTenantId = action.payload;
             return state;
         },

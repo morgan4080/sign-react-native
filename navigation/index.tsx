@@ -123,7 +123,10 @@ const AuthNavigation = () => {
         <Stack.Navigator initialRouteName="ProfileMain">
             {/*After login*/}
 
-            <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{ headerShown: false }} />
+            <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{
+                headerShown: false
+                // TODO: ADD BUTTONS TO USER SETTINGS HERE
+            }} />
             <Stack.Screen name="LoanProducts" component={LoanProducts} options={{ headerShown: false }} />
             <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
             <Stack.Screen name="LoanPurpose" component={LoanPurpose} options={{ headerShown: false }} />

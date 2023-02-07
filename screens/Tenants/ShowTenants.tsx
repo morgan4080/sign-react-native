@@ -62,6 +62,7 @@ const ItemToRender = ({ item, selectedTenantId, organisations, route, dispatch, 
                     const settings = organisations.find((org: any) => org.tenantId === item.tenantId);
 
                     if (settings) {
+                        await saveSecureKey('currentTenantId', item.id)
                         dispatch(setSelectedTenantId(item.id));
 
                         let {type, payload, error} : any = await dispatch(authClient({realm: settings.tenantId, client_secret: settings.clientSecret}))

@@ -132,7 +132,6 @@ export default function Login({ navigation }: NavigationProps) {
                         navigation.navigate('GetStarted')
                     }
                 } catch (e: any) {
-                    console.log("LOGGGGGIN AUTH ERROR",e)
                     showSnack(`Login Error: ${e.message}`, "ERROR");
                 }
             })()

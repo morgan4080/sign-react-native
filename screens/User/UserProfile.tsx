@@ -29,7 +29,7 @@ import {
 import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
-import {getSecureKey} from "../../utils/secureStore";
+import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from "@gorhom/bottom-sheet";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {Controller, useForm} from "react-hook-form";
@@ -37,6 +37,7 @@ import ApplyLoan from "../../assets/images/apply-loan.svg";
 import GuarantorImg from "../../assets/images/guarantorship.svg";
 import Fav from "../../assets/images/fav.svg";
 import WitnessImg from "../../assets/images/witness.svg";
+import {showSnack} from "../../utils/immediateUpdate";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -88,15 +89,16 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     const { type, error, payload }: any = authStuff;
 
                     if (error) {
-                        return await dispatch(logoutUser())
+                        // return await dispatch(logoutUser())
+                        return
                     }
                     if (type === 'authenticate/fulfilled') {
                         if (payload && payload.tenantId) {
-
-                            await loadUser(payload.tenantId)
+                            return saveSecureKey('currentTenantId', payload.tenantId).then(() => loadUser(payload.tenantId))
                         }
                     } else {
-                        return await dispatch(logoutUser())
+                        // return await dispatch(logoutUser())
+                        return
                     }
                 } catch (e: any) {
                     console.log('promise rejection', e);
@@ -119,11 +121,13 @@ export default function UserProfile({ navigation }: NavigationProps) {
             ]);
 
             if (error || type === 'fetchMember/rejected') {
-                return dispatch(logoutUser())
+                showSnack(`Fetch Member Error: ${error.message}`, "ERROR")
+                return
             }
         } catch (e: any) {
             console.log("User Profile", e)
-            return dispatch(logoutUser())
+            showSnack(`Load User Error: ${e.message}`, "ERROR")
+            return
         }
 
         /*const { email, details }: any = payload;
@@ -213,9 +217,10 @@ export default function UserProfile({ navigation }: NavigationProps) {
                 if (error.message === "Network request failed") {
                     CSTM.showToast("Network request failed");
                 } else if (error.message === "401") {
-                    await dispatch(logoutUser())
+                    showSnack(`Edit Member Error: ${error.message}`, "ERROR")
+                    return
                 } else {
-                    CSTM.showToast(error.message);
+                    showSnack(error.message, "ERROR");
                 }
             } else {
                 CSTM.showToast('Successful');

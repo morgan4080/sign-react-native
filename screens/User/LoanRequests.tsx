@@ -324,7 +324,9 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
             {
                 text: 'Delete',
                 onPress: () => {
-                    console.log("Voiding Loan Request")
+                    // TODO: ENABLE VOIDING REQUEST
+
+                    handleClosePress();
                 },
             }
         ])
@@ -473,13 +475,13 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
                                             You are yet to sign the applicant form. Click on sign below to begin.
                                         </Text>
                                         <View style={{display: 'flex', flexDirection: 'row', marginVertical: 7}}>
-                                            <TouchableOpacity style={{ alignSelf: 'flex-start' }} onPress={() => signDocument()}>
-                                                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', backgroundColor: '#489AAB', color: '#FFFFFF', fontSize: 12, padding: 5}}>
+                                            <TouchableOpacity style={{ alignSelf: 'flex-start', backgroundColor: '#489AAB', borderRadius: 10 }} onPress={() => signDocument()}>
+                                                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF', fontSize: 12,  paddingVertical: 5, paddingHorizontal: 10}}>
                                                     Sign Applicant Form
                                                 </Text>
                                             </TouchableOpacity>
-                                            <TouchableOpacity style={{ alignSelf: 'flex-end' }} onPress={() => deleteLR()}>
-                                                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', backgroundColor: '#D95F5F', color: '#FFFFFF', fontSize: 12, padding: 5}}>
+                                            <TouchableOpacity style={{ alignSelf: 'flex-end', backgroundColor: '#D95F5F', marginLeft: 10, borderRadius: 10 }} onPress={() => deleteLR()}>
+                                                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF', fontSize: 12, paddingVertical: 5, paddingHorizontal: 10}}>
                                                     Delete loan request
                                                 </Text>
                                             </TouchableOpacity>

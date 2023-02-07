@@ -50,7 +50,7 @@ export default function GetStarted({ navigation }: NavigationProps) {
                         console.log("testing callback")
                     });*/
                 } catch (e: any) {
-                    console.log('checkToStartUpdate', e)
+                    showSnack(e.message, "ERROR", "", true)
                 }
                 try {
                     const [oldBoy, phone, code, email, currentTenantId] = await Promise.all([
@@ -60,11 +60,12 @@ export default function GetStarted({ navigation }: NavigationProps) {
                         getSecureKey('account_email'),
                         getSecureKey('currentTenantId'),
                     ]);
+
                     if (oldBoy === 'true' && currentTenantId) {
                         dispatch(getTenants(`${code}${phone}`))
                         .then(({type, meta, error}: any) => {
                             if (type === 'getTenants/rejected' && error) {
-                                showSnack(`Tenants not found: ${error.message}`, "ERROR");
+                                showSnack(`Tenants not found: ${error.message}`, "ERROR", "", true);
                             } else {
                                 navigation.navigate('Login', {
                                     countryCode: code,
@@ -73,13 +74,13 @@ export default function GetStarted({ navigation }: NavigationProps) {
                                 });
                             }
                         }).catch(error => {
-                            console.log("old boy error", error)
+                            showSnack(error.message, "ERROR", "", true)
                         })
                     } else {
                         await dispatch(initializeDB())
                     }
                 } catch (e: any) {
-                    console.log('promise error', e)
+                    showSnack(e.message, "ERROR", "", true)
                 }
                 try {
                     const token = await registerForPushNotificationsAsync();
@@ -96,7 +97,7 @@ export default function GetStarted({ navigation }: NavigationProps) {
                         registerTask();
                     }
                 } catch (e: any) {
-                    console.log('registerForPushNotificationsAsync error', e);
+                    showSnack(e.message, "ERROR", "", true)
                 }
             })();
         }

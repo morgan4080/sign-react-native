@@ -18,7 +18,7 @@ import {
     fetchLoanRequests,
     requestSignURL,
     setActorChanged,
-    storeState
+    storeState, voidLoanRequest
 } from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
@@ -307,8 +307,8 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
                 }
             }
 
-        } catch (error) {
-            console.log(error);
+        } catch (error: any) {
+            throw new Error(error.message)
         }
     };
 
@@ -324,10 +324,22 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
             {
                 text: 'Delete',
                 onPress: () => {
-                    // TODO: ENABLE VOIDING REQUEST
-
-                    handleClosePress();
-                },
+                    dispatch(voidLoanRequest(`${loan?.loanRequestNumber}`)).then(({type, error, payload}: any) => {
+                        if (error) {
+                            return Promise.reject(error.message)
+                        }
+                        if (type === 'voidLoanRequest/fulfilled') {
+                            showSnack(`${payload}`, "SUCCESS", "", false)
+                            return Promise.resolve(payload)
+                        } else {
+                            return Promise.reject(payload)
+                        }
+                    }).catch((e: any) => {
+                        showSnack(JSON.stringify(e), "ERROR", "", false)
+                    }).finally(() => {
+                        setTimeout(() => handleClosePress(), 2000)
+                    })
+                }
             }
         ])
     }
@@ -341,21 +353,27 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
             actorType:  "APPLICANT"
         }
 
-        const {type, error, payload}: any = await dispatch(requestSignURL(payloadOut))
-
-        if (type === 'requestSignURL/fulfilled') {
-            console.log(type, payload.message);
-            if (!payload.success) {
-                showSnack(payload.message, "ERROR");
-                return;
+        dispatch(requestSignURL(payloadOut)).then(({type, error, payload}: any) => {
+            if (error) {
+                return Promise.reject(error.message)
             }
+            if (type === 'requestSignURL/fulfilled') {
+                console.log(type, payload.message);
+                if (!payload.success) {
+                    return Promise.reject(payload.message)
+                }
 
-            if (payload.signURL) await openAuthSessionAsync(payload.signURL)
-        } else {
-            showSnack(payload.message, "ERROR");
-        }
-
-        // console.log("zohoSignPayloadType", payloadOut);
+                if (payload.signURL) {
+                    return openAuthSessionAsync(payload.signURL)
+                } else {
+                    return Promise.reject("We could not generate a signing url for request id: " + payloadOut.loanRequestRefId)
+                }
+            } else {
+                return Promise.reject(payload.message)
+            }
+        }).catch((e: any) => {
+            showSnack(JSON.stringify(e), "ERROR", "", false);
+        })
     }
 
     useEffect(() => {
@@ -482,7 +500,7 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
                                             </TouchableOpacity>
                                             <TouchableOpacity style={{ alignSelf: 'flex-end', backgroundColor: '#D95F5F', marginLeft: 10, borderRadius: 10 }} onPress={() => deleteLR()}>
                                                 <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#FFFFFF', fontSize: 12, paddingVertical: 5, paddingHorizontal: 10}}>
-                                                    Delete loan request
+                                                    Void loan request
                                                 </Text>
                                             </TouchableOpacity>
                                         </View>

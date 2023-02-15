@@ -495,6 +495,7 @@ type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorTyp
 
 export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanRequestRefId,actorRefId,actorType}: zohoSignPayloadType, {dispatch, getState}) => {
     try {
+
         const key = await getSecureKey('access_token');
 
         if (!key) {
@@ -541,17 +542,24 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
                     }
                 }
 
-                return await dispatch(refreshAccessToken(refreshTokenPayload))
+                return dispatch(refreshAccessToken(refreshTokenPayload))
             } else {
                 setAuthState(false);
 
                 return Promise.reject(response.status);
             }
-        } else {
-            return Promise.reject(`Document Expired`);
+        } else if (response.status === 500) {
+            const data = await response.json();
+            if (Object.keys(data).includes("message")) {
+                return Promise.reject(data.message)
+            } else {
+                return Promise.reject(`Document Expired`)
+            }
+        } {
+            return Promise.reject(`Document Expired`)
         }
     } catch (e: any) {
-        return Promise.reject(e.message);
+        return Promise.reject(e.message)
     }
 });
 
@@ -1984,8 +1992,51 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
     }
 })
 
+export const voidLoanRequest = createAsyncThunk('voidLoanRequest', async (loanRequestNumber: string, {dispatch, getState}) => {
+    try {
+        const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/core-banking/loan-request/${loanRequestNumber}`, {
+            method: 'DELETE',
+            credentials: 'include',
+        });
+
+        if (response.status === 200) {
+            return Promise.resolve('Loan request voided successful!');
+        } else if (response.status === 401) {
+            const state: any = getState();
+            if (state) {
+                const [refresh_token, currentTenant] = await Promise.all([
+                    getSecureKey('refresh_token'),
+                    getSecureKey('currentTenant')
+                ])
+                const refreshTokenPayload: refreshTokenPayloadType = {
+                    client_id: 'direct-access',
+                    grant_type: 'refresh_token',
+                    refresh_token,
+                    realm:JSON.parse(currentTenant).tenantId,
+                    client_secret: JSON.parse(currentTenant).clientSecret,
+                    cb: async () => {
+                        console.log('callback running');
+                        await  dispatch(voidLoanRequest(loanRequestNumber));
+                    }
+                }
+
+                return await dispatch(refreshAccessToken(refreshTokenPayload))
+            } else {
+                setAuthState(false);
+                return Promise.reject(response.status);
+            }
+        } else {
+            return Promise.reject('Could not void loan request!');
+        }
+
+    } catch (e: any) {
+        console.error("voidLoanRequest",  e);
+        return Promise.reject('Could not void loan request!');
+    }
+})
+
 export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string, {dispatch, getState}) => {
-    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}&order=ASC&pageSize=10&pageIndex=0&isActive=true`;
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}&order=ASC&pageSize=10&isActive=true`;
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
@@ -2085,7 +2136,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                     }
                 }
 
-                return await dispatch(refreshAccessToken(refreshTokenPayload))
+                return dispatch(refreshAccessToken(refreshTokenPayload))
             } else {
                 setAuthState(false);
 

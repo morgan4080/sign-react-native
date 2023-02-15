@@ -50,7 +50,8 @@ export default function GetStarted({ navigation }: NavigationProps) {
                         console.log("testing callback")
                     });*/
                 } catch (e: any) {
-                    showSnack(e.message, "ERROR", "", true)
+                    console.log("checkToStartUpdate", e)
+                    // showSnack(e.message, "ERROR", "", true)
                 }
                 try {
                     const [oldBoy, phone, code, email, currentTenantId] = await Promise.all([
@@ -74,13 +75,13 @@ export default function GetStarted({ navigation }: NavigationProps) {
                                 });
                             }
                         }).catch(error => {
-                            showSnack(error.message, "ERROR", "", true)
+                            showSnack(error.message, "ERROR", "", false)
                         })
                     } else {
                         await dispatch(initializeDB())
                     }
                 } catch (e: any) {
-                    showSnack(e.message, "ERROR", "", true)
+                    showSnack(e.message, "ERROR", "", false)
                 }
                 try {
                     const token = await registerForPushNotificationsAsync();
@@ -97,7 +98,7 @@ export default function GetStarted({ navigation }: NavigationProps) {
                         registerTask();
                     }
                 } catch (e: any) {
-                    showSnack(e.message, "ERROR", "", true)
+                    showSnack(e.message, "ERROR", "", false)
                 }
             })();
         }

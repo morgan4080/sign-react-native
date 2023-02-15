@@ -50,8 +50,7 @@ export default function GetStarted({ navigation }: NavigationProps) {
                         console.log("testing callback")
                     });*/
                 } catch (e: any) {
-                    console.log("checkToStartUpdate", e)
-                    // showSnack(e.message, "ERROR", "", true)
+                    showSnack(e.message, "ERROR", "", false)
                 }
                 try {
                     const [oldBoy, phone, code, email, currentTenantId] = await Promise.all([
@@ -98,9 +97,10 @@ export default function GetStarted({ navigation }: NavigationProps) {
                         registerTask();
                     }
                 } catch (e: any) {
-                    showSnack(e.message, "ERROR", "", false)
+                    console.log("registerForPushNotificationsAsync/pingBeacon", e.message())
+                    // showSnack(e.message, "ERROR", "", false)
                 }
-            })();
+            })()
         }
         // https://play.google.com/store/apps/details?id=com.presta.prestasign
         const subscription = Notifications.addNotificationReceivedListener(notification => {
@@ -116,7 +116,7 @@ export default function GetStarted({ navigation }: NavigationProps) {
             initializing = false;
             subscription.remove();
         };
-    }, [appInitialized]);
+    }, [appInitialized])
 
     if (fontsLoaded && !loading) {
         return (

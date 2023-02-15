@@ -166,7 +166,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                     progressViewOffset={5}
                     onRefresh={() => dispatch(fetchLoanProducts())}
                     sections={loanProducts && Array.isArray(loanProducts) ? loanProducts.reduce((acc: {title: string, data: LoanProduct[]}[], product) => {
-                        if (product.details.isFosa.value === 'N') {
+                        if (product.details && product.details.isFosa && product.details.isFosa.value === 'N') {
                             acc[0].data = [...acc[0].data, product]
                         } else {
                             acc[1].data = [...acc[1].data, product]

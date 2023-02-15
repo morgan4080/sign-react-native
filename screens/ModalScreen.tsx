@@ -395,7 +395,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
             </View>*/}
 
             <TouchableOpacity onPress={async () => await dispatch(logoutUser())} style={styles.helpLink}>
-              <Text allowFontScaling={false} style={{fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium'}} >
+              <Text allowFontScaling={false} style={{fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium', textAlign: 'right'}} >
                 Log Out
               </Text>
             </TouchableOpacity>

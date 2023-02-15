@@ -29,13 +29,16 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
         let realm: any = selectedTenant?.tenantId;
         let client_secret: any = selectedTenant?.clientSecret;
 
+        console.log({client_secret, realm})
         return dispatch(authClient({realm, client_secret}))
-        .then(({type, payload}: Pick<PayloadAction, any>) => {
-            if (type === 'authClient/fulfilled') {
+        .then(({type, error, payload}: Pick<PayloadAction, any>) => {
+            if (error && error.message) {
+                throw new Error(error.message)
+            } else if (type === 'authClient/fulfilled') {
                 const { access_token } = payload
                 return saveSecureKey('access_token', access_token)
             } else {
-                return Promise.reject("Client Service authentication failed");
+                throw new Error("Client Service authentication failed");
             }
         })
         .then(() => {
@@ -44,19 +47,23 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
             } else if (email) {
                 return dispatch(sendOtp(encodeURIComponent(email)))
             } else {
-                return Promise.reject("We Couldn't find email or phone number")
+                throw new Error("We Couldn't find email or phone number")
             }
         })
-        .then(({type, payload}) => {
+        .then(({type,error, payload}: Pick<PayloadAction, any>) => {
             if (type === "sendOtp/rejected") {
-                return Promise.reject("Could not send OTP")
+                if (error && error.message) {
+                    throw new Error(error.message)
+                } else {
+                    throw new Error("Could not send OTP")
+                }
             } else {
                 console.log("sendOtp", payload)
                 showSnack(payload.message, "SUCCESS")
                 return startSmsUserConsent()
             }
-        }).catch(e => {
-            return Promise.reject(e.message)
+        }).catch((e) => {
+            throw new Error(e.message)
         })
 
         /*dispatch(sendOtpBeforeToken({email, phoneNumber, deviceId, appName})).then(({meta, payload, type}) => {
@@ -131,6 +138,18 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
         }
     }
 
+    const sendOtpNow = () => {
+        getSecureKey('otp_verified').then((result: string) => {
+            if (result === 'true') {
+                return Promise.reject("OTP already verified")
+            } else {
+                return sendOtpHere()
+            }
+        }).catch((e: any) => {
+            showSnack(e.message, "ERROR")
+        })
+    }
+
     useEffect(() => {
         let started = true;
         if (started) {
@@ -159,11 +178,7 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                 });
                 return Promise.resolve(true)
             }).catch((e: any) => {
-                if (e && e.message) {
-                    showSnack(e.message, "ERROR")
-                } else {
-                    console.log("sendOtpHere error", e)
-                }
+                showSnack(e.message, "ERROR")
             })
         }
 
@@ -224,7 +239,7 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                 />
             </View>
 
-            <Pressable style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 50 }} onPress={() => sendOtpHere()}>
+            <Pressable style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 50 }} onPress={() => sendOtpNow()}>
                 <Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_300Light', color: '#489AAB', textDecorationLine: 'underline' }}>Resend OTP</Text>
             </Pressable>
 

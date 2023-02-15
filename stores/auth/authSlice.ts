@@ -795,7 +795,6 @@ export const createPin = createAsyncThunk('createPin', async ({pinConfirmation, 
 
             if (response.status === 200) {
                 const data = await response.json();
-
                 resolve(data);
             } else {
                 reject('Process Failed')
@@ -1060,9 +1059,10 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dis
             headers: myHeaders
         });
 
+        const data = await response.json();
+        console.log("data in sendOtp", data);
+
         if (response.status === 200) {
-            const data = await response.json();
-            console.log("data in sendOtp", data);
             if (data.success) {
                 return Promise.resolve(data);
             } else {
@@ -1206,32 +1206,32 @@ export const searchByEmail = createAsyncThunk('searchByEmail', async ({email, ac
 });
 
 export const authClient = createAsyncThunk('authClient', async ({realm, client_secret}: { realm: string, client_secret: string }) => {
-    console.log('client_secret', client_secret);
-
-    console.log('tenant', realm);
-
     return new Promise((resolve, reject) => {
-        const dataOut = `client_id=direct-access&client_secret=${client_secret}&grant_type=client_credentials`;
+        try {
+            const dataOut = `client_id=direct-access&client_secret=${client_secret}&grant_type=client_credentials`;
 
-        let xhr = new XMLHttpRequest();
-        xhr.withCredentials = true;
+            let xhr = new XMLHttpRequest();
+            xhr.withCredentials = true;
 
-        xhr.addEventListener("readystatechange", function() {
-            if (this.readyState === 4) {
-                const dataIn = JSON.parse(this.responseText)
+            xhr.addEventListener("readystatechange", function() {
+                if (this.readyState === 4) {
+                    const dataIn = JSON.parse(this.responseText)
 
-                if (dataIn && dataIn.error) {
-                    reject(dataIn.error_description);
-                } else {
-                    resolve(dataIn);
+                    if (dataIn && dataIn.error) {
+                        reject(dataIn.error_description);
+                    } else {
+                        resolve(dataIn);
+                    }
                 }
-            }
-        });
+            });
 
-        xhr.open("POST", `https://iam.presta.co.ke/auth/realms/${realm}/protocol/openid-connect/token`);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.open("POST", `https://iam.presta.co.ke/auth/realms/${realm}/protocol/openid-connect/token`);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        xhr.send(dataOut);
+            xhr.send(dataOut);
+        } catch (e) {
+            reject(e)
+        }
     })
 });
 
@@ -2586,7 +2586,7 @@ export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string
             headers: myHeaders
         }
         const response = await fetch(url, requestOptions)
-        console.log(url)
+
         if (response.status === 200) {
             let data = await response.json()
             console.log('save all data', data)
@@ -2595,6 +2595,7 @@ export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string
             return Promise.reject(response.status + ": The Identifier provided is not linked to the organization. Kindly confirm with your Organization")
         } else if (response.status === 500) {
             let x = await response.json()
+            console.log(JSON.stringify(x))
             if (x.isTechnical) {
                 return Promise.reject("Error: " + response.status)
             } else {
@@ -2701,6 +2702,32 @@ const authSlice = createSlice({
                 witness: true,
                 repaymentDisbursementModes: true,
                 amounts: true,
+                selfGuarantee: false,
+                minGuarantors: 4
+            },
+            {
+                id: "4",
+                tenantName: 'Afya Sacco',
+                tenantId: 't10589',
+                clientSecret: 'b79b029a-1d95-4025-8eae-a45f085bddd2',
+                employerInfo: true,
+                guarantors: 'count',
+                witness: false,
+                repaymentDisbursementModes: true,
+                amounts: false,
+                selfGuarantee: false,
+                minGuarantors: 5
+            },
+            {
+                id: "5",
+                tenantName: 'Boresha Sacco',
+                tenantId: 't10789',
+                clientSecret: '4ccfa890-822b-4cfa-917f-bceadc1a2ba4',
+                employerInfo: true,
+                guarantors: 'count',
+                witness: false,
+                repaymentDisbursementModes: true,
+                amounts: false,
                 selfGuarantee: false,
                 minGuarantors: 4
             }

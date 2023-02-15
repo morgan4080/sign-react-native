@@ -290,17 +290,17 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
             }
 
             if (phone !== "") {
-                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("phoneNumber", `?identifierType=PHONE_NUMBER&memberIdentifier=${phone}`))
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("phoneNumber", `?memberIdentifier=${phone}&identifierType=PHONE_NUMBER&force=true`))
                 return
             }
 
             if (email !== "") {
-                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("email", `?identifierType=EMAIL&memberIdentifier=${email}`))
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("email", `?memberIdentifier=${email}&identifierType=EMAIL&force=true`))
                 return
             }
 
             if (id !== "") {
-                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("idNumber", `?identifierType=ID_NUMBER&memberIdentifier=${id}`))
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("idNumber", `?memberIdentifier=${id}&identifierType=ID_NUMBER&force=true`))
                 return
             }
         } catch (e: any) {
@@ -354,7 +354,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
         <>
 
             {
-                tenantId === 't72767' &&
+                tenantId === 't72767' ?
                 <View style={{ position: 'relative' }}>
                     <EmailPhoneTabs setTab={setTab} clearErrors={clearErrors} tab={tab} />
                     {
@@ -378,22 +378,10 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                               style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Required'}</Text>
                     }
                 </View>
-            }
 
-            {
-                tenantId === 't74411' &&
-                <View  style={{ position: 'relative' }}>
-                    <PhoneInput errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={nav}/>
-                    {
-                        (errors.phoneNumber) &&
-                        <Text allowFontScaling={false}
-                              style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Required'}</Text>
-                    }
-                </View>
-            }
+                :
 
-            {
-                tenantId === 't10099' &&
+                tenantId === 't10099' ?
 
                 <View style={{ position: 'relative' }}>
                     <IDInput errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} />
@@ -402,6 +390,49 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                         <Text allowFontScaling={false} style={styles.error}>{errors.idNumber.message ? errors.idNumber.message : 'Required'}</Text>
                     }
                 </View>
+
+                :
+                    tenantId === 't74411' ?
+
+                    <View  style={{ position: 'relative' }}>
+                        <PhoneInput errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={nav}/>
+                        {
+                            (errors.phoneNumber) &&
+                            <Text allowFontScaling={false}
+                                  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Required'}</Text>
+                        }
+                    </View>
+
+                    :
+                        tenantId === 't10589' ?
+
+
+                    <View  style={{ position: 'relative' }}>
+                        <PhoneInput errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={nav}/>
+                        {
+                            (errors.phoneNumber) &&
+                            <Text allowFontScaling={false}
+                                  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Required'}</Text>
+                        }
+                    </View>
+
+                    :
+
+                        tenantId === 't10789' ?
+
+
+                    <View  style={{ position: 'relative' }}>
+                        <PhoneInput errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={nav}/>
+                        {
+                            (errors.phoneNumber) &&
+                            <Text allowFontScaling={false}
+                                  style={styles.error}>{errors.phoneNumber?.message ? errors.phoneNumber?.message : 'Required'}</Text>
+                        }
+                    </View>
+
+                    :
+
+                    <></>
             }
 
             {

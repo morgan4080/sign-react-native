@@ -32,6 +32,7 @@ import {Controller, useForm} from "react-hook-form";
 import {useEffect, useState} from "react";
 import {store} from "../../stores/store";
 import {saveSecureKey} from "../../utils/secureStore";
+import {showSnack} from "../../utils/immediateUpdate";
 
 const {CSTM} = NativeModules;
 
@@ -159,25 +160,22 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     const response : any = await dispatch(createPin(load));
 
                     if (response.type === 'createPin/rejected') {
-                        console.log('cant set pin');
-
-                        CSTM.showToast(response.error.message);
+                        console.log('cant set pin', response);
+                        showSnack(response.error.message, "ERROR");
                     } else {
                         const loadOut: loginUserType = {
                             phoneNumber: searchRes.phoneNumber,
                             pin: getValues("pinConfirmation"),
                             tenant: realm,
                             clientSecret:  client_secret
-                        };
-
-                        console.log('logging in', loadOut);
+                        }
 
                         try {
                             await saveSecureKey('currentTenant', JSON.stringify(selectedTenant))
                             const {type, error}: any = await dispatch(loginUser(loadOut))
                             if (type === 'loginUser/rejected' && error) {
                                 if (error.message === "Network request failed") {
-                                    CSTM.showToast(error.message);
+                                    showSnack(error.message, "ERROR");
                                 } else {
                                     setError('pinConfirmation', {type: 'custom', message: error.message});
                                 }
@@ -185,7 +183,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                                 dispatch(setAuthState(true));
                             }
                         } catch (e: any) {
-                            CSTM.showToast(e.message)
+                            showSnack(e.message, "ERROR")
                         }
                     }
 
@@ -344,6 +342,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                             placeholder="Enter Pin Confirmation"
                             keyboardType="number-pad"
                             secureTextEntry={true}
+                            onSubmitEditing={handleSubmit(onSubmit)}
                         />
                     )}
                     name="pinConfirmation"

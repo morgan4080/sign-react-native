@@ -122,9 +122,28 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                             navigation.navigate('LoanProduct', { loanProduct: product })
                         }
                     } else if (applicationInProgress) {
-                        console.log("applicationInProgress", applicationInProgress)
+                        const existingInProgress = payload.content.find((curr: LoanRequestData) => curr.signingStatus === 'INPROGRESS')
+                        console.log(existingInProgress.isActive)
+                        showSnack(`An existing ${product.name} of ${toMoney(existingInProgress.loanAmount)} is in progress from: ${existingInProgress.loanDate}`, "", "Resolve", true, () => {
+                            dismissSnack()
+                            return Alert.alert(`Resolve ${existingInProgress.loanProductName}`, `You can proceed to create a new loan request or resolve existing ${existingInProgress.loanRequestNumber} of ${toMoney(existingInProgress.loanAmount)} created on ${existingInProgress.loanDate}`, [
+                                {
+                                    text: 'Proceed',
+                                    onPress: () => navigation.navigate('LoanProduct', { loanProduct: product }),
+                                    style: 'cancel'
+                                },
+                                {
+                                    text: 'Resolve',
+                                    onPress: () => {
+                                        navigation.navigate("LoanRequests", {
+                                            loan: existingInProgress
+                                        })
+                                    },
+                                }
+                            ])
+                            // dismiss snack here before performing next action
+                        });
                     }
-                    // console.log(payload)
                 }
             }
         }, (test) => {

@@ -96,14 +96,14 @@ class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContext
                 snackbar!!.dismiss()
             }
 
-            if (INDEFINITE == true) {
-                snackbar = Snackbar.make(
+            snackbar = if (INDEFINITE == true) {
+                Snackbar.make(
                     view,
                     message,
                     Snackbar.LENGTH_INDEFINITE
                 )
             } else {
-                snackbar = Snackbar.make(
+                Snackbar.make(
                     view,
                     message,
                     Snackbar.LENGTH_LONG

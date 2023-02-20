@@ -123,10 +123,10 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
                             <ScrollView refreshControl={
                                 <RefreshControl refreshing={refreshing} onRefresh={fetchLoanCategories} />
                             } contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 120 }}>
-                                { loanCategories &&
+                                { loanCategories ?
                                     loanCategories.map((category, index: number) => (
                                         <LoanPurposeTile key={category.code} componentIndex={index} currentOpenIndex={currentOpenIndex} isOpen={isOpen} setFormData={setFormData} category={category} />
-                                    ))
+                                    )) : null
                                 }
                             </ScrollView>
                         </View>

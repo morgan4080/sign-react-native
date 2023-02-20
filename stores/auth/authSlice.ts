@@ -1800,7 +1800,6 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
                }
 
            }  else if (response.status === 401) {
-               setAuthState(false);
                reject(response.status);
            } else {
                reject("Authentication Failed")
@@ -1994,12 +1993,21 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
 
 export const voidLoanRequest = createAsyncThunk('voidLoanRequest', async (loanRequestNumber: string, {dispatch, getState}) => {
     try {
+        const key = await getSecureKey('access_token')
+        if (!key) {
+            return Promise.reject("You are not authenticated")
+        }
+        const myHeaders = new Headers();
+        myHeaders.append("Authorization", `Bearer ${key}`);
         const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/core-banking/loan-request/${loanRequestNumber}`, {
             method: 'DELETE',
+            headers: myHeaders,
             credentials: 'include',
         });
 
-        if (response.status === 200) {
+        if (response.status === 200) {/*
+            const data = await response.text();
+            console.log("voidLoanRequest", data);*/
             return Promise.resolve('Loan request voided successful!');
         } else if (response.status === 401) {
             const state: any = getState();
@@ -2762,12 +2770,12 @@ const authSlice = createSlice({
                 tenantId: 't10589',
                 clientSecret: 'b79b029a-1d95-4025-8eae-a45f085bddd2',
                 employerInfo: true,
-                guarantors: 'count',
+                guarantors: 'value',
                 witness: false,
                 repaymentDisbursementModes: true,
-                amounts: false,
-                selfGuarantee: false,
-                minGuarantors: 5
+                amounts: true,
+                selfGuarantee: true,
+                minGuarantors: 1
             },
             {
                 id: "5",
@@ -2775,12 +2783,12 @@ const authSlice = createSlice({
                 tenantId: 't10789',
                 clientSecret: '4ccfa890-822b-4cfa-917f-bceadc1a2ba4',
                 employerInfo: true,
-                guarantors: 'count',
+                guarantors: 'value',
                 witness: false,
                 repaymentDisbursementModes: true,
-                amounts: false,
-                selfGuarantee: false,
-                minGuarantors: 4
+                amounts: true,
+                selfGuarantee: true,
+                minGuarantors: 14
             }
         ],
         selectedTenant: null,
@@ -2960,7 +2968,8 @@ const authSlice = createSlice({
             state.isLoggedIn = true;
             state.loading = false;
         })
-        builder.addCase(authenticate.rejected, state => {
+        builder.addCase(authenticate.rejected, (state, {payload}) => {
+            if (payload) alert(JSON.stringify(payload))
             state.isJWT = false;
             state.loading = false;
             state.isLoggedIn = false;

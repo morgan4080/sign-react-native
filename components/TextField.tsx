@@ -1,5 +1,4 @@
-import * as React from 'react';
-import {Animated, Keyboard, StyleSheet, Text, TextInput, View} from "react-native";
+import {Animated, StyleSheet, Text, TextInput, View} from "react-native";
 import {Controller, FieldError} from "react-hook-form";
 import {useFonts,Poppins_500Medium, Poppins_300Light} from "@expo-google-fonts/poppins";
 import {useFonts as useRale, Raleway_600SemiBold} from "@expo-google-fonts/raleway";

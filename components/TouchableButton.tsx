@@ -1,11 +1,17 @@
 import {StyleSheet, Text, TouchableOpacity} from "react-native";
 import {RotateView} from "../screens/Auth/VerifyOTP";
-import React from "react";
-export interface ComponentProps extends React.ComponentPropsWithoutRef<any> {
+import {
+    Poppins_600SemiBold,
+    useFonts
+} from "@expo-google-fonts/poppins";
+interface ComponentProps {
     loading: boolean;
     label: string;
 }
 const TouchableButton = ({loading, label, ...props}: ComponentProps) => {
+    useFonts({
+        Poppins_600SemiBold
+    })
     return (
         <TouchableOpacity disabled={loading} style={styles.buttonActive} {...props}>
             {

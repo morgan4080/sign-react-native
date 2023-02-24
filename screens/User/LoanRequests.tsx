@@ -337,7 +337,10 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
                     }).catch((e: any) => {
                         showSnack(JSON.stringify(e), "ERROR", "", false)
                     }).finally(() => {
-                        setTimeout(() => handleClosePress(), 2000)
+                        setTimeout(() => {
+                            reFetch()
+                            handleClosePress()
+                        }, 2000)
                     })
                 }
             }
@@ -419,24 +422,10 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
 
     if (fontsLoaded) {
         return (
-            <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+            <GestureHandlerRootView style={{flex: 1, position: 'relative'}}>
                 <View style={styles.container}>
                     <View style={{flex: 1, alignItems: 'center'}}>
-                        <View style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'flex-start',
-                            alignItems: 'center',
-                            position: 'relative',
-                            width,
-                            height: 1/12 * height
-                        }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('UserProfile')} style={{ marginRight: 20, marginLeft: 15 }}>
-                                <AntDesign name="arrowleft" size={24} color="#489AAB" />
-                            </TouchableOpacity>
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_700Bold', fontSize: 18 }}>Your Loan Requests</Text>
-                        </View>
-                        <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 11/12 * height }}>
+                        <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width}}>
                             <SectionList
                                 sections={loanRequests && loanRequests.length > 0 ? [
                                     {

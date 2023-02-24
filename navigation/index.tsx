@@ -18,6 +18,7 @@ import GetTenants from "../screens/Tenants/GetTenants";
 import Countries from "../screens/Tenants/Countries";
 import ShowTenants from "../screens/Tenants/ShowTenants";
 import UserProfile from "../screens/User/UserProfile";
+import KYC from "../screens/User/KYC";
 import LoanRequests from "../screens/User/LoanRequests";
 import GuarantorshipRequests from "../screens/Guarantorship/GuarantorshipRequests";
 import FavouriteGuarantors from "../screens/Guarantorship/FavouriteGuarantors";
@@ -39,20 +40,22 @@ import WitnessStatus from "../screens/Guarantorship/WitnessStatus";
 import SignStatus from "../screens/Guarantorship/SignStatus";
 import SelectTenant from "../screens/Auth/SelectTenant";
 import SetPin from "../screens/Auth/SetPin";
-import {useSelector} from "react-redux";
-import {storeState} from "../stores/auth/authSlice";
+import {useDispatch, useSelector} from "react-redux";
+import {logoutUser, storeState} from "../stores/auth/authSlice";
 import ReplaceActor from "../screens/Guarantorship/ReplaceActor";
 import SetTenant from "../screens/Onboarding/SetTenant";
 import OnboardingOTP from "../screens/Onboarding/OnboardingOTP";
 import Organisations from "../screens/Onboarding/Organisations";
-import {Button, TouchableOpacity} from "react-native";
-
+import {TouchableOpacity} from "react-native";
+import {store} from "../stores/store";
+type AppDispatch = typeof store.dispatch;
 const Navigation = () => {
   const MyTheme = {
      ...DefaultTheme,
      colors: {
         ...DefaultTheme.colors,
         primary: 'rgb(255, 45, 85)',
+        background: '#FFFFFF'
      },
   };
 
@@ -118,14 +121,32 @@ const NonAuthNavigation = () => {
     )
 }
 
-const AuthNavigation = () => {
+const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
     return (
         <Stack.Navigator initialRouteName="ProfileMain">
             {/*After login*/}
 
-            <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{
-                headerShown: false
-                // TODO: ADD BUTTONS TO USER SETTINGS HERE
+
+            <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{headerShown: false}} />
+            <Stack.Screen name="KYC" component={KYC} options={({ navigation, route }) => {
+                return ({
+                    title: 'User Information',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                })
             }} />
             <Stack.Screen name="LoanProducts" component={LoanProducts} options={{ headerShown: false }} />
             <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
@@ -136,31 +157,45 @@ const AuthNavigation = () => {
             <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={{ headerShown: false }} />
             <Stack.Screen name="LoanRequest" component={LoanRequest} options={{ headerShown: false }} />
             <Stack.Screen name="SignStatus" component={SignStatus} options={{ headerShown: false }} />
-            <Stack.Screen name="GuarantorshipRequests" component={GuarantorshipRequests} options={{
-                headerShown: true,
-                title: 'Guarantorship Requests',
-                headerShadowVisible: false,
-                headerStyle: {
-                    backgroundColor: 'rgba(204,204,204,0.28)',
-                },
-                headerTintColor: '#489AAB',
-                headerTitleStyle: {
-                    fontSize: 20,
-                    fontFamily: 'Poppins_600SemiBold'
-                }
+            <Stack.Screen name="GuarantorshipRequests" component={GuarantorshipRequests} options={({ navigation, route }) => {
+                return ({
+                    title: 'Guarantorship Requests',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                })
             }} />
-            <Stack.Screen name="WitnessRequests" component={WitnessRequests} options={{
-                headerShown: true,
-                title: 'Witness Requests',
-                headerShadowVisible: false,
-                headerStyle: {
-                    backgroundColor: 'rgba(204,204,204,0.28)',
-                },
-                headerTintColor: '#489AAB',
-                headerTitleStyle: {
-                    fontSize: 20,
-                    fontFamily: 'Poppins_600SemiBold'
-                }
+            <Stack.Screen name="WitnessRequests" component={WitnessRequests} options={({ navigation, route }) => {
+                return ({
+                    title: 'Witness Requests',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                })
             }} />
             <Stack.Screen name="GuarantorshipStatus" component={GuarantorshipStatus} options={{
                 headerShown: true,
@@ -188,40 +223,53 @@ const AuthNavigation = () => {
                     fontFamily: 'Poppins_600SemiBold'
                 }
             }} />
-            <Stack.Screen name="FavouriteGuarantors" component={FavouriteGuarantors} options={{
-                headerShown: true,
-                title: 'Favourite Guarantors',
-                headerShadowVisible: false,
-                headerStyle: {
-                    backgroundColor: 'rgba(204,204,204,0.28)',
-                },
-                headerTintColor: '#489AAB',
-                headerTitleStyle: {
-                    fontSize: 20,
-                    fontFamily: 'Poppins_600SemiBold'
-                }
-            }} />
-            <Stack.Screen name="SignDocumentRequest" component={SignDocumentRequest} options={{
-                headerShown: true,
-                title: '',
-                headerShadowVisible: false,
-                headerStyle: {
-                    backgroundColor: 'rgba(204,204,204,0.28)',
-                },
-                headerTintColor: '#489AAB',
-                headerTitleStyle: {
-                    fontSize: 20,
-                    fontFamily: 'Poppins_600SemiBold'
-                }
-            }} />
+            <Stack.Screen name="FavouriteGuarantors" component={FavouriteGuarantors} options={({ navigation, route }) => {
+                return ({
+                    title: 'Favourite Guarantors',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                })
+            }}/>
             <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
-            <Stack.Screen name="Modal" component={ModalScreen} options={{
-                title: 'User Profile',
-                headerStyle: {
-                    backgroundColor: 'rgba(50,52,146,0.12)',
-                },
-                headerTintColor: '#489AAB',
-                headerShadowVisible: false
+            <Stack.Screen name="Modal" component={ModalScreen} options={({ navigation, route }) => {
+                return ({
+                    title: 'User Profile',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.18)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false,
+                    headerRight: () => {
+                        return (
+                            <TouchableOpacity onPress={async () => await dispatch(logoutUser())}>
+                                <AntDesign name="logout" size={20} style={{paddingRight: 5}} color="#FF4A4AFF"/>
+                            </TouchableOpacity>
+                        )
+                    },
+                })
             }}/>
         </Stack.Navigator>
     )
@@ -229,8 +277,10 @@ const AuthNavigation = () => {
 
 
 function RootNavigator() {
+    const dispatch : AppDispatch = useDispatch();
+
   const {isLoggedIn} = useSelector((state: { auth: storeState }) => state.auth);
-  return isLoggedIn ? AuthNavigation() : NonAuthNavigation()
+  return isLoggedIn ? AuthNavigation({dispatch}) : NonAuthNavigation()
 }
 
 /**
@@ -241,10 +291,11 @@ const BottomTab = createBottomTabNavigator<RootTabParamList>();
 
 function BottomTabNavigator() {
   const colorScheme = useColorScheme();
-
+  const dispatch : AppDispatch = useDispatch();
   return (
     <BottomTab.Navigator
       initialRouteName="UserProfile"
+      detachInactiveScreens={true}
       screenOptions={ ((props: { route: RouteProp<RootTabParamList, keyof RootTabParamList>; navigation: any; }) => ({
         tabBarActiveTintColor: Colors[colorScheme].tint,
       }))}>
@@ -266,9 +317,9 @@ function BottomTabNavigator() {
       <BottomTab.Screen
         name="LoanRequests"
         component={LoanRequests}
-        options={{
-            tabBarStyle: { display: "none" },
-          title: 'Loan Requests',
+        options={({ navigation, route }) => ({
+          tabBarStyle: { display: "none" },
+          title: 'Your Loan Requests',
           tabBarIcon: ({ focused, color, size }) => {
               let iconName;
               iconName = focused
@@ -276,14 +327,29 @@ function BottomTabNavigator() {
                   : 'filetext1';
               return <TabBarIcon name="filetext1" color={color}/>
           },
-            headerShown: false
-        }}
+            headerShown: true,
+            headerStyle: {
+                backgroundColor: '#FFFFFF'
+            },
+            headerTintColor: '#489AAB',
+            headerTitleStyle: {
+                fontFamily: 'Poppins_600SemiBold',
+                fontSize: 18,
+                paddingTop: 5
+            },
+            headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginLeft: 12, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.27)"}}>
+                    <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                </TouchableOpacity>
+            ),
+            headerShadowVisible: false,
+        })}
       />
         <BottomTab.Screen
             name="Account"
             component={Account}
             options={{
-                title: 'My Account',
+                title: 'Account',
                 tabBarIcon: ({ focused, color, size }) => {
                     let iconName;
                     iconName = focused
@@ -298,8 +364,7 @@ function BottomTabNavigator() {
         name="ModalScreen"
         component={ModalScreen}
         options={({ navigation, route }) => ({
-            tabBarStyle: { display: "none" },
-            title: 'Account Settings',
+            title: 'Settings',
             tabBarIcon: ({ focused, color, size }) => {
                 let iconName;
                 iconName = focused
@@ -309,17 +374,27 @@ function BottomTabNavigator() {
             },
             headerShown: true,
             headerStyle: {
-                backgroundColor: 'rgba(204,204,204,0.28)',
+                backgroundColor: '#FFFFFF'
             },
             headerTintColor: '#489AAB',
             headerTitleStyle: {
-                fontFamily: 'Poppins_600SemiBold'
+                fontFamily: 'Poppins_600SemiBold',
+                fontSize: 18,
+                paddingTop: 5
             },
             headerLeft: () => (
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons name="chevron-back-sharp" size={30} style={{ paddingLeft: 2 }} color="#489AAB" />
+                <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginLeft: 12, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.27)"}}>
+                    <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
                 </TouchableOpacity>
             ),
+            headerRight: () => {
+                return (
+                    <TouchableOpacity onPress={async () => await dispatch(logoutUser())}>
+                        <AntDesign name="logout" size={20} style={{paddingRight: 18}} color="#FF4A4AFF"/>
+                    </TouchableOpacity>
+                )
+            },
+            headerShadowVisible: false,
         })}
         />
     </BottomTab.Navigator>

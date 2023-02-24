@@ -126,9 +126,8 @@ export default function GuarantorshipRequests ({ navigation, route }: Navigation
     if (fontsLoaded) {
         return (
             <GestureHandlerRootView style={{flex: 1, position: 'relative'}}>
-                <View style={{ position: 'absolute', right: -30, top: -10, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
                 <View style={styles.container}>
-                    <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.07)", width: width, height }}>
+                    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF", width: width, height }}>
                         <SectionList
                             style={{marginTop: 20}}
                             sections={accountHistory.length > 0 ? [

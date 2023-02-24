@@ -7,9 +7,8 @@ import {
     TextInput,
     Dimensions,
     SafeAreaView,
-    NativeModules,
     Alert,
-    TouchableHighlight
+    TouchableHighlight, Image
 } from 'react-native';
 import Animated, {
     interpolate,
@@ -32,7 +31,7 @@ import {useEffect, useState} from "react";
 import * as LocalAuthentication from 'expo-local-authentication';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import {loginUser, authenticate, setAuthState, TenantsType} from "../../stores/auth/authSlice";
+import {loginUser, authenticate, setAuthState, TenantsType, organisationType} from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { storeState, loginUserType } from "../../stores/auth/authSlice";
@@ -40,6 +39,7 @@ import {FontAwesome5, Ionicons} from "@expo/vector-icons";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import {RotateView} from "./VerifyOTP";
 import {showSnack} from "../../utils/immediateUpdate";
+import {useOrganisations} from "../../stores/hooks";
 const { width, height } = Dimensions.get("window");
 
 type NavigationProps = NativeStackScreenProps<any>;
@@ -90,13 +90,14 @@ const alertComponent = (title: string, mess: string | undefined, btnText: any, b
         }
     ])
 }
-const CUSTOM = NativeModules.CSTM;
+
 export default function Login({ navigation }: NavigationProps) {
-    const { tenants, isLoggedIn, loading, organisations } = useSelector((state: { auth: storeState }) => state.auth);
+    const { tenants, isLoggedIn, loading } = useSelector((state: { auth: storeState }) => state.auth);
+    const [organisations] = useOrganisations();
     const [otpVerified, setOtpVerified] = useState(undefined);
     const [fingerPrint, setFingerPrint] = useState<string | null>(null);
     const [localLogin, setLocalLogin] = useState<boolean>(false);
-    const [currentTenant, setCurrentTenant] = useState<{tenantName: string, tenantId: string, clientSecret: string} | undefined>(undefined);
+    const [currentTenant, setCurrentTenant] = useState<organisationType | undefined>(undefined);
     const [tenant, setTenant] = useState<TenantsType | undefined>(undefined);
     type AppDispatch = typeof store.dispatch;
 
@@ -110,17 +111,13 @@ export default function Login({ navigation }: NavigationProps) {
                         getSecureKey('currentTenantId'),
                         getSecureKey('fingerPrint')
                     ]);
+                    let t = tenants.find(t => t.tenantId === currentTenantId);
                     setFingerPrint(fP);
                     if (response.type === 'authenticate/fulfilled') {
                         if (isLoggedIn) {
                             navigation.navigate('ProfileMain')
                         }
-                    } else if (response.type === 'authenticate/fulfilled') {
-                        if (otpVerified === 'true') {
-                            dispatch(setAuthState(true));
-                        }
                     }
-                    let t = tenants.find(t => t.tenantId === currentTenantId);
                     if (t) {
                         setTenant(t);
                         const CT = organisations.find(org => org.tenantId === currentTenantId)
@@ -129,7 +126,7 @@ export default function Login({ navigation }: NavigationProps) {
                             await saveSecureKey('currentTenant', JSON.stringify(CT))
                         }
                     } else {
-                        navigation.navigate('GetStarted')
+                        // navigation.navigate('GetStarted')
                     }
                 } catch (e: any) {
                     showSnack(`Login Error: ${e.message}`, "ERROR");
@@ -287,10 +284,10 @@ export default function Login({ navigation }: NavigationProps) {
                         const {type, error}: any = await dispatch(loginUser(payload))
                         if (type === 'loginUser/rejected' && error) {
                             if (error.message === "Network request failed") {
-                                CUSTOM.showToast(error.message);
+                                showSnack(error.message, "ERROR");
                             } else {
                                 setError('phoneNumber', {type: 'custom', message: error.message});
-                                CUSTOM.showToast(error.message);
+                                showSnack(error.message, "ERROR");
                             }
                         } else {
                             setCancelFingerPrint(false);
@@ -302,10 +299,10 @@ export default function Login({ navigation }: NavigationProps) {
                             }*/
                         }
                     } catch (e: any) {
-                        CUSTOM.showToast(e.message)
+                        showSnack(e.message, "ERROR")
                     }
                 } else {
-                    CUSTOM.showToast("Kindly use pin")
+                    showSnack("Kindly use pin")
                 }
             }
         }
@@ -380,7 +377,7 @@ export default function Login({ navigation }: NavigationProps) {
                         await doLogin(currentTenant, `${characters[0]}${characters[1]}${characters[2]}${characters[3]}`)
                         //
                     } else {
-                        CUSTOM.showToast("Tenant not Supported");
+                        showSnack("Tenant not Supported", "ERROR");
                     }
                 }
             }
@@ -400,10 +397,10 @@ export default function Login({ navigation }: NavigationProps) {
                 const {type, error}: any = await dispatch(loginUser(payload))
                 if (type === 'loginUser/rejected' && error) {
                     if (error.message === "Network request failed") {
-                        CUSTOM.showToast(error.message);
+                        showSnack(error.message, "ERROR");
                     } else {
                         setError('phoneNumber', {type: 'custom', message: error.message});
-                        CUSTOM.showToast(error.message);
+                        showSnack(error.message, "ERROR");
                         setCancelFingerPrint(true);
                     }
                 } else {
@@ -459,6 +456,8 @@ export default function Login({ navigation }: NavigationProps) {
         }
     }
 
+    console.log(currentTenant)
+
     if (fontsLoaded && !loading) {
         return (
             <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
@@ -475,6 +474,13 @@ export default function Login({ navigation }: NavigationProps) {
                         </View>
 
                         <View>
+                            {(currentTenant !== undefined && currentTenant.logo) ?
+                                <Image
+                                    source={{
+                                        uri: `${currentTenant.logo}`,
+                                    }}
+                                />
+                                : null}
                             <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light', textTransform: 'uppercase'}}>{tenant?.tenantName} LOGIN</Text>
                             <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light'}}>ENTER PIN</Text>
                             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', paddingVertical: 10 }}>

@@ -19,9 +19,10 @@ declare global {
 
 export type RootStackParamList = {
   Root: NavigatorScreenParams<RootTabParamList> | undefined;
-  Modal: undefined;
-  NotFound: undefined;
+  Modal: NavigatorScreenParams<RootTabParamList> | undefined;
+  NotFound: NavigatorScreenParams<RootTabParamList> | undefined;
   GetStarted: NavigatorScreenParams<RootTabParamList> | undefined;
+  KYC: NavigatorScreenParams<RootTabParamList> | undefined;
   SetTenant: NavigatorScreenParams<RootTabParamList> | undefined;
   Organisations: NavigatorScreenParams<RootTabParamList> | undefined;
   OnboardingOTP: NavigatorScreenParams<RootTabParamList> | undefined;

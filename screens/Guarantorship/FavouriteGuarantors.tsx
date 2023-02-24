@@ -70,10 +70,10 @@ const FavouriteGuarantors = ({ navigation }: NavigationProps) => {
 
     if (fontsLoaded && !loading) {
         return (
-            <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+            <View style={{flex: 1, position: 'relative'}}>
                 <View style={{ position: 'absolute', right: -30, top: -10, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
                 <View style={styles.container}>
-                    <View style={{flex: 1, alignItems: 'center',}}>
+                    <View style={{flex: 1, alignItems: 'center'}}>
                         <SafeAreaView style={{ flex: 1, backgroundColor: faveGuarantors.length === 0 ? 'rgba(50,52,146,0)' : '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height }}>
 
                             <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50  }}>

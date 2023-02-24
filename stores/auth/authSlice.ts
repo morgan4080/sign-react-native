@@ -3,8 +3,8 @@ import {deleteSecureKey, getSecureKey, saveSecureKey} from '../../utils/secureSt
 import {openDatabase} from "../../database";
 import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
-import {getAppSignatures, requestPhoneNumberFormat} from "../../utils/smsVerification";
-import {NativeModules} from "react-native";
+import {getAppSignatures} from "../../utils/smsVerification";
+import isSerializable from "../../utils/isSerializable"
 export let db: WebSQLDatabase
 (async () => {
     db = await openDatabase();
@@ -224,20 +224,25 @@ export type organisationType = {
     repaymentDisbursementModes: boolean,
     amounts: boolean,
     selfGuarantee: boolean,
-    minGuarantors: number
+    minGuarantors: number;
+    containsAttachments: boolean;
+    loanProductMaxPeriod: number;
+    parallelLoans: boolean;
+    logo: string | null;
+    organizationPrimaryTheme: string | null;
+    organizationSecondaryTheme: string | null;
 }
 
 export type storeState = {
     user: AuthData | null;
     member: MemberData | null;
-    memberDetails: MemberDetailsType | null;
+    memberDetails: MemberDetailsType | any;
     loanRequests: LoanRequestData[] | null;
     loanRequest: LoanRequest | null;
     loanProducts: LoanProduct[] | null;
     loanProduct: LoanProduct | null;
     isLoggedIn: boolean;
     loading: boolean;
-    isJWT: boolean | string;
     otpSent: boolean;
     optVerified: boolean;
     searchedMembers: membersFilter;
@@ -254,6 +259,7 @@ export type storeState = {
     actorChanged: boolean;
     guarantorsUpdated: boolean;
     notificationTok: string | undefined;
+    clientSettings: Record<string, any>;
 }
 
 const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> => {
@@ -279,14 +285,14 @@ const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> =
     }
 }
 
-export const checkExistingProduct = createAsyncThunk('checkExistingProduct', async ({productRefId, memberRefId}: { productRefId: string, memberRefId: string }, {dispatch, getState}) => {
+export const checkExistingProduct = createAsyncThunk('checkExistingProduct', async ({productRefId, memberRefId}: { productRefId: string, memberRefId: string }, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     //&loanReqStatus=OPEN&order=ASC&pageSize=10&isActive=false productRefId=${productRefId}&
     // https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=eBodx2asJRjwSn1E&order=ASC&pageSize=10&pageIndex=0&isActive=true
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}&productRefId=${productRefId}&order=ASC&pageSize=10&pageIndex=0&isActive=true`
     try {
         const key = await getSecureKey('access_token');
         if (!key) {
-            return Promise.reject('You are not authenticated');
+            return rejectWithValue('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -302,7 +308,7 @@ export const checkExistingProduct = createAsyncThunk('checkExistingProduct', asy
         const data = await response.json();
 
         if (response.status === 200) {
-            return Promise.resolve(data)
+            return fulfillWithValue(data)
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -327,23 +333,26 @@ export const checkExistingProduct = createAsyncThunk('checkExistingProduct', asy
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
             if (data) {
-                return Promise.reject(data)
+                return rejectWithValue(data)
             }
-            return Promise.reject(response.status + ": Could not check for existing loan")
+            return rejectWithValue(response.status + ": Could not check for existing loan")
         }
     } catch (e: any) {
-        return Promise.reject(e)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e)
     }
 })
 
-export const hasPinCheck = createAsyncThunk('hasPinCheck', async ({access_token, phoneNumber}: {access_token: string, phoneNumber: string}) => {
+export const hasPinCheck = createAsyncThunk('hasPinCheck', async ({access_token, phoneNumber}: {access_token: string, phoneNumber: string}, {rejectWithValue, fulfillWithValue}) => {
     try {
         if (!access_token) {
-            return Promise.reject('You are not authenticated');
+            return rejectWithValue('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -359,13 +368,16 @@ export const hasPinCheck = createAsyncThunk('hasPinCheck', async ({access_token,
         const { data, messages } = await response.json();
 
         if (response.status === 200) {
-            return Promise.resolve(data)
+            return fulfillWithValue(data)
         } else {
-            return Promise.reject(JSON.stringify(messages))
+            return rejectWithValue(JSON.stringify(messages))
         }
 
     } catch (e: any) {
-        return Promise.reject(e.message)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message)
     }
 })
 
@@ -431,7 +443,7 @@ export const initializeDB = createAsyncThunk('initializeDB', async (): Promise<a
                     }
                 )
 
-                tx.executeSql(`CREATE TABLE IF NOT EXISTS user (id integer primary key, kraPin text not null, employed integer not null, businessOwner integer not null, employerName text default null, serviceNumber text default null, grossSalary integer default null, netSalary integer default null, businessType text default null, businessLocation text default null)`, undefined,
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS user (id integer primary key, kraPin text not null, age text not null, mname text not null, email text not null, idNumber text not null, phoneNumber text not null, employed integer not null, businessOwner integer not null, employmentType text default null, employerName text default null,employerAddress text default null, employmentNumber text default null, grossSalary integer default null, netSalary integer default null, businessType text default null, businessLocation text default null)`, undefined,
                     (txObj: SQLTransaction, resultSet: SQLResultSet) => {
                         console.log('successfully created user')
                     },
@@ -481,25 +493,68 @@ export const initializeDB = createAsyncThunk('initializeDB', async (): Promise<a
                     }
                 )
 
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS client_settings
+                               (
+                                   id                         integer primary key,
+                                   refid                      varchar(255),
+                                   created                    timestamp,
+                                   updated                    timestamp,
+                                   isactive                   boolean,
+                                   ussdshortcode              varchar(255),
+                                   organizationname           varchar(255),
+                                   requirewitness             boolean,
+                                   allowzeroguarantors        boolean,
+                                   allowselfguarantee         boolean,
+                                   isguaranteedamountshared   boolean,
+                                   useembeddedurl             boolean,
+                                   containsattachments        boolean,
+                                   organizationalias          varchar(255),
+                                   organizationemail          varchar(255),
+                                   supportemail               varchar(255),
+                                   organizationprimarytheme   varchar(255),
+                                   organizationsecondarytheme varchar(255),
+                                   organizationlogoname       varchar(255),
+                                   organizationlogoextension  varchar(255),
+                                   corebankingintegration     varchar(255),
+                                   loanproductmaxperiod       varchar(255),
+                                   customsms                  boolean,
+                                   notificationprovider       varchar(255),
+                                   identifiertype             varchar(255),
+                                   parallelloans              boolean,
+                                   documentfields             jsonb
+                               );
+                    `, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully created client_settings')
+                    },
+
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create client_settings error', error.message)
+                    }
+                )
+
             })
             resolve(Promise.all([true]))
         } catch (e: any) {
+            if (!e.response) {
+                throw e
+            }
             reject(e)
         }
     })
-});
+})
 
 type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
 
 type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
 
-export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanRequestRefId,actorRefId,actorType}: zohoSignPayloadType, {dispatch, getState}) => {
+export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanRequestRefId,actorRefId,actorType}: zohoSignPayloadType, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
 
         const key = await getSecureKey('access_token');
 
         if (!key) {
-            return Promise.reject('You are not authenticated');
+            return rejectWithValue('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -521,7 +576,7 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
 
         if (response.status === 200) {
             const data = await response.json();
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -546,32 +601,35 @@ export const requestSignURL = createAsyncThunk('requestSignURL', async ({loanReq
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else if (response.status === 500) {
             const data = await response.json();
             if (Object.keys(data).includes("message")) {
-                return Promise.reject(data.message)
+                return rejectWithValue(data.message)
             } else {
-                return Promise.reject(`Document Expired`)
+                return rejectWithValue(`Document Expired`)
             }
         } {
-            return Promise.reject(`Document Expired`)
+            return rejectWithValue(`Document Expired`)
         }
     } catch (e: any) {
-        return Promise.reject(e.message)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message)
     }
 });
 
 type validateGuarantorType = {applicantMemberRefId: string , memberRefIds: string[], loanProductRefId: string, loanAmount: number, guaranteeAmount?: number}
 
-export const validateGuarantorship = createAsyncThunk('validateGuarantorship', async (payload:validateGuarantorType, {dispatch, getState}) => {
+export const validateGuarantorship = createAsyncThunk('validateGuarantorship', async (payload:validateGuarantorType, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     console.log(payload)
     try {
         const key = await getSecureKey('access_token');
 
         if (!key) {
-            return Promise.reject('You are not authenticated');
+            return rejectWithValue('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -589,7 +647,7 @@ export const validateGuarantorship = createAsyncThunk('validateGuarantorship', a
 
         if (response.status === 200) {
             const data = await response.json();
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -614,20 +672,23 @@ export const validateGuarantorship = createAsyncThunk('validateGuarantorship', a
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject(`Http Status: ${response.status}`);
+            return rejectWithValue(`Http Status: ${response.status}`);
         }
 
     } catch (e: any) {
-        return Promise.reject(e.message);
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message);
     }
 });
 
 type userPayloadType = {id: number, kraPin: string, employed: number, businessOwner: number, employerName: any, serviceNumber: any, grossSalary: any, netSalary: any, businessType: any, businessLocation: any}
 
-export const saveUser = createAsyncThunk('saveUser', async (payload: userPayloadType) => {
+export const saveUser = createAsyncThunk('saveUser', async (payload: userPayloadType, {rejectWithValue, fulfillWithValue}) => {
     try {
         const {id, kraPin, employed, businessOwner, employerName, serviceNumber, grossSalary, netSalary, businessType, businessLocation} = payload
         const contacts2D = await fetchContactsFromPB()
@@ -637,17 +698,20 @@ export const saveUser = createAsyncThunk('saveUser', async (payload: userPayload
                 // success callback which sends two things Transaction object and ResultSet Object
                 (txObj: SQLTransaction, resultSet: SQLResultSet) => {
                     console.log("user written", resultSet.insertId)
-                    return Promise.resolve("user written")
+                    return fulfillWithValue("user written")
                 },
                 // failure callback which sends two things Transaction object and Error
                 (txObj: SQLTransaction, error: SQLError): any => {
                     console.log("user error",error.message);
-                    return Promise.reject(error.message)
+                    return rejectWithValue(error.message)
                 }
             )
         })
     } catch(e: any) {
-        return Promise.reject(e)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e)
     }
 })
 
@@ -674,6 +738,9 @@ export const saveContactsToDb = createAsyncThunk('saveContactsToDb', async() => 
                 }, []);
             })
         } catch (e: any) {
+            if (!e.response) {
+                throw e
+            }
             reject(e)
         }
     })
@@ -763,7 +830,6 @@ export const checkForJWT = createAsyncThunk('checkForJWT', async () => {
 
 const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_token, phoneNumber }: any) => {
     try {
-        console.log('access_token', access_token);
         await Promise.all([
             saveSecureKey('access_token', access_token),
             saveSecureKey('refresh_token', refresh_token),
@@ -771,7 +837,9 @@ const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_
         ]);
         return Promise.resolve(true);
     } catch(e: any) {
-        console.log("saveKeys", e);
+        if (!e.response) {
+            throw e
+        }
         return Promise.reject(e);
     }
 }
@@ -808,6 +876,9 @@ export const createPin = createAsyncThunk('createPin', async ({pinConfirmation, 
                 reject('Process Failed')
             }
         } catch(e: any) {
+            if (!e.response) {
+                throw e
+            }
             reject(e.message)
         }
     })
@@ -841,7 +912,6 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
             });
             const data = await response.json();
             if (response.status === 200) {
-                console.log(data);
                 const result: any = await saveKeys({...data, phoneNumber})
                 resolve(result)
             } else if (response.status === 401) {
@@ -851,13 +921,16 @@ export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin
                 reject(response.status)
             }
         } catch (e: any) {
+            if (!e.response) {
+                throw e
+            }
             reject(e.message)
         }
     })
 })
 type refreshTokenPayloadType = {client_id: string, grant_type: string, refresh_token: string, realm?: string, client_secret?: string, cb?: any}
 
-export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async ({client_id, grant_type, refresh_token, realm, client_secret,  cb} : refreshTokenPayloadType, { dispatch }) => {
+export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async ({client_id, grant_type, refresh_token, realm, client_secret,  cb} : refreshTokenPayloadType, { dispatch,rejectWithValue, fulfillWithValue }) => {
     try {
         const payload: any = {
             client_id,
@@ -891,18 +964,21 @@ export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async (
             if (cb) {
                 await cb()
             }
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else {
             dispatch(setAuthState(false));
         }
 
     } catch(e: any) {
-        return Promise.reject(e.message);
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message);
     }
 })
 
-export const logoutUser = createAsyncThunk('logoutUser', async () => {
-    return Promise.resolve(
+export const logoutUser = createAsyncThunk('logoutUser', async (_, {fulfillWithValue}) => {
+    return fulfillWithValue(
         Promise.all([
             deleteSecureKey('otp_verified'),
             deleteSecureKey('access_token'),
@@ -919,14 +995,14 @@ export const logoutUser = createAsyncThunk('logoutUser', async () => {
 
 type memberPayloadType = {firstName?: string, lastName?: string, phoneNumber?: string, idNumber?: string, email?: string, memberRefId?: string}
 
-export const editMember = createAsyncThunk('editMember', async (payload: memberPayloadType, {dispatch, getState}) => {
+export const editMember = createAsyncThunk('editMember', async (payload: memberPayloadType, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/members/${payload.memberRefId}`;
 
     try {
         const key = await getSecureKey('access_token');
 
         if (!key) {
-            return Promise.reject('You are not authenticated');
+            return rejectWithValue('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -945,7 +1021,7 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
 
         if (response.status === 200) {
             const data = await response.json();
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -970,22 +1046,25 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject(`API error code: ${response.status}`);
+            return rejectWithValue(`API error code: ${response.status}`);
         }
 
     } catch (e: any) {
-        return Promise.reject(e.message)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message)
     }
 });
 
-export const replaceGuarantor = createAsyncThunk('replaceGuarantor', async ({loanRefId, memberRefId, newGuarantorRef, oldGuarantorRef} : {loanRefId: string, memberRefId: string, newGuarantorRef: string, oldGuarantorRef: string}, {dispatch, getState}) => {
+export const replaceGuarantor = createAsyncThunk('replaceGuarantor', async ({loanRefId, memberRefId, newGuarantorRef, oldGuarantorRef} : {loanRefId: string, memberRefId: string, newGuarantorRef: string, oldGuarantorRef: string}, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const key = await getSecureKey('access_token');
         if (!key) {
-            return Promise.reject('You are not authenticated');
+            return rejectWithValue('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -1006,7 +1085,7 @@ export const replaceGuarantor = createAsyncThunk('replaceGuarantor', async ({loa
             const data = await response.json();
             dispatch(setActorChanged(true));
             dispatch(fetchLoanRequests(memberRefId));
-            return Promise.resolve(data.message);
+            return fulfillWithValue(data.message);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -1030,29 +1109,32 @@ export const replaceGuarantor = createAsyncThunk('replaceGuarantor', async ({loa
                 return dispatch(refreshAccessToken(refreshTokenPayload));
             } else {
                 setAuthState(false);
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else if (response.status === 400) {
             const error = await response.json();
-            return Promise.reject(error.message);
+            return rejectWithValue(error.message);
         } else {
-            return Promise.reject(`API error code: ${response.status}`);
+            return rejectWithValue(`API error code: ${response.status}`);
         }
     } catch (e: any) {
-        return Promise.reject(e.message);
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message);
     }
 })
 
-export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dispatch, getState}) => {
+export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const key = await getSecureKey('access_token');
 
         if (!phoneNumber) {
-            return Promise.reject('User not available')
+            return rejectWithValue('User not available')
         }
 
         if (!key) {
-            return Promise.reject('You are not authenticated');
+            return rejectWithValue('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -1072,9 +1154,9 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dis
 
         if (response.status === 200) {
             if (data.success) {
-                return Promise.resolve(data);
+                return fulfillWithValue(data);
             } else {
-                return Promise.reject(data.message);
+                return rejectWithValue(data.message);
             }
         } else if (response.status === 401) {
             // update refresh token and retry
@@ -1100,17 +1182,20 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dis
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject(`API error code: ${response.status}`);
+            return rejectWithValue(`API error code: ${response.status}`);
         }
     } catch (e: any) {
-        return Promise.reject(e.message);
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message);
     }
 })
 
-export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async ({email, phoneNumber, deviceId, appName}: { email?: string, phoneNumber?: string, deviceId: string, appName: string}) => {
+export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async ({email, phoneNumber, deviceId, appName}: { email?: string, phoneNumber?: string, deviceId: string, appName: string}, {rejectWithValue, fulfillWithValue}) => {
     try {
         const myHeaders = new Headers();
 
@@ -1143,16 +1228,19 @@ export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async (
         const response = await fetch("https://accounts.presta.co.ke/api/v1/users/verification", requestOptions);
 
         if (response.status === 200) {
-            return Promise.resolve(true);
+            return fulfillWithValue(true);
         } else {
-            return Promise.reject(response.status);
+            return rejectWithValue(response.status);
         }
     } catch (e: any) {
-        return Promise.reject(e.message);
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message);
     }
 })
 
-export const searchByPhone = createAsyncThunk('searchByPhone', async ({phoneNumber, access_token}: {phoneNumber: string, access_token: string}) => {
+export const searchByPhone = createAsyncThunk('searchByPhone', async ({phoneNumber, access_token}: {phoneNumber: string, access_token: string}, {rejectWithValue, fulfillWithValue}) => {
     const URL = `https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber.replace('+', '')}`;
 
     const myHeaders = new Headers();
@@ -1172,20 +1260,22 @@ export const searchByPhone = createAsyncThunk('searchByPhone', async ({phoneNumb
 
             const data = await response.json();
 
-            return Promise.resolve(data)
+            return fulfillWithValue(data)
 
         } else {
-            return Promise.reject('Your account is not registered. To access this service, contact support@presta.co.ke for further help')
+            return rejectWithValue('Your account is not registered. To access this service, contact support@presta.co.ke for further help')
         }
 
     } catch (e: any) {
-
-        return Promise.reject(e.message)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message)
 
     }
 })
 
-export const searchByEmail = createAsyncThunk('searchByEmail', async ({email, access_token}: {email: string | null, access_token: string}) => {
+export const searchByEmail = createAsyncThunk('searchByEmail', async ({email, access_token}: {email: string | null, access_token: string}, {rejectWithValue, fulfillWithValue}) => {
     const emailIdentifierUrl = `https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-email?email=${email}`
 
     const myHeaders = new Headers();
@@ -1204,12 +1294,15 @@ export const searchByEmail = createAsyncThunk('searchByEmail', async ({email, ac
 
         if (response.status === 200) {
             const data = await response.json();
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else {
-            return Promise.reject('Welcome to Imarisha Digital Loaning. Your account is not registered. To access this service, contact Imarisha for further help');
+            return rejectWithValue('Welcome to Imarisha Digital Loaning. Your account is not registered. To access this service, contact Imarisha for further help');
         }
     } catch(e: any) {
-        return Promise.reject(e.message)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message)
     }
 });
 
@@ -1237,13 +1330,16 @@ export const authClient = createAsyncThunk('authClient', async ({realm, client_s
             xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
             xhr.send(dataOut);
-        } catch (e) {
+        } catch (e: any) {
+            if (!e.response) {
+                throw e
+            }
             reject(e)
         }
     })
 });
 
-export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', async ({identifier, deviceHash, verificationType, otp }: {identifier: string, deviceHash: string, verificationType: string, otp: string}) => {
+export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', async ({identifier, deviceHash, verificationType, otp }: {identifier: string, deviceHash: string, verificationType: string, otp: string}, {rejectWithValue, fulfillWithValue}) => {
     try {
         const myHeaders = new Headers();
         myHeaders.append("api-key", "EqU.+vP\\_74Vu<'$jGxxfvwqN(z\"h46Z2\"*G=-ABs=rSDF&4.e");
@@ -1269,21 +1365,21 @@ export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', asy
                 saveSecureKey('otp_verified', 'true'),
                 saveSecureKey('existing', 'true')
             ]);
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else {
-            return Promise.reject(response.status);
+            return rejectWithValue(response.status);
         }
     } catch (e: any) {
-        return Promise.reject(e.message);
+        return rejectWithValue(e.message);
     }
 })
 
-export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memberNo: string | undefined, {dispatch, getState}) => {
+export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memberNo: string | undefined, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const key = await getSecureKey('access_token');
 
         if (!key) {
-            return Promise.reject('You are not authenticated');
+            return rejectWithValue('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -1299,7 +1395,7 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
         if (response.status === 200) {
             const data = await response.json();
             console.log(data)
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -1324,23 +1420,23 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject(`is not a member.`);
+            return rejectWithValue(`is not a member.`);
         }
 
     } catch (e: any) {
-        return Promise.reject(e.message);
+        return rejectWithValue(e.message);
     }
 })
 
-export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, OTP }: { requestMapper: string, OTP: string }, {dispatch, getState}) => {
+export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, OTP }: { requestMapper: string, OTP: string }, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const key = await getSecureKey('access_token');
 
         if (!key) {
-            return Promise.reject('You are not authenticated');
+            return rejectWithValue('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -1360,9 +1456,9 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
                     saveSecureKey('otp_verified', 'true'),
                     saveSecureKey('existing', 'true')
                 ]);
-                return Promise.resolve(data);
+                return fulfillWithValue(data);
             } else {
-                return Promise.reject("OTP Invalid");
+                return rejectWithValue("OTP Invalid");
             }
 
         } else if (response.status === 401) {
@@ -1389,13 +1485,13 @@ export const verifyOtp = createAsyncThunk('verifyOtp', async ({ requestMapper, O
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject(`API error code: ${response.status}`);
+            return rejectWithValue(`API error code: ${response.status}`);
         }
     } catch (e: any) {
-        return Promise.reject(e.message);
+        return rejectWithValue(e.message);
     }
 });
 
@@ -1404,7 +1500,7 @@ export const submitLoanRequest = createAsyncThunk('submitLoanRequest', async( pa
         try {
             const [key, notification_token] = await Promise.all([
                 getSecureKey('access_token'),
-                getSecureKey('notification-id')
+                getSecureKey('notification_id')
             ]);
 
             if (!key) {
@@ -1520,12 +1616,12 @@ export const fetchGuarantorshipRequests = createAsyncThunk('fetchGuarantorshipRe
     })
 });
 
-export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest', async (refId: string, {dispatch, getState}) => {
+export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest', async (refId: string, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const key = await getSecureKey('access_token');
 
         if (!key) {
-            return Promise.reject('You are not authenticated');
+            return rejectWithValue('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -1543,7 +1639,7 @@ export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest
             const data = await response.json();
             const state: any = getState()
             if (state.member?.refId) dispatch(fetchGuarantorshipRequests({ memberRefId: state.member?.refId}))
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -1568,22 +1664,22 @@ export const declineGuarantorRequest = createAsyncThunk('declineGuarantorRequest
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject(response);
+            return rejectWithValue(response);
         }
     } catch (e: any) {
-        return Promise.reject(e.message)
+        return rejectWithValue(e.message)
     }
 });
 
-export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', async (refId: string, {dispatch, getState}) => {
+export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', async (refId: string, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const key = await getSecureKey('access_token');
 
         if (!key) {
-            return Promise.reject('You are not authenticated');
+            return rejectWithValue('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -1598,7 +1694,7 @@ export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', a
 
         if (response.status === 200) {
             const data = await response.json();
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -1623,24 +1719,24 @@ export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', a
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject(response);
+            return rejectWithValue(response);
         }
     } catch (e) {
-        return Promise.reject(e)
+        return rejectWithValue(e)
     }
 });
 
-export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuarantors', async ({memberRefId, setFaveGuarantors}: {memberRefId: string | undefined, setFaveGuarantors: any}, {dispatch, getState}) => {
+export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuarantors', async ({memberRefId, setFaveGuarantors}: {memberRefId: string | undefined, setFaveGuarantors: any}, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const key = await getSecureKey('access_token');
         if (!memberRefId) {
-            return Promise.reject('No Member Ref Id Provided');
+            return rejectWithValue('No Member Ref Id Provided');
         }
         if (!key) {
-            return Promise.reject("You are not authenticated")
+            return rejectWithValue("You are not authenticated")
         }
         const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/favorite-guarantor/favorite-guarantors/${memberRefId}`,{
             method: 'GET',
@@ -1654,14 +1750,14 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
 
         if (result.status === 204) {
             console.log(`https://eguarantorship-api.presta.co.ke/api/v1/favorite-guarantor/favorite-guarantors/${memberRefId}`);
-            return Promise.reject("No guarantors found");
+            return rejectWithValue("No guarantors found");
         }
 
         if (result.status === 200) {
             const data = await result.json();
             console.log("favourite guarantors", data);
             setFaveGuarantors(data);
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else if (result.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -1690,21 +1786,21 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
             } else {
                 setAuthState(false);
 
-                return Promise.reject(result.status);
+                return rejectWithValue(result.status);
             }
         } else {
-            return Promise.reject(`is not a member.`);
+            return rejectWithValue(`is not a member.`);
         }
     } catch (e: any) {
-        return Promise.reject(e.message);
+        return rejectWithValue(e.message);
     }
 });
 
-export const validateNumber = createAsyncThunk('validateNumber', async (phone: string, {dispatch, getState}) => {
+export const validateNumber = createAsyncThunk('validateNumber', async (phone: string, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
-            return Promise.reject("You are not authenticated")
+            return rejectWithValue("You are not authenticated")
         }
         const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phone}`,{
             method: 'GET',
@@ -1715,7 +1811,7 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
         });
         if (result.status === 200) {
             const data = await result.json();
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else if (result.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -1742,13 +1838,13 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
             } else {
                 setAuthState(false);
 
-                return Promise.reject(result.status);
+                return rejectWithValue(result.status);
             }
         } else {
-            return Promise.reject(`is not a member of this organisation`);
+            return rejectWithValue(`is not a member of this organisation`);
         }
     } catch (e: any) {
-        return Promise.reject(e.message);
+        return rejectWithValue(e.message);
     }
 })
 
@@ -1810,7 +1906,7 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
     })
 })
 
-export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: string) => {
+export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: string, {rejectWithValue, fulfillWithValue}) => {
     const myHeaders = new Headers();
     myHeaders.append("api-key", `EqU.+vP\\_74Vu<'$jGxxfvwqN(z"h46Z2"*G=-ABs=rSDF&4.e`);
     const url = `https://accounts.presta.co.ke/api/v1/users/tenants/${phoneNumber}`;
@@ -1822,29 +1918,29 @@ export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: str
 
         if (response.status === 200) {
             const data = await response.json();
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else if (response.status === 401) {
             setAuthState(false);
-            return Promise.reject(response.status);
+            return rejectWithValue(response.status);
         } else {
             const data = await response.json();
-            return Promise.reject("API response code: " + response.status);
+            return rejectWithValue("API response code: " + response.status);
         }
 
     } catch (e: any) {
         console.log(e)
-        return Promise.reject(e)
+        return rejectWithValue(e)
     }
 })
 
-const emailApproval = createAsyncThunk('emailApproval', async ({ memberNumber, currentEmail, updatedEmail }: {memberNumber: string, currentEmail: string, updatedEmail: string}) => {
+const emailApproval = createAsyncThunk('emailApproval', async ({ memberNumber, currentEmail, updatedEmail }: {memberNumber: string, currentEmail: string, updatedEmail: string}, {rejectWithValue, fulfillWithValue}) => {
     try {
         const url = `https://eguarantorship-api.presta.co.ke/api/v1/members/send-email-approval`
 
         const key = await getSecureKey('access_token');
 
         if (!key) {
-            return Promise.reject("You are not authenticated");
+            return rejectWithValue("You are not authenticated");
         }
         const myHeaders = new Headers();
 
@@ -1864,27 +1960,27 @@ const emailApproval = createAsyncThunk('emailApproval', async ({ memberNumber, c
 
         if (response.status === 200) {
             const data = await response.json();
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else if (response.status === 401) {
             setAuthState(false);
-            return Promise.reject(response.status);
+            return rejectWithValue(response.status);
         } else {
             const data = await response.json();
             console.log("status", response.status, data);
-            return Promise.reject("API response code: " + response.status);
+            return rejectWithValue("API response code: " + response.status);
         }
 
     } catch (e: any) {
-        return Promise.reject("Email approval Error");
+        return rejectWithValue("Email approval Error");
     }
 })
 
-export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState, dispatch }) => {
+export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState, dispatch, rejectWithValue, fulfillWithValue }) => {
     try {
         const key = await getSecureKey('access_token');
 
         if (!key) {
-            return Promise.reject("You are not authenticated");
+            return rejectWithValue("You are not authenticated");
         }
 
         const myHeaders = new Headers();
@@ -1899,7 +1995,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState,
 
         if (response.status === 200) {
             const data = await response.json();
-            return Promise.resolve(data.member);
+            return fulfillWithValue(data.member);
         }  else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -1925,24 +2021,24 @@ export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState,
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
             console.log("Fetch Member Failed");
-            return Promise.reject("Fetch Member Failed");
+            return rejectWithValue("Fetch Member Failed");
         }
     } catch (e: any) {
-        return Promise.reject(e.message);
+        return rejectWithValue(e.message);
     }
 })
 
-export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', async ({memberRefId}: {memberRefId: string | undefined }, { getState, dispatch}) => {
+export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', async ({memberRefId}: {memberRefId: string | undefined }, { getState, dispatch, rejectWithValue, fulfillWithValue}) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/witness-request?acceptanceStatus=ANY&memberRefId=${memberRefId}`
 
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
-            return Promise.reject("You are not authenticated")
+            return rejectWithValue("You are not authenticated")
         }
         const myHeaders = new Headers();
         myHeaders.append("Authorization", `Bearer ${key}`);
@@ -1955,7 +2051,7 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
         if (response.status === 200) {
             const data = await response.json();
             console.log("witness data", data);
-            return Promise.resolve(data);
+            return fulfillWithValue(data);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -1981,21 +2077,24 @@ export const fetchWitnessRequests = createAsyncThunk('fetchWitnessRequests', asy
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject("Witness Requests not found!");
+            return rejectWithValue("Witness Requests not found!");
         }
     } catch (e: any) {
-        return Promise.reject(e.message)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message)
     }
 })
 
-export const voidLoanRequest = createAsyncThunk('voidLoanRequest', async (loanRequestNumber: string, {dispatch, getState}) => {
+export const voidLoanRequest = createAsyncThunk('voidLoanRequest', async (loanRequestNumber: string, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
-            return Promise.reject("You are not authenticated")
+            return rejectWithValue("You are not authenticated")
         }
         const myHeaders = new Headers();
         myHeaders.append("Authorization", `Bearer ${key}`);
@@ -2008,7 +2107,7 @@ export const voidLoanRequest = createAsyncThunk('voidLoanRequest', async (loanRe
         if (response.status === 200) {/*
             const data = await response.text();
             console.log("voidLoanRequest", data);*/
-            return Promise.resolve('Loan request voided successful!');
+            return fulfillWithValue('Loan request voided successful!');
         } else if (response.status === 401) {
             const state: any = getState();
             if (state) {
@@ -2031,24 +2130,24 @@ export const voidLoanRequest = createAsyncThunk('voidLoanRequest', async (loanRe
                 return await dispatch(refreshAccessToken(refreshTokenPayload))
             } else {
                 setAuthState(false);
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject('Could not void loan request!');
+            return rejectWithValue('Could not void loan request!');
         }
 
     } catch (e: any) {
         console.error("voidLoanRequest",  e);
-        return Promise.reject('Could not void loan request!');
+        return rejectWithValue('Could not void loan request!');
     }
 })
 
-export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string, {dispatch, getState}) => {
+export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}&order=ASC&pageSize=10&isActive=true`;
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
-            return Promise.reject("You are not authenticated")
+            return rejectWithValue("You are not authenticated")
         }
         const myHeaders = new Headers();
         myHeaders.append("Authorization", `Bearer ${key}`)
@@ -2118,12 +2217,12 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                         return await dispatch(refreshAccessToken(refreshTokenPayload))
                     } else {
                         setAuthState(false);
-                        return Promise.reject(response.status);
+                        return rejectWithValue(response.status);
                     }
                 }
             }))
 
-            return Promise.resolve(result)
+            return fulfillWithValue(result)
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -2148,22 +2247,25 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject("Fetch Member Failed")
+            return rejectWithValue("Fetch Member Failed")
         }
     } catch (e: any) {
-        return Promise.reject(e.message)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message)
     }
 })
 
-export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refId: string, {dispatch, getState}) => {
+export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refId: string, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${refId}`
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
-            return Promise.reject("You are not authenticated")
+            return rejectWithValue("You are not authenticated")
         }
         const myHeaders = new Headers();
         myHeaders.append("Authorization", `Bearer ${key}`)
@@ -2175,7 +2277,7 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
         if (response.status === 200) {
             const data = await response.json()
             console.log("fetchLoanRequest", data);
-            return Promise.resolve(data)
+            return fulfillWithValue(data)
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -2200,23 +2302,26 @@ export const fetchLoanRequest = createAsyncThunk('fetchLoanRequest', async (refI
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject("Fetch Loan Request Failed")
+            return rejectWithValue("Fetch Loan Request Failed")
         }
     } catch (e: any) {
-        return Promise.reject(e.message)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message)
     }
 })
 
-export const fetchMyLoans = createAsyncThunk('fetchMyLoans', async (refId: string | undefined) => {
+export const fetchMyLoans = createAsyncThunk('fetchMyLoans', async (refId: string | undefined, {rejectWithValue, fulfillWithValue}) => {
     try {
         const url = `https://eguarantorship-api.presta.co.ke/api/v1/loans?memberRefId=${refId}`
 
         const key = await getSecureKey('access_token')
         if (!key) {
-            return Promise.reject('You are not authenticated')
+            return rejectWithValue('You are not authenticated')
         }
 
         const myHeaders = new Headers()
@@ -2231,23 +2336,26 @@ export const fetchMyLoans = createAsyncThunk('fetchMyLoans', async (refId: strin
 
         if (response.status === 200) {
             const data = await response.json()
-            return Promise.resolve(data)
+            return fulfillWithValue(data)
         } else {
-            return Promise.reject(response.status + 'Error: Loans')
+            return rejectWithValue(response.status + 'Error: Loans')
         }
 
     } catch (e: any) {
-        return Promise.reject(e.message)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message)
     }
 })
 
-export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async (_, {dispatch, getState}) => {
+export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async (_, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/loans-products`
 
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
-            return Promise.reject("You are not authenticated")
+            return rejectWithValue("You are not authenticated")
         }
         const myHeaders = new Headers();
         myHeaders.append("Authorization", `Bearer ${key}`)
@@ -2258,7 +2366,7 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async (_,
         })
         if (response.status === 200) {
             const data = await response.json();
-            return Promise.resolve(data.list);
+            return fulfillWithValue(data.list);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -2283,17 +2391,20 @@ export const fetchLoanProducts = createAsyncThunk('fetchLoanProducts', async (_,
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject("fetch loan products failed")
+            return rejectWithValue("fetch loan products failed")
         }
     } catch (e: any) {
-        return Promise.reject(e.message)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message)
     }
 })
 
-export const setLoanCategories = createAsyncThunk('setLoanCategories', async(signal: any, {dispatch, getState}) => {
+export const setLoanCategories = createAsyncThunk('setLoanCategories', async(signal: any, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     const key = await getSecureKey('access_token')
     if (!key) {
         console.log("You are not authenticated")
@@ -2327,23 +2438,26 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
                         redirect: 'follow',
                         signal: signal
                     })
-                        .then((res) => res.json())
-                        .then((data) => {
-                            let options = data.map((member: any, i: any) => {
-                                let code = Object.keys(member)[0]
-                                return {
-                                    code: member.code,
-                                    name: member.name,
-                                    selected: false,
-                                    options: [],
-                                }
-                            })
-                            resolve({
-                                ...curr,
-                                options
-                            })
-                        }).catch((e: any) => {
-                        console.log("error sasra-code?parent", e)
+                    .then((res) => res.json())
+                    .then((data) => {
+                        let options = data.map((member: any, i: any) => {
+                            let code = Object.keys(member)[0]
+                            return {
+                                code: member.code,
+                                name: member.name,
+                                selected: false,
+                                options: [],
+                            }
+                        })
+                        resolve({
+                            ...curr,
+                            options
+                        })
+                    }).catch((e: any) => {
+                        if (!e.response) {
+                            throw e
+                        }
+                        rejectWithValue(e.message)
                     })
                 }))
                 return acc
@@ -2386,8 +2500,10 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
             }, []);
             return Promise.all(withAllOptions);
         } catch (e: any) {
-            console.log('errors not resolving purpose', e);
-            return Promise.reject('Cant resolve sasra');
+            if (!e.response) {
+                throw e
+            }
+            return rejectWithValue(e.mesage);
         }
     } else if (response.status === 401) {
         // update refresh token and retry
@@ -2413,20 +2529,20 @@ export const setLoanCategories = createAsyncThunk('setLoanCategories', async(sig
         } else {
             setAuthState(false);
 
-            return Promise.reject(response.status);
+            return rejectWithValue(response.status);
         }
     } else {
-        return Promise.reject('Cant resolve sasra');
+        return rejectWithValue('Cant resolve sasra');
     }
 })
 
-export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (refId: string, {dispatch, getState}) => {
+export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (refId: string, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/${refId}/sign`
         const key = await getSecureKey('access_token')
         if (!key) {
             setAuthState(false);
-            return Promise.reject(401)
+            return rejectWithValue(401)
         }
         const myHeaders = new Headers();
         myHeaders.append("Authorization", `Bearer ${key}`);
@@ -2435,7 +2551,7 @@ export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (
             headers: myHeaders
         });
         if (response.status === 200) {
-            return Promise.resolve(true);
+            return fulfillWithValue(true);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -2460,19 +2576,21 @@ export const resubmitForSigning = createAsyncThunk('resubmitForSigning', async (
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject(response.status + ": API Error");
+            return rejectWithValue(response.status + ": API Error");
         }
     } catch(e: any) {
-        console.log(e.message);
-        return Promise.reject(e.message);
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message);
     }
 })
 
 // discontinued
-export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string | undefined, signal: any}, {dispatch, getState}) => {
+export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async ({memberNo, signal}: {memberNo: string | undefined, signal: any}, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
@@ -2493,9 +2611,9 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
             const data = await response.json();
 
             if (Array.isArray(data)) {
-                return Promise.resolve(data[0])
+                return fulfillWithValue(data[0])
             } else {
-                return Promise.resolve(data)
+                return fulfillWithValue(data)
             }
         } else if (response.status === 401) {
             // update refresh token and retry
@@ -2521,18 +2639,20 @@ export const fetchMemberDetails = createAsyncThunk('fetchMemberDetails', async (
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject(response.status + ": API Error");
+            return rejectWithValue(response.status + ": API Error");
         }
     } catch (e: any) {
-        console.log(e.message);
-        return Promise.reject(e.message);
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message);
     }
 })
 
-export const pingBeacon = createAsyncThunk("pingBeacon", async ({appName, notificationTok, version} : {appName: string | undefined, notificationTok: string | undefined, version: string | undefined}, {dispatch, getState}) => {
+export const pingBeacon = createAsyncThunk("pingBeacon", async ({appName, notificationTok, version} : {appName: string | undefined, notificationTok: string | undefined, version: string | undefined}, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const myHeaders = new Headers();
 
@@ -2554,9 +2674,9 @@ export const pingBeacon = createAsyncThunk("pingBeacon", async ({appName, notifi
             const data = await response.json()
 
             if (Array.isArray(data)) {
-                return Promise.resolve(data[0])
+                return fulfillWithValue(data[0])
             } else {
-                return Promise.resolve(data)
+                return fulfillWithValue(data)
             }
         } else if (response.status === 401) {
             // update refresh token and retry
@@ -2582,18 +2702,20 @@ export const pingBeacon = createAsyncThunk("pingBeacon", async ({appName, notifi
             } else {
                 setAuthState(false);
 
-                return Promise.reject(response.status);
+                return rejectWithValue(response.status);
             }
         } else {
-            return Promise.reject(response.status + ": API Error");
+            return rejectWithValue(response.status + ": API Error");
         }
     } catch (e: any) {
-        console.log(e.message);
-        return Promise.reject(e.message);
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message);
     }
 })
 
-export const AuthenticateClient = createAsyncThunk("AuthenticateClient", async (selectedTenant: organisationType) => {
+export const AuthenticateClient = createAsyncThunk("AuthenticateClient", async (selectedTenant: organisationType, {rejectWithValue, fulfillWithValue}) => {
     try {
         const details: any = {
             client_id: "direct-access",
@@ -2624,17 +2746,20 @@ export const AuthenticateClient = createAsyncThunk("AuthenticateClient", async (
 
         if (response.status === 200) {
             await saveSecureKey("access_token", data.access_token);
-            return Promise.resolve(data.access_token);
+            return fulfillWithValue(data.access_token);
         } else {
             console.log('error', data)
-            return Promise.reject(response.status + ": API Error");
+            return rejectWithValue(response.status + ": API Error");
         }
     } catch (e: any) {
-        return Promise.reject(e)
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e)
     }
 })
 
-export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string) => {
+export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string, {rejectWithValue, fulfillWithValue}) => {
     try {
         const url = `https://eguarantorship-api.presta.co.ke/api/v1/core-banking/member-details${params}`
         const key = await getSecureKey('access_token')
@@ -2649,57 +2774,82 @@ export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string
         if (response.status === 200) {
             let data = await response.json()
             console.log('save all data', data)
-            return Promise.resolve(data)
+            return fulfillWithValue(data)
         } else if (response.status === 204) {
-            return Promise.reject(response.status + ": The Identifier provided is not linked to the organization. Kindly confirm with your Organization")
+            return rejectWithValue(response.status + ": The Identifier provided is not linked to the organization. Kindly confirm with your Organization")
         } else if (response.status === 500) {
             let x = await response.json()
             console.log(JSON.stringify(x))
             if (x.isTechnical) {
-                return Promise.reject("Error: " + response.status)
+                return rejectWithValue("Error: " + response.status)
             } else {
-                return Promise.reject("Error: " + response.status + " " + x.message)
+                return rejectWithValue("Error: " + response.status + " " + x.message)
             }
         } else {
-            return Promise.reject("Error: " + response.status)
+            return rejectWithValue("Error: " + response.status)
         }
     } catch (e: any) {
-        console.log(e.message)
-        return Promise.reject("Check your details and try again");
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue("Check your details and try again");
     }
 });
 
-export const LoadOrganisation = createAsyncThunk('LoadOrganisation', async () => {
+export const LoadOrganisation = createAsyncThunk('LoadOrganisation', async (_, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const myHeaders = new Headers();
         const key = await getSecureKey('access_token');
         if (!key) {
-            return Promise.reject("You are not authenticated");
+            return rejectWithValue("You are not authenticated");
         }
         myHeaders.append("Authorization", `Bearer ${key}`);
         myHeaders.append("Content-Type", 'application/json');
 
-        const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/clientSettings/loan-settings', {
+        const response = await fetch('https://eguarantorship-api.presta.co.ke/api/v1/clientSettings', {
             method: 'GET',
             headers: myHeaders
         });
 
         if (response.status === 200) {
             let data = await response.json();
-            console.log('LoadOrganisation', data);
-            return Promise.resolve(data);
-        } else if (response.status === 204) {
-            console.log('LoadOrganisation', response.status);
-            return Promise.reject("Error: " + response.status);
-        } else if (response.status === 500) {
-            let data = await response.json();
-            console.log('LoadOrganisation', response.status, data);
-            return Promise.reject("Error: " + response.status);
+            return fulfillWithValue(data.response);
+        } else {
+            if (response.status === 401) {
+                const state: any = getState();
+                if (state) {
+                    const [refresh_token, currentTenant] = await Promise.all([
+                        getSecureKey('refresh_token'),
+                        getSecureKey('currentTenant')
+                    ])
+                    const refreshTokenPayload: refreshTokenPayloadType = {
+                        client_id: 'direct-access',
+                        grant_type: 'refresh_token',
+                        refresh_token,
+                        realm:JSON.parse(currentTenant).tenantId,
+                        client_secret: JSON.parse(currentTenant).clientSecret,
+                        cb: async () => {
+                            console.log('callback running');
+                            await dispatch(LoadOrganisation())
+                        }
+                    }
+
+                    return await dispatch(refreshAccessToken(refreshTokenPayload))
+                } else {
+                    setAuthState(false);
+
+                    return rejectWithValue(response.status);
+                }
+            } else {
+                return rejectWithValue("Error: " + response.status);
+            }
         }
 
     } catch (e: any) {
-        console.log("Authorization", e.message);
-        return Promise.reject("Check your details and try again");
+        if (!e.response) {
+            throw e
+        }
+        return rejectWithValue(e.message);
     }
 });
 
@@ -2711,7 +2861,6 @@ const authSlice = createSlice({
         memberDetails: null,
         isLoggedIn: false,
         loading: false,
-        isJWT: false,
         otpSent: false,
         optVerified: false,
         loanRequests: null,
@@ -2736,7 +2885,13 @@ const authSlice = createSlice({
                 repaymentDisbursementModes: true,
                 amounts: false,
                 selfGuarantee: false,
-                minGuarantors: 4
+                minGuarantors: 4,
+                containsAttachments: false,
+                loanProductMaxPeriod: 96,
+                parallelLoans: false,
+                logo: null,
+                organizationPrimaryTheme: null,
+                organizationSecondaryTheme: null
             },
             {
                 id: "2",
@@ -2749,7 +2904,13 @@ const authSlice = createSlice({
                 repaymentDisbursementModes: true,
                 amounts: true,
                 selfGuarantee: true,
-                minGuarantors: 1
+                minGuarantors: 1,
+                containsAttachments: false,
+                loanProductMaxPeriod: 96,
+                parallelLoans: false,
+                logo: null,
+                organizationPrimaryTheme: null,
+                organizationSecondaryTheme: null
             },
             {
                 id: "3",
@@ -2762,7 +2923,13 @@ const authSlice = createSlice({
                 repaymentDisbursementModes: true,
                 amounts: true,
                 selfGuarantee: false,
-                minGuarantors: 4
+                minGuarantors: 4,
+                containsAttachments: false,
+                loanProductMaxPeriod: 96,
+                parallelLoans: false,
+                logo: null,
+                organizationPrimaryTheme: null,
+                organizationSecondaryTheme: null
             },
             {
                 id: "4",
@@ -2775,7 +2942,13 @@ const authSlice = createSlice({
                 repaymentDisbursementModes: true,
                 amounts: true,
                 selfGuarantee: true,
-                minGuarantors: 1
+                minGuarantors: 4,
+                containsAttachments: false,
+                loanProductMaxPeriod: 96,
+                parallelLoans: false,
+                logo: null,
+                organizationPrimaryTheme: null,
+                organizationSecondaryTheme: null
             },
             {
                 id: "5",
@@ -2788,13 +2961,20 @@ const authSlice = createSlice({
                 repaymentDisbursementModes: true,
                 amounts: true,
                 selfGuarantee: true,
-                minGuarantors: 14
+                minGuarantors: 4,
+                containsAttachments: false,
+                loanProductMaxPeriod: 96,
+                parallelLoans: false,
+                logo: null,
+                organizationPrimaryTheme: null,
+                organizationSecondaryTheme: null
             }
         ],
         selectedTenant: null,
         actorChanged: false,
         guarantorsUpdated: false,
-        notificationTok: undefined
+        notificationTok: undefined,
+        clientSettings: {}
     },
     reducers: {
         setGuarantorsUpdated(state, action) {
@@ -2824,6 +3004,10 @@ const authSlice = createSlice({
         setSelectedTenant(state, action) {
             state.selectedTenant = action.payload;
             return state;
+        },
+        updateOrganisation(state, action) {
+            state.organisations = action.payload
+            return state
         }
     },
     extraReducers: builder => {
@@ -2831,31 +3015,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(LoadOrganisation.fulfilled, (state, action) => {
-            if (state.organisations) {
-                // state.organisations.findIndex(org => org.)
-                /*{
-                    "allowSelfGuarantee": false,
-                    "allowZeroGuarantors": false,
-                    "containsAttachments": true,
-                    "coreBankingIntegration": "CENTRINO",
-                    "customSMS": true,
-                    "identifierType": "ID_NUMBER",
-                    "isGuaranteedAmountShared": false,
-                    "loanProductMaxPeriod": "96",
-                    "notificationProvider": "DEFAULT",
-                    "organizationAlias": "Centrino",
-                    "organizationEmail": "centrino@presta.co.ke",
-                    "organizationLogoExtension": "jpeg",
-                    "organizationLogoName": "wanaanga_logo",
-                    "organizationName": "Centrino Sacco",
-                    "organizationPrimaryTheme": "#E6D817",
-                    "organizationSecondaryTheme": "#E84E58",
-                    "requireWitness": true,
-                    "supportEmail": "support@presta.co.ke",
-                    "useEmbeddedURL": true,
-                    "ussdCode": "*483*119#"
-                }*/
-            }
+            if (isSerializable(action.payload)) state.clientSettings = action.payload
             state.loading = false
         })
         builder.addCase(LoadOrganisation.rejected, (state) => {
@@ -2897,7 +3057,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(fetchMemberDetails.fulfilled, (state, action) => {
-            state.memberDetails = action.payload
+            if (isSerializable(action.payload)) state.memberDetails = action.payload
             state.loading = false
         })
         builder.addCase(fetchMemberDetails.rejected, (state) => {
@@ -2928,11 +3088,9 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(checkForJWT.fulfilled, (state, action) => {
-            state.isJWT = !!action.payload
             state.loading = false
         })
         builder.addCase(checkForJWT.rejected, (state) => {
-            state.isJWT = false
             state.loading = false
         })
 
@@ -2955,7 +3113,6 @@ const authSlice = createSlice({
             state.loading = false;
         })
         builder.addCase(loginUser.rejected, (state, error) => {
-            state.isJWT = false;
             state.isLoggedIn = false;
             state.loading = false;
         })
@@ -2969,11 +3126,8 @@ const authSlice = createSlice({
             state.loading = false;
         })
         builder.addCase(authenticate.rejected, (state, {payload}) => {
-            if (payload) alert(JSON.stringify(payload))
-            state.isJWT = false;
             state.loading = false;
             state.isLoggedIn = false;
-            state.isJWT = false;
         })
 
 
@@ -3100,8 +3254,7 @@ const authSlice = createSlice({
         builder.addCase(logoutUser.pending, state => {
             state.loading = true
         })
-        builder.addCase(logoutUser.fulfilled, (state, action) => {
-            state.isJWT = false;
+        builder.addCase(logoutUser.fulfilled, (state) => {
             state.loading = false;
             state.isLoggedIn = false;
         })
@@ -3124,7 +3277,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(validateGuarantorship.fulfilled, (state, action: any) => {
-            console.log("validateGuarantorship", action.payload)
+            if (isSerializable(action.payload)) console.log("validateGuarantorship", action.payload)
             state.loading = false
         })
         builder.addCase(validateGuarantorship.rejected, (state, action) => {
@@ -3189,7 +3342,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(fetchGuarantorshipRequests.fulfilled, (state, action: any) => {
-            state.guarantorshipRequests = action.payload
+            if (isSerializable(action.payload)) state.guarantorshipRequests = action.payload
             state.loading = false
         })
         builder.addCase(fetchGuarantorshipRequests.rejected, (state, action) => {
@@ -3200,8 +3353,8 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(fetchWitnessRequests.fulfilled, (state, action: any) => {
-            console.log('witness requests', action.payload)
-            state.witnessRequests = action.payload
+            if (isSerializable(action.payload)) console.log('witness requests', action.payload)
+            if (isSerializable(action.payload)) state.witnessRequests = action.payload
             state.loading = false
         })
         builder.addCase(fetchWitnessRequests.rejected, (state, action) => {
@@ -3224,7 +3377,7 @@ const authSlice = createSlice({
         })
         builder.addCase(submitLoanRequest.fulfilled, (state, action: any) => {
             // state.contacts = action.payload
-            console.log('successfully submitted loan request', action.payload);
+            if (isSerializable(action.payload)) console.log('successfully submitted loan request', action.payload);
             state.loading = false
         })
         builder.addCase(submitLoanRequest.rejected, (state, action) => {
@@ -3235,8 +3388,8 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(sendOtp.fulfilled, (state, action: any) => {
-            console.log("otp sent", action.payload)
-            state.otpResponse = action.payload
+            if (isSerializable(action.payload)) console.log("otp sent", action.payload)
+            if (isSerializable(action.payload)) state.otpResponse = action.payload
             state.otpSent = true
             state.loading = false
         })
@@ -3249,7 +3402,7 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(sendOtpBeforeToken.fulfilled, (state, action: any) => {
-            console.log("otp sent", action.payload)
+            if (isSerializable(action.payload)) console.log("otp sent", action.payload)
             state.otpSent = true
             state.loading = false
         })
@@ -3285,8 +3438,8 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(searchByMemberNo.fulfilled, (state, action: any) => {
-            console.log("search by member number", action.payload);
-            state.searchedMembers = action.payload
+            if (isSerializable(action.payload)) console.log("search by member number", action.payload);
+            if (isSerializable(action.payload)) state.searchedMembers = action.payload
             state.loading = false;
         })
         builder.addCase(searchByMemberNo.rejected, (state, action) => {
@@ -3298,6 +3451,6 @@ const authSlice = createSlice({
 // Extract the action creators object and the reducer
 const { actions, reducer } = authSlice
 // Extract and export each action creator by name
-export const { setGuarantorsUpdated, setLoading, setSelectedTenantId, setAuthState, setSelectedTenant, setActorChanged } = actions
+export const { setGuarantorsUpdated, setLoading, setSelectedTenantId, updateOrganisation, setAuthState, setSelectedTenant, setActorChanged } = actions
 // Export the reducer, either as a default or named export
 export const authReducer = reducer

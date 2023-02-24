@@ -1,13 +1,8 @@
-import { StatusBar } from 'expo-status-bar';
 import {
   Dimensions,
-  Platform,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
-  ScrollView,
-  NativeModules,
-  Image
+  NativeModules
 } from 'react-native';
 // import {Camera, CameraCapturedPicture} from 'expo-camera';
 import { Text, View } from 'react-native';
@@ -22,13 +17,22 @@ import {
   Poppins_900Black,
   useFonts
 } from "@expo-google-fonts/poppins";
+import {
+  Raleway_600SemiBold,
+  useFonts as useRaleway
+} from "@expo-google-fonts/raleway";
 import {useDispatch, useSelector} from "react-redux";
 import {store} from "../stores/store";
-import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 import {Controller, useForm} from "react-hook-form";
 import {useEffect, useRef, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RotateView} from "./Auth/VerifyOTP";
+import Container from "../components/Container";
+import TextField from "../components/TextField";
+import SwitchField from "../components/SwitchField";
+import {showSnack} from "../utils/immediateUpdate";
+import {useAppDispatch, useLoading, useMember, useUser} from "../stores/hooks";
+import TouchableButton from "../components/TouchableButton";
 
 const { width, height } = Dimensions.get("window");
 
@@ -44,14 +48,13 @@ type FormData = {
 type NavigationProps = NativeStackScreenProps<any>;
 
 export default function ModalScreen({ navigation }: NavigationProps) {
-  const { isLoggedIn, user, member, loading } = useSelector((state: { auth: storeState }) => state.auth);
-  const [takingPhoto, setTakingPhoto] = useState<boolean>(false)
-  const CSTM = NativeModules.CSTM;
+  const [takingPhoto, setTakingPhoto] = useState<boolean>(false);
+  const dispatch = useAppDispatch();
+  const [user] = useUser();
+  const [member] = useMember();
+  const [loading] = useLoading();
 
-  type AppDispatch = typeof store.dispatch;
-
-  const dispatch : AppDispatch = useDispatch();
-  let [fontsLoaded] = useFonts({
+  useFonts({
     Poppins_900Black,
     Poppins_500Medium,
     Poppins_800ExtraBold,
@@ -59,6 +62,9 @@ export default function ModalScreen({ navigation }: NavigationProps) {
     Poppins_600SemiBold,
     Poppins_400Regular,
     Poppins_300Light
+  });
+  useRaleway({
+    Raleway_600SemiBold
   });
   const [hasPermission, setHasPermission] = useState<any>(null);
 
@@ -82,7 +88,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
     control,
     watch,
     handleSubmit,
-    setError,
+    getValues,
     formState: { errors }
   } = useForm<FormData>({
     defaultValues: {
@@ -94,8 +100,6 @@ export default function ModalScreen({ navigation }: NavigationProps) {
       fingerPrint: false,
     }
   })
-  const [isEnabled, setIsEnabled] = useState(false);
-  const toggleSwitch = () => setIsEnabled((previousState: boolean) => !previousState);
 
   const [firstName, setFirstName] = useState<string>(member?.firstName as string);
   const [lastName, setLastName] = useState<string>(member?.lastName as string);
@@ -145,14 +149,14 @@ export default function ModalScreen({ navigation }: NavigationProps) {
 
       if (type === 'editMember/rejected' && error) {
         if (error.message === "Network request failed") {
-          CSTM.showToast("Network request failed");
+          showSnack("Network request failed", "ERROR");
         } else if (error.message === "401") {
           await dispatch(logoutUser())
         } else {
-          CSTM.showToast(error.message);
+          showSnack(error.message, "ERROR");
         }
       } else {
-        CSTM.showToast('Successful');
+        showSnack('User profile updated successfully', "SUCCESS");
       }
     } catch(e: any) {
       console.log(e.message)
@@ -165,19 +169,6 @@ export default function ModalScreen({ navigation }: NavigationProps) {
   const takePic = async () => {
       setTakingPhoto(true)
   }
-
-  useEffect(() => {
-    let authCheck = true
-    if (!isLoggedIn && authCheck) {
-      navigation.navigate('GetTenants')
-    }
-    if (photo) {
-      // store photo
-    }
-    return () => {
-      authCheck = false
-    }
-  }, [isLoggedIn, photo]);
 
   /*if (takingPhoto) {
     return (
@@ -204,9 +195,9 @@ export default function ModalScreen({ navigation }: NavigationProps) {
     );
   } else {*/
     return (
-        <View style={styles.container}>
+        /*<View style={styles.container}>
           <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', paddingBottom: 50}}>
-            <View style={{paddingTop: 50, width, display: 'flex', alignItems: 'center'}}>
+            {/!*<View style={{paddingTop: 50, width, display: 'flex', alignItems: 'center'}}>
               {photo ? <TouchableOpacity onPress={() => {
                     // takePic()
                     console.log("disabled camera")
@@ -222,103 +213,22 @@ export default function ModalScreen({ navigation }: NavigationProps) {
               <Text allowFontScaling={false} style={styles.subTitleText}>{`Member No: ${member?.memberNumber}`}</Text>
               <Text allowFontScaling={false} style={styles.subTitleText}>{`${user?.companyName}`}</Text>
             </View>
-            <Text allowFontScaling={false} style={styles.subtitle}>EDIT PROFILE</Text>
-            <Controller
-                control={control}
-                rules={{
-                  required: true,
-                }}
-                render={( {field: {onChange, onBlur, value}}) => (
-                    <TextInput
-                        allowFontScaling={false}
-                        style={styles.input}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        value={value}
-                        placeholder="First Name"
-                    />
-                )}
-                name="firstName"
-            />
-            <Controller
-                control={control}
-                rules={{
-                  required: true,
-                }}
-                render={( {field: {onChange, onBlur, value}}) => (
-                    <TextInput
-                        allowFontScaling={false}
-                        style={styles.input}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        value={value}
-                        placeholder="Last Name"
-                    />
-                )}
-                name="lastName"
-            />
-            <Controller
-                control={control}
-                rules={{
-                  required: true,
-                }}
-                render={( {field: {onChange, onBlur, value}}) => (
-                    <TextInput
-                        allowFontScaling={false}
-                        style={styles.input}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        value={value}
-                        placeholder="Phone Number"
-                    />
-                )}
-                name="phoneNumber"
-            />
-            <Controller
-                control={control}
-                rules={{
-                  required: true,
-                }}
-                render={( {field: {onChange, onBlur, value}}) => (
-                    <TextInput
-                        allowFontScaling={false}
-                        style={styles.input}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        value={value}
-                        placeholder="ID Number"
-                    />
-                )}
-                name="idNumber"
-            />
-            <Controller
-                control={control}
-                rules={{
-                  required: true,
-                }}
-                render={( {field: {onChange, onBlur, value}}) => (
-                    <TextInput
-                        allowFontScaling={false}
-                        style={styles.input}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        value={value}
-                        placeholder="Email"
-                    />
-                )}
-                name="email"
-            />
+            <Text allowFontScaling={false} style={styles.subtitle}>EDIT PROFILE</Text>*!/}
 
-            <View style={{width, display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 15}}>
-              <TouchableOpacity onPress={() => onSubmit()} style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: loading ? '#CCCCCC' : '#489bab', width: width-90, paddingHorizontal: 15, paddingVertical: 10, borderRadius: 25, marginVertical: 10}}>
-                {loading && <RotateView/>}
-                <Text allowFontScaling={false} style={styles.buttonText}>Submit</Text>
-              </TouchableOpacity>
-            </View>
 
-            {/*<Text allowFontScaling={false} style={{...styles.subtitle, marginTop: 40 }}>ACCOUNT SETTINGS</Text>*/}
-
-            {/*<View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 25}}>
+          </ScrollView>
+          {/!* Use a light status bar on iOS to account for the black space above the modal *!/}
+          <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+        </View>*/
+        <Container>
+          <TextField field={"firstName"} label={"First Name"} val={getValues} watch={watch} control={control} error={errors.firstName} required={true}/>
+          <TextField field={"lastName"} label={"Last Name"} val={getValues} watch={watch} control={control} error={errors.lastName}  required={true}/>
+          <TextField field={"phoneNumber"} label={"Phone Number"} val={getValues} watch={watch} control={control} error={errors.phoneNumber} required={true}/>
+          <TextField field={"idNumber"} label={"ID Number"} val={getValues} watch={watch} control={control} error={errors.idNumber} required={true}/>
+          <TextField field={"email"} label={"Email"} val={getValues} watch={watch} control={control} error={errors.email} required={true}/>
+          <SwitchField label={"Enable finger print"} field={"fingerPrint"} watch={watch} control={control}/>
+          <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(onSubmit)} />
+          {/*<View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 25}}>
               <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Allow witness requests</Text>
               <Controller
                   control={control}
@@ -393,17 +303,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
                   name="fingerPrint"
               />
             </View>*/}
-
-            <TouchableOpacity onPress={async () => await dispatch(logoutUser())} style={styles.helpLink}>
-              <Text allowFontScaling={false} style={{fontSize: 14, color: '#F26141', fontFamily: 'Poppins_500Medium', textAlign: 'right'}} >
-                Log Out
-              </Text>
-            </TouchableOpacity>
-
-          </ScrollView>
-          {/* Use a light status bar on iOS to account for the black space above the modal */}
-          <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-        </View>
+        </Container>
     );
   /*}*/
 }
@@ -427,29 +327,22 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   subTitleText: {
-    fontSize: 12,
+    fontSize: 13,
     textAlign: 'center',
     color: '#489AAB',
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: 'Poppins_500Medium',
     marginTop: 2
   },
   organisationText: {
-    fontSize: 12,
+    fontSize: 13,
     textAlign: 'center',
     color: '#489AAB',
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: 'Poppins_500Medium',
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#cccccc',
-    borderRadius: 20,
-    height: 45,
-    width: width-80,
-    marginTop: 20,
-    paddingHorizontal: 20,
-    fontSize: 12,
-    color: '#767577',
-    fontFamily: 'Poppins_400Regular'
+  label: {
+    fontSize: 13,
+    color: '#2791B5',
+    fontFamily: 'Raleway_600SemiBold'
   },
   separator: {
     marginVertical: 30,
@@ -474,16 +367,28 @@ const styles = StyleSheet.create({
     width: width-90
   },
   subtitle: {
-    textAlign: 'center',
-    alignSelf: 'center',
+    textAlign: 'left',
+    alignSelf: 'flex-start',
     color: '#489AAB',
     fontFamily: 'Poppins_600SemiBold',
     fontSize: 15,
-    marginTop: 20,
-    paddingHorizontal: 35
+    marginTop: 16
+  },
+  buttonActive: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#489bab',
+    marginTop: 54,
+    width: "100%",
+    height: 45,
+    borderRadius: 12,
+    marginBottom: 34
   },
   buttonText: {
-    fontSize: 13,
+    fontSize: 16,
+    letterSpacing: 0.15,
     textAlign: 'center',
     color: '#FFFFFF',
     fontFamily: 'Poppins_600SemiBold',

@@ -87,17 +87,17 @@ export default function GetStarted({ navigation }: NavigationProps) {
                     if (token) {
                         await Promise.allSettled([
                             saveSecureKey('notification_id', token),
-                            dispatch(pingBeacon({
+                            /*dispatch(pingBeacon({
                                 appName: Constants.manifest?.android?.package,
                                 notificationTok: token,
                                 version: Constants.manifest?.version
-                            }))
+                            }))*/
                         ])
 
                         registerTask();
                     }
                 } catch (e: any) {
-                    console.log("registerForPushNotificationsAsync/pingBeacon", e.message())
+                    console.log("registerForPushNotificationsAsync/pingBeacon", e.message);
                     // showSnack(e.message, "ERROR", "", false)
                 }
             })()

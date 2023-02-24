@@ -20,26 +20,20 @@ export default function App() {
     handleNotificationTask();
     const lastNotificationResponse = NotificationResponse();
     useMount(() => {
-        const getUrlAsync = async () => {
-            // Get the deep link used to open the app
-            const initialUrl = await Linking.getInitialURL();
-
-            // The setTimeout is just for testing purpose
-            setTimeout(() => {
-                console.log("initialUrl", initialUrl);
-            }, 1000);
-        };
-
-        getUrlAsync();
+        console.log("app mounted")
     });
 
     useEffect(() => {
         (async () => {
             try {
-                if (lastNotificationResponse?.notification.request.content.data.url) {
-                    console.log('notification data background', lastNotificationResponse?.notification.request.content.data);
-                    // store.dispatch("");
-                    await Linking.openURL("presta-sign://app/loan-request");
+                if (
+                    lastNotificationResponse &&
+                    lastNotificationResponse.notification.request.content.data &&
+                    lastNotificationResponse.notification.request.content.data.url
+                ) {
+                    console.log('notification data background', lastNotificationResponse.notification.request.content.data);
+                    // store.dispatch(""); 'notification_id'
+                    await Linking.openURL(`${lastNotificationResponse.notification.request.content.data.url}`);
                 }
             } catch (e: any) {
                 console.log("notification response error", e);
@@ -50,9 +44,6 @@ export default function App() {
     return (
         <Provider store={store}>
             <SafeAreaProvider>
-                {/*<View style={{position: 'absolute', top: '10%', right: 50, zIndex: 20}}>
-                    <Text>Test</Text>
-                </View>*/}
                 <Navigation />
                 <StatusBar />
             </SafeAreaProvider>

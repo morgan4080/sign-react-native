@@ -6,27 +6,22 @@ import {
     Dimensions,
     Platform,
     ImageBackground,
-    SectionList, NativeModules, TextInput
+    SectionList,
+    TextInput, SafeAreaView
 } from 'react-native';
 
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {useDispatch, useSelector} from "react-redux";
 import {
-    storeState,
     fetchMember,
     saveContactsToDb,
     authenticate,
-    setLoanCategories,
     fetchLoanProducts,
     editMember,
-    logoutUser,
-    LoadOrganisation,
-    setSelectedTenantId
+    setSelectedTenantId, updateOrganisation, organisationType, LoadOrganisation
 } from "../../stores/auth/authSlice";
-import {store} from "../../stores/store";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
@@ -38,12 +33,11 @@ import GuarantorImg from "../../assets/images/guarantorship.svg";
 import Fav from "../../assets/images/fav.svg";
 import WitnessImg from "../../assets/images/witness.svg";
 import {showSnack} from "../../utils/immediateUpdate";
+import {useAppDispatch, useClientSettings, useLoading, useMember, useOrganisations, useUser} from "../../stores/hooks";
 
 type NavigationProps = NativeStackScreenProps<any>
 
 const { width, height } = Dimensions.get("window");
-
-const { CSTM } = NativeModules;
 
 const greeting = () => {
     return ["Morning", "Afternoon", "Evening"].reduce((previousValue: string, currentValue: string, currentIndex: number, greetings: string[]): string => {
@@ -68,76 +62,67 @@ type FormData = {
 }
 
 export default function UserProfile({ navigation }: NavigationProps) {
-    const { loading, user, member } = useSelector((state: { auth: storeState }) => state.auth);
+    const [user] = useUser();
+    const [member] = useMember();
+    const [organisations] = useOrganisations();
+    const [clientSettings] = useClientSettings();
+    const [loading] = useLoading();
 
-    type AppDispatch = typeof store.dispatch;
-
-    const dispatch : AppDispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     const [reload, setReload] = useState<boolean>(false)
 
     useEffect(() => {
-        let authenticating = true;
-        if (authenticating) {
-            (async () => {
-                try {
-                    const [authStuff, phone_no, country_code] = await Promise.all([
-                        dispatch(authenticate()),
-                        getSecureKey('phone_number_without'),
-                        getSecureKey('phone_number_code')
-                    ]);
-                    const { type, error, payload }: any = authStuff;
+        Promise.all([
+            dispatch(authenticate()),
+            dispatch(LoadOrganisation())
+        ]).then(([authStuff, orgLoaded]) => {
+            const { type, error, payload }: any = authStuff;
 
-                    if (error) {
-                        // return await dispatch(logoutUser())
-                        return
-                    }
-                    if (type === 'authenticate/fulfilled') {
-                        if (payload && payload.tenantId) {
-                            return saveSecureKey('currentTenantId', payload.tenantId).then(() => loadUser(payload.tenantId))
-                        }
-                    } else {
-                        // return await dispatch(logoutUser())
-                        return
-                    }
-                } catch (e: any) {
-                    console.log('promise rejection', e);
+            if (error) {
+                throw new Error(error)
+            } else {
+                if (type === 'authenticate/fulfilled' && payload && payload.tenantId) {
+                    return saveSecureKey('currentTenantId', payload.tenantId)
+                        .then(() => Promise.all([
+                            dispatch(setSelectedTenantId(payload.tenantId)),
+                            dispatch(fetchMember()),
+                            dispatch(saveContactsToDb()),
+                            dispatch(fetchLoanProducts()),
+                        ]))
+                        .then(() => {
+                            const replaceOrganisations = organisations.reduce((acc: organisationType[], org) => {
+                                if (`${org.tenantId}` === `${payload.tenantId}` && Object.keys(clientSettings).length > 0) {
+                                    // modify some parameters to conform with client settings
+                                    org.tenantName = clientSettings.organizationName ? clientSettings.organizationName : org.tenantName;
+                                    org.witness = (clientSettings.requireWitness !== undefined) ? clientSettings.requireWitness : org.witness;
+                                    org.selfGuarantee = (clientSettings.allowSelfGuarantee !== undefined) ? clientSettings.allowSelfGuarantee : org.selfGuarantee;
+                                    org.amounts = (clientSettings.isGuaranteedAmountShared !== undefined) ?  !clientSettings.isGuaranteedAmountShared : org.amounts;
+                                    org.guarantors = (clientSettings.isGuaranteedAmountShared !== undefined) ? clientSettings.isGuaranteedAmountShared === true ? 'count' : 'value' : org.guarantors;
+                                    org.containsAttachments = (clientSettings.containsAttachments !== undefined) ? clientSettings.containsAttachments : org.containsAttachments;
+                                    org.loanProductMaxPeriod = clientSettings.loanProductMaxPeriod ? clientSettings.loanProductMaxPeriod : org.loanProductMaxPeriod;
+                                    org.parallelLoans = (clientSettings.parallelLoans !== undefined) ? clientSettings.parallelLoans : org.parallelLoans;
+                                    org.logo = (clientSettings.organizationLogoName && clientSettings.organizationLogoExtension) ? `https://eguarantorship-api.presta.co.ke/${clientSettings.organizationLogoName}.${clientSettings.organizationLogoExtension}` : null;
+                                    org.organizationPrimaryTheme = clientSettings.organizationPrimaryTheme ? clientSettings.organizationPrimaryTheme : org.organizationPrimaryTheme;
+                                    org.organizationSecondaryTheme = clientSettings.organizationSecondaryTheme ? clientSettings.organizationSecondaryTheme : org.organizationSecondaryTheme;
+                                    acc.push(org);
+                                } else {
+                                    acc.push(org);
+                                }
+                                return acc;
+                            }, [])
+                            return dispatch(updateOrganisation(replaceOrganisations))
+                        }).catch((err) => {
+                            throw new Error(err)
+                        })
+                } else {
+                    throw new Error("Authentication Failed")
                 }
-            })()
-        }
-        return () => {
-            authenticating = false;
-        }
-    }, [reload]);
-
-    const loadUser = async (tenantID: any) => {
-        try {
-            const [a,{type, error, payload}, c, d, e]: any = await Promise.all([
-                dispatch(setSelectedTenantId(tenantID)),
-                dispatch(fetchMember()),
-                dispatch(LoadOrganisation()),
-                dispatch(saveContactsToDb()),
-                dispatch(fetchLoanProducts()),
-            ]);
-
-            if (error || type === 'fetchMember/rejected') {
-                showSnack(`Fetch Member Error: ${error.message}`, "ERROR")
-                return
             }
-        } catch (e: any) {
-            console.log("User Profile", e)
-            showSnack(`Load User Error: ${e.message}`, "ERROR")
-            return
-        }
-
-        /*const { email, details }: any = payload;
-
-        if (!email) {
-            handleSnapPress(1);
-        }*/
-
-        // details && details.email_approval && details.email_approval.value && details.email_approval.value !== email
-    }
+        }).catch((error) => {
+            console.log(JSON.stringify(error))
+        })
+    }, [reload])
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -148,15 +133,6 @@ export default function UserProfile({ navigation }: NavigationProps) {
         Poppins_400Regular,
         Poppins_300Light
     });
-
-    // tme email = null enter pin
-    /*"email_approval": {
-        "value": "chepngenokirui20@gmail.com",
-            "type": "TEXT"
-    },
-        compare wil email if not same, awaiting approval
-
-    */
 
     const sheetRef = useRef<BottomSheet>(null);
 
@@ -191,12 +167,8 @@ export default function UserProfile({ navigation }: NavigationProps) {
 
     const {
         control,
-        watch,
         handleSubmit,
         clearErrors,
-        setError,
-        setValue,
-        getValues,
         formState: { errors }
     } = useForm<FormData>({})
 
@@ -215,7 +187,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
 
             if (type === 'editMember/rejected' && error) {
                 if (error.message === "Network request failed") {
-                    CSTM.showToast("Network request failed");
+                    showSnack("Network request failed", "ERROR");
                 } else if (error.message === "401") {
                     showSnack(`Edit Member Error: ${error.message}`, "ERROR")
                     return
@@ -223,13 +195,12 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     showSnack(error.message, "ERROR");
                 }
             } else {
-                CSTM.showToast('Successful');
+                showSnack('Successful', "SUCCESS");
                 handleClosePress();
                 reloading();
             }
-        } catch (e) {
-            console.log("user profile screen error", e)
-            CSTM.showToast('Failed');
+        } catch (e: any) {
+            showSnack(e.message, "ERROR");
         }
     }
 
@@ -239,7 +210,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
 
     if (fontsLoaded) {
         return (
-            <GestureHandlerRootView style={{ flex: 1, position: 'relative', backgroundColor: '#FFFFFF' }}>
+            <SafeAreaView style={{ flex: 1, position: 'relative', backgroundColor: '#FFFFFF' }}>
                 <SectionList
                     refreshing={loading}
                     progressViewOffset={50}
@@ -259,9 +230,9 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                         flex: 1,
                                         justifyContent: "center",
                                         position: 'relative',
-                                        height: height/2
+                                        height: height/2,
+                                        paddingHorizontal: 16
                                     }}>
-                                        <View style={{position: 'absolute', width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.2)'}}/>
                                         <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(72,154,171,0.49)', borderRadius: 100, top: '8%', left: 10 }}>
                                             <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
                                             <Text allowFontScaling={false} style={[styles.subTitleText, {fontSize: 12, color: '#FFFFFF', paddingRight: 10, fontFamily: 'Poppins_300Light'}]}>PROFILE</Text>
@@ -271,17 +242,17 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                             <Text allowFontScaling={false} style={styles.subTitleText}>{ `Member NO: ${ member?.memberNumber ? member?.memberNumber : '' }` }</Text>
                                             <Text allowFontScaling={false} style={styles.subText}>{ `${ user?.companyName ? user?.companyName : '' }` }</Text>
                                         </View>
-                                        <View style={{ position: 'absolute', left: width/4, zIndex: 2, bottom: -25 }}>
+                                        {/*<View style={{ position: 'absolute', left: width/4, zIndex: 2, bottom: -25 }}>
                                             <TouchableOpacity onPress={() => navigation.navigate('Account')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, elevation: 2, borderRadius: 25, marginTop: -30 }}>
                                                 <Text allowFontScaling={false} style={styles.buttonText}>View balances</Text>
                                             </TouchableOpacity>
-                                        </View>
+                                        </View>*/}
                                     </ImageBackground>
                                 )
                             case 1:
                                 return (
                                     <View style={{ display: 'flex', flexDirection: 'row', marginTop: 50, justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10 }}>
-                                        <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#489AAB',elevation: 5, position: 'relative' }}>
+                                        <TouchableOpacity onPress={() => navigation.navigate('KYC')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#489AAB',elevation: 5, position: 'relative' }}>
                                             <Text allowFontScaling={false} style={{ flex: 3, color: '#ffffff', fontSize: 11.5, marginLeft: 10, marginRight: 10, fontFamily: 'Poppins_600SemiBold' }}>
                                                 Apply For A Loan
                                             </Text>
@@ -331,50 +302,8 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     }}
                 />
 
-                <BottomSheet
-                    ref={sheetRef}
-                    index={-1}
-                    snapPoints={snapPoints}
-                    onChange={handleSheetChange}
-                    backdropComponent={renderBackdrop}
-                >
-                    <BottomSheetScrollView contentContainerStyle={{backgroundColor: '#FFFFFF', paddingHorizontal: 20}}>
-                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium', color: '#8d8e93', fontSize: 12, padding: 5}}>Email</Text>
-                        <Controller
-                            control={control}
-                            rules={{
-                                required: true,
-                                pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i
-                            }}
-                            render={( { field: { onChange, onBlur, value } }) => (
-                                <TextInput
-                                    allowFontScaling={false}
-                                    style={styles.input}
-                                    value={value}
-                                    autoFocus={false}
-                                    onBlur={onBlur}
-                                    onChangeText={onChange}
-                                    onChange={() => clearErrors()}
-                                    placeholder="Your Email"
-                                    keyboardType="email-address"
-                                    secureTextEntry={true}
-                                />
-                            )}
-                            name="email"
-                        />
-                        {
-                            errors.email &&
-                            <Text  allowFontScaling={false}  style={styles.error}>{errors.email?.message ? errors.email?.message : 'Invalid Email'}</Text>
-                        }
-                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#C0C2C9', fontSize: 12, paddingHorizontal: 10, paddingVertical: 15}}>Kindly add your email address to proceed.</Text>
-                        <TouchableOpacity disabled={loading} onPress={handleSubmit(onSubmit, onError)} style={{padding: 10, backgroundColor: '#3D889A', borderRadius: 20}}>
-                            <Text allowFontScaling={false} style={{textAlign: 'center', color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_300Light'}}>Save Email</Text>
-                        </TouchableOpacity>
-                    </BottomSheetScrollView>
-                </BottomSheet>
-
                 <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-            </GestureHandlerRootView>
+            </SafeAreaView>
         )
     } else {
         return (

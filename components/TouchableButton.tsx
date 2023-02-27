@@ -1,10 +1,11 @@
+import React from "react";
 import {StyleSheet, Text, TouchableOpacity} from "react-native";
 import {RotateView} from "../screens/Auth/VerifyOTP";
 import {
     Poppins_600SemiBold,
     useFonts
 } from "@expo-google-fonts/poppins";
-interface ComponentProps {
+interface ComponentProps extends React.ComponentPropsWithoutRef<any> {
     loading: boolean;
     label: string;
 }
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
         marginTop: 54,
         width: "100%",
         height: 45,
-        borderRadius: 12,
+        borderRadius: 22,
         marginBottom: 34
     },
     buttonText: {

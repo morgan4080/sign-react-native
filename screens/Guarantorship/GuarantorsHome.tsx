@@ -76,7 +76,30 @@ const RenderItem = ({ item, context, member, setValue, route, searchMemberByMemb
     );
 };
 
+type employerPayloadType = {
+    employerName: string | undefined;
+    serviceNo: string | undefined;
+    grossSalary: string | undefined;
+    netSalary: string | undefined;
+    kraPin: string | undefined;
+}
+type businessPayloadType = {
+    businessLocation: string | undefined;
+    businessType: string | undefined;
+    kraPin: string | undefined;
+}
+
 const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
+    const {
+        control,
+        handleSubmit,
+        clearErrors,
+        setError,
+        setValue,
+        getValues,
+        formState: { errors }
+    } = useForm<FormData>();
+
     StatusBar.setBackgroundColor('#FFFFFF', true);
 
     const [searching, setSearching] = useState<boolean>(false);
@@ -100,19 +123,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const [employerDetailsEnabled, setEmployerDetailsEnabled] = useState(false);
 
     const [heldMember, setHeldMember] = useState<searchedMemberType | null>(null);
-
-    type employerPayloadType = {
-        employerName: string | undefined;
-        serviceNo: string | undefined;
-        grossSalary: string | undefined;
-        netSalary: string | undefined;
-        kraPin: string | undefined;
-    }
-    type businessPayloadType = {
-        businessLocation: string | undefined;
-        businessType: string | undefined;
-        kraPin: string | undefined;
-    }
 
     const [employerPayload, setEmployerPayload] = useState<employerPayloadType>();
 
@@ -230,20 +240,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const un_guaranteed = () => {
         return `${route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount)}`;
     }
-
-    const {
-        control,
-        handleSubmit,
-        clearErrors,
-        setError,
-        setValue,
-        getValues,
-        formState: { errors }
-    } = useForm<FormData>({
-        defaultValues: {
-            amountToGuarantee: `${route.params? route.params.loanDetails.desiredAmount : 0}`
-        }
-    });
 
     useEffect(() => {
         let reactToSearch = true;
@@ -535,7 +531,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 <Pressable style={{paddingBottom: 6, paddingRight: 20}} onPress={() => navigation.goBack()}>
                     <AntDesign name="arrowleft" size={24} color="#489AAB" />
                 </Pressable>
-                <Text style={{fontSize: 17, lineHeight: 22, letterSpacing: 0.5, paddingTop: 20, paddingBottom: 10 }}>Add Guarantors</Text>
+                <Text allowFontScaling={false} style={{fontSize: 18, letterSpacing: 0.5, paddingTop: 20, paddingBottom: 10 }}>Add Guarantors</Text>
             </View>
             <View style={styles.searchableHeader}>
                 <Pressable style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} onPress={submitEdit}>
@@ -644,6 +640,8 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                             value={value}
                                             placeholder="Amount to guarantee"
                                             keyboardType="numeric"
+                                            autoFocus={true}
+                                            onSubmitEditing={submitAmount}
                                         />
                                     )}
                                     name="amountToGuarantee"

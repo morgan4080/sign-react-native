@@ -150,7 +150,7 @@ const TextField = <T extends object>({label, field, val, watch, control, error, 
 const styles = StyleSheet.create({
     label: {
         fontSize: 14,
-        color: '#2791B5',
+        color: '#0082A0',
         fontFamily: 'Raleway_600SemiBold',
         lineHeight: 16,
         // textTransform: "capitalize"
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     input: {
         letterSpacing: 0.4,
         fontSize: 14,
-        color: '#767577',
+        color: '#000000',
         lineHeight: 16,
         paddingTop: 14,
         fontFamily: 'Poppins_500Medium'

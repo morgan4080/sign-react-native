@@ -148,10 +148,10 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
                     value: code.code
                 },
                 loanPeriod: {
-                    value: route.params?.loanDetails.desiredAmount ? route.params?.loanDetails.desiredPeriod : ""
+                    value: route.params?.loanDetails.desiredPeriod ? route.params?.loanDetails.desiredPeriod : ""
                 },
                 repayment_period: {
-                    value: route.params?.loanDetails.desiredAmount ? route.params?.loanDetails.desiredPeriod : ""
+                    value: route.params?.loanDetails.desiredPeriod ? route.params?.loanDetails.desiredPeriod : ""
                 },
                 employer_name: {
                     value: route.params?.employerPayload?.employerName ? route.params?.employerPayload?.employerName : ""
@@ -201,45 +201,7 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
 
         if (payload.witnessRefId === undefined) delete payload.witnessRefId;
 
-        try {
-            const response: any = await dispatch(submitLoanRequest(payload));
-            console.log('submitLoanRequest payload', JSON.stringify(payload), response);
-            console.log('submitLoanRequest response', JSON.stringify(response));
-            if (response.type === 'submitLoanRequest/fulfilled') {
-                const newPayload: any = response.payload;
-
-                if (newPayload) {
-                    if (newPayload.hasOwnProperty('pdfThumbNail')) {
-                        navigation.navigate('LoanRequest', response.payload);
-                    } else {
-
-                        // resubmit for signing
-                        const refId: any = response.payload.refId;
-
-                        const res = await dispatch(resubmitForSigning(refId));
-
-                        if (res.type === 'resubmitForSigning/fulfilled') {
-                            navigation.navigate('LoanRequest', response.payload);
-                        } else {
-                            console.log(res);
-                            setLoanError("Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.");
-                            setContext("loanRequestError");
-                        }
-                    }
-                } else {
-                    CSTM.showToast('Loan Request failed');
-                    setLoanError("Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.");
-                    setContext("loanRequestError");
-                }
-            } else {
-                console.log('loan request error', response);
-                setLoanError(response.error.message ? response.error.message : "Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours");
-                setContext("loanRequestError");
-            }
-        } catch (error: any) {
-            setLoanError(error.error.message ? error.error.message : "Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours");
-            setContext("loanRequestError");
-        }
+        navigation.navigate("KYC", {...payload})
     }
 
     const onPress = useCallback(async (ctx: string) => {

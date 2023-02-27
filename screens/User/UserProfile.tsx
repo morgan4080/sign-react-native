@@ -20,7 +20,10 @@ import {
     authenticate,
     fetchLoanProducts,
     editMember,
-    setSelectedTenantId, updateOrganisation, organisationType, LoadOrganisation
+    setSelectedTenantId,
+    updateOrganisation,
+    organisationType,
+    LoadOrganisation
 } from "../../stores/auth/authSlice";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
@@ -65,7 +68,6 @@ export default function UserProfile({ navigation }: NavigationProps) {
     const [user] = useUser();
     const [member] = useMember();
     const [organisations] = useOrganisations();
-    const [clientSettings] = useClientSettings();
     const [loading] = useLoading();
 
     const dispatch = useAppDispatch();
@@ -91,8 +93,9 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             dispatch(fetchLoanProducts()),
                         ]))
                         .then(() => {
+                            const clientSettings: any = orgLoaded.payload
                             const replaceOrganisations = organisations.reduce((acc: organisationType[], org) => {
-                                if (`${org.tenantId}` === `${payload.tenantId}` && Object.keys(clientSettings).length > 0) {
+                                if (org.tenantId === payload.tenantId && Object.keys(clientSettings).length > 0) {
                                     // modify some parameters to conform with client settings
                                     org.tenantName = clientSettings.organizationName ? clientSettings.organizationName : org.tenantName;
                                     org.witness = (clientSettings.requireWitness !== undefined) ? clientSettings.requireWitness : org.witness;
@@ -252,7 +255,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             case 1:
                                 return (
                                     <View style={{ display: 'flex', flexDirection: 'row', marginTop: 50, justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10 }}>
-                                        <TouchableOpacity onPress={() => navigation.navigate('KYC')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#489AAB',elevation: 5, position: 'relative' }}>
+                                        <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#489AAB',elevation: 5, position: 'relative' }}>
                                             <Text allowFontScaling={false} style={{ flex: 3, color: '#ffffff', fontSize: 11.5, marginLeft: 10, marginRight: 10, fontFamily: 'Poppins_600SemiBold' }}>
                                                 Apply For A Loan
                                             </Text>

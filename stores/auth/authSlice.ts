@@ -964,7 +964,7 @@ export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async (
             if (cb) {
                 await cb()
             }
-            return fulfillWithValue(data);
+            return Promise.reject(data);
         } else {
             dispatch(setAuthState(false));
         }
@@ -973,7 +973,7 @@ export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async (
         if (!e.response) {
             throw e
         }
-        return rejectWithValue(e.message);
+        return Promise.reject(e.message);
     }
 })
 
@@ -1729,6 +1729,35 @@ export const declineWitnessRequest = createAsyncThunk('declineWitnessRequest', a
     }
 });
 
+export const addFavouriteGuarantor = createAsyncThunk('addFavouriteGuarantor', (payload: {memberRefId: string; guarantorRefId: string}, {rejectWithValue, fulfillWithValue}) => {
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/favorite-guarantor`
+    getSecureKey('access_token').then(key => {
+        if (!key) {
+            throw new Error("You are not authenticated")
+        }
+        const myHeaders = new Headers();
+        myHeaders.append("Authorization", `Bearer ${key}`);
+        myHeaders.append("Content-Type", 'application/json');
+        return fetch(url,{
+            method: 'POST',
+            headers: myHeaders,
+            body: JSON.stringify(payload)
+        })
+    }).then((response: Response) => {
+        if (response.type === "error" || !response.ok) {
+            throw new Error(`${response.status}`)
+        }
+
+        console.log(response.status)
+        return response.json()
+    }).then(data => {
+        console.log(data)
+        fulfillWithValue(data)
+    }).catch(error => {
+        rejectWithValue(error)
+    })
+})
+
 export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuarantors', async ({memberRefId, setFaveGuarantors}: {memberRefId: string | undefined, setFaveGuarantors: any}, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
     try {
         const key = await getSecureKey('access_token');
@@ -1745,8 +1774,6 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
                 'Authorization': `Bearer ${key}`,
             }
         });
-
-        // console.log("favourite guarantors", result.status);
 
         if (result.status === 204) {
             console.log(`https://eguarantorship-api.presta.co.ke/api/v1/favorite-guarantor/favorite-guarantors/${memberRefId}`);
@@ -3369,6 +3396,16 @@ const authSlice = createSlice({
             state.loading = false
         })
         builder.addCase(fetchFavouriteGuarantors.rejected, (state, action) => {
+            state.loading = false
+        })
+
+        builder.addCase(addFavouriteGuarantor.pending, state => {
+            state.loading = true
+        })
+        builder.addCase(addFavouriteGuarantor.fulfilled, (state) => {
+            state.loading = false
+        })
+        builder.addCase(addFavouriteGuarantor.rejected, (state, action) => {
             state.loading = false
         })
 

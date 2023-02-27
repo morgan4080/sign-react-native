@@ -1,17 +1,23 @@
-import {Keyboard, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, TouchableWithoutFeedback} from "react-native";
+import {SafeAreaView, ScrollView, StyleSheet, View} from "react-native";
 import React, {useEffect, useRef} from "react";
-export interface ComponentProps extends React.ComponentPropsWithoutRef<any> {}
-const Container = ({...children}: ComponentProps) => {
+interface ComponentProps extends React.ComponentPropsWithoutRef<any>{
+    segmentedButtons?: React.ReactNode | null
+}
+const Container = ({segmentedButtons, ...children}: ComponentProps) => {
     return (
         <SafeAreaView style={styles.container}>
-                <ScrollView contentContainerStyle={styles.scrollView} {...children} />
+            {segmentedButtons ? <View style={{width: "100%"}}>
+                {segmentedButtons}
+            </View> : null}
+            <ScrollView contentContainerStyle={styles.scrollView} {...children} />
         </SafeAreaView>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1
+        flex: 1,
+        position: "relative"
     },
     scrollView: {
         paddingHorizontal: 16

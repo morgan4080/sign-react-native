@@ -92,12 +92,12 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                     const applicationCompleted= payload.content.some((loan_request: any) => loan_request.applicationStatus === 'COMPLETED');
                     const applicationInProgress= payload.content.some((loan_request: any) => loan_request.applicationStatus === 'INPROGRESS');
                     const signingCompleted = payload.content.some((loan_request: any) => loan_request.signingStatus === 'COMPLETED');
+                    const signingInProgress = payload.content.some((loan_request: any) => loan_request.signingStatus === 'INPROGRESS');
 
                     if (applicationCompleted && signingCompleted) {
                         const existingInProgress = payload.content.find((curr: LoanRequestData) => curr.applicationStatus === 'COMPLETED' && curr.signingStatus === 'INPROGRESS')
                         if (existingInProgress) {
-                            console.log("existingInProgress",JSON.stringify(existingInProgress));
-                            showSnack(`An existing ${existingInProgress.loanProductName} of ${toMoney(existingInProgress.loanAmount)} is in progress from: ${existingInProgress.loanDate}`, "", "Resolve", true, () => {
+                            showSnack(`${existingInProgress.loanProductName} of ${toMoney(existingInProgress.loanAmount)} is in progress from: ${existingInProgress.loanDate}`, "", "Resolve", true, () => {
                                 dismissSnack()
                                 return Alert.alert(`Resolve ${existingInProgress.loanProductName}`, `You can proceed to create a new loan request or resolve existing ${existingInProgress.loanRequestNumber} of ${toMoney(existingInProgress.loanAmount)} created on ${existingInProgress.loanDate}`, [
                                     {
@@ -125,7 +125,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                         const existingInProgress = payload.content.find((curr: LoanRequestData) => curr.signingStatus === 'INPROGRESS')
 
                         if (existingInProgress) {
-                            showSnack(`An existing ${product.name} of ${toMoney(existingInProgress.loanAmount)} is in progress from: ${existingInProgress.loanDate}`, "", "Resolve", true, () => {
+                            showSnack(`${product.name} of ${toMoney(existingInProgress.loanAmount)} is in progress from: ${existingInProgress.loanDate}`, "", "Resolve", true, () => {
                                 dismissSnack()
                                 return Alert.alert(`Resolve ${existingInProgress.loanProductName}`, `You can proceed to create a new loan request or resolve existing ${existingInProgress.loanRequestNumber} of ${toMoney(existingInProgress.loanAmount)} created on ${existingInProgress.loanDate}`, [
                                     {
@@ -147,6 +147,33 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                         } else {
                             navigation.navigate('LoanProduct', { loanProduct: product })
                         }
+                    } else if (applicationCompleted && signingInProgress) {
+                        const existingInProgress = payload.content.find((curr: LoanRequestData) => curr.applicationStatus === 'COMPLETED' && curr.signingStatus === 'INPROGRESS')
+                        if (existingInProgress) {
+                            showSnack(`${existingInProgress.loanProductName} of ${toMoney(existingInProgress.loanAmount)} is in progress from: ${existingInProgress.loanDate}`, "", "Resolve", true, () => {
+                                dismissSnack()
+                                return Alert.alert(`Resolve ${existingInProgress.loanProductName}`, `You can proceed to create a new loan request or resolve existing ${existingInProgress.loanRequestNumber} of ${toMoney(existingInProgress.loanAmount)} created on ${existingInProgress.loanDate}`, [
+                                    {
+                                        text: 'Proceed',
+                                        onPress: () => navigation.navigate('LoanProduct', { loanProduct: product }),
+                                        style: 'cancel'
+                                    },
+                                    {
+                                        text: 'Resolve',
+                                        onPress: () => {
+                                            navigation.navigate("LoanRequests", {
+                                                loan: existingInProgress
+                                            })
+                                        },
+                                    }
+                                ])
+                                // dismiss snack here before performing next action
+                            });
+                        } else {
+                            navigation.navigate('LoanProduct', { loanProduct: product })
+                        }
+                    } else {
+                        navigation.navigate('LoanProduct', { loanProduct: product })
                     }
                 }
             }

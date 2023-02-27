@@ -319,7 +319,7 @@ function BottomTabNavigator() {
         component={LoanRequests}
         options={({ navigation, route }) => ({
           tabBarStyle: { display: "none" },
-          title: 'Your Loan Requests',
+          title: 'Loan Requests',
           tabBarIcon: ({ focused, color, size }) => {
               let iconName;
               iconName = focused

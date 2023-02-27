@@ -8,7 +8,7 @@ export const store = configureStore({
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: {
-                ignoredActionPaths: ['payload.meta.arg.cb', 'meta.arg', 'payload'],
+                ignoredActionPaths: ['payload.meta.arg.cb', 'meta.arg', 'auth.loanCategories.meta.arg.cb', 'payload'],
                 ignoredActions: ["refreshAccessToken/fulfilled"]
             },
         }),

@@ -1,8 +1,10 @@
 import {SectionList, StyleSheet, Text, View, TouchableOpacity, NativeModules, Dimensions} from 'react-native';
-import {Ionicons} from "@expo/vector-icons";
-import {storeState} from "../stores/auth/authSlice";
+import {Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {addFavouriteGuarantor, storeState} from "../stores/auth/authSlice";
 import {useSelector} from "react-redux";
 import Cry from "../assets/images/cry.svg"
+import {showSnack} from "../utils/immediateUpdate";
+import {useAppDispatch, useMember} from "../stores/hooks";
 
 type contactType = {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}
 
@@ -23,14 +25,12 @@ const getAbbreviation = (name: string) => {
 const { width, height } = Dimensions.get("window");
 
 const Item = ({ contact, removeContact, contactList, section, onPress, setEmployerDetailsEnabled }: { contact: contactType, removeContact: any, contactList: any, section: any, setEmployerDetailsEnabled: any, onPress: any }) => {
-    const isChecked = contactList.find((con: any ) => con.memberNumber === contact.memberNumber);
+    const isChecked = contactList.find((con: any ) => con.memberNumber === contact.memberNumber)
+    const [member] = useMember()
+    const dispatch = useAppDispatch()
     if (section.id === 2) {
         return contact.name ? (
-            <TouchableOpacity onPress={async () => {
-                removeContact({
-                    ...contact
-                });
-            }} style={{
+            <View  style={{
                 ...styles.item,
                 backgroundColor: isChecked ? 'rgba(72,154,171,0.77)' : '#FFFFFF'
             }}>
@@ -46,36 +46,40 @@ const Item = ({ contact, removeContact, contactList, section, onPress, setEmploy
                                 style={{width: 22, height: 22, borderWidth: 1, borderRadius: 50, borderColor: '#CCCCCC'}}/>
                     }
                 </View>
-                <View style={{flex: 0.13}}>
-                    <View style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 30,
-                        height: 30,
-                        backgroundColor: '#489AAB',
-                        borderRadius: 50
-                    }}>
-                        <Text allowFontScaling={false} style={{
-                            ...styles.title,
-                            fontSize: 12,
-                            color: '#FFFFFF'
-                        }}>{getAbbreviation(contact.name).toUpperCase()}</Text>
-                    </View>
-                </View>
                 <View style={{flex: 0.67}}>
                     <Text allowFontScaling={false}
                           style={{...styles.title, color: isChecked ? '#FFFFFF' : '#393a34', fontSize: 13, fontFamily: 'Poppins_500Medium'}}>{contact.name}</Text>
                     <Text allowFontScaling={false}
-                          style={{...styles.title, color: isChecked ? '#FFFFFF' : '#393a34', fontSize: 12, fontFamily: 'Poppins_300Light'}}>{contact.phone}</Text>
+                          style={{...styles.title, color: isChecked ? '#FFFFFF' : '#393a34', fontSize: 12, fontFamily: 'Poppins_300Light'}}>{contact.phone} | {contact.memberNumber}</Text>
                 </View>
-                <Text allowFontScaling={false} style={{
-                    ...styles.title,
-                    fontSize: 10,
-                    flex: 0.1,
-                    color: isChecked ? '#FFFFFF' : '#393a34'
-                }}>{contact.memberNumber}</Text>
-            </TouchableOpacity>
+                <TouchableOpacity onPress={() => {
+
+                    if (member) {
+                        const payload = {
+                            "memberRefId": member.refId,
+                            "guarantorRefId": contact.memberRefId
+                        }
+
+                        dispatch(addFavouriteGuarantor(payload)).then(response => {
+                            if (response.type === "addFavouriteGuarantor/fulfilled") {
+                                console.log("xx", response.payload)
+                                showSnack("Added to favourite guarantors", "SUCCESS")
+                            }
+                        }).catch(error => {
+                            console.warn(error)
+                        })
+                    }
+                }} style={{flex: 0.13}}>
+                    <MaterialIcons name="bookmark" size={40} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={async () => {
+                    removeContact({
+                        ...contact
+                    });
+                }} style={{flex: 0.13}}>
+                    <MaterialIcons name="cancel" size={40} color="white" />
+                </TouchableOpacity>
+            </View>
         ): (
             <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 50}}>
                 {/*<Cry width={width/1.5} height={height/3}/>*/}

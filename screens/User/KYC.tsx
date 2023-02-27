@@ -43,7 +43,9 @@ const KYC = ({navigation, route}: NavigationProps) => {
             applicant_name: member ? member.fullName : "",
             loan_purpose_1: route.params ? route.params.details.loan_purpose_1.value : "",
             loan_purpose_2: route.params ? route.params.details.loan_purpose_2.value : "",
-            loan_purpose_3: route.params ? route.params.details.loan_purpose_3.value : ""
+            loan_purpose_3: route.params ? route.params.details.loan_purpose_3.value : "",
+            disbursement_mode: route.params ? route.params.details.disbursement_mode.value : "",
+            repayment_mode: route.params ? route.params.details.repayment_mode.value : "",
         }
     });
 

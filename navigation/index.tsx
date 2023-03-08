@@ -100,18 +100,25 @@ const NonAuthNavigation = () => {
                     fontFamily: 'Poppins_600SemiBold'
                 }
             }} />
-            <Stack.Screen name="SetPin" component={SetPin} options={{
-                headerShown: true,
-                title: 'Set Account Pin',
-                headerShadowVisible: false,
-                headerStyle: {
-                    backgroundColor: '#FFFFFF',
-                },
-                headerTintColor: '#489AAB',
-                headerTitleStyle: {
-                    fontSize: 20,
-                    fontFamily: 'Poppins_600SemiBold'
-                }
+            <Stack.Screen name="SetPin" component={SetPin} options={({navigation, route}) => {
+                return({
+                    title: 'Set Account Pin',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF',
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false,
+                })
             }} />
             <Stack.Screen name="Countries" component={Countries} options={{ headerShown: false }} />
             <Stack.Screen name="ShowTenants" component={ShowTenants} options={{headerShown: false}} />

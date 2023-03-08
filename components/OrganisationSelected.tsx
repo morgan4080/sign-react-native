@@ -290,17 +290,17 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
             }
 
             if (phone !== "") {
-                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("phoneNumber", `?memberIdentifier=${phone}&identifierType=PHONE_NUMBER&force=true`))
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("phoneNumber", `?memberIdentifier=${phone}&identifierType=PHONE_NUMBER&force=false`))
                 return
             }
 
             if (email !== "") {
-                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("email", `?memberIdentifier=${email}&identifierType=EMAIL&force=true`))
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("email", `?memberIdentifier=${email}&identifierType=EMAIL&force=false`))
                 return
             }
 
             if (id !== "") {
-                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("idNumber", `?memberIdentifier=${id}&identifierType=ID_NUMBER&force=true`))
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("idNumber", `?memberIdentifier=${id}&identifierType=ID_NUMBER&force=false`))
                 return
             }
         } catch (e: any) {

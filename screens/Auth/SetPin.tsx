@@ -7,7 +7,6 @@ import {
     Text,
     StatusBar,
     Pressable,
-    NativeModules,
 } from "react-native";
 import {
     Poppins_300Light,
@@ -19,13 +18,16 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import {RotateView} from "./VerifyOTP";
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import {
     authClient,
-    createPin, hasPinCheck, loginUser,
+    createPin,
+    hasPinCheck,
+    loginUser,
     loginUserType,
     searchByEmail,
-    searchByPhone, setAuthState,
+    searchByPhone,
+    setAuthState,
     storeState
 } from "../../stores/auth/authSlice";
 import {Controller, useForm} from "react-hook-form";
@@ -33,8 +35,10 @@ import {useEffect, useState} from "react";
 import {store} from "../../stores/store";
 import {saveSecureKey} from "../../utils/secureStore";
 import {showSnack} from "../../utils/immediateUpdate";
-
-const {CSTM} = NativeModules;
+import Container from "../../components/Container";
+import {useAppDispatch} from "../../stores/hooks";
+import TextField from "../../components/TextField";
+import TouchableButton from "../../components/TouchableButton";
 
 const { width, height } = Dimensions.get("window");
 
@@ -49,7 +53,7 @@ type FormData = {
 
 const SetPin = ({ navigation, route }: NavigationProps) => {
     const [userFound, setUserFound] = useState<boolean>(false)
-    const [errorSMS, setErrorSMS] = useState<string>("")
+    const [errorSMS, setErrorSMS] = useState<string | null>(null)
     const [pinStatus, setPinStatus] = useState<string>("")
     const [authRes, setAuthRes] = useState<any>(null)
     const [searchRes, setSearchRes] = useState<any>(null)
@@ -69,6 +73,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
         setError,
         setValue,
         getValues,
+        watch,
         formState: { errors }
     } = useForm<FormData>({})
 
@@ -76,352 +81,276 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
 
     let {phoneNumber, email, realm, client_secret, isTermsAccepted}: any = route.params;
 
-    type AppDispatch = typeof store.dispatch;
+    const dispatch = useAppDispatch();
 
-    const dispatch : AppDispatch = useDispatch();
+    const startMemberVerification = async (access_token: string): Promise<any> => {
+        if (phoneNumber && access_token) {
+            try {
+                const res = await dispatch(hasPinCheck({
+                    access_token: access_token,
+                    phoneNumber: phoneNumber
+                }));
+
+                const {type, meta, payload}: Pick<typeof res, "type" | "meta" | "payload"> = res;
+
+                const {pinStatus}: any = payload
+
+                if (pinStatus) {
+                    setPinStatus(pinStatus);
+                }
+            } catch (e) {
+                throw (e);
+            }
+
+            const response = await dispatch(searchByPhone({phoneNumber, access_token}));
+
+            const {type, meta, payload}: Pick<typeof response, "type" | "meta" | "payload"> = response;
+
+            console.log('search by phone number response', JSON.stringify(response));
+
+            const {refId, error, code, message} = payload as Record<string, any>;
+
+            if (code === 500) {
+                throw (`Search By Phone Error: ${code}: ${message}`);
+            }
+
+            if (response.type === 'searchByPhone/rejected' || error) {
+                throw(error);
+            }
+
+            if (type === 'searchByPhone/fulfilled') {
+                console.log('searchByPhone user refId', refId);
+                if (refId === undefined) {
+                    throw ("Member Not Found");
+                }
+
+                setSearchRes(payload);
+
+                setUserFound(true);
+
+                return Promise.all([
+                    setValue("memberRefId", refId),
+                    setValue("access_token", access_token)
+                ]);
+            }
+        } else if (email && access_token) {
+            const response = await dispatch(searchByEmail({email, access_token}));
+
+            const {type, meta, payload}: Pick<typeof response, "type" | "meta" | "payload"> = response;
+
+            console.log('search by email response', JSON.stringify(response));
+
+            const {refId, error} = payload as Record<string, string>;
+
+            if (type === 'searchByEmail/rejected' || error) {
+
+                throw (error);
+
+            } else if ('searchByEmail/fulfilled') {
+                console.log('searchByEmail,,,', refId);
+
+                setSearchRes(payload);
+
+                setUserFound(true);
+
+                return Promise.all([
+                    setValue("memberRefId", refId),
+                    setValue("access_token", access_token)
+                ]);
+            }
+        } else {
+            return Promise.reject("No Email or Phone Number Provided");
+        }
+    }
 
     useEffect(() => {
         let start = true;
-
-        (async () => {
-            try {
-                const {type, payload} : any = await dispatch(authClient({realm, client_secret}))
-
-                if (type === 'authClient/fulfilled') {
-                    setAuthRes(payload);
-                    const { access_token } = payload;
-
-                    console.log('access_token_x', access_token);
-
-                    console.log("start member verify", email, phoneNumber);
-
-                    if (phoneNumber && access_token) {
-                        let {type, payload, error}: any = await dispatch(hasPinCheck({
-                            access_token: access_token,
-                            phoneNumber: phoneNumber
-                        }));
-                        if (payload.pinStatus) {
-                            setPinStatus(payload.pinStatus);
-                        }
-                        const response: any = await dispatch(searchByPhone({phoneNumber, access_token}))
-                        console.log('search by phone number response', response);
-                        if (response.type === 'searchByPhone/rejected') {
-                            CSTM.showToast(response.error.message)
-                            setErrorSMS(response.error.message)
-                        } else {
-                            console.log('searchByPhone,,,', response.payload.refId)
-                            setSearchRes(response.payload)
-                            setUserFound(true)
-                            await Promise.all([
-                                setValue("memberRefId", response.payload.refId),
-                                setValue("access_token", access_token)
-                            ])
-                        }
-                    } else if (email && access_token) {
-                        const response: any = await dispatch(searchByEmail({email, access_token}))
-                        console.log('search by email response', response);
-                        if (response.type === 'searchByEmail/rejected') {
-                            setErrorSMS(response.error.message)
-                        } else {
-                            console.log('searchByEmail,,,', response.payload.refId)
-                            setSearchRes(response.payload)
-                            setUserFound(true)
-                            await Promise.all([
-                                setValue("memberRefId", response.payload.refId),
-                                setValue("access_token", access_token)
-                            ])
-                        }
-                    }
-                } else {
-                    CSTM.showToast("Couldn't authenticate client")
-                }
-            } catch (e: any) {
-                CSTM.showToast(e)
+        dispatch(authClient({realm, client_secret}))
+        .then(({type, meta, payload}) => {
+            if (type === 'authClient/fulfilled') {
+                setAuthRes(payload);
+                const { access_token } = payload as Record<any, any>;
+                return startMemberVerification(access_token)
+            } else {
+                throw ("Couldn't authenticate client")
             }
-        })()
-
+        }).catch(e => {
+            setErrorSMS(`${JSON.stringify(e)}`);
+            showSnack(JSON.stringify(e), "ERROR")
+        })
         return () => {
             start = false;
         }
-    }, [])
+    }, []);
+
+    const logUserIn = async (loadOut: loginUserType) => {
+        return dispatch(loginUser(loadOut))
+        .then(response => {
+            const {type, meta, payload}: Pick<typeof response, "type" | "meta" | "payload"> = response;
+            console.log("loginUser", JSON.stringify(response));
+            const {error, error_description} = payload as Record<string, string>;
+            if (type === 'loginUser/rejected' || error) {
+                if (error_description && error) {
+                    throw (`${error}: ${error_description}: Username ${searchRes.username} web password was reset and needs to be set before proceeding.`);
+                }
+                throw (error);
+            } else {
+                return dispatch(setAuthState(true));
+            }
+        })
+        .catch(error => {
+            return Promise.reject(error);
+        })
+    }
 
     const onSubmit = () => {
-        console.log("authResponse", authRes)
-        console.log("searchResponse", searchRes)
         if (realm && client_secret && searchRes) {
-            (async () => {
-                try {
-                    const load: {pinConfirmation: string, memberRefId: string, access_token: string} = {
-                        pinConfirmation: getValues("pinConfirmation"),
-                        memberRefId: getValues("memberRefId"),
-                        access_token: getValues("access_token")
-                    }
-
-                    const response : any = await dispatch(createPin(load));
-
-                    if (response.type === 'createPin/rejected') {
-                        console.log('cant set pin', response);
-                        showSnack(response.error.message, "ERROR");
-                    } else {
-                        const loadOut: loginUserType = {
-                            phoneNumber: searchRes.phoneNumber,
-                            pin: getValues("pinConfirmation"),
-                            tenant: realm,
-                            clientSecret:  client_secret
-                        }
-
-                        try {
-                            await saveSecureKey('currentTenant', JSON.stringify(selectedTenant))
-                            const {type, error}: any = await dispatch(loginUser(loadOut))
-                            if (type === 'loginUser/rejected' && error) {
-                                if (error.message === "Network request failed") {
-                                    showSnack(error.message, "ERROR");
-                                } else {
-                                    setError('pinConfirmation', {type: 'custom', message: error.message});
-                                }
-                            } else {
-                                dispatch(setAuthState(true));
-                            }
-                        } catch (e: any) {
-                            showSnack(e.message, "ERROR")
-                        }
-                    }
-
-                } catch (e: any) {
-                    console.log(e)
-                    CSTM.showToast(e)
-                }
-            })()
-        } else {
-            CSTM.showToast("We couldn't login")
-        }
-    }
-
-    const loginSubmit = async () => {
-        const loadOut: loginUserType = {
-            phoneNumber: searchRes.phoneNumber,
-            pin: getValues("pin"),
-            tenant: realm,
-            clientSecret:  client_secret
-        };
-
-        try {
-            await saveSecureKey('currentTenant', JSON.stringify(selectedTenant))
-            const {type, error}: any = await dispatch(loginUser(loadOut))
-            if (type === 'loginUser/rejected' && error) {
-                console.log(type, error);
-                if (error.message === "Network request failed") {
-                    CSTM.showToast(error.message);
+            const load: {pinConfirmation: string, memberRefId: string, access_token: string} = {
+                pinConfirmation: getValues("pinConfirmation"),
+                memberRefId: getValues("memberRefId"),
+                access_token: getValues("access_token")
+            };
+            return dispatch(createPin(load)).then((response) => {
+                const {type, meta, payload} = response
+                if (type === 'createPin/rejected') {
+                    console.log('submitted create pin error', JSON.stringify(response));
+                    // TODO: throw exception here
                 } else {
-                    setError('pinConfirmation', {type: 'custom', message: error.message});
-                    setError('pin', {type: 'custom', message: error.message});
+                    return saveSecureKey('currentTenant', JSON.stringify(selectedTenant))
                 }
-            } else {
-                dispatch(setAuthState(true));
-            }
-        } catch (e: any) {
-            CSTM.showToast(e.message)
+            }).then(() => {
+                const loadOut: loginUserType = {
+                    phoneNumber: searchRes.phoneNumber,
+                    pin: getValues("pinConfirmation"),
+                    tenant: realm,
+                    clientSecret:  client_secret
+                }
+                return logUserIn(loadOut)
+            }).catch(error => {
+                showSnack(JSON.stringify(error), "ERROR");
+            })
+        } else {
+            showSnack("realm, client_secret and user not available", "ERROR")
         }
     }
 
-    console.log("isTermsAccepted", isTermsAccepted)
-    console.log("pinStatus", pinStatus)
-
-    if (loading) {
-        return <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-            <RotateView/>
-        </View>
-    } else if (fontsLoaded && userFound) {
-        return (
-            (isTermsAccepted && pinStatus === 'SET') ?
-
-            <View style={styles.container}>
-                <Text allowFontScaling={false} style={{ color: '#489AAB', fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }} >Pin</Text>
-                <Controller
-                    control={control}
-                    rules={{
-                        required: true,
-                        maxLength: 4,
-                        minLength: 4
-                    }}
-                    render={( { field: { onChange, onBlur, value } }) => (
-                        <TextInput
-                            allowFontScaling={false}
-                            style={styles.input}
-                            value={value}
-                            autoFocus={false}
-                            onBlur={onBlur}
-                            onChangeText={onChange}
-                            maxLength={4}
-                            onChange={() => clearErrors()}
-                            placeholder="Enter Pin"
-                            keyboardType="number-pad"
-                            secureTextEntry={true}
-                            onSubmitEditing={handleSubmit(loginSubmit)}
-                        />
-                    )}
-                    name="pin"
-                />
-                {
-                    errors.pin &&
-                    <Text  allowFontScaling={false}  style={styles.error}>{errors.pin?.message ? errors.pin?.message : 'Invalid Pin'}</Text>
-                }
-
-                <View style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: 50,
-                    marginBottom: 5
-                }}>
-                    <Pressable style={styles.button} onPress={handleSubmit(loginSubmit)}>
-                        <View style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                        }}>
-                            {loading && <RotateView color="#FFFFFF"/>}
-                            <Text allowFontScaling={false} style={styles.buttonText}>Login</Text>
-                        </View>
-                    </Pressable>
-                </View>
-            </View>
-
-            :
-
-            <View style={styles.container}>
-                <Text allowFontScaling={false} style={{ color: '#489AAB', fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }} >Pin</Text>
-                <Controller
-                    control={control}
-                    rules={{
-                        required: true,
-                        maxLength: 4,
-                        minLength: 4
-                    }}
-                    render={( { field: { onChange, onBlur, value } }) => (
-                        <TextInput
-                            allowFontScaling={false}
-                            style={styles.input}
-                            value={value}
-                            autoFocus={false}
-                            onBlur={onBlur}
-                            onChangeText={onChange}
-                            maxLength={4}
-                            onChange={() => clearErrors()}
-                            placeholder="Enter Pin"
-                            keyboardType="number-pad"
-                            secureTextEntry={true}
-                        />
-                    )}
-                    name="pin"
-                />
-                {
-                    errors.pin &&
-                    <Text  allowFontScaling={false}  style={styles.error}>{errors.pin?.message ? errors.pin?.message : 'Invalid Pin'}</Text>
-                }
-                <Text allowFontScaling={false} style={{ color: '#489AAB', marginTop: 20, fontFamily: 'Poppins_400Regular', fontSize: 14, paddingHorizontal: 5 }}>Pin Confirmation</Text>
-                <Controller
-                    control={control}
-                    rules={{
-                        required: !isTermsAccepted || pinStatus === 'TEMPORARY',
-                        maxLength: 4,
-                        minLength: 4,
-                        validate: value => value === getValues('pin')
-                    }}
-                    render={({field: {onChange, onBlur, value}}) => (
-                        <TextInput
-                            allowFontScaling={false}
-                            style={styles.input}
-                            value={value}
-                            onBlur={onBlur}
-                            onChangeText={onChange}
-                            maxLength={4}
-                            onChange={() => clearErrors()}
-                            placeholder="Enter Pin Confirmation"
-                            keyboardType="number-pad"
-                            secureTextEntry={true}
-                            onSubmitEditing={handleSubmit(onSubmit)}
-                        />
-                    )}
-                    name="pinConfirmation"
-                />
-                {
-                    errors.pinConfirmation &&
-                    <Text  allowFontScaling={false}  style={styles.error}>{errors.pinConfirmation?.message ? errors.pinConfirmation?.message : 'Invalid Pin Confirmation'}</Text>
-                }
-
-                <View style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: 50,
-                    marginBottom: 5
-                }}>
-                    <Pressable style={styles.button} onPress={handleSubmit(onSubmit)}>
-                        <View style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                        }}>
-                            {loading && <RotateView color="#FFFFFF"/>}
-                            <Text allowFontScaling={false} style={styles.buttonText}>Save</Text>
-                        </View>
-                    </Pressable>
-                </View>
-            </View>
-        )
-    } else {
-        return (
-            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: height -200, width }}>
-                <Text allowFontScaling={false} style={{...styles.input, borderWidth: 0, height: 'auto', textAlign: 'center'}}>{errorSMS}</Text>
-            </View>
-        )
+    const loginSubmit = () => {
+        saveSecureKey('currentTenant', JSON.stringify(selectedTenant)).then(() => {
+            const loadOut: loginUserType = {
+                phoneNumber: searchRes.phoneNumber,
+                pin: getValues("pin"),
+                tenant: realm,
+                clientSecret:  client_secret
+            };
+            return logUserIn(loadOut)
+        }).catch(error => {
+            /*setError('pinConfirmation', {type: 'custom', message: error.message});
+            setError('pin', {type: 'custom', message: error.message});*/
+            showSnack(JSON.stringify(error), "ERROR")
+        })
     }
+    console.log(errorSMS)
+    return (
+        <Container>
+            {
+                loading ?
+                    <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
+                        <RotateView/>
+                    </View> : (fontsLoaded && userFound) ? (isTermsAccepted && pinStatus === 'SET') ?
+                            <View>
+                                <TextField
+                                    field={"pin"}
+                                    label={"Enter Pin"}
+                                    val={getValues}
+                                    watch={watch}
+                                    control={control}
+                                    error={errors.pin}
+                                    required={true}
+                                    rules={{
+                                        required: {
+                                            value: true,
+                                            message: "Pin is required"
+                                        },
+                                        maxLength: {
+                                            value: 4,
+                                            message: "Pin exceeded required characters"
+                                        },
+                                        minLength: {
+                                            value: 4,
+                                            message: "Pin below required characters"
+                                        }
+                                    }}
+                                    keyboardType={"number-pad"}
+                                    secureTextEntry={true}
+                                />
+
+                                <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(loginSubmit)} />
+                            </View> :
+                            <View>
+                                <TextField
+                                    field={"pin"}
+                                    label={"Enter Pin"}
+                                    val={getValues}
+                                    watch={watch}
+                                    control={control}
+                                    error={errors.pin}
+                                    required={true}
+                                    rules={{
+                                        required: {
+                                            value: true,
+                                            message: "Pin is required"
+                                        },
+                                        maxLength: {
+                                            value: 4,
+                                            message: "Pin exceeded required characters"
+                                        },
+                                        minLength: {
+                                            value: 4,
+                                            message: "Pin below required characters"
+                                        }
+                                    }}
+                                    keyboardType={"number-pad"}
+                                    secureTextEntry={true}
+                                />
+
+                                <TextField
+                                    field={"pinConfirmation"}
+                                    label={"Pin Confirmation"}
+                                    val={getValues}
+                                    watch={watch}
+                                    control={control}
+                                    error={errors.pinConfirmation}
+                                    required={true}
+                                    rules={{
+                                        required: {
+                                            value: !isTermsAccepted || pinStatus === 'TEMPORARY',
+                                            message: "Pin is required"
+                                        },
+                                        maxLength: {
+                                            value: 4,
+                                            message: "Pin exceeded required characters"
+                                        },
+                                        minLength: {
+                                            value: 4,
+                                            message: "Pin below required characters"
+                                        },
+                                        validate: (value: string) => (value === getValues('pin') ? true : "Pin Confirmation doesnt match pin")
+                                    }}
+                                    keyboardType={"number-pad"}
+                                    secureTextEntry={true}
+                                />
+
+                                <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(onSubmit)} />
+
+                            </View> :
+                        <Text allowFontScaling={false} style={{ color: 'black', borderWidth: 0, height: 'auto', textAlign: 'center'}}>{errorSMS}</Text>
+            }
+        </Container>
+    )
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingHorizontal: 20,
-        paddingTop: StatusBar.currentHeight,
-        backgroundColor: '#FFFFFF'
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#cccccc',
-        borderRadius: 20,
-        height: 45,
-        marginTop: 10,
-        paddingHorizontal: 20,
-        fontSize: 12,
-        color: '#767577',
-        fontFamily: 'Poppins_400Regular'
-    },
-    error: {
-        fontSize: 10,
-        color: '#d53b39',
-        fontFamily: 'Poppins_400Regular',
-        paddingHorizontal: 10,
-        marginTop: 5
-    },
-    button: {
-        backgroundColor: '#3D889A',
-        elevation: 3,
-        borderRadius: 50,
-        paddingHorizontal: 15,
-        paddingVertical: 7,
-        width: '99%'
-    },
-    buttonText: {
-        fontSize: 14,
-        color: 'white',
-        alignSelf: 'center',
-        fontFamily: 'Poppins_400Regular',
-    },
+
 })
 
 export default SetPin

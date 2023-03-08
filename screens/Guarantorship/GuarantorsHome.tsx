@@ -24,6 +24,9 @@ import ContactSectionList from "../../components/ContactSectionList";
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackdrop, BottomSheetFlatList  } from "@gorhom/bottom-sheet";
 import {toMoney} from "../User/Account";
 import {showSnack} from "../../utils/immediateUpdate";
+import Container from "../../components/Container";
+import TextField from "../../components/TextField";
+import TouchableButton from "../../components/TouchableButton";
 const { width } = Dimensions.get("window");
 type searchedMemberType = { contact_id: string; memberNumber: string; memberRefId: string; name: string; phone: string }
 type FormData = {
@@ -97,6 +100,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         setError,
         setValue,
         getValues,
+        watch,
         formState: { errors }
     } = useForm<FormData>();
 
@@ -411,7 +415,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         setValue("amountToGuarantee", "");
         handleClosePress();
         const newDeserializedCopy: any[] = cloneDeep(selectedContacts);
-        newDeserializedCopy.push(heldMember);
+        newDeserializedCopy.push({...heldMember, amountToGuarantee: getValues("amountToGuarantee")});
         setSelectedContacts(newDeserializedCopy);
     }
 
@@ -565,28 +569,36 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     <AntDesign style={{ paddingRight: 10, paddingVertical: 5, paddingLeft: 5, borderLeftWidth: 1, borderLeftColor: '#cccccc' }} name="contacts" size={18} color="rgba(0,0,0,0.89)" />
                 </Pressable>
             </View>
-            <ContactSectionList contactsData={
-                [
-                    {
-                        id: 1,
-                        title: 'OPTIONS',
-                        data: [
-                            {
-                                name: ''
-                            }
-                        ]
-                    },
-                    {
-                        id: 2,
-                        title:`SELECTED GUARANTORS (REQUIRES ${route.params?.loanProduct.requiredGuarantors} ${route.params?.loanProduct.requiredGuarantors == 1 ? 'GUARANTOR' : 'GUARANTORS'})`,
-                        data: selectedContacts.length > 0 ? selectedContacts : [
-                            {
-                                name: false
-                            }
-                        ]
-                    }
-                ]
-            } searching={searching} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} onPress={onPress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} />
+            <ContactSectionList
+                contactsData={
+                    [
+                        {
+                            id: 1,
+                            title: 'OPTIONS',
+                            data: [
+                                {
+                                    name: ''
+                                }
+                            ]
+                        },
+                        {
+                            id: 2,
+                            title:`SELECTED GUARANTORS (REQUIRES ${route.params?.loanProduct.requiredGuarantors} ${route.params?.loanProduct.requiredGuarantors == 1 ? 'GUARANTOR' : 'GUARANTORS'})`,
+                            data: selectedContacts.length > 0 ? selectedContacts : [
+                                {
+                                    name: false
+                                }
+                            ]
+                        }
+                    ]
+                }
+                searching={searching}
+                addContactToList={addContactToList}
+                removeContactFromList={removeContactFromList}
+                contactList={selectedContacts}
+                onPress={onPress}
+                setEmployerDetailsEnabled={setEmployerDetailsEnabled}
+            />
             <View style={{ position: 'absolute', bottom: 0, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                 <TouchableOpacity disabled={ isDisabled() || loading } onPress={navigateUser} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                     <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
@@ -621,198 +633,198 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     />
                     :
                     <BottomSheetScrollView contentContainerStyle={{backgroundColor: "white"}}>
-                        {
-                            context === "amount" &&
-                            <View style={{display: 'flex', alignItems: 'center', width, marginBottom: 10}}>
-                                <View style={{paddingHorizontal: 30, flexDirection: 'column', justifyContent: 'flex-start'}}>
-                                    <Text allowFontScaling={false} style={styles.subtitle}>Add Guarantor-ship Amount</Text>
-                                    <Text allowFontScaling={false} style={{ width: width-35, textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, lineHeight: 18, letterSpacing: 0.5, paddingBottom: 5, }}>Remaining Amount <Text style={{textDecorationLine: 'underline'}}>{toMoney(un_guaranteed())}</Text></Text>
-                                    <Text allowFontScaling={false} style={{ width: width-35, textAlign: 'left', color: '#767577', fontFamily: 'Poppins_300Light', fontSize: 12, lineHeight: 18 , letterSpacing: 0.5, paddingBottom: 5, }}>Selected Guarantor: {currentGuarantor?.name}</Text>
+                        <Container>
+                            {
+                                context === "amount" &&
+                                <>
+                                    <View style={{paddingHorizontal: 5}}>
+                                        <Text allowFontScaling={false} style={styles.subtitle}>Guarantor: {currentGuarantor?.name}</Text>
+                                        <Text allowFontScaling={false} style={styles.subtitle2}>
+                                            Remaining Amount:
+                                            <Text style={{textDecorationLine: 'underline'}}>{toMoney(un_guaranteed())}</Text>
+                                        </Text>
+                                    </View>
+
+                                    <TextField
+                                        label={"Amount to guarantee"}
+                                        field={"amountToGuarantee"}
+                                        val={getValues}
+                                        watch={watch}
+                                        control={control}
+                                        error={errors.amountToGuarantee}
+                                        required={true}
+                                        keyboardType={"number-pad"}
+                                    />
+
+                                    {/*<Pressable disabled={!heldMember} onPress={submitAmount} style={{marginTop: 20, backgroundColor: !heldMember ? "#CCCCCC" : "#489AAB", paddingHorizontal: 50, paddingVertical: 15, borderRadius: 25}}>
+                                        <Text allowFontScaling={false} style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_600SemiBold', textTransform: 'uppercase'}}>Submit Amount</Text>
+                                    </Pressable>*/}
+
+                                    <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(submitAmount)} />
+                                </>
+                            }
+                            { context === "employment" &&
+                                <View style={{display: 'flex', alignItems: 'center', width}}>
+                                    <View style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', width: width-50, paddingBottom: 15 }}>
+                                        <TouchableOpacity onPress={() => {
+                                            setTab(0)
+                                        }} style={{ display: 'flex', borderBottomWidth: tab === 0 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
+                                            <Text allowFontScaling={false} style={[{color: tab === 0 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Employed</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => {
+                                            setTab(1)
+                                        }} style={{ display: 'flex', borderBottomWidth: tab === 1 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
+                                            <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    {   tab === 0 &&
+                                        <>
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Employer name"
+                                                    />
+                                                )}
+                                                name="employerName"
+                                            />
+                                            {errors.employerName &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.employerName?.message ? errors.employerName?.message : 'Employer name required'}</Text>}
+
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Employment/Service No."
+                                                    />
+                                                )}
+                                                name="serviceNo"
+                                            />
+                                            {errors.serviceNo &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.serviceNo?.message ? errors.serviceNo?.message : 'Service Number required'}</Text>}
+
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Gross Salary"
+                                                        keyboardType="numeric"
+                                                    />
+                                                )}
+                                                name="grossSalary"
+                                            />
+                                            {errors.grossSalary &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.grossSalary?.message ? errors.grossSalary?.message : 'Gross salary required'}</Text>}
+
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Net Salary"
+                                                        keyboardType="numeric"
+                                                    />
+                                                )}
+                                                name="netSalary"
+                                            />
+                                            {errors.netSalary &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.netSalary?.message ? errors.netSalary?.message : 'Net salary required'}</Text>}
+
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="KRA Pin"
+                                                    />
+                                                )}
+                                                name="kraPin"
+                                            />
+                                            {errors.kraPin &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.kraPin?.message ? errors.kraPin?.message : 'KRA pin required'}</Text>}
+                                        </>
+                                    }
+
+                                    {
+                                        tab === 1 &&
+                                        <>
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Business Location"
+                                                    />
+                                                )}
+                                                name="businessLocation"
+                                            />
+                                            {errors.businessLocation &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.businessLocation?.message ? errors.businessLocation?.message : 'Business location required'}</Text>}
+
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="Business Type"
+                                                    />
+                                                )}
+                                                name="businessType"
+                                            />
+                                            {errors.businessType &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.businessType?.message ? errors.businessType?.message : 'Business type required'}</Text>}
+
+                                            <Controller
+                                                control={control}
+                                                render={({field: {onChange, onBlur, value}}) => (
+                                                    <TextInput
+                                                        allowFontScaling={false}
+                                                        style={styles.input0}
+                                                        onBlur={onBlur}
+                                                        onChangeText={onChange}
+                                                        value={value}
+                                                        placeholder="KRA Pin"
+                                                    />
+                                                )}
+                                                name="kraPin"
+                                            />
+                                            {errors.kraPin &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.kraPin?.message ? errors.kraPin?.message : 'KRA pin required'}</Text>}
+
+                                        </>
+                                    }
+
+                                    <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                        <Pressable onPress={submitKYC} style={{marginTop: 20, backgroundColor: !heldMember ? "#CCCCCC" : "#489AAB", paddingHorizontal: 50, paddingVertical: 15, borderRadius: 25}}>
+                                            <Text allowFontScaling={false} style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_600SemiBold', textTransform: 'uppercase'}}>Submit Details</Text>
+                                        </Pressable>
+                                    </View>
                                 </View>
-                                <Controller
-                                    control={control}
-                                    render={({field: {onChange, onBlur, value}}) => (
-                                        <TextInput
-                                            allowFontScaling={false}
-                                            style={styles.input0}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            placeholder="Amount to guarantee"
-                                            keyboardType="numeric"
-                                            autoFocus={true}
-                                            onSubmitEditing={submitAmount}
-                                        />
-                                    )}
-                                    name="amountToGuarantee"
-                                />
-
-                                <Pressable disabled={!heldMember} onPress={submitAmount} style={{marginTop: 20, backgroundColor: !heldMember ? "#CCCCCC" : "#489AAB", paddingHorizontal: 50, paddingVertical: 15, borderRadius: 25}}>
-                                    <Text allowFontScaling={false} style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_600SemiBold', textTransform: 'uppercase'}}>Submit Amount</Text>
-                                </Pressable>
-                            </View>
-                        }
-                        { context === "employment" &&
-                            <View style={{display: 'flex', alignItems: 'center', width}}>
-                                <View style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', width: width-50, paddingBottom: 15 }}>
-                                    <TouchableOpacity onPress={() => {
-                                        setTab(0)
-                                    }} style={{ display: 'flex', borderBottomWidth: tab === 0 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
-                                        <Text allowFontScaling={false} style={[{color: tab === 0 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Employed</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => {
-                                        setTab(1)
-                                    }} style={{ display: 'flex', borderBottomWidth: tab === 1 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
-                                        <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
-                                    </TouchableOpacity>
-                                </View>
-                                {   tab === 0 &&
-                                    <>
-                                        <Controller
-                                            control={control}
-                                            render={({field: {onChange, onBlur, value}}) => (
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={styles.input0}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    placeholder="Employer name"
-                                                />
-                                            )}
-                                            name="employerName"
-                                        />
-                                        {errors.employerName &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.employerName?.message ? errors.employerName?.message : 'Employer name required'}</Text>}
-
-                                        <Controller
-                                            control={control}
-                                            render={({field: {onChange, onBlur, value}}) => (
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={styles.input0}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    placeholder="Employment/Service No."
-                                                />
-                                            )}
-                                            name="serviceNo"
-                                        />
-                                        {errors.serviceNo &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.serviceNo?.message ? errors.serviceNo?.message : 'Service Number required'}</Text>}
-
-                                        <Controller
-                                            control={control}
-                                            render={({field: {onChange, onBlur, value}}) => (
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={styles.input0}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    placeholder="Gross Salary"
-                                                    keyboardType="numeric"
-                                                />
-                                            )}
-                                            name="grossSalary"
-                                        />
-                                        {errors.grossSalary &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.grossSalary?.message ? errors.grossSalary?.message : 'Gross salary required'}</Text>}
-
-                                        <Controller
-                                            control={control}
-                                            render={({field: {onChange, onBlur, value}}) => (
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={styles.input0}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    placeholder="Net Salary"
-                                                    keyboardType="numeric"
-                                                />
-                                            )}
-                                            name="netSalary"
-                                        />
-                                        {errors.netSalary &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.netSalary?.message ? errors.netSalary?.message : 'Net salary required'}</Text>}
-
-                                        <Controller
-                                            control={control}
-                                            render={({field: {onChange, onBlur, value}}) => (
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={styles.input0}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    placeholder="KRA Pin"
-                                                />
-                                            )}
-                                            name="kraPin"
-                                        />
-                                        {errors.kraPin &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.kraPin?.message ? errors.kraPin?.message : 'KRA pin required'}</Text>}
-                                    </>
-                                }
-
-                                {
-                                    tab === 1 &&
-                                    <>
-                                        <Controller
-                                            control={control}
-                                            render={({field: {onChange, onBlur, value}}) => (
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={styles.input0}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    placeholder="Business Location"
-                                                />
-                                            )}
-                                            name="businessLocation"
-                                        />
-                                        {errors.businessLocation &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.businessLocation?.message ? errors.businessLocation?.message : 'Business location required'}</Text>}
-
-                                        <Controller
-                                            control={control}
-                                            render={({field: {onChange, onBlur, value}}) => (
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={styles.input0}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    placeholder="Business Type"
-                                                />
-                                            )}
-                                            name="businessType"
-                                        />
-                                        {errors.businessType &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.businessType?.message ? errors.businessType?.message : 'Business type required'}</Text>}
-
-                                        <Controller
-                                            control={control}
-                                            render={({field: {onChange, onBlur, value}}) => (
-                                                <TextInput
-                                                    allowFontScaling={false}
-                                                    style={styles.input0}
-                                                    onBlur={onBlur}
-                                                    onChangeText={onChange}
-                                                    value={value}
-                                                    placeholder="KRA Pin"
-                                                />
-                                            )}
-                                            name="kraPin"
-                                        />
-                                        {errors.kraPin &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.kraPin?.message ? errors.kraPin?.message : 'KRA pin required'}</Text>}
-
-                                    </>
-                                }
-
-                                <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                                    <Pressable onPress={submitKYC} style={{marginTop: 20, backgroundColor: !heldMember ? "#CCCCCC" : "#489AAB", paddingHorizontal: 50, paddingVertical: 15, borderRadius: 25}}>
-                                        <Text allowFontScaling={false} style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_600SemiBold', textTransform: 'uppercase'}}>Submit Details</Text>
-                                    </Pressable>
-                                </View>
-                            </View>
-                        }
+                            }
+                        </Container>
                     </BottomSheetScrollView>
                 }
             </BottomSheet>
@@ -895,6 +907,14 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_400Regular',
         marginTop: 20,
     },
+    subtitle2: {
+        fontSize: 12,
+        color: '#767577',
+        fontFamily: 'Poppins_400Regular',
+        lineHeight: 22,
+        letterSpacing: 0.5,
+        paddingBottom: 3,
+    },
     tabTitle: {
         textAlign: 'left',
         alignSelf: 'flex-start',
@@ -908,8 +928,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         lineHeight: 22,
         letterSpacing: 0.5,
-        paddingTop: 5,
-        paddingBottom: 5,
+        paddingBottom: 3,
     },
     buttonText: {
         fontSize: 15,

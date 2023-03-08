@@ -844,89 +844,86 @@ const saveKeys = async ({ access_token, expires_in, refresh_expires_in, refresh_
     }
 }
 
-export const createPin = createAsyncThunk('createPin', async ({pinConfirmation, memberRefId, access_token}: {pinConfirmation: string, memberRefId: string, access_token: string}) => {
-    return new Promise (async (resolve, reject) => {
-        try {
-            const payload = {
-                "memberRefId": memberRefId,
-                "termsAccepted": true,
-                "pin": pinConfirmation
+export const createPin = createAsyncThunk('createPin', async (
+    {pinConfirmation, memberRefId, access_token}: {pinConfirmation: string, memberRefId: string, access_token: string},
+    {fulfillWithValue, rejectWithValue}
+) => {
+    const requestURL = "https://eguarantorship-api.presta.co.ke/api/v1/members/update-terms-pin"
+    const payload = {
+        "memberRefId": memberRefId,
+        "termsAccepted": true,
+        "pin": pinConfirmation
+    }
+
+    const raw = JSON.stringify(payload);
+
+    const myHeaders = new Headers();
+
+    myHeaders.append("Authorization", `Bearer ${access_token}`);
+
+    myHeaders.append("Content-Type", 'application/json');
+
+    const requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw
+    };
+    fetch(requestURL, requestOptions)
+        .then(response => {
+            if (response.status === 401) {
+                alert(response.status)
+                setAuthState(false);
             }
-
-            const raw = JSON.stringify(payload);
-
-            const myHeaders = new Headers();
-
-            myHeaders.append("Authorization", `Bearer ${access_token}`);
-
-            myHeaders.append("Content-Type", 'application/json');
-
-            const requestOptions = {
-                method: 'POST',
-                headers: myHeaders,
-                body: raw
-            };
-
-            const response = await fetch("https://eguarantorship-api.presta.co.ke/api/v1/members/update-terms-pin", requestOptions);
-
-            if (response.status === 200) {
-                const data = await response.json();
-                resolve(data);
-            } else {
-                reject('Process Failed')
-            }
-        } catch(e: any) {
-            if (!e.response) {
-                throw e
-            }
-            reject(e.message)
-        }
-    })
+            return response.json()
+        })
+        .then(data => fulfillWithValue(data))
+        .catch(error => rejectWithValue(error))
 });
 
-export const loginUser = createAsyncThunk('loginUser', async ({ phoneNumber, pin, tenant, clientSecret }: Pick<loginUserType, "phoneNumber" | "pin" | "tenant" | "clientSecret">) => {
-    return new Promise(async (resolve, reject) => {
-        const details: any = {
-            phoneNumber: phoneNumber,
-            ussdpin: pin,
-            client_id: 'direct-access',
-            client_secret: clientSecret,
-            grant_type: 'password',
-            scope: 'openid'
-        }
+export const loginUser = createAsyncThunk('loginUser', (
+    { phoneNumber, pin, tenant, clientSecret }: Pick<loginUserType, "phoneNumber" | "pin" | "tenant" | "clientSecret">,
+    {rejectWithValue, fulfillWithValue}
+) => {
+    const details: any = {
+        phoneNumber: phoneNumber,
+        ussdpin: pin,
+        client_id: 'direct-access',
+        client_secret: clientSecret,
+        grant_type: 'password',
+        scope: 'openid'
+    }
 
-        let formBody: any = [];
-        for (const property in details) {
-            let encodedKey = encodeURIComponent(property);
-            let encodedValue = encodeURIComponent(details[property]);
-            formBody.push(encodedKey + "=" + encodedValue);
-        }
-        formBody = formBody.join("&");
-        try {
-            const response = await fetch(`https://iam.presta.co.ke/auth/realms/${tenant}/protocol/openid-connect/token`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-                },
-                body: formBody
-            });
-            const data = await response.json();
-            if (response.status === 200) {
-                const result: any = await saveKeys({...data, phoneNumber})
-                resolve(result)
-            } else if (response.status === 401) {
-                setAuthState(false);
-                reject(`${data.error}: ${data.error_description}`);
-            } else {
-                reject(response.status)
+    let formBody: any = [];
+    for (const property in details) {
+        let encodedKey = encodeURIComponent(property);
+        let encodedValue = encodeURIComponent(details[property]);
+        formBody.push(encodedKey + "=" + encodedValue);
+    }
+    formBody = formBody.join("&");
+
+    const requestUrl = `https://iam.presta.co.ke/auth/realms/${tenant}/protocol/openid-connect/token`;
+    const requestOptions = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        },
+        body: formBody
+    };
+    return fetch(requestUrl, requestOptions)
+        .then(response => {
+            if (response.status === 401) {
+                return setAuthState(false);
             }
-        } catch (e: any) {
-            if (!e.response) {
-                throw e
+            return response.json()
+        })
+        .then((data) => {
+            if (data.error) {
+                throw (data)
             }
-            reject(e.message)
-        }
-    })
+            return saveKeys({...data, phoneNumber})
+        })
+        .then(result => fulfillWithValue(result))
+        .catch(error => rejectWithValue(error));
 })
 type refreshTokenPayloadType = {client_id: string, grant_type: string, refresh_token: string, realm?: string, client_secret?: string, cb?: any}
 
@@ -1240,7 +1237,10 @@ export const sendOtpBeforeToken = createAsyncThunk('sendOtpBeforeToken', async (
     }
 })
 
-export const searchByPhone = createAsyncThunk('searchByPhone', async ({phoneNumber, access_token}: {phoneNumber: string, access_token: string}, {rejectWithValue, fulfillWithValue}) => {
+export const searchByPhone = createAsyncThunk('searchByPhone', (
+    {phoneNumber, access_token}: {phoneNumber: string, access_token: string},
+    {rejectWithValue, fulfillWithValue}
+) => {
     const URL = `https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phoneNumber.replace('+', '')}`;
 
     const myHeaders = new Headers();
@@ -1252,27 +1252,15 @@ export const searchByPhone = createAsyncThunk('searchByPhone', async ({phoneNumb
         headers: myHeaders
     };
 
-    try {
-
-        const response = await fetch(URL, requestOptions)
-
-        if (response.status === 200) {
-
-            const data = await response.json();
-
-            return fulfillWithValue(data)
-
-        } else {
-            return rejectWithValue('Your account is not registered. To access this service, contact support@presta.co.ke for further help')
-        }
-
-    } catch (e: any) {
-        if (!e.response) {
-            throw e
-        }
-        return rejectWithValue(e.message)
-
-    }
+    return fetch(URL, requestOptions)
+        .then(response => {
+            if (response.status === 401) {
+                setAuthState(false);
+            }
+            return response.json()
+        })
+        .then(data => fulfillWithValue(data))
+        .catch(error => rejectWithValue(error))
 })
 
 export const searchByEmail = createAsyncThunk('searchByEmail', async ({email, access_token}: {email: string | null, access_token: string}, {rejectWithValue, fulfillWithValue}) => {
@@ -1287,23 +1275,15 @@ export const searchByEmail = createAsyncThunk('searchByEmail', async ({email, ac
         headers: myHeaders
     };
 
-    console.log("verifying user", email)
-
-    try {
-        const response = await fetch(emailIdentifierUrl, requestOptions)
-
-        if (response.status === 200) {
-            const data = await response.json();
-            return fulfillWithValue(data);
-        } else {
-            return rejectWithValue('Welcome to Imarisha Digital Loaning. Your account is not registered. To access this service, contact Imarisha for further help');
-        }
-    } catch(e: any) {
-        if (!e.response) {
-            throw e
-        }
-        return rejectWithValue(e.message)
-    }
+    return fetch(emailIdentifierUrl, requestOptions)
+        .then(response => {
+            if (response.status === 401) {
+                setAuthState(false);
+            }
+            return response.json()
+        })
+        .then(data => fulfillWithValue(data))
+        .catch(error => rejectWithValue(error))
 });
 
 export const authClient = createAsyncThunk('authClient', async ({realm, client_secret}: { realm: string, client_secret: string }) => {
@@ -2051,6 +2031,7 @@ export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState,
                 return rejectWithValue(response.status);
             }
         } else {
+            alert(response.status);
             console.log("Fetch Member Failed");
             return rejectWithValue("Fetch Member Failed");
         }

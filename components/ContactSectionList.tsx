@@ -6,7 +6,7 @@ import Cry from "../assets/images/cry.svg"
 import {showSnack} from "../utils/immediateUpdate";
 import {useAppDispatch, useMember} from "../stores/hooks";
 
-type contactType = {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}
+type contactType = {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string, amountToGuarantee: any}
 
 type propType = {
     contactsData: {id: number, title: string, data: contactType[]}[],
@@ -50,7 +50,7 @@ const Item = ({ contact, removeContact, contactList, section, onPress, setEmploy
                     <Text allowFontScaling={false}
                           style={{...styles.title, color: isChecked ? '#FFFFFF' : '#393a34', fontSize: 13, fontFamily: 'Poppins_500Medium'}}>{contact.name}</Text>
                     <Text allowFontScaling={false}
-                          style={{...styles.title, color: isChecked ? '#FFFFFF' : '#393a34', fontSize: 12, fontFamily: 'Poppins_300Light'}}>{contact.phone} | {contact.memberNumber}</Text>
+                          style={{...styles.title, color: isChecked ? '#FFFFFF' : '#393a34', fontSize: 12, fontFamily: 'Poppins_300Light'}}>{contact.phone} | {contact.memberNumber} {contact.amountToGuarantee ? ` | ${contact.amountToGuarantee}` : ""}</Text>
                 </View>
                 <TouchableOpacity onPress={() => {
 

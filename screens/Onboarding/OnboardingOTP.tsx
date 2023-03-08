@@ -97,14 +97,13 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                 return dispatch(verifyOtp({ requestMapper: otpResponse.requestMapper, OTP: valueInput }))
                     .then(({type, payload}) => {
                         if (type === 'verifyOtp/rejected') {
-                            return Promise.reject("We Could not verify your OTP")
+                            throw("We Could not verify your OTP")
                         } else {
-                            console.log("verifyOtp payload", payload)
                             return deleteSecureKey("access_token")
                         }
                     })
                     .catch(e => {
-                        return Promise.reject(e.message)
+                        return Promise.reject(JSON.stringify(e))
                     })
             }
             /*try {
@@ -133,33 +132,20 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                 console.log("verifyOtpBeforeToken", e.message)
             }*/
         } else {
-            console.log(valueInput, otpResponse)
             return Promise.reject("4")
         }
     }
 
     const sendOtpNow = () => {
-        getSecureKey('otp_verified').then((result: string) => {
-            if (result === 'true') {
-                return Promise.reject("OTP already verified")
-            } else {
-                return sendOtpHere()
-            }
-        }).catch((e: any) => {
-            showSnack(e.message, "ERROR")
+        sendOtpHere().catch((e) => {
+            showSnack(JSON.stringify(e), "ERROR")
         })
     }
 
     useEffect(() => {
         let started = true;
         if (started) {
-            getSecureKey('otp_verified').then((result: string) => {
-                if (result === 'true') {
-                    return Promise.reject("OTP already verified")
-                } else {
-                    return sendOtpHere()
-                }
-            }).then(() => {
+            sendOtpHere().then(() => {
                 receiveVerificationSMS((error: any, message) => {
                     if (error) {
                         // handle error

@@ -1,8 +1,8 @@
-import {Animated, StyleSheet, Text, TextInput, View} from "react-native";
+import {Animated, KeyboardTypeOptions, StyleSheet, Text, TextInput, View} from "react-native";
 import {Controller, FieldError} from "react-hook-form";
 import {useFonts,Poppins_500Medium, Poppins_300Light} from "@expo-google-fonts/poppins";
 import {useFonts as useRale, Raleway_600SemiBold} from "@expo-google-fonts/raleway";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useRef} from "react";
 import {Control, UseFormWatch} from "react-hook-form/dist/types/form";
 
 interface FProps<T> {
@@ -12,9 +12,30 @@ interface FProps<T> {
     watch: UseFormWatch<Record<string, any>>;
     control: Control<any>;
     required?: boolean;
+    rules?: Record<any, any>;
+    keyboardType?: KeyboardTypeOptions;
+    secureTextEntry?: boolean;
     error: FieldError | undefined
 }
-const TextField = <T extends object>({label, field, val, watch, control, error, required = false}: FProps<T>) => {
+const TextField = <T extends object>(
+    {
+        label,
+        field,
+        val,
+        watch,
+        control,
+        error,
+        required = false,
+        rules = {
+            required: {
+                value: required,
+                message: label + " is required"
+            }
+        },
+        keyboardType = "default",
+        secureTextEntry = false
+    }: FProps<T>
+) => {
     const moveText = useRef(new Animated.Value(0)).current;
     useEffect(() => {
         const subscription = watch((value, { name }) => {
@@ -111,16 +132,13 @@ const TextField = <T extends object>({label, field, val, watch, control, error, 
         moveTextBottom();
     }
 
+    console.log("text input error:", error)
+
     return (
         <>
             <Controller
                 control={control}
-                rules={{
-                    required: {
-                        value: required,
-                        message: label + " is required"
-                    },
-                }}
+                rules={rules}
                 render={( {field: {onChange, onBlur, value}}) => (
                     <View style={[styles.inputContainer, styles.shadowProp, {borderColor: error ? "#d53b39" : "#E7EAEB", borderBottomWidth: error ? 1 : 0 }]}>
                         <Animated.View style={[styles.animatedView, animStyle]}>
@@ -136,6 +154,8 @@ const TextField = <T extends object>({label, field, val, watch, control, error, 
                             onBlur={onBlurHandler}
                             onChangeText={onChange}
                             value={value}
+                            secureTextEntry={secureTextEntry}
+                            keyboardType={keyboardType ? keyboardType : undefined}
                         />
                     </View>
                 )}

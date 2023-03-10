@@ -10,6 +10,7 @@ import SelectTenant from "./screens/Auth/SelectTenant";
 import SetTenant from "./screens/Onboarding/SetTenant";
 import OnboardingOTP from "./screens/Onboarding/OnboardingOTP";
 import Organisations from "./screens/Onboarding/Organisations";
+import Account from "./screens/User/Account";
 
 declare global {
   namespace ReactNavigation {
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   Organisations: NavigatorScreenParams<RootTabParamList> | undefined;
   OnboardingOTP: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanProducts: NavigatorScreenParams<RootTabParamList> | undefined;
+  MyAccount: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanProduct: NavigatorScreenParams<RootTabParamList> | undefined;
   GuarantorsHome: NavigatorScreenParams<RootTabParamList> | undefined;
   ReplaceActor: NavigatorScreenParams<RootTabParamList> | undefined;

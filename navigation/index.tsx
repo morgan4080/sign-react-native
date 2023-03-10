@@ -103,9 +103,9 @@ const NonAuthNavigation = () => {
             }} />
             <Stack.Screen name="SetPin" component={SetPin} options={({navigation, route}) => {
                 return({
-                    title: 'Set Account Pin',
-                    headerShown: true,
-                    headerStyle: {
+                    // title: 'Set Account Pin',
+                    headerShown: false,
+                    /*headerStyle: {
                         backgroundColor: '#FFFFFF',
                     },
                     headerTintColor: '#489AAB',
@@ -118,7 +118,7 @@ const NonAuthNavigation = () => {
                             <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
                         </TouchableOpacity>
                     ),
-                    headerShadowVisible: false,
+                    headerShadowVisible: false,*/
                 })
             }} />
             <Stack.Screen name="Countries" component={Countries} options={{ headerShown: false }} />
@@ -160,6 +160,7 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
             <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
             <Stack.Screen name="LoanPurpose" component={LoanPurpose} options={{ headerShown: false }} />
             <Stack.Screen name="ReplaceActor" component={ReplaceActor} options={{ headerShown: false }} />
+            <Stack.Screen name="MyAccount" component={Account} options={{ headerShown: false }} />
             <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={{ headerShown: false }} />
             <Stack.Screen name="WitnessesHome" component={WitnessesHome} options={{ headerShown: false }} />
             <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={({ navigation, route }) => {

@@ -22,7 +22,7 @@ import {
     updateOrganisation,
     LoadOrganisation, SettingsPayloadType
 } from "../../stores/auth/authSlice";
-import {Ionicons} from "@expo/vector-icons";
+import {AntDesign, Entypo, FontAwesome, Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
 import {saveSecureKey} from "../../utils/secureStore";
 import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from "@gorhom/bottom-sheet";
@@ -190,56 +190,89 @@ export default function UserProfile({ navigation }: NavigationProps) {
     if (fontsLoaded) {
         return (
             <Container>
-
+                <Text style={styles.description}>
+                    { `${ user?.companyName ? user?.companyName : '' }` }
+                </Text>
                 <View style={{
-                    marginTop: 50,
-                    justifyContent: "center",
+                    marginTop: 15,
+                    padding: 15,
                     position: 'relative',
-                    borderRadius: 25,
-                    height: height/3,
+                    borderRadius: 12,
                     overflow: "hidden",
-                    elevation: 15
+                    elevation: 4
                 }}>
-                    <>
-                        <Text allowFontScaling={false} style={styles.titleText}>{ `Good ${ greeting() } ${ member?.firstName ? member?.firstName : '' }` }</Text>
-                        <Text allowFontScaling={false} style={styles.subTitleText}>{ `Member NO: ${ member?.memberNumber ? member?.memberNumber : '' }` }</Text>
-                        <Text allowFontScaling={false} style={styles.subText}>{ `${ user?.companyName ? user?.companyName : '' }` }</Text>
-                    </>
+                    <View style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
+                        <View>
+                            <Text allowFontScaling={false} style={[styles.titleText, {fontFamily: "Poppins_600SemiBold"}]}>{ `Good ${ greeting() }` }</Text>
+                            <Text allowFontScaling={false} style={styles.titleText}>{ `${ member?.firstName ? member?.firstName : '' } ${ member?.lastName ? member?.lastName : '' }` }</Text>
+                            <Text allowFontScaling={false} style={styles.subTitleText}>{ `${ member?.memberNumber ? member?.memberNumber : '' }` }</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => navigation.navigate("")}>
+                            <Entypo name="dots-three-horizontal" size={24} color="#489AAB" />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={{display: "flex", flexDirection: "row", justifyContent: "flex-end"}}>
+                        <View>
+                            <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right"}]}>Available Balance</Text>
+                            <Text allowFontScaling={false} style={[styles.titleText, {textAlign: "right", color: "#15141F", fontSize: 22, lineHeight: 28, letterSpacing: 0, fontFamily: "Poppins_700Bold"}]}>1,000,000</Text>
+                        </View>
+                    </View>
+                    <View style={{backgroundColor: "rgba(204,204,204,0.3)", height: 2, marginVertical: 25}}></View>
+                    <View style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
+                        <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right"}]}>Loan requests</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate("LoanRequests")}>
+                            <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right", color: "#489AAB"}]}>See all</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <View style={{display: "flex", flexDirection: "row", paddingVertical: 10, alignItems: "center"}}>
+                        <FontAwesome name="circle-thin" size={50} color="rgba(204,204,204,0.3)" />
+                        <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right", marginLeft: 10, fontFamily: 'Poppins_500Medium', fontSize: 12}]}>You don't have any loan requests yet</Text>
+                    </View>
                 </View>
-                <View style={{ display: 'flex', flexDirection: 'row', marginTop: 50, justifyContent: 'space-between', alignItems: 'center' }}>
-                    <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#489AAB', elevation: 5, position: 'relative' }}>
-                        <Text allowFontScaling={false} style={{ flex: 3, color: '#ffffff', fontSize: 11.5, marginLeft: 10, marginRight: 10, fontFamily: 'Poppins_600SemiBold' }}>
-                            Apply For A Loan
-                        </Text>
-                        <>
-                            <ApplyLoan width={50} height={50} />
-                        </>
+                <View style={{marginTop: 20}}>
+                    <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={styles.narrowCard}>
+                        <AntDesign name="calculator" size={50} color="#FFFFFF" />
+                        <View style={{backgroundColor: "#489AAB", marginLeft: 20}}>
+                            <Text allowFontScaling={false} style={{ color: '#ffffff', fontSize: 13, fontFamily: 'Poppins_600SemiBold' }}>
+                                Apply for a loan
+                            </Text>
+                            <Text allowFontScaling={false} style={{ color: '#ffffff', fontSize: 11, fontFamily: 'Poppins_500Medium' }}>
+                                Create a loan request
+                            </Text>
+                        </View>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipRequests', {pressed: true})} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, backgroundColor: '#FFFFFF', elevation: 2, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
-                        <Text allowFontScaling={false} style={{ flex: 4, color: '#489AAB', fontSize: 11.5, marginLeft: 10, fontFamily: 'Poppins_600SemiBold' }}>
-                            Guarantorship Requests
-                        </Text>
-                        <>
-                            <GuarantorImg width={50} height={50} />
-                        </>
+                    <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipRequests', {pressed: true})} style={[styles.narrowCard, {backgroundColor: "#FFFFFF"}]}>
+                        <GuarantorImg width={50} height={50} />
+                        <View style={{marginLeft: 20}}>
+                            <Text allowFontScaling={false} style={{ color: '#0C212C', fontSize: 13, fontFamily: 'Poppins_600SemiBold' }}>
+                                Guarantorship requests
+                            </Text>
+                            <Text allowFontScaling={false} style={{ color: '#576B74', fontSize: 11, fontFamily: 'Poppins_500Medium' }}>
+                                View guarantorship requests
+                            </Text>
+                        </View>
                     </TouchableOpacity>
-                </View>
-                <View style={{ display: 'flex', flexDirection: 'row', marginVertical: 20, justifyContent: 'space-between' }}>
-                    <TouchableOpacity onPress={() => navigation.navigate('FavouriteGuarantors')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, backgroundColor: '#FFFFFF', elevation: 2, borderRadius: 25, position: 'relative'  }}>
-                        <Text allowFontScaling={false} style={{ flex: 3, color: '#489AAB', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
-                            Favorite Guarantors
-                        </Text>
-                        <>
-                            <Fav width={50} height={50} />
-                        </>
+                    <TouchableOpacity onPress={() => navigation.navigate('FavouriteGuarantors')} style={[styles.narrowCard, {backgroundColor: "#FFFFFF"}]}>
+                        <Fav width={50} height={50} />
+                        <View style={{marginLeft: 20}}>
+                            <Text allowFontScaling={false} style={{ color: '#0C212C', fontSize: 13, fontFamily: 'Poppins_600SemiBold' }}>
+                                Favorite guarantors
+                            </Text>
+                            <Text allowFontScaling={false} style={{ color: '#576B74', fontSize: 11, fontFamily: 'Poppins_500Medium' }}>
+                                View and edit you favourite guarantors
+                            </Text>
+                        </View>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('WitnessRequests')} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, backgroundColor: '#FFFFFF', elevation: 2, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
-                        <Text allowFontScaling={false} style={{ flex: 3, color: '#489AAB', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
-                            Witness Requests
-                        </Text>
-                        <>
-                            <WitnessImg width={50} height={50} />
-                        </>
+                    <TouchableOpacity onPress={() => navigation.navigate('WitnessRequests')} style={[styles.narrowCard, {backgroundColor: "#FFFFFF"}]}>
+                        <WitnessImg width={50} height={50} />
+                        <View style={{marginLeft: 20}}>
+                            <Text allowFontScaling={false} style={{ color: '#0C212C', fontSize: 13, fontFamily: 'Poppins_600SemiBold' }}>
+                                Witness requests
+                            </Text>
+                            <Text allowFontScaling={false} style={{ color: '#576B74', fontSize: 11, fontFamily: 'Poppins_500Medium' }}>
+                                View witness requests
+                            </Text>
+                        </View>
                     </TouchableOpacity>
                 </View>
             </Container>
@@ -254,8 +287,22 @@ export default function UserProfile({ navigation }: NavigationProps) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    narrowCard: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        height: 80,
+        borderRadius: 12,
+        backgroundColor: '#489AAB',
+        elevation: 5,
+        position: 'relative',
+        marginBottom: 10,
+        paddingHorizontal: 20
+    },
+    description: {
+        marginTop: 60,
+        fontWeight: '300',
+        color: '#62656b'
     },
     input: {
         borderWidth: 1,
@@ -272,16 +319,16 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: '#d53b39',
         fontFamily: 'Poppins_400Regular',
-        paddingHorizontal: 10,
+        
         marginTop: 5
     },
     subTitleText: {
         fontSize: 15,
-        textAlign: 'center',
-        color: '#FFFFFF',
-        fontFamily: 'Poppins_600SemiBold',
-        lineHeight: 22,
-        letterSpacing: 0.5,
+        textAlign: 'left',
+        color: '#576B74',
+        fontFamily: 'Poppins_500Medium',
+        lineHeight: 18,
+        letterSpacing: -0.08,
     },
     subText: {
         fontSize: 14,
@@ -297,12 +344,13 @@ const styles = StyleSheet.create({
         height: height/1.7
     },
     titleText: {
-        textAlign: 'center',
-        color: '#FFFFFF',
-        fontSize: 20,
-        lineHeight: 22,
-        letterSpacing: 0.5,
-        fontFamily: 'Poppins_700Bold',
+        textAlign: 'left',
+        color: '#15141F',
+        fontSize: 14,
+        lineHeight: 21,
+        letterSpacing: 0,
+        fontFamily: 'Poppins_400Regular',
+        textTransform: "uppercase"
     },
     buttonText: {
         fontSize: 15,

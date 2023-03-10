@@ -8,7 +8,7 @@ export default [
 
     {
         id : '2',
-        title: 'Get loan guarantors, get approved and get loan appraisal.',
+        title: 'Add guarantors and electronically sign forms.',
         description: 'Welcome to Presta Sign',
         image: require('./assets/images/user-education-1.png')
     },

@@ -258,6 +258,12 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                         <RotateView/>
                     </View> : (fontsLoaded && userFound) ? (isTermsAccepted && pinStatus === 'SET') ?
                             <View>
+                                <Text style={styles.description}>
+                                    Guarantee and sign loan forms digitally from anywhere, anytime.
+                                </Text>
+                                <Text style={styles.title}>
+                                    Your pin code.
+                                </Text>
                                 <TextField
                                     field={"pin"}
                                     label={"Enter Pin"}
@@ -287,6 +293,19 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                                 <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(loginSubmit)} />
                             </View> :
                             <View>
+                                <Text style={styles.description}>
+                                    Setting up
+                                </Text>
+                                <Text style={styles.title}>
+                                    Your pin code.
+                                </Text>
+                                <Text style={[styles.description, {marginTop: 0}]}>
+                                    To setup your pin enter a 4 digit code
+                                </Text>
+                                <Text style={[styles.description, {marginTop: 0}]}>
+                                    and confirm it below.
+                                </Text>
+
                                 <TextField
                                     field={"pin"}
                                     label={"Enter Pin"}
@@ -350,7 +369,21 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
 }
 
 const styles = StyleSheet.create({
+    title: {
+        marginTop: 10,
+        fontFamily: "Poppins_700Bold",
+        fontSize: 34,
+        color: '#0C212C',
+        textAlign: "left",
+        lineHeight: 41,
+        letterSpacing: 0.6
+    },
 
+    description: {
+        marginTop: 60,
+        fontWeight: '300',
+        color: '#62656b'
+    },
 })
 
 export default SetPin

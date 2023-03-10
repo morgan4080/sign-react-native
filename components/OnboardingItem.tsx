@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     title: {
         marginTop: 10,
         fontFamily: "Poppins_700Bold",
-        fontSize: 34,
+        fontSize: 32,
         color: '#0C212C',
         textAlign: "left",
         lineHeight: 41,

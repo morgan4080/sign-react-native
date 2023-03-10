@@ -22,6 +22,8 @@ import {checkToStartUpdate, showSnack} from "../../utils/immediateUpdate";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
+import showTenants from "../Tenants/ShowTenants";
+import Container from "../../components/Container";
 
 const { width, height } = Dimensions.get("window");
 
@@ -61,6 +63,8 @@ export default function GetStarted({ navigation }: NavigationProps) {
                         getSecureKey('currentTenantId'),
                     ]);
 
+                    // check for existing user and redirect to log in
+
                     if (oldBoy === 'true' && currentTenantId) {
                         dispatch(getTenants(`${code}${phone}`))
                         .then(({type, meta, error}: any) => {
@@ -77,11 +81,13 @@ export default function GetStarted({ navigation }: NavigationProps) {
                             showSnack(error.message, "ERROR", "", false)
                         })
                     } else {
-                        await dispatch(initializeDB())
+                        // initialize new user
                     }
                 } catch (e: any) {
                     showSnack(e.message, "ERROR", "", false)
                 }
+
+                // register for push notifications
                 try {
                     const token = await registerForPushNotificationsAsync();
                     if (token) {
@@ -102,7 +108,9 @@ export default function GetStarted({ navigation }: NavigationProps) {
                 }
             })()
         }
-        // https://play.google.com/store/apps/details?id=com.presta.prestasign
+
+        // add notification listener
+
         const subscription = Notifications.addNotificationReceivedListener(notification => {
             if (notification.request.content.data.url) {
                 console.log("notification data foreground", notification.request.content.data.url);
@@ -120,12 +128,9 @@ export default function GetStarted({ navigation }: NavigationProps) {
 
     if (fontsLoaded && !loading) {
         return (
-            <View style={styles.container}>
-                <Image
-                    style={styles.landingBg}
-                    source={require('../../assets/images/landingGetStarted.jpg')}
-                />
-                <View style={{position: 'absolute',width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', bottom: 5, zIndex: 12}}>
+            <Container>
+                <Onboarding />
+                <View style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end'}}>
                     <TouchableHighlight style={styles.button} onPress={() => navigation.navigate('SetTenant', {
                         code: "254",
                         numericCode: "404",
@@ -134,11 +139,9 @@ export default function GetStarted({ navigation }: NavigationProps) {
                     })}>
                         <Text allowFontScaling={false} style={styles.buttonText}>Get Started</Text>
                     </TouchableHighlight>
-                    <Text allowFontScaling={false} style={{ fontSize: 8, color: '#FFFFFF', textAlign: 'center', marginBottom: 10, fontFamily: 'Poppins_300Light', paddingHorizontal: 20, marginHorizontal: 30 }}>By continuing, you agree to Presta's Terms of Service and privacy policy.</Text>
                 </View>
-                <Onboarding />
                 <StatusBar style='auto'/>
-            </View>
+            </Container>
         )
     } else {
         return (
@@ -150,13 +153,8 @@ export default function GetStarted({ navigation }: NavigationProps) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
     buttonText: {
-        fontSize: 15,
+        fontSize: 18,
         color: 'white',
         alignSelf: 'center',
         fontFamily: 'Poppins_500Medium',
@@ -164,10 +162,8 @@ const styles = StyleSheet.create({
     button: {
         backgroundColor: '#3D889A',
         elevation: 3,
-        borderRadius: 50,
+        borderRadius: 25,
         paddingVertical: 15,
-        paddingHorizontal: 25,
-        marginHorizontal: 30,
         marginTop: 20,
         marginBottom: 5,
         alignSelf: 'stretch',

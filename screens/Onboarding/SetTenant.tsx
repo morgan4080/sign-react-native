@@ -3,50 +3,37 @@ import {
     Keyboard,
     TouchableWithoutFeedback,
     Text,
-    Dimensions,
-    SafeAreaView,
-    View,
-    ScrollView,
-    TouchableOpacity, Pressable, TouchableHighlight
 } from "react-native";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import Logo from "../../assets/images/Presta Sign Logo - colour.svg";
 import OrganisationIdentifier from "../../components/OrganisationIdentifier";
-import {useEffect, useRef} from "react";
+import {useEffect} from "react";
 import {saveSecureKey} from "../../utils/secureStore";
-const { width, height } = Dimensions.get("window");
+import {Poppins_700Bold, useFonts} from "@expo-google-fonts/poppins";
+import Container from "../../components/Container";
 type NavigationProps = NativeStackScreenProps<any>;
 const SetTenant = (props: NavigationProps) => {
+    useFonts({
+        Poppins_700Bold
+    })
     useEffect(() => {
         (async () =>{
             await saveSecureKey('otp_verified', 'false')
         })()
-        return () => {
-            Keyboard.removeAllListeners('keyboardDidShow');
-        }
     }, []);
-    const scrollViewRef = useRef<any>();
-    Keyboard.addListener('keyboardDidShow', () => {
-        scrollViewRef.current.scrollToEnd({ animated: true });
-    });
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView ref={scrollViewRef}>
-                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <View style={styles.inner}>
-                        <Logo style={{alignSelf: 'center', marginTop: 30}} width={width/2} height={height/4} />
-                        <Text allowFontScaling={false} style={styles.header}>Start your Digital Journey here</Text>
-                        <Text allowFontScaling={false} style={styles.tagLine}>Guarantee and sign loan forms digitally from anywhere, anytime.</Text>
-                        <OrganisationIdentifier nav={props} />
-                        <View style={{ position: 'absolute', bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', width, paddingHorizontal: 30 }}>
-                            <Text allowFontScaling={false} style={{ fontSize: 10, color: '#090A0A', textAlign: 'center', marginBottom: 10, fontFamily: 'Poppins_300Light' }}>
-                                By continuing, you agree to Presta's Terms of Service and privacy policy.
-                            </Text>
-                        </View>
-                    </View>
-                </TouchableWithoutFeedback>
-            </ScrollView>
-        </SafeAreaView>
+        <Container>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <>
+                    <Text style={styles.title}>
+                        Start your digital guarantorship journey here.
+                    </Text>
+                    <Text style={styles.description}>
+                        Guarantee and sign loan forms digitally from anywhere, anytime.
+                    </Text>
+                    <OrganisationIdentifier nav={props} />
+                </>
+            </TouchableWithoutFeedback>
+        </Container>
     );
 };
 
@@ -57,9 +44,8 @@ const styles = StyleSheet.create({
     },
     inner: {
         position: 'relative',
-        padding: 24,
-        flex: 1,
-        height
+        paddingVertical: 24,
+        flex: 1
     },
     header: {
         fontSize: 18,
@@ -68,14 +54,22 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_600SemiBold',
         textAlign: 'center'
     },
-    tagLine: {
-        fontSize: 12,
-        marginBottom: 35,
-        color: '#515151',
-        textAlign: 'center',
-        fontFamily: 'Poppins_300Light',
-        paddingHorizontal: 20
+    title: {
+        marginTop: 60,
+        fontFamily: "Poppins_700Bold",
+        fontSize: 34,
+        color: '#0C212C',
+        textAlign: "left",
+        lineHeight: 41,
+        letterSpacing: 0.6
     },
+
+    description: {
+        marginTop: 20,
+        fontWeight: '300',
+        color: '#62656b'
+    },
+
     textInput: {
         height: 40,
         borderColor: '#000000',

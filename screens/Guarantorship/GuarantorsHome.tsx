@@ -27,6 +27,7 @@ import {showSnack} from "../../utils/immediateUpdate";
 import Container from "../../components/Container";
 import TextField from "../../components/TextField";
 import TouchableButton from "../../components/TouchableButton";
+import {useAppDispatch} from "../../stores/hooks";
 const { width } = Dimensions.get("window");
 type searchedMemberType = { contact_id: string; memberNumber: string; memberRefId: string; name: string; phone: string }
 type FormData = {
@@ -110,9 +111,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
     const [context, setContext] = useState<string>("");
 
-    type AppDispatch = typeof store.dispatch;
-
-    const dispatch : AppDispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     const { loading, tenants, selectedTenantId, user, member, organisations } = useSelector((state: { auth: storeState }) => state.auth);
 
@@ -334,7 +333,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 handleSnapPress(1);
             }
         } else {
-            console.log('close it');
             handleClosePress();
         }
         setBSActive(!bSActive)
@@ -664,7 +662,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                 </>
                             }
                             { context === "employment" &&
-                                <View style={{display: 'flex', alignItems: 'center', width}}>
+                                <>
                                     <View style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', width: width-50, paddingBottom: 15 }}>
                                         <TouchableOpacity onPress={() => {
                                             setTab(0)
@@ -677,152 +675,158 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                             <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
                                         </TouchableOpacity>
                                     </View>
-                                    {   tab === 0 &&
+                                    {   tab === 0 ?
                                         <>
-                                            <Controller
+                                            <TextField
+                                                field={"employerName"}
+                                                label={"Employer"}
+                                                val={getValues}
+                                                watch={watch}
                                                 control={control}
-                                                render={({field: {onChange, onBlur, value}}) => (
-                                                    <TextInput
-                                                        allowFontScaling={false}
-                                                        style={styles.input0}
-                                                        onBlur={onBlur}
-                                                        onChangeText={onChange}
-                                                        value={value}
-                                                        placeholder="Employer name"
-                                                    />
-                                                )}
-                                                name="employerName"
+                                                error={errors.employerName}
+                                                required={true}
+                                                rules={{
+                                                    required: {
+                                                        value: true,
+                                                        message: "Employer Name is required"
+                                                    }
+                                                }}
+                                                keyboardType={"default"}
+                                                secureTextEntry={false}
                                             />
-                                            {errors.employerName &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.employerName?.message ? errors.employerName?.message : 'Employer name required'}</Text>}
-
-                                            <Controller
+                                            <TextField
+                                                field={"serviceNo"}
+                                                label={"Employment Number"}
+                                                val={getValues}
+                                                watch={watch}
                                                 control={control}
-                                                render={({field: {onChange, onBlur, value}}) => (
-                                                    <TextInput
-                                                        allowFontScaling={false}
-                                                        style={styles.input0}
-                                                        onBlur={onBlur}
-                                                        onChangeText={onChange}
-                                                        value={value}
-                                                        placeholder="Employment/Service No."
-                                                    />
-                                                )}
-                                                name="serviceNo"
+                                                error={errors.serviceNo}
+                                                required={true}
+                                                rules={{
+                                                    required: {
+                                                        value: true,
+                                                        message: "Employer service no. required"
+                                                    }
+                                                }}
+                                                keyboardType={"default"}
+                                                secureTextEntry={false}
                                             />
-                                            {errors.serviceNo &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.serviceNo?.message ? errors.serviceNo?.message : 'Service Number required'}</Text>}
-
-                                            <Controller
+                                            <TextField
+                                                field={"grossSalary"}
+                                                label={"Gross Salary"}
+                                                val={getValues}
+                                                watch={watch}
                                                 control={control}
-                                                render={({field: {onChange, onBlur, value}}) => (
-                                                    <TextInput
-                                                        allowFontScaling={false}
-                                                        style={styles.input0}
-                                                        onBlur={onBlur}
-                                                        onChangeText={onChange}
-                                                        value={value}
-                                                        placeholder="Gross Salary"
-                                                        keyboardType="numeric"
-                                                    />
-                                                )}
-                                                name="grossSalary"
+                                                error={errors.grossSalary}
+                                                required={true}
+                                                rules={{
+                                                    required: {
+                                                        value: true,
+                                                        message: "Gross salary required"
+                                                    }
+                                                }}
+                                                keyboardType={"numeric"}
+                                                secureTextEntry={false}
                                             />
-                                            {errors.grossSalary &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.grossSalary?.message ? errors.grossSalary?.message : 'Gross salary required'}</Text>}
-
-                                            <Controller
+                                            <TextField
+                                                field={"netSalary"}
+                                                label={"Net Salary"}
+                                                val={getValues}
+                                                watch={watch}
                                                 control={control}
-                                                render={({field: {onChange, onBlur, value}}) => (
-                                                    <TextInput
-                                                        allowFontScaling={false}
-                                                        style={styles.input0}
-                                                        onBlur={onBlur}
-                                                        onChangeText={onChange}
-                                                        value={value}
-                                                        placeholder="Net Salary"
-                                                        keyboardType="numeric"
-                                                    />
-                                                )}
-                                                name="netSalary"
+                                                error={errors.netSalary}
+                                                required={true}
+                                                rules={{
+                                                    required: {
+                                                        value: true,
+                                                        message: "Net salary required"
+                                                    }
+                                                }}
+                                                keyboardType={"numeric"}
+                                                secureTextEntry={false}
                                             />
-                                            {errors.netSalary &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.netSalary?.message ? errors.netSalary?.message : 'Net salary required'}</Text>}
-
-                                            <Controller
+                                            <TextField
+                                                field={"kraPin"}
+                                                label={"KRA Pin"}
+                                                val={getValues}
+                                                watch={watch}
                                                 control={control}
-                                                render={({field: {onChange, onBlur, value}}) => (
-                                                    <TextInput
-                                                        allowFontScaling={false}
-                                                        style={styles.input0}
-                                                        onBlur={onBlur}
-                                                        onChangeText={onChange}
-                                                        value={value}
-                                                        placeholder="KRA Pin"
-                                                    />
-                                                )}
-                                                name="kraPin"
+                                                error={errors.kraPin}
+                                                required={true}
+                                                rules={{
+                                                    required: {
+                                                        value: true,
+                                                        message: "KRA pin required"
+                                                    }
+                                                }}
+                                                keyboardType={"default"}
+                                                secureTextEntry={false}
                                             />
-                                            {errors.kraPin &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.kraPin?.message ? errors.kraPin?.message : 'KRA pin required'}</Text>}
-                                        </>
+                                        </> : null
                                     }
 
                                     {
-                                        tab === 1 &&
+                                        tab === 1 ?
                                         <>
-                                            <Controller
+                                            <TextField
+                                                field={"businessLocation"}
+                                                label={"Business Location"}
+                                                val={getValues}
+                                                watch={watch}
                                                 control={control}
-                                                render={({field: {onChange, onBlur, value}}) => (
-                                                    <TextInput
-                                                        allowFontScaling={false}
-                                                        style={styles.input0}
-                                                        onBlur={onBlur}
-                                                        onChangeText={onChange}
-                                                        value={value}
-                                                        placeholder="Business Location"
-                                                    />
-                                                )}
-                                                name="businessLocation"
+                                                error={errors.businessLocation}
+                                                required={true}
+                                                rules={{
+                                                    required: {
+                                                        value: true,
+                                                        message: "Business location required"
+                                                    }
+                                                }}
+                                                keyboardType={"default"}
+                                                secureTextEntry={false}
                                             />
-                                            {errors.businessLocation &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.businessLocation?.message ? errors.businessLocation?.message : 'Business location required'}</Text>}
 
-                                            <Controller
+                                            <TextField
+                                                field={"businessType"}
+                                                label={"Business Type"}
+                                                val={getValues}
+                                                watch={watch}
                                                 control={control}
-                                                render={({field: {onChange, onBlur, value}}) => (
-                                                    <TextInput
-                                                        allowFontScaling={false}
-                                                        style={styles.input0}
-                                                        onBlur={onBlur}
-                                                        onChangeText={onChange}
-                                                        value={value}
-                                                        placeholder="Business Type"
-                                                    />
-                                                )}
-                                                name="businessType"
+                                                error={errors.businessType}
+                                                required={true}
+                                                rules={{
+                                                    required: {
+                                                        value: true,
+                                                        message: "Business type required"
+                                                    }
+                                                }}
+                                                keyboardType={"default"}
+                                                secureTextEntry={false}
                                             />
-                                            {errors.businessType &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.businessType?.message ? errors.businessType?.message : 'Business type required'}</Text>}
 
-                                            <Controller
+                                            <TextField
+                                                field={"kraPin"}
+                                                label={"KRA Pin"}
+                                                val={getValues}
+                                                watch={watch}
                                                 control={control}
-                                                render={({field: {onChange, onBlur, value}}) => (
-                                                    <TextInput
-                                                        allowFontScaling={false}
-                                                        style={styles.input0}
-                                                        onBlur={onBlur}
-                                                        onChangeText={onChange}
-                                                        value={value}
-                                                        placeholder="KRA Pin"
-                                                    />
-                                                )}
-                                                name="kraPin"
+                                                error={errors.kraPin}
+                                                required={true}
+                                                rules={{
+                                                    required: {
+                                                        value: true,
+                                                        message: "KRA pin required"
+                                                    }
+                                                }}
+                                                keyboardType={"default"}
+                                                secureTextEntry={false}
                                             />
-                                            {errors.kraPin &&  <Text  allowFontScaling={false}  style={styles.error}>{errors.kraPin?.message ? errors.kraPin?.message : 'KRA pin required'}</Text>}
 
-                                        </>
+                                        </> : null
                                     }
 
-                                    <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                                        <Pressable onPress={submitKYC} style={{marginTop: 20, backgroundColor: !heldMember ? "#CCCCCC" : "#489AAB", paddingHorizontal: 50, paddingVertical: 15, borderRadius: 25}}>
-                                            <Text allowFontScaling={false} style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_600SemiBold', textTransform: 'uppercase'}}>Submit Details</Text>
-                                        </Pressable>
-                                    </View>
-                                </View>
+                                    <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(submitKYC)} />
+                                </>
                             }
                         </Container>
                     </BottomSheetScrollView>

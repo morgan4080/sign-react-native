@@ -25,3 +25,7 @@ export const useUser = () => {
     const user = useAppSelector(state => state.auth.user)
     return useMemo(() => [user] as const, [user])
 }
+export const useStyle = () => {
+    const tabStyle = useAppSelector(state => state.auth.tabStyle)
+    return useMemo(() => [tabStyle] as const, [tabStyle])
+}

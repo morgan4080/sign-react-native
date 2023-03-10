@@ -1,86 +1,71 @@
-import {
-    Dimensions,
-    NativeModules,
-    SafeAreaView,
-    ScrollView, StatusBar,
-    StatusBar as Bar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
-} from "react-native";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
+import {useAppDispatch, useClientSettings, useLoading, useMember} from "../../stores/hooks";
+import {useForm} from "react-hook-form";
+import React, {useEffect, useState} from "react";
 import {
     Poppins_300Light,
     Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
+    Poppins_500Medium, Poppins_600SemiBold,
     Poppins_700Bold,
     Poppins_800ExtraBold,
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import {store} from "../../stores/store";
-import {useDispatch, useSelector} from "react-redux";
-import {resubmitForSigning, storeState, submitLoanRequest} from "../../stores/auth/authSlice";
-import {Ionicons} from "@expo/vector-icons";
-import {RotateView} from "../Auth/VerifyOTP";
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../components/BottomSheet";
-import {Controller, useForm} from "react-hook-form";
-import {useCallback, useEffect, useRef, useState} from "react";
-import {Picker} from "@react-native-picker/picker";
-import Puzzle from "../../assets/images/unpuzzled.svg";
-const { width, height } = Dimensions.get("window");
-type FormData = {
-    disbursement_mode: string,
-    repayment_mode: string
-}
-type NavigationProps = NativeStackScreenProps<any>
+import {LoadOrganisation, resubmitForSigning, submitLoanRequest} from "../../stores/auth/authSlice";
+import {showSnack} from "../../utils/immediateUpdate";
+import SegmentedButtons from "../../components/SegmentedButtons";
+import TextField from "../../components/TextField";
+import TouchableButton from "../../components/TouchableButton";
+import GenericModal from "../../components/GenericModal";
+import Container from "../../components/Container";
 
-export default function LoanConfirmation({navigation, route}: NavigationProps) {
-    const { loading, user, member, tenants, selectedTenantId, organisations } = useSelector((state: { auth: storeState }) => state.auth);
-    type AppDispatch = typeof store.dispatch;
-    const dispatch : AppDispatch = useDispatch();
-    const CSTM = NativeModules.CSTM;
+type NavigationProps = NativeStackScreenProps<any>
+const LoanConfirmation = ({navigation, route}: NavigationProps) => {
+    const dispatch = useAppDispatch()
+
+    const [clientSettings] = useClientSettings()
+    const [loading] = useLoading()
+    const [member] = useMember()
+
     const {
         control,
         watch,
-        setValue,
+        getValues,
+        handleSubmit,
         formState: { errors }
-    } = useForm<FormData>();
+    } = useForm<Record<string, any>>({
+        defaultValues: {
+            id_number: member ? member.idNumber : "",
+            phone_number: route.params ? route.params.phoneNumber : "",
+            email: member ? member.email : "",
+            member_no: route.params ? route.params.memberNumber : "",
+            loan_amount: route.params ? route.params.loanAmount : "",
+            repayment_period: route.params ? route.params.details.loanPeriod.value : "",
+            applicant_name: member ? member.fullName : "",
+            loan_purpose_1: route.params ? route.params.details.loan_purpose_1.value : "",
+            loan_purpose_2: route.params ? route.params.details.loan_purpose_2.value : "",
+            loan_purpose_3: route.params ? route.params.details.loan_purpose_3.value : "",
+            disbursement_mode: route.params ? route.params.details.disbursement_mode.value : "",
+            repayment_mode: route.params ? route.params.details.repayment_mode.value : "",
+        }
+    });
 
-    const [disbursement_mode, set_disbursement_mode] = useState<string>('Cheque');
-    const [repayment_mode, set_repayment_mode] = useState<string>('Checkoff');
-    const [context, setContext] = useState<string>("");
-
-    useEffect(() => {
-        const subscription = watch((value, { name, type }) => {
-            (async () => {
-                switch (name) {
-                    case 'disbursement_mode':
-                        if (type === 'change') {
-                            set_disbursement_mode(`${value.disbursement_mode}`)
-                        }
-                        break;
-                    case 'repayment_mode':
-                        if (type === 'change') {
-                            set_repayment_mode(`${value.repayment_mode}`)
-                        }
-                        break;
-                }
-            })()
-        });
-        return () => subscription.unsubscribe();
-    }, [watch]);
-
-    const tenant = tenants.find(t => t.id === selectedTenantId);
-
-    const settings = organisations.find(org => org.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
-
-    const ref = useRef<BottomSheetRefProps>(null);
-
-    let [fontsLoaded] = useFonts({
+    const [includesTabs, setIncludesTabs] = useState<boolean>(false)
+    const [formData, setFormData] = useState<Record<string, any>>({})
+    const [buttons, setButtons] = useState<{id: number; label: string; selected: boolean}[]>([
+        {
+            id: 1,
+            label: "Employed",
+            selected: true
+        },
+        {
+            id: 2,
+            label: "Business",
+            selected: false
+        },
+    ])
+    const [modalVisible, setModalVisible] = useState(false);
+    useFonts({
         Poppins_900Black,
         Poppins_500Medium,
         Poppins_800ExtraBold,
@@ -88,373 +73,174 @@ export default function LoanConfirmation({navigation, route}: NavigationProps) {
         Poppins_600SemiBold,
         Poppins_400Regular,
         Poppins_300Light
-    });
+    })
 
-    const [loanError, setLoanError] = useState<string>("");
+    useEffect(() => {
+        dispatch(LoadOrganisation())
+            .catch((error) => showSnack(error.message, "ERROR"))
+    }, [])
 
-    const makeLoanRequest = async () => {
-        let code = route.params?.category.options.filter((op: any) => op.selected)[0].options.filter((o: any) => o.selected)[0];
-        const { witnessRefId, witnessMemberNo } = route.params?.witnesses.reduce((acc: any, current: any) => {
-            acc = {
-                witnessRefId: current.memberRefId,
-                witnessMemberNo: current.memberNumber
-            };
-            return acc;
-        }, {});
-
-        const guarantorList = route.params?.guarantors.reduce((acc: {memberNumber: string, memberRefId: string, committedAmount?: string}[], current: { contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string, committedAmount?: string }) => {
-            if (current.committedAmount) {
-                acc.push({
-                    memberNumber: current.memberNumber,
-                    memberRefId: current.memberRefId,
-                    committedAmount: current.committedAmount
-                });
-            } else {
-                acc.push({
-                    memberNumber: current.memberNumber,
-                    memberRefId: current.memberRefId
-                });
-            }
-            return acc;
-        }, []);
-
-        let loan_purpose_2: string[] = [];
-
-        let loan_purpose_3: string[] = [];
-        route.params?.category.options.map((op: any) => {
-            if (op.selected) {
-                op.options.map((o: any) => {
-                    if (o.selected) {
-                        return loan_purpose_3.push(o.name)
-                    }
-                })
-
-                loan_purpose_2.push(op.name)
-            }
-        });
-
-        const payload = {
-            "details": {
-                loan_purpose_1: {
-                    value: route.params?.category.name
-                },
-                loan_purpose_2: {
-                    value: loan_purpose_2.length > 0 ? loan_purpose_2[0] : ''
-                },
-                loan_purpose_3: {
-                    value: loan_purpose_3.length > 0 ? loan_purpose_3[0] : ''
-                },
-                loanPurposeCode: {
-                    value: code.code
-                },
-                loanPeriod: {
-                    value: route.params?.loanDetails.desiredPeriod ? route.params?.loanDetails.desiredPeriod : ""
-                },
-                repayment_period: {
-                    value: route.params?.loanDetails.desiredPeriod ? route.params?.loanDetails.desiredPeriod : ""
-                },
-                employer_name: {
-                    value: route.params?.employerPayload?.employerName ? route.params?.employerPayload?.employerName : ""
-                },
-                employment_type: {
-                    value: '' // employment type if any
-                },
-                employment_number: {
-                    value: route.params?.employerPayload?.serviceNo ? route.params?.employerPayload?.serviceNo : ""
-                },
-                business_location: {
-                    value: route.params?.businessPayload?.businessLocation ? route.params?.businessPayload?.businessLocation : ""
-                },
-                business_type: {
-                    value: route.params?.businessPayload?.businessType ? route.params?.businessPayload?.businessType : ""
-                },
-                net_salary: {
-                    value: route.params?.employerPayload?.netSalary ? route.params?.employerPayload?.netSalary : ""
-                },
-                gross_salary: {
-                    value: route.params?.employerPayload?.grossSalary ? route.params?.employerPayload?.grossSalary : ""
-                },
-                disbursement_mode: {
-                    value: disbursement_mode ? disbursement_mode : "" // disbursement mode { cheque, my account , EFT}
-                },
-                repayment_mode: {
-                    value: repayment_mode ? repayment_mode : "" // repayment mode {checkoff, cash pay bill, standing offer}
-                },
-                loan_type: {
-                    value: route.params?.loanProduct.name ? route.params?.loanProduct.name : ""
-                },
-                kra_pin: {
-                    value: route.params?.employerPayload?.kraPin ? route.params?.employerPayload?.kraPin : route.params?.businessPayload?.kraPin ? route.params?.businessPayload?.kraPin : ""
+    useEffect(() => {
+        if (clientSettings && clientSettings.details) {
+            // AFTER CAPTURING THE INFO REQUIRED OR CONFIRMING NAVIGATE TO navigation.navigate('LoanProducts')
+            const formObjectRequired = Object.keys(clientSettings.details).reduce((accumulator: Record<string, Record<string, any>>, currentValue) => {
+                if (clientSettings.details[currentValue].value === "true") {
+                    accumulator[currentValue] = clientSettings.details[currentValue]
                 }
-            },
-            "loanProductName": route.params?.loanProduct.name,
-            "loanProductRefId": route.params?.loanProduct.refId,
-            "selfCommitment": 0,
-            "loanAmount": route.params?.loanDetails.desiredAmount,
-            "memberRefId": member?.refId,
-            "memberNumber": member?.memberNumber,
-            "phoneNumber": member?.phoneNumber,
-            "witnessRefId": witnessRefId,
-            "witnessMemberNo": witnessMemberNo,
-            "guarantorList": guarantorList
-        };
+                return accumulator
+            }, {})
 
-        if (payload.witnessRefId === undefined) delete payload.witnessRefId;
+            let formDataArray: string[] = []
 
-        navigation.navigate("KYC", {...payload})
-    }
-
-    const onPress = useCallback(async (ctx: string) => {
-        if (settings && settings.repaymentDisbursementModes) {
-            setContext(ctx)
-            const isActive = ref?.current?.isActive();
-            if (isActive) {
-                ref?.current?.scrollTo(0);
-            } else {
-                ref?.current?.scrollTo(MAX_TRANSLATE_Y);
+            if (formObjectRequired) {
+                const filterResultRequired = Object.keys(formObjectRequired).filter(property =>
+                    property !== "loan_type" &&
+                    property !== "witness_phone_number" &&
+                    // property !== "witness_memberNo" &&
+                    // property !== "witness_fullName" &&
+                    // property !== "other_sacco" &&
+                    property !== "deposits" &&
+                    // property !== "loan_purpose_3" &&
+                    // property !== "loan_purpose_2" &&
+                    // property !== "loan_purpose_1" &&
+                    // property !== "member_no" &&
+                    property !== "repayment_period_words" &&
+                    // property !== "net_salary" &&
+                    // property !== "gross_salary" &&
+                    property !== "loan_number" &&
+                    property !== "loan_amount_words" &&
+                    /*property !== "repayment_period" &&
+                    property !== "repayment_mode" &&
+                    property !== "disbursement_mode" &&
+                    property !== "applicant_name" &&*/
+                    property !== "mname" /*&&
+                    property !== "loan_amount"*/
+                )
+                formDataArray = [...formDataArray, ...filterResultRequired]
             }
-        } else {
-            await makeLoanRequest()
-        }
-    }, []);
 
-    const submitModes = async () => {
-        // set modes
-        try {
-            await makeLoanRequest()
-        } catch (e) {
-            console.log('error in makeLoanRequest', e)
+            const uniqueObject = Object.fromEntries(formDataArray.reduce((acc: Map<string, string>, currentValue) => {
+                acc.set(currentValue, "");
+                return acc
+            }, new Map()))
+
+            setFormData(uniqueObject)
+        }
+    }, [clientSettings])
+
+    const genLabel = (key: string) => {
+        if (key.includes("employer") || key.includes("business")) {
+            setIncludesTabs(true)
+        }
+        if (key === 'id_number') {
+            const splitter = key.split("_")
+            return splitter[0].toUpperCase() + " " + splitter[1]
+        }
+        return key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")
+    }
+
+    const [pendingReason, setPendingReason] = useState("")
+
+    const onSubmit = async () => {
+        if (route.params) {
+            try {
+                const response: any = await dispatch(submitLoanRequest({...route.params}));
+                console.log('submitLoanRequest payload', JSON.stringify({...route.params}), response);
+                console.log('submitLoanRequest response', JSON.stringify(response));
+                if (response.type === 'submitLoanRequest/fulfilled') {
+                    const newPayload: any = response.payload;
+                    if (response.payload.readableErrorMessage) {
+                        setPendingReason(response.payload.readableErrorMessage)
+                        setModalVisible(true)
+                    } else if (response.payload.pendingReason) {
+                        setPendingReason(response.payload.pendingReason)
+                        setModalVisible(true)
+                    } else if (newPayload) {
+                        if (newPayload.hasOwnProperty('pdfThumbNail')) {
+                            navigation.navigate('LoanRequest', response.payload);
+                        } else {
+
+                            // resubmit for signing
+                            const refId: any = response.payload.refId;
+
+                            const res = await dispatch(resubmitForSigning(refId));
+
+                            if (res.type === 'resubmitForSigning/fulfilled') {
+                                navigation.navigate('LoanRequest', response.payload);
+                            } else {
+                                console.warn(res);
+                                setPendingReason("Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.");                                // setLoanError("Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.");
+                                // setContext("loanRequestError");
+                                setModalVisible(true)
+                            }
+                        }
+                    } else {
+                        setPendingReason("Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.");                        // setLoanError("Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.");
+                        // setContext("loanRequestError");
+                        setModalVisible(true)
+                    }
+                } else if (response.type === "submitLoanRequest/rejected") {
+                    if (response.error.message) {
+                        setPendingReason(response.error.message)
+                        setModalVisible(true)
+                    } else {
+                        setPendingReason("Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.");
+                        setModalVisible(true)
+                    }
+                    // setLoanError(response.error.message ? response.error.message : "Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours");
+                    // setContext("loanRequestError");
+                }
+            } catch (error: any) {
+                if (error.message) {
+                    setPendingReason(error.message)
+                    setModalVisible(true)
+                } else if (error.error.message) {
+                    setPendingReason(error.error.message)
+                    setModalVisible(true)
+                } else {
+                    setPendingReason("Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.");
+                    setModalVisible(true)
+                }
+                // setLoanError(error.error.message ? error.error.message : "Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours");
+                // setContext("loanRequestError");
+            }
         }
     }
 
-    if (fontsLoaded) {
-        return (
-            <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
-                <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', left: -100, top: 200, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
-                <View style={styles.container}>
-                    <View style={{flex: 1, alignItems: 'center', position: 'relative'}}>
-                        <View style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center',
-                            width,
-                            height: 1/12 * height,
-                            position: 'relative'
-                        }}>
-                            <TouchableOpacity disabled={loading} onPress={() => navigation.navigate('ProfileMain')} style={{ position: 'absolute', backgroundColor: '#CCCCCC', borderRadius: 100, top: 10, left: 10 }}>
-                                <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
-                            </TouchableOpacity>
-                        </View>
-                        <SafeAreaView style={{ flex: 1, width, height: 11/12 * height, backgroundColor: 'transparent', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
-                            <ScrollView contentContainerStyle={{ display: 'flex', flexDirection: 'column', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
-                                <Text allowFontScaling={false} style={styles.headTitle}>Confirm</Text>
-                                <Text allowFontScaling={false} style={styles.subtitle}>Loan Request to <Text allowFontScaling={false} style={{color: '#489AAB', textDecorationStyle: 'dotted', textDecorationLine: 'underline'}}>{ `${user?.companyName}` }</Text></Text>
-                                <View style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 50, paddingHorizontal: 10}}>
-                                    <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%' }}>Loan Type:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanProduct.name}</Text>
-                                    </View>
-                                    <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%' }}>Months:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanDetails.desiredPeriod}</Text>
-                                    </View>
-                                    <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%' }}>Amount:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.loanDetails.desiredAmount}</Text>
-                                    </View>
-                                    <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%' }}>Guarantors:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.guarantors.length}</Text>
-                                    </View>
-                                    <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%' }}>Witness:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 15, width: '50%', textAlign: 'right'  }}>{route.params?.witnesses.length}</Text>
-                                    </View>
-                                </View>
-                                <View style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 50, paddingHorizontal: 10}}>
-                                    <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 12, width: '50%' }}>Category:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 12, width: '50%', textAlign: 'right'  }}>{route.params?.category.name}</Text>
-                                    </View>
-                                    <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_500Medium', color: '#747474', fontSize: 15, marginBottom: 12, width: '50%' }}>Purpose:</Text>
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#747474', fontSize: 15, marginBottom: 12, width: '50%', textAlign: 'right'  }}>{
-                                            route.params?.category.options.map((op: any) => {
-                                                if (op.selected) {
-                                                    const subs = op.options.map((o: any) => {
-                                                        if (o.selected) {
-                                                            return ` ${o.name}`
-                                                        }
-                                                    }).toString();
-                                                    console.log(subs)
-                                                    return `${op.name + ':' + subs.replace(/,{3,}/g, '')}`;
-                                                }
-                                            })
-                                        }</Text>
-                                    </View>
-                                </View>
-                            </ScrollView>
-                        </SafeAreaView>
-                        <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <TouchableOpacity disabled={loading} onPress={() => onPress('repaymentDisbursement')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                                {loading && <RotateView/>}
-                                <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-                <BottomSheet ref={ref}>
-                    <SafeAreaView style={{display: 'flex', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
-                        {
-                            context === "repaymentDisbursement" &&
-                            <>
-                                <View style={{display: 'flex', alignItems: 'center', width}}>
-                                    <Text allowFontScaling={false} style={[{ paddingHorizontal: 30, marginTop: 10 } ,styles.subtitle]}>Add Disbursement/Repayment Modes</Text>
-                                    <Text style={{ fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 5, textAlign: 'left', alignSelf: 'flex-start', paddingHorizontal: 30 }} allowFontScaling={false}>Disbursement Mode</Text>
-                                    <Controller
-                                        control={control}
-                                        render={( {field: {onChange, onBlur, value}}) => (
-                                            <View style={styles.input0}>
-                                                <Picker
-                                                    itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                                    style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                                    onBlur={onBlur}
-                                                    selectedValue={value}
-                                                    onValueChange={(itemValue, itemIndex) => setValue('disbursement_mode', itemValue)}
-                                                    mode="dropdown"
-                                                >
-                                                    {[
-                                                        {
-                                                            name: "Cheque",
-                                                            value: "Cheque"
-                                                        },
-                                                        {
-                                                            name: "My Account",
-                                                            value: "My Account"
-                                                        },
-                                                        {
-                                                            name: "EFT",
-                                                            value: "EFT"
-                                                        }
-                                                    ].map((p, i) =>(
-                                                        <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
-                                                    ))}
-                                                </Picker>
-                                            </View>
-                                        )}
-                                        name="disbursement_mode"
-                                    />
-                                    <Text allowFontScaling={false} style={{ fontSize: 12, color: '#4d4d4d', fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 5, textAlign: 'left', alignSelf: 'flex-start', paddingHorizontal: 30 }}>Repayment Mode</Text>
-                                    <Controller
-                                        control={control}
-                                        render={( {field: {onChange, onBlur, value}}) => (
-                                            <View style={styles.input0}>
-                                                <Picker
-                                                    itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                                    style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                                    onBlur={onBlur}
-                                                    mode="dropdown"
-                                                    selectedValue={value}
-                                                    onValueChange={(itemValue, itemIndex) => setValue('repayment_mode', itemValue)}
-                                                >
-                                                    {[
-                                                        {
-                                                            name: "Checkoff",
-                                                            value: "Checkoff"
-                                                        },
-                                                        {
-                                                            name: "Paybill",
-                                                            value: "Paybill"
-                                                        },
-                                                        {
-                                                            name: "Standing Order",
-                                                            value: "Standing Order"
-                                                        }
-                                                    ].map((p, i) =>(
-                                                        <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_500Medium' />
-                                                    ))}
-                                                </Picker>
-                                            </View>
-                                        )}
-                                        name="repayment_mode"
-                                    />
-                                </View>
-                                <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                                    <TouchableOpacity disabled={loading} onPress={() => submitModes()} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                                        {loading && <RotateView/>}
-                                        <Text allowFontScaling={false} style={styles.buttonText}>Save</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </>
-                        }
-                        {
-                            context === "loanRequestError" && (
-                                <View style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20}}>
-                                    <Puzzle width={width/2} height={height/3}/>
+    const toggleButton = (button: { id: number; label: string; selected: boolean; }) => {
+        let b = buttons.reduce((acc: { selected: boolean; id: number; label: string; }[], currentBtn) => {
+            if (currentBtn.id === button.id) {
+                let bt = {
+                    ...currentBtn,
+                    selected: true
+                }
 
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', color: '#747474', textAlign: 'center', fontSize: 12, maxWidth: '80%' }}>
-                                        Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours.
-                                        Proceed to loan requests, to review it.
-                                    </Text>
-                                    <TouchableOpacity onPress={() => navigation.navigate('LoanRequests')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#cccccc', paddingHorizontal: 30, paddingVertical: 15, borderRadius: 25, marginVertical: 30 }}>
-                                        <Text allowFontScaling={false} style={{...styles.buttonText, color: '#797979'}}>LOAN REQUESTS</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            )
-                        }
-                    </SafeAreaView>
-                </BottomSheet>
-            </GestureHandlerRootView>
-        )
-    } else {
-        return (
-            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-                <RotateView/>
-            </View>
-        )
+                acc.push(bt)
+            } else {
+                let bt = {
+                    ...currentBtn,
+                    selected: false
+                }
+
+                acc.push(bt)
+            }
+            return acc
+        }, [])
+        setButtons(b)
     }
-}
+    return (
+        <Container segmentedButtons={includesTabs ? <SegmentedButtons buttons={buttons} toggleButton={toggleButton} /> : null}>
+            {Object.keys(formData).map((key, i) =>
+                <TextField key={i} field={key} label={genLabel(key)} val={getValues} watch={watch}
+                           control={control} error={errors[`${key}`]} required={true}/>
+            )}
+            <TouchableButton loading={loading} label={"CONFIRM"} onPress={handleSubmit(onSubmit)} />
+            <GenericModal modalVisible={modalVisible} setModalVisible={setModalVisible} title={"Pending Reason"} description={pendingReason} cb={() => {
+                navigation.navigate("UserProfile")
+            }}/>
+        </Container>
+    )
+};
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        position: 'relative'
-    },
-    headTitle: {
-        textAlign: 'left',
-        color: '#489AAB',
-        fontFamily: 'Poppins_700Bold',
-        fontSize: 22,
-        marginTop: 22,
-    },
-    subtitle: {
-        textAlign: 'left',
-        alignSelf: 'flex-start',
-        color: '#489AAB',
-        fontFamily: 'Poppins_600SemiBold',
-        fontSize: 14,
-        marginBottom: 5
-    },
-    buttonText: {
-        fontSize: 15,
-        marginLeft: 5,
-        textAlign: 'center',
-        color: '#FFFFFF',
-        fontFamily: 'Poppins_600SemiBold'
-    },
-    input0: {
-        borderWidth: 1,
-        borderColor: '#cccccc',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 20,
-        height: 45,
-        width: '90%',
-        paddingHorizontal: 20,
-        fontSize: 12,
-        color: '#767577',
-        fontFamily: 'Poppins_400Regular',
-        marginBottom: 20,
-    },
-})
+
+export default LoanConfirmation;

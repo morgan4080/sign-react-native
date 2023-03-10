@@ -340,7 +340,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                                     secureTextEntry={true}
                                 />
 
-                                <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(onSubmit)} />
+                                <TouchableButton loading={loading} label={"Submit"} onPress={handleSubmit(onSubmit)} />
 
                             </View> :
                         <Text allowFontScaling={false} style={{ color: 'black', borderWidth: 0, height: 'auto', textAlign: 'center'}}>{errorSMS}</Text>

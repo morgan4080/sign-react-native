@@ -1,15 +1,13 @@
 import {
-    Text,
-    View,
     StyleSheet,
     TouchableOpacity,
     Dimensions,
     Platform,
     ImageBackground,
     SectionList,
-    TextInput, SafeAreaView
+    SafeAreaView
 } from 'react-native';
-
+import {Text, View} from "../../components/Themed"
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
@@ -22,21 +20,20 @@ import {
     editMember,
     setSelectedTenantId,
     updateOrganisation,
-    organisationType,
-    LoadOrganisation
+    LoadOrganisation, SettingsPayloadType
 } from "../../stores/auth/authSlice";
 import {Ionicons} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
-import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
+import {saveSecureKey} from "../../utils/secureStore";
 import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from "@gorhom/bottom-sheet";
-import {GestureHandlerRootView} from "react-native-gesture-handler";
-import {Controller, useForm} from "react-hook-form";
+import {useForm} from "react-hook-form";
 import ApplyLoan from "../../assets/images/apply-loan.svg";
 import GuarantorImg from "../../assets/images/guarantorship.svg";
 import Fav from "../../assets/images/fav.svg";
 import WitnessImg from "../../assets/images/witness.svg";
 import {showSnack} from "../../utils/immediateUpdate";
 import {useAppDispatch, useClientSettings, useLoading, useMember, useOrganisations, useUser} from "../../stores/hooks";
+import Container from "../../components/Container";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -93,28 +90,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             dispatch(fetchLoanProducts()),
                         ]))
                         .then(() => {
-                            const clientSettings: any = orgLoaded.payload
-                            const replaceOrganisations = organisations.reduce((acc: organisationType[], org) => {
-                                if (org.tenantId === payload.tenantId && Object.keys(clientSettings).length > 0) {
-                                    // modify some parameters to conform with client settings
-                                    org.tenantName = clientSettings.organizationName ? clientSettings.organizationName : org.tenantName;
-                                    org.witness = (clientSettings.requireWitness !== undefined) ? clientSettings.requireWitness : org.witness;
-                                    org.selfGuarantee = (clientSettings.allowSelfGuarantee !== undefined) ? clientSettings.allowSelfGuarantee : org.selfGuarantee;
-                                    org.amounts = (clientSettings.isGuaranteedAmountShared !== undefined) ?  !clientSettings.isGuaranteedAmountShared : org.amounts;
-                                    org.guarantors = (clientSettings.isGuaranteedAmountShared !== undefined) ? clientSettings.isGuaranteedAmountShared === true ? 'count' : 'value' : org.guarantors;
-                                    org.containsAttachments = (clientSettings.containsAttachments !== undefined) ? clientSettings.containsAttachments : org.containsAttachments;
-                                    org.loanProductMaxPeriod = clientSettings.loanProductMaxPeriod ? clientSettings.loanProductMaxPeriod : org.loanProductMaxPeriod;
-                                    org.parallelLoans = (clientSettings.parallelLoans !== undefined) ? clientSettings.parallelLoans : org.parallelLoans;
-                                    org.logo = (clientSettings.organizationLogoName && clientSettings.organizationLogoExtension) ? `https://eguarantorship-api.presta.co.ke/${clientSettings.organizationLogoName}.${clientSettings.organizationLogoExtension}` : null;
-                                    org.organizationPrimaryTheme = clientSettings.organizationPrimaryTheme ? clientSettings.organizationPrimaryTheme : org.organizationPrimaryTheme;
-                                    org.organizationSecondaryTheme = clientSettings.organizationSecondaryTheme ? clientSettings.organizationSecondaryTheme : org.organizationSecondaryTheme;
-                                    acc.push(org);
-                                } else {
-                                    acc.push(org);
-                                }
-                                return acc;
-                            }, [])
-                            return dispatch(updateOrganisation(replaceOrganisations))
+                            return dispatch(updateOrganisation({tenantId: payload.tenantId, clientSettings: orgLoaded.payload as SettingsPayloadType}));
                         }).catch((err) => {
                             throw new Error(err)
                         })
@@ -213,100 +189,60 @@ export default function UserProfile({ navigation }: NavigationProps) {
 
     if (fontsLoaded) {
         return (
-            <SafeAreaView style={{ flex: 1, position: 'relative', backgroundColor: '#FFFFFF' }}>
-                <SectionList
-                    refreshing={loading}
-                    progressViewOffset={50}
-                    onRefresh={() => reloading()}
-                    sections={[
-                        {
-                            title: 'title',
-                            data: new Array(3)
-                        }
-                    ]}
-                    keyExtractor={(index) => index + Math.random().toString(12).substring(0)}
-                    renderItem={({ index }) => {
-                        switch (index) {
-                            case 0:
-                                return (
-                                    <ImageBackground source={require('../../assets/images/profile-bg.png')} resizeMode="cover" style={{
-                                        flex: 1,
-                                        justifyContent: "center",
-                                        position: 'relative',
-                                        height: height/2,
-                                        paddingHorizontal: 16
-                                    }}>
-                                        <TouchableOpacity onPress={() => navigation.navigate('Modal')} style={{ position: 'absolute', display: 'flex', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(72,154,171,0.49)', borderRadius: 100, top: '8%', left: 10 }}>
-                                            <Ionicons name="person-circle" color="#FFFFFF" style={{ paddingLeft: 2 }} size={35} />
-                                            <Text allowFontScaling={false} style={[styles.subTitleText, {fontSize: 12, color: '#FFFFFF', paddingRight: 10, fontFamily: 'Poppins_300Light'}]}>PROFILE</Text>
-                                        </TouchableOpacity>
-                                        <View>
-                                            <Text allowFontScaling={false} style={styles.titleText}>{ `Good ${ greeting() } ${ member?.firstName ? member?.firstName : '' }` }</Text>
-                                            <Text allowFontScaling={false} style={styles.subTitleText}>{ `Member NO: ${ member?.memberNumber ? member?.memberNumber : '' }` }</Text>
-                                            <Text allowFontScaling={false} style={styles.subText}>{ `${ user?.companyName ? user?.companyName : '' }` }</Text>
-                                        </View>
-                                        {/*<View style={{ position: 'absolute', left: width/4, zIndex: 2, bottom: -25 }}>
-                                            <TouchableOpacity onPress={() => navigation.navigate('Account')} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, elevation: 2, borderRadius: 25, marginTop: -30 }}>
-                                                <Text allowFontScaling={false} style={styles.buttonText}>View balances</Text>
-                                            </TouchableOpacity>
-                                        </View>*/}
-                                    </ImageBackground>
-                                )
-                            case 1:
-                                return (
-                                    <View style={{ display: 'flex', flexDirection: 'row', marginTop: 50, justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10 }}>
-                                        <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#489AAB',elevation: 5, position: 'relative' }}>
-                                            <Text allowFontScaling={false} style={{ flex: 3, color: '#ffffff', fontSize: 11.5, marginLeft: 10, marginRight: 10, fontFamily: 'Poppins_600SemiBold' }}>
-                                                Apply For A Loan
-                                            </Text>
-                                            <View  style={{ flex: 1, marginRight: width/20 }}>
-                                                <ApplyLoan width={50} height={50} />
-                                            </View>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipRequests', {pressed: true})} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, backgroundColor: '#FFFFFF', elevation: 2, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
-                                            <Text allowFontScaling={false} style={{ flex: 4, color: '#489AAB', fontSize: 11.5, marginLeft: 10, fontFamily: 'Poppins_600SemiBold' }}>
-                                                Guarantorship Requests
-                                            </Text>
-                                            <View  style={{ flex: 1, marginRight: width/20 + 1 }}>
-                                                <GuarantorImg width={50} height={50} />
-                                            </View>
-                                        </TouchableOpacity>
-                                    </View>
-                                )
-                            case 2:
-                                return (
-                                    <View style={{ display: 'flex', flexDirection: 'row', marginVertical: 20, justifyContent: 'space-between', paddingHorizontal: 10 }}>
-                                        <TouchableOpacity onPress={() => navigation.navigate('FavouriteGuarantors')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, backgroundColor: '#FFFFFF', elevation: 2, borderRadius: 25, position: 'relative'  }}>
-                                            <Text allowFontScaling={false} style={{ flex: 3, color: '#489AAB', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
-                                                Favorite Guarantors
-                                            </Text>
-                                            <View  style={{ flex: 1, marginRight: width/20 }}>
-                                                <Fav width={50} height={50} />
-                                            </View>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => navigation.navigate('WitnessRequests')} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, backgroundColor: '#FFFFFF', elevation: 2, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
-                                            {/*<View style={{backgroundColor: '#FC866C', position: 'absolute', top: 0, right: 0, paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: width/15, height: width/15, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                            <Text style={{fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#FFFFFF'}}>{ witnessRequests?.length }</Text>
-                                        </View>*/}
-                                            <Text allowFontScaling={false} style={{ flex: 3, color: '#489AAB', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
-                                                Witness Requests
-                                            </Text>
-                                            <View  style={{ flex: 1, marginRight: width/20 }}>
-                                                <WitnessImg width={50} height={50} />
-                                            </View>
-                                        </TouchableOpacity>
-                                    </View>
-                                )
-                            default:
-                                return (
-                                    <></>
-                                )
-                        }
-                    }}
-                />
+            <Container>
 
-                <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-            </SafeAreaView>
+                <View style={{
+                    marginTop: 50,
+                    justifyContent: "center",
+                    position: 'relative',
+                    borderRadius: 25,
+                    height: height/3,
+                    overflow: "hidden",
+                    elevation: 15
+                }}>
+                    <>
+                        <Text allowFontScaling={false} style={styles.titleText}>{ `Good ${ greeting() } ${ member?.firstName ? member?.firstName : '' }` }</Text>
+                        <Text allowFontScaling={false} style={styles.subTitleText}>{ `Member NO: ${ member?.memberNumber ? member?.memberNumber : '' }` }</Text>
+                        <Text allowFontScaling={false} style={styles.subText}>{ `${ user?.companyName ? user?.companyName : '' }` }</Text>
+                    </>
+                </View>
+                <View style={{ display: 'flex', flexDirection: 'row', marginTop: 50, justifyContent: 'space-between', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, borderRadius: 25, backgroundColor: '#489AAB', elevation: 5, position: 'relative' }}>
+                        <Text allowFontScaling={false} style={{ flex: 3, color: '#ffffff', fontSize: 11.5, marginLeft: 10, marginRight: 10, fontFamily: 'Poppins_600SemiBold' }}>
+                            Apply For A Loan
+                        </Text>
+                        <>
+                            <ApplyLoan width={50} height={50} />
+                        </>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipRequests', {pressed: true})} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, backgroundColor: '#FFFFFF', elevation: 2, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
+                        <Text allowFontScaling={false} style={{ flex: 4, color: '#489AAB', fontSize: 11.5, marginLeft: 10, fontFamily: 'Poppins_600SemiBold' }}>
+                            Guarantorship Requests
+                        </Text>
+                        <>
+                            <GuarantorImg width={50} height={50} />
+                        </>
+                    </TouchableOpacity>
+                </View>
+                <View style={{ display: 'flex', flexDirection: 'row', marginVertical: 20, justifyContent: 'space-between' }}>
+                    <TouchableOpacity onPress={() => navigation.navigate('FavouriteGuarantors')} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, height: 120, marginRight: 10, backgroundColor: '#FFFFFF', elevation: 2, borderRadius: 25, position: 'relative'  }}>
+                        <Text allowFontScaling={false} style={{ flex: 3, color: '#489AAB', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
+                            Favorite Guarantors
+                        </Text>
+                        <>
+                            <Fav width={50} height={50} />
+                        </>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('WitnessRequests')} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: (width/2) - 25, backgroundColor: '#FFFFFF', elevation: 2, height: 120, marginLeft: 10, borderRadius: 25, position: 'relative' }}>
+                        <Text allowFontScaling={false} style={{ flex: 3, color: '#489AAB', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold',  marginLeft: 10, marginRight: 10 }}>
+                            Witness Requests
+                        </Text>
+                        <>
+                            <WitnessImg width={50} height={50} />
+                        </>
+                    </TouchableOpacity>
+                </View>
+            </Container>
         )
     } else {
         return (

@@ -1,29 +1,28 @@
 import { StyleSheet, Text, View, Image, useWindowDimensions } from 'react-native'
+import {Poppins_700Bold, useFonts} from "@expo-google-fonts/poppins";
 
 const OnboardingItem = ({ item }: any) => {
 
-    const { width } = useWindowDimensions();
+    useFonts({
+        Poppins_700Bold
+    })
+
+    const { width, height } = useWindowDimensions();
 
     return (
-        <View style={[styles.container, { width }]}>
-            <Image source={item.image} style={[styles.image, { width: width/2, resizeMode: 'contain' }]}/>
-            <View style={{ flex: 0.3 }}>
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.description}>{item.description}</Text>
+        <View style={{flex: 1, width: width * 0.93, height: height * 0.84}}>
+            <Text style={styles.description}>{item.description}</Text>
+            <Text style={styles.title}>{item.title}</Text>
+            <View style={{display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 80 }}>
+                <Image source={item.image} style={[styles.image, { width: width * 0.93, resizeMode: 'contain' }]}/>
             </View>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'flex-start',
-        alignItems: 'center'
-    },
 
     image: {
-        flex: 0.5,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
@@ -31,18 +30,20 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        fontWeight: '800',
-        fontSize: 28,
-        marginBottom: 10,
-        color: 'rgb(61,136,154)',
-        textAlign: 'center'
+        marginTop: 10,
+        fontFamily: "Poppins_700Bold",
+        fontSize: 34,
+        color: '#0C212C',
+        textAlign: "left",
+        lineHeight: 41,
+        letterSpacing: 0.6,
+        width: "90%"
     },
 
     description: {
+        marginTop: 60,
         fontWeight: '300',
-        color: '#62656b',
-        textAlign: 'center',
-        paddingHorizontal: 64
+        color: '#62656b'
     }
 })
 

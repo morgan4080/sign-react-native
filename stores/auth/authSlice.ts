@@ -226,7 +226,7 @@ export type organisationType = {
     selfGuarantee: boolean,
     minGuarantors: number;
     containsAttachments: boolean;
-    loanProductMaxPeriod: number;
+    loanProductMaxPeriod: number | string;
     parallelLoans: boolean;
     logo: string | null;
     organizationPrimaryTheme: string | null;
@@ -260,6 +260,7 @@ export type storeState = {
     guarantorsUpdated: boolean;
     notificationTok: string | undefined;
     clientSettings: Record<string, any>;
+    tabStyle: Record<string, any>;
 }
 
 const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> => {
@@ -495,33 +496,29 @@ export const initializeDB = createAsyncThunk('initializeDB', async (): Promise<a
 
                 tx.executeSql(`CREATE TABLE IF NOT EXISTS client_settings
                                (
-                                   id                         integer primary key,
-                                   refid                      varchar(255),
-                                   created                    timestamp,
-                                   updated                    timestamp,
-                                   isactive                   boolean,
-                                   ussdshortcode              varchar(255),
-                                   organizationname           varchar(255),
-                                   requirewitness             boolean,
-                                   allowzeroguarantors        boolean,
-                                   allowselfguarantee         boolean,
-                                   isguaranteedamountshared   boolean,
-                                   useembeddedurl             boolean,
-                                   containsattachments        boolean,
-                                   organizationalias          varchar(255),
-                                   organizationemail          varchar(255),
-                                   supportemail               varchar(255),
-                                   organizationprimarytheme   varchar(255),
-                                   organizationsecondarytheme varchar(255),
-                                   organizationlogoname       varchar(255),
-                                   organizationlogoextension  varchar(255),
-                                   corebankingintegration     varchar(255),
-                                   loanproductmaxperiod       varchar(255),
-                                   customsms                  boolean,
-                                   notificationprovider       varchar(255),
-                                   identifiertype             varchar(255),
-                                   parallelloans              boolean,
-                                   documentfields             jsonb
+                                   id                         INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                                   ussdShortCode              TEXT NOT NULL,
+                                   organizationName           TEXT NOT NULL,
+                                   requireWitness             INTEGER NOT NULL,
+                                   allowZeroGuarantors        INTEGER NOT NULL,
+                                   allowSelfGuarantee         INTEGER NOT NULL,
+                                   isGuaranteedAmountShared   INTEGER NOT NULL,
+                                   useEmbeddedURL             INTEGER NOT NULL,
+                                   containsAttachments        INTEGER NOT NULL,
+                                   organizationAlias          TEXT NOT NULL,
+                                   organizationEmail          TEXT NOT NULL,
+                                   supportEmail               TEXT NOT NULL,
+                                   organizationPrimaryTheme   TEXT NOT NULL,
+                                   organizationSecondaryTheme TEXT NOT NULL,
+                                   organizationLogoName       TEXT NOT NULL,
+                                   organizationLogoExtension  TEXT NOT NULL,
+                                   coreBankingIntegration     TEXT NOT NULL,
+                                   loanProductMaxPeriod       TEXT NOT NULL,
+                                   customSMS                  INTEGER NOT NULL,
+                                   notificationProvider       TEXT NOT NULL,
+                                   identifierType             TEXT NOT NULL,
+                                   parallelLoans              INTEGER NOT NULL,
+                                   details             TEXT NOT NULL
                                );
                     `, undefined,
                     (txObj: SQLTransaction, resultSet: SQLResultSet) => {
@@ -974,20 +971,25 @@ export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async (
     }
 })
 
-export const logoutUser = createAsyncThunk('logoutUser', async (_, {fulfillWithValue}) => {
-    return fulfillWithValue(
-        Promise.all([
-            deleteSecureKey('otp_verified'),
-            deleteSecureKey('access_token'),
-            deleteSecureKey('refresh_token'),
-            deleteSecureKey('phone_number'),
-            deleteSecureKey('phone_number_code'),
-            deleteSecureKey('phone_number_without'),
-            deleteSecureKey('existing'),
-            deleteSecureKey('fingerPrint'),
-            deleteSecureKey('currentTenantId'),
-        ])
-    );
+export const logoutUser = createAsyncThunk('logoutUser', async (_, {fulfillWithValue, dispatch, rejectWithValue}) => {
+    try {
+        return fulfillWithValue(
+            Promise.all([
+                deleteSecureKey('otp_verified'),
+                deleteSecureKey('access_token'),
+                deleteSecureKey('refresh_token'),
+                deleteSecureKey('phone_number'),
+                deleteSecureKey('phone_number_code'),
+                deleteSecureKey('phone_number_without'),
+                deleteSecureKey('existing'),
+                deleteSecureKey('fingerPrint'),
+                deleteSecureKey('currentTenantId'),
+                dispatch(initializeDB())
+            ])
+        );
+    } catch (e) {
+        return rejectWithValue(e)
+    }
 });
 
 type memberPayloadType = {firstName?: string, lastName?: string, phoneNumber?: string, idNumber?: string, email?: string, memberRefId?: string}
@@ -2861,6 +2863,172 @@ export const LoadOrganisation = createAsyncThunk('LoadOrganisation', async (_, {
     }
 });
 
+type CoreBankingIntegrations = "JUMBOSTAR" | "DEFAULT" | "CENTRINO"
+
+type NotificationProviders = "JUMBOSTAR" | "DEFAULT" | "CENTRINO"
+
+type IdentifierTypes = "EMAIL" | "ID_NUMBER" | "PHONE_NUMBER" | "MEMBER_NUMBER"
+
+export interface SettingsPayloadType {
+    ussdShortCode: string;
+    organizationName: string;
+    requireWitness: boolean;
+    allowZeroGuarantors: boolean;
+    allowSelfGuarantee: boolean;
+    isGuaranteedAmountShared: boolean;
+    useEmbeddedURL: boolean;
+    containsAttachments: boolean;
+    organizationAlias: string;
+    organizationEmail: string;
+    supportEmail: string;
+    organizationPrimaryTheme: string;
+    organizationSecondaryTheme: string;
+    organizationLogoName: string;
+    organizationLogoExtension: string;
+    loanProductMaxPeriod: string;
+    customSMS: boolean;
+    parallelLoans: boolean;
+    coreBankingIntegration: CoreBankingIntegrations;
+    notificationProvider: NotificationProviders;
+    identifierType: IdentifierTypes;
+    details: Record<any, any>
+}
+
+export const updateOrganisation = createAsyncThunk("updateOrganisation", (
+    {
+        tenantId,
+        clientSettings
+    }: {
+        tenantId: string;
+        clientSettings: SettingsPayloadType
+    },
+    {
+        getState
+    }
+) => {
+    let {
+        ussdShortCode,
+        organizationName,
+        requireWitness,
+        allowZeroGuarantors,
+        allowSelfGuarantee,
+        isGuaranteedAmountShared,
+        useEmbeddedURL,
+        containsAttachments,
+        organizationAlias,
+        organizationEmail,
+        supportEmail,
+        organizationPrimaryTheme,
+        organizationSecondaryTheme,
+        organizationLogoName,
+        organizationLogoExtension,
+        coreBankingIntegration,
+        loanProductMaxPeriod,
+        customSMS,
+        notificationProvider,
+        identifierType,
+        parallelLoans,
+        details
+    }: any = clientSettings;
+
+    requireWitness = requireWitness ? 1 : 0;
+    allowZeroGuarantors = allowZeroGuarantors ? 1 : 0;
+    allowSelfGuarantee = allowSelfGuarantee ? 1 : 0;
+    isGuaranteedAmountShared = isGuaranteedAmountShared ? 1 : 0;
+    useEmbeddedURL = useEmbeddedURL ? 1 : 0;
+    containsAttachments = containsAttachments ? 1 : 0;
+    customSMS = customSMS ? 1 : 0;
+    details = JSON.stringify(details);
+
+    return new Promise((resolve, reject) => {
+        db.transaction((tx: SQLTransaction) => {
+            tx.executeSql(
+                `
+                INSERT INTO client_settings 
+            (
+                ussdShortCode,
+                organizationName,
+                requireWitness,
+                allowZeroGuarantors,
+                allowSelfGuarantee,
+                isGuaranteedAmountShared,
+                useEmbeddedURL,
+                containsAttachments,
+                organizationAlias,
+                organizationEmail,
+                supportEmail,
+                organizationPrimaryTheme,
+                organizationSecondaryTheme,
+                organizationLogoName,
+                organizationLogoExtension,
+                coreBankingIntegration,
+                loanProductMaxPeriod,
+                customSMS,
+                notificationProvider,
+                identifierType,
+                parallelLoans,
+                details
+             ) values (?, ?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    ussdShortCode,
+                    organizationName,
+                    requireWitness,
+                    allowZeroGuarantors,
+                    allowSelfGuarantee,
+                    isGuaranteedAmountShared,
+                    useEmbeddedURL,
+                    containsAttachments,
+                    organizationAlias,
+                    organizationEmail,
+                    supportEmail,
+                    organizationPrimaryTheme,
+                    organizationSecondaryTheme,
+                    organizationLogoName,
+                    organizationLogoExtension,
+                    coreBankingIntegration,
+                    loanProductMaxPeriod,
+                    customSMS,
+                    notificationProvider,
+                    identifierType,
+                    parallelLoans,
+                    details
+                ],
+                // success callback which sends two things Transaction object and ResultSet Object
+                (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                    const { auth } = getState() as {auth: storeState};
+                    const { organisations } = auth;
+                    const replaceOrganisations: organisationType[]  = organisations.reduce((acc: organisationType[], org) => {
+                        if (org.tenantId === tenantId && Object.keys(clientSettings).length > 0) {
+                            // modify some parameters to conform with client settings
+                            org.tenantName = clientSettings.organizationName ? clientSettings.organizationName : org.tenantName;
+                            org.witness = (clientSettings.requireWitness !== undefined) ? clientSettings.requireWitness : org.witness;
+                            org.selfGuarantee = (clientSettings.allowSelfGuarantee !== undefined) ? clientSettings.allowSelfGuarantee : org.selfGuarantee;
+                            org.amounts = (clientSettings.isGuaranteedAmountShared !== undefined) ?  !clientSettings.isGuaranteedAmountShared : org.amounts;
+                            org.guarantors = (clientSettings.isGuaranteedAmountShared !== undefined) ? clientSettings.isGuaranteedAmountShared ? 'count' : 'value' : org.guarantors;
+                            org.containsAttachments = (clientSettings.containsAttachments !== undefined) ? clientSettings.containsAttachments : org.containsAttachments;
+                            org.loanProductMaxPeriod = clientSettings.loanProductMaxPeriod ? clientSettings.loanProductMaxPeriod : org.loanProductMaxPeriod;
+                            org.parallelLoans = (clientSettings.parallelLoans !== undefined) ? clientSettings.parallelLoans : org.parallelLoans;
+                            org.logo = (clientSettings.organizationLogoName && clientSettings.organizationLogoExtension) ? `https://eguarantorship-api.presta.co.ke/api/v1/resources/download/static?fileName=${clientSettings.organizationLogoName}&extension=${clientSettings.organizationLogoExtension}` : null;
+                            org.organizationPrimaryTheme = clientSettings.organizationPrimaryTheme ? clientSettings.organizationPrimaryTheme : org.organizationPrimaryTheme;
+                            org.organizationSecondaryTheme = clientSettings.organizationSecondaryTheme ? clientSettings.organizationSecondaryTheme : org.organizationSecondaryTheme;
+                            acc.push(org);
+                        } else {
+                            acc.push(org);
+                        }
+                        return acc;
+                    }, []);
+                    resolve(<any>replaceOrganisations)
+                },
+                // failure callback which sends two things Transaction object and Error
+                (txObj: SQLTransaction, error: SQLError): any => {
+                    console.log("client settings writing error", error.message);
+                    reject(error)
+                }
+            )
+        })
+    })
+});
+
 const authSlice = createSlice({
     name: 'auth',
     initialState: <storeState>{
@@ -2982,7 +3150,8 @@ const authSlice = createSlice({
         actorChanged: false,
         guarantorsUpdated: false,
         notificationTok: undefined,
-        clientSettings: {}
+        clientSettings: {},
+        tabStyle: {}
     },
     reducers: {
         setGuarantorsUpdated(state, action) {
@@ -3013,9 +3182,9 @@ const authSlice = createSlice({
             state.selectedTenant = action.payload;
             return state;
         },
-        updateOrganisation(state, action) {
-            state.organisations = action.payload
-            return state
+        setTabStyle(state, action) {
+            state.tabStyle = action.payload;
+            return state;
         }
     },
     extraReducers: builder => {
@@ -3434,34 +3603,45 @@ const authSlice = createSlice({
         })
         builder.addCase(verifyOtp.fulfilled, (state, action: any) => {
             state.optVerified = true;
-            // state.isLoggedIn = true;
             state.loading = false;
         })
         builder.addCase(verifyOtp.rejected, (state, action) => {
-            state.loading = false
+            state.loading = false;
         })
 
         builder.addCase(verifyOtpBeforeToken.pending, state => {
-            state.loading = true
+            state.loading = true;
         })
         builder.addCase(verifyOtpBeforeToken.fulfilled, (state, action: any) => {
             state.optVerified = true;
             state.loading = false;
         })
         builder.addCase(verifyOtpBeforeToken.rejected, (state, action) => {
-            state.loading = false
+            state.loading = false;
         })
 
         builder.addCase(searchByMemberNo.pending, state => {
-            state.loading = true
+            state.loading = true;
         })
         builder.addCase(searchByMemberNo.fulfilled, (state, action: any) => {
             if (isSerializable(action.payload)) console.log("search by member number", action.payload);
-            if (isSerializable(action.payload)) state.searchedMembers = action.payload
+            if (isSerializable(action.payload)) state.searchedMembers = action.payload;
             state.loading = false;
         })
         builder.addCase(searchByMemberNo.rejected, (state, action) => {
-            state.loading = false
+            state.loading = false;
+        })
+
+
+        builder.addCase(updateOrganisation.pending, state => {
+            state.loading = true;
+        })
+        builder.addCase(updateOrganisation.fulfilled, (state, action) => {
+            state.organisations = <organisationType[]><unknown>action.payload;
+            state.loading = false;
+        })
+        builder.addCase(updateOrganisation.rejected, state => {
+            state.loading = false;
         })
     }
 })
@@ -3469,6 +3649,6 @@ const authSlice = createSlice({
 // Extract the action creators object and the reducer
 const { actions, reducer } = authSlice
 // Extract and export each action creator by name
-export const { setGuarantorsUpdated, setLoading, setSelectedTenantId, updateOrganisation, setAuthState, setSelectedTenant, setActorChanged } = actions
+export const { setGuarantorsUpdated, setLoading, setSelectedTenantId, setTabStyle, setAuthState, setSelectedTenant, setActorChanged } = actions
 // Export the reducer, either as a default or named export
 export const authReducer = reducer

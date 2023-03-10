@@ -48,6 +48,7 @@ import OnboardingOTP from "../screens/Onboarding/OnboardingOTP";
 import Organisations from "../screens/Onboarding/Organisations";
 import {TouchableOpacity} from "react-native";
 import {store} from "../stores/store";
+import CustomTabBar from "../components/CustomTabBar";
 type AppDispatch = typeof store.dispatch;
 const Navigation = () => {
   const MyTheme = {
@@ -137,7 +138,7 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
             <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{headerShown: false}} />
             <Stack.Screen name="KYC" component={KYC} options={({ navigation, route }) => {
                 return ({
-                    title: 'User Information',
+                    title: 'Confirm Information',
                     headerShown: true,
                     headerStyle: {
                         backgroundColor: '#FFFFFF'
@@ -161,7 +162,26 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
             <Stack.Screen name="ReplaceActor" component={ReplaceActor} options={{ headerShown: false }} />
             <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={{ headerShown: false }} />
             <Stack.Screen name="WitnessesHome" component={WitnessesHome} options={{ headerShown: false }} />
-            <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={{ headerShown: false }} />
+            <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={({ navigation, route }) => {
+                return ({
+                    title: 'Confirm Loan Information',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                })
+            }} />
             <Stack.Screen name="LoanRequest" component={LoanRequest} options={{ headerShown: false }} />
             <Stack.Screen name="SignStatus" component={SignStatus} options={{ headerShown: false }} />
             <Stack.Screen name="GuarantorshipRequests" component={GuarantorshipRequests} options={({ navigation, route }) => {
@@ -303,55 +323,54 @@ function BottomTabNavigator() {
     <BottomTab.Navigator
       initialRouteName="UserProfile"
       detachInactiveScreens={true}
-      screenOptions={ ((props: { route: RouteProp<RootTabParamList, keyof RootTabParamList>; navigation: any; }) => ({
-        tabBarActiveTintColor: Colors[colorScheme].tint,
-      }))}>
-      <BottomTab.Screen
-        name="UserProfile"
-        component={UserProfile}
-        options={{
-            title: 'Home',
-            tabBarIcon: ({ focused, color, size }) => {
-                let iconName;
-                iconName = focused
-                    ? ''
-                    : 'home';
-                return <TabBarIcon name="home" color={color}/>
-            },
-            headerShown: false
-        }}
-      />
-      <BottomTab.Screen
-        name="LoanRequests"
-        component={LoanRequests}
-        options={({ navigation, route }) => ({
-          tabBarStyle: { display: "none" },
-          title: 'Loan Requests',
-          tabBarIcon: ({ focused, color, size }) => {
-              let iconName;
-              iconName = focused
-                  ? ''
-                  : 'filetext1';
-              return <TabBarIcon name="filetext1" color={color}/>
-          },
-            headerShown: true,
-            headerStyle: {
-                backgroundColor: '#FFFFFF'
-            },
-            headerTintColor: '#489AAB',
-            headerTitleStyle: {
-                fontFamily: 'Poppins_600SemiBold',
-                fontSize: 18,
-                paddingTop: 5
-            },
-            headerLeft: () => (
-                <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginLeft: 12, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.27)"}}>
-                    <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
-                </TouchableOpacity>
-            ),
-            headerShadowVisible: false,
-        })}
-      />
+      tabBar={(props) => <CustomTabBar {...props} />}
+    >
+        <BottomTab.Screen
+            name="UserProfile"
+            component={UserProfile}
+            options={{
+                title: 'Home',
+                tabBarIcon: ({ focused, color, size }) => {
+                    let iconName;
+                    iconName = focused
+                        ? ''
+                        : 'home';
+                    return <TabBarIcon name="home" size={size} focused={focused} color={color}/>
+                },
+                headerShown: false
+            }}
+        />
+        <BottomTab.Screen
+            name="LoanRequests"
+            component={LoanRequests}
+            options={({ navigation, route }) => ({
+                tabBarStyle: { display: "none" },
+                title: 'Requests',
+                tabBarIcon: ({ focused, color, size }) => {
+                    let iconName;
+                    iconName = focused
+                        ? ''
+                        : 'filetext1';
+                    return <TabBarIcon name="filetext1" size={size} focused={focused} color={color}/>
+                },
+                headerShown: true,
+                headerStyle: {
+                    backgroundColor: '#FFFFFF'
+                },
+                headerTintColor: '#489AAB',
+                headerTitleStyle: {
+                    fontFamily: 'Poppins_600SemiBold',
+                    fontSize: 18,
+                    paddingTop: 5
+                },
+                headerLeft: () => (
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginLeft: 12, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.27)"}}>
+                        <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                    </TouchableOpacity>
+                ),
+                headerShadowVisible: false,
+            })}
+        />
         <BottomTab.Screen
             name="Account"
             component={Account}
@@ -362,47 +381,47 @@ function BottomTabNavigator() {
                     iconName = focused
                         ? ''
                         : 'user';
-                    return <TabBarIcon name="user" color={color}/>
+                    return <TabBarIcon name="user" size={size} focused={focused} color={color}/>
                 },
                 headerShown: false
             }}
         />
         <BottomTab.Screen
-        name="ModalScreen"
-        component={ModalScreen}
-        options={({ navigation, route }) => ({
-            title: 'Settings',
-            tabBarIcon: ({ focused, color, size }) => {
-                let iconName;
-                iconName = focused
-                    ? ''
-                    : 'setting';
-                return <TabBarIcon name="setting" color={color}/>
-            },
-            headerShown: true,
-            headerStyle: {
-                backgroundColor: '#FFFFFF'
-            },
-            headerTintColor: '#489AAB',
-            headerTitleStyle: {
-                fontFamily: 'Poppins_600SemiBold',
-                fontSize: 18,
-                paddingTop: 5
-            },
-            headerLeft: () => (
-                <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginLeft: 12, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.27)"}}>
-                    <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
-                </TouchableOpacity>
-            ),
-            headerRight: () => {
-                return (
-                    <TouchableOpacity onPress={async () => await dispatch(logoutUser())}>
-                        <AntDesign name="logout" size={20} style={{paddingRight: 18}} color="#FF4A4AFF"/>
+            name="ModalScreen"
+            component={ModalScreen}
+            options={({ navigation, route }) => ({
+                title: 'Settings',
+                tabBarIcon: ({ focused, color, size }) => {
+                    let iconName;
+                    iconName = focused
+                        ? ''
+                        : 'setting';
+                    return <TabBarIcon name="setting" size={size} focused={focused} color={color}/>
+                },
+                headerShown: true,
+                headerStyle: {
+                    backgroundColor: '#FFFFFF'
+                },
+                headerTintColor: '#489AAB',
+                headerTitleStyle: {
+                    fontFamily: 'Poppins_600SemiBold',
+                    fontSize: 18,
+                    paddingTop: 5
+                },
+                headerLeft: () => (
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginLeft: 12, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.27)"}}>
+                        <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
                     </TouchableOpacity>
-                )
-            },
-            headerShadowVisible: false,
-        })}
+                ),
+                headerRight: () => {
+                    return (
+                        <TouchableOpacity onPress={async () => await dispatch(logoutUser())}>
+                            <AntDesign name="logout" size={20} style={{paddingRight: 18}} color="#FF4A4AFF"/>
+                        </TouchableOpacity>
+                    )
+                },
+                headerShadowVisible: false,
+            })}
         />
     </BottomTab.Navigator>
   );
@@ -415,6 +434,8 @@ function BottomTabNavigator() {
 function TabBarIcon(props: {
     name: React.ComponentProps<typeof AntDesign>['name'];
     color: string;
+    focused: boolean;
+    size: number;
 }) {
-    return <AntDesign size={30} style={{ marginBottom: -3 }} {...props} />;
+    return <AntDesign {...props} />;
 }

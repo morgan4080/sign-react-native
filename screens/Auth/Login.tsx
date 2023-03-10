@@ -31,7 +31,14 @@ import {useEffect, useState} from "react";
 import * as LocalAuthentication from 'expo-local-authentication';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
-import {loginUser, authenticate, setAuthState, TenantsType, organisationType} from "../../stores/auth/authSlice";
+import {
+    loginUser,
+    authenticate,
+    setAuthState,
+    TenantsType,
+    organisationType,
+    logoutUser
+} from "../../stores/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { store } from "../../stores/store";
 import { storeState, loginUserType } from "../../stores/auth/authSlice";
@@ -39,7 +46,7 @@ import {FontAwesome5, Ionicons} from "@expo/vector-icons";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import {RotateView} from "./VerifyOTP";
 import {showSnack} from "../../utils/immediateUpdate";
-import {useOrganisations} from "../../stores/hooks";
+import {useAppDispatch, useOrganisations} from "../../stores/hooks";
 const { width, height } = Dimensions.get("window");
 
 type NavigationProps = NativeStackScreenProps<any>;
@@ -99,7 +106,6 @@ export default function Login({ navigation }: NavigationProps) {
     const [localLogin, setLocalLogin] = useState<boolean>(false);
     const [currentTenant, setCurrentTenant] = useState<organisationType | undefined>(undefined);
     const [tenant, setTenant] = useState<TenantsType | undefined>(undefined);
-    type AppDispatch = typeof store.dispatch;
 
     useEffect(() => {
         let authenticating = true;
@@ -127,6 +133,8 @@ export default function Login({ navigation }: NavigationProps) {
                         }
                     } else {
                         // navigation.navigate('GetStarted')
+                        await dispatch(logoutUser());
+                        navigation.navigate('GetStarted');
                     }
                 } catch (e: any) {
                     showSnack(`Login Error: ${e.message}`, "ERROR");
@@ -138,7 +146,7 @@ export default function Login({ navigation }: NavigationProps) {
         }
     }, []);
 
-    const dispatch : AppDispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -456,15 +464,16 @@ export default function Login({ navigation }: NavigationProps) {
         }
     }
 
-    console.log(currentTenant)
-
     if (fontsLoaded && !loading) {
         return (
             <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                 <ScrollView contentContainerStyle={styles.container} >
                     <View style={{height: height/2, display: 'flex', justifyContent: 'space-between', position: 'relative'}}>
                         <View style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                            <TouchableOpacity onPress={() => navigation.navigate('GetStarted')} style={{marginTop: 45, marginBottom: 25, position: 'absolute', top: height/60, left: width/15}}>
+                            <TouchableOpacity onPress={ async () => {
+                                await dispatch(logoutUser())
+                                navigation.navigate('GetStarted')
+                            }} style={{marginTop: 45, marginBottom: 25, position: 'absolute', top: height/60, left: width/15}}>
                                 <Ionicons name="chevron-back-sharp" size={24} color="black" />
                             </TouchableOpacity>
                             <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: height/9 }}>
@@ -474,13 +483,15 @@ export default function Login({ navigation }: NavigationProps) {
                         </View>
 
                         <View>
-                            {(currentTenant !== undefined && currentTenant.logo) ?
+                            {currentTenant && currentTenant.logo ?
                                 <Image
+                                    style={{height: 100}}
                                     source={{
-                                        uri: `${currentTenant.logo}`,
+                                        uri: currentTenant.logo,
                                     }}
                                 />
-                                : null}
+                                : null
+                            }
                             <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light', textTransform: 'uppercase'}}>{tenant?.tenantName} LOGIN</Text>
                             <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light'}}>ENTER PIN</Text>
                             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', paddingVertical: 10 }}>

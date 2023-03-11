@@ -24,7 +24,6 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import { Circle as ProgressCircle } from 'react-native-progress';
 import {useEffect, useState} from "react";
 import {RotateView} from "../Auth/VerifyOTP";
 

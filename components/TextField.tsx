@@ -2,26 +2,30 @@ import {Animated, KeyboardTypeOptions, StyleSheet, Text, TextInput, View} from "
 import {Controller, FieldError} from "react-hook-form";
 import {useFonts,Poppins_500Medium, Poppins_300Light} from "@expo-google-fonts/poppins";
 import {useFonts as useRale, Raleway_600SemiBold} from "@expo-google-fonts/raleway";
-import {useEffect, useRef} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Control, UseFormWatch} from "react-hook-form/dist/types/form";
+import GenericModal from "./GenericModal";
 
 interface FProps<T> {
     label: string;
     field: any;
     val: (field: string) => string | undefined;
+    setVal?: (field: string, data: any) => void;
     watch: UseFormWatch<Record<string, any>>;
     control: Control<any>;
     required?: boolean;
     rules?: Record<any, any>;
     keyboardType?: KeyboardTypeOptions;
     secureTextEntry?: boolean;
-    error: FieldError | undefined
+    error: FieldError | undefined;
+    options?: {name: string, value: string}[] | null;
 }
 const TextField = <T extends object>(
     {
         label,
         field,
         val,
+        setVal,
         watch,
         control,
         error,
@@ -33,7 +37,8 @@ const TextField = <T extends object>(
             }
         },
         keyboardType = "default",
-        secureTextEntry = false
+        secureTextEntry = false,
+        options = null
     }: FProps<T>
 ) => {
     const moveText = useRef(new Animated.Value(0)).current;
@@ -80,12 +85,12 @@ const TextField = <T extends object>(
 
     const scaleValX = moveText.interpolate({
         inputRange: [0, 1],
-        outputRange: [1, 0.9],
+        outputRange: [1, 0.93],
     });
 
     const scaleValY = moveText.interpolate({
         inputRange: [0, 1],
-        outputRange: [1, 0.8],
+        outputRange: [1, 0.95],
     });
 
     const animStyle = {
@@ -114,7 +119,21 @@ const TextField = <T extends object>(
         Raleway_600SemiBold
     })
 
+    const [modalVisible, setModalVisible] = useState(false);
+    const [isEditable, setIsEditable] = useState(true);
+
     const onFocusHandler = () => {
+        if (field === 'disbursement_mode') {
+            setModalVisible(true);
+            setIsEditable(false);
+            return;
+        }
+        if (field === 'repayment_mode') {
+            setModalVisible(true);
+            setIsEditable(false);
+            return;
+        }
+
         if (val(field) !== "") {
             moveTextTop();
         }
@@ -132,37 +151,49 @@ const TextField = <T extends object>(
         moveTextBottom();
     }
 
-    console.log("text input error:", error)
-
     return (
         <>
-            <Controller
-                control={control}
-                rules={rules}
-                render={( {field: {onChange, onBlur, value}}) => (
-                    <View style={[styles.inputContainer, styles.shadowProp, {borderColor: error ? "#d53b39" : "#E7EAEB", borderBottomWidth: error ? 1 : 0 }]}>
-                        <Animated.View style={[styles.animatedView, animStyle]}>
-                            <Text allowFontScaling={false} style={styles.label}>
-                                {label}
-                            </Text>
-                        </Animated.View>
-                        <TextInput
-                            style={styles.input}
-                            autoCapitalize={"none"}
-                            allowFontScaling={false}
-                            onFocus={onFocusHandler}
-                            onBlur={onBlurHandler}
-                            onChangeText={onChange}
-                            value={value}
-                            secureTextEntry={secureTextEntry}
-                            keyboardType={keyboardType ? keyboardType : undefined}
-                        />
-                    </View>
-                )}
-                name={field}
-            />
+            <>
+                <Controller
+                    control={control}
+                    rules={rules}
+                    render={( {field: {onChange, onBlur, value}}) => (
+                        <View style={[styles.inputContainer, styles.shadowProp, {borderColor: error ? "#d53b39" : "#E7EAEB", borderBottomWidth: error ? 1 : 0 }]}>
+                            <Animated.View style={[styles.animatedView, animStyle]}>
+                                <Text allowFontScaling={false} style={styles.label}>
+                                    {label}
+                                </Text>
+                            </Animated.View>
+                            <TextInput
+                                style={styles.input}
+                                autoCapitalize={"none"}
+                                allowFontScaling={false}
+                                onFocus={onFocusHandler}
+                                onBlur={onBlurHandler}
+                                onChangeText={onChange}
+                                value={value}
+                                secureTextEntry={secureTextEntry}
+                                keyboardType={keyboardType ? keyboardType : undefined}
+                                editable={isEditable}
+                            />
+                        </View>
+                    )}
+                    name={field}
+                />
 
-            {error && error.message ? <Text allowFontScaling={false} style={styles.error}>{`${error.message}`}</Text> : null}
+                {error && error.message ? <Text allowFontScaling={false} style={styles.error}>{`${error.message}`}</Text> : null}
+            </>
+
+            { (options) ?
+
+                <GenericModal modalVisible={modalVisible} setModalVisible={setModalVisible} title={`Set ${label}`} description={""} cb={(option) => {
+                    console.log("Callback running", option);
+                    if (option && setVal && option?.context === 'option' && option?.option) {
+                        setVal(field, option?.option.value)
+                    }
+                    setIsEditable(true)
+                }} options={options}/> : null
+            }
         </>
     )
 }
@@ -175,6 +206,7 @@ const styles = StyleSheet.create({
         lineHeight: 16,
         // textTransform: "capitalize"
     },
+
     animatedView: {
         position: "absolute",
         top: 18,

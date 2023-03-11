@@ -2,13 +2,13 @@ import {
     Dimensions,
     Platform,
     SafeAreaView,
-    StatusBar as Bar,
     StyleSheet,
     TouchableOpacity,
     View,
     Text,
     NativeModules,
-    SectionList, Alert
+    SectionList,
+    Alert
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {AntDesign} from "@expo/vector-icons";
@@ -42,6 +42,7 @@ import {toMoney} from "./Account";
 import BottomSheet, {BottomSheetBackdrop, BottomSheetSectionList, BottomSheetView} from "@gorhom/bottom-sheet";
 import EmptyList from "../../assets/images/fullpix_adobe_express.svg"
 import {showSnack} from "../../utils/immediateUpdate";
+import {useAppDispatch} from "../../stores/hooks";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -54,6 +55,7 @@ interface GuarantorData {
     firstName: string,
     lastName: string,
     dateAccepted?: string,
+    eligibilityMessage?: string,
     isAccepted?: string,
     dateSigned?: string,
     isSigned?: boolean,
@@ -124,6 +126,17 @@ const Item = ({item, section, computeProgress, navigation, loan} : {item: any, s
                 }
             </TouchableOpacity>
             { expanded && <View style={{marginVertical: 5}}>
+                <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
+                    <Text allowFontScaling={false}
+                          style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Eligibility
+                        Status: </Text>
+                    <Text allowFontScaling={false} style={{
+                        flex: 0.5,
+                        fontFamily: 'Poppins_300Light',
+                        color: '#9A9A9A',
+                        fontSize: 12
+                    }}>{item.eligibilityMessage}</Text>
+                </View>
                 <View style={{paddingVertical: 2, display: 'flex', flexDirection: 'row'}}>
                     <Text allowFontScaling={false}
                           style={{flex: 0.5, fontFamily: 'Poppins_400Regular', fontSize: 12, color: '#727272'}}>Committed Amount: </Text>
@@ -217,14 +230,12 @@ const Item = ({item, section, computeProgress, navigation, loan} : {item: any, s
 
 export default function LoanRequests ({ navigation, route }: NavigationProps) {
     const { loading, member, loanRequests, actorChanged } = useSelector((state: { auth: storeState }) => state.auth);
-    type AppDispatch = typeof store.dispatch;
     const [loan, setLoan] = useState<LoanRequestData>();
-    const dispatch : AppDispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     const reFetch = async () => {
         try {
-            const response = await dispatch(fetchLoanRequests(`${member?.refId}`));
-            // alert(JSON.stringify(response))
+            await dispatch(fetchLoanRequests({memberRefId: `${member?.refId}`}));
         } catch (e: any) {
             CSTM.showToast(e.message)
         }

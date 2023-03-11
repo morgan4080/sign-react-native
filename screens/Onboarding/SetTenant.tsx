@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
         textAlign: 'center'
     },
     title: {
-        marginTop: 60,
+        marginTop: 100,
         fontFamily: "Poppins_700Bold",
         fontSize: 34,
         color: '#0C212C',

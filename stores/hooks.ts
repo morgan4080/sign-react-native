@@ -29,3 +29,7 @@ export const useStyle = () => {
     const tabStyle = useAppSelector(state => state.auth.tabStyle)
     return useMemo(() => [tabStyle] as const, [tabStyle])
 }
+export const useLoanRequests = () => {
+    const loanRequests = useAppSelector(state => state.auth.loanRequests)
+    return useMemo(() => [loanRequests] as const, [loanRequests])
+}

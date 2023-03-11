@@ -2,13 +2,9 @@ import {
     StyleSheet,
     TouchableOpacity,
     Dimensions,
-    Platform,
-    ImageBackground,
-    SectionList,
-    SafeAreaView
+    Text,
+    View
 } from 'react-native';
-import {Text, View} from "../../components/Themed"
-import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
@@ -20,20 +16,29 @@ import {
     editMember,
     setSelectedTenantId,
     updateOrganisation,
-    LoadOrganisation, SettingsPayloadType
+    LoadOrganisation,
+    SettingsPayloadType,
+    fetchLoanRequests
 } from "../../stores/auth/authSlice";
-import {AntDesign, Entypo, FontAwesome, Ionicons} from "@expo/vector-icons";
+import {AntDesign, Entypo, FontAwesome} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
 import {saveSecureKey} from "../../utils/secureStore";
-import BottomSheet, {BottomSheetBackdrop, BottomSheetScrollView} from "@gorhom/bottom-sheet";
+import BottomSheet, {BottomSheetBackdrop} from "@gorhom/bottom-sheet";
 import {useForm} from "react-hook-form";
-import ApplyLoan from "../../assets/images/apply-loan.svg";
 import GuarantorImg from "../../assets/images/guarantorship.svg";
 import Fav from "../../assets/images/fav.svg";
 import WitnessImg from "../../assets/images/witness.svg";
 import {showSnack} from "../../utils/immediateUpdate";
-import {useAppDispatch, useClientSettings, useLoading, useMember, useOrganisations, useUser} from "../../stores/hooks";
+import {
+    useAppDispatch,
+    useClientSettings,
+    useLoanRequests,
+    useMember,
+    useUser
+} from "../../stores/hooks";
 import Container from "../../components/Container";
+import {toMoney} from "./Account";
+import {Circle as ProgressCircle} from "react-native-progress";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -64,8 +69,7 @@ type FormData = {
 export default function UserProfile({ navigation }: NavigationProps) {
     const [user] = useUser();
     const [member] = useMember();
-    const [organisations] = useOrganisations();
-    const [loading] = useLoading();
+    const [loanRequests] = useLoanRequests();
 
     const dispatch = useAppDispatch();
 
@@ -88,6 +92,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             dispatch(fetchMember()),
                             dispatch(saveContactsToDb()),
                             dispatch(fetchLoanProducts()),
+                            dispatch(fetchLoanRequests({memberRefId: `${member?.refId}`, pageSize: 1}))
                         ]))
                         .then(() => {
                             return dispatch(updateOrganisation({tenantId: payload.tenantId, clientSettings: orgLoaded.payload as SettingsPayloadType}));
@@ -194,6 +199,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     { `${ user?.companyName ? user?.companyName : '' }` }
                 </Text>
                 <View style={{
+                    backgroundColor: "#FFFFFF",
                     marginTop: 15,
                     padding: 15,
                     position: 'relative',
@@ -207,14 +213,14 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             <Text allowFontScaling={false} style={styles.titleText}>{ `${ member?.firstName ? member?.firstName : '' } ${ member?.lastName ? member?.lastName : '' }` }</Text>
                             <Text allowFontScaling={false} style={styles.subTitleText}>{ `${ member?.memberNumber ? member?.memberNumber : '' }` }</Text>
                         </View>
-                        <TouchableOpacity onPress={() => navigation.navigate("")}>
+                        <TouchableOpacity onPress={() => navigation.navigate("Account")}>
                             <Entypo name="dots-three-horizontal" size={24} color="#489AAB" />
                         </TouchableOpacity>
                     </View>
                     <View style={{display: "flex", flexDirection: "row", justifyContent: "flex-end"}}>
                         <View>
-                            <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right"}]}>Available Balance</Text>
-                            <Text allowFontScaling={false} style={[styles.titleText, {textAlign: "right", color: "#15141F", fontSize: 22, lineHeight: 28, letterSpacing: 0, fontFamily: "Poppins_700Bold"}]}>1,000,000</Text>
+                            <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right"}]}>Share Amount</Text>
+                            <Text allowFontScaling={false} style={[styles.titleText, {textAlign: "right", color: "#15141F", fontSize: 22, lineHeight: 28, letterSpacing: 0, fontFamily: "Poppins_700Bold"}]}>{ member?.availableAmount ? toMoney(`${member?.availableAmount}`) : `` } KES</Text>
                         </View>
                     </View>
                     <View style={{backgroundColor: "rgba(204,204,204,0.3)", height: 2, marginVertical: 25}}></View>
@@ -224,15 +230,50 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right", color: "#489AAB"}]}>See all</Text>
                         </TouchableOpacity>
                     </View>
-                    <View style={{display: "flex", flexDirection: "row", paddingVertical: 10, alignItems: "center"}}>
-                        <FontAwesome name="circle-thin" size={50} color="rgba(204,204,204,0.3)" />
-                        <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right", marginLeft: 10, fontFamily: 'Poppins_500Medium', fontSize: 12}]}>You don't have any loan requests yet</Text>
-                    </View>
+                    {loanRequests ? loanRequests.map((loan, i) => (
+                        <View key={i} style={{display: "flex", flexDirection: "row", paddingVertical: 10, alignItems: "center"}}>
+                            <ProgressCircle size={50} thickness={3} showsText={true} unfilledColor='#CCCCCC' formatText={() => `${loan.loanRequestProgress}%`} progress={loan.loanRequestProgress / 100} color='#489bab' borderColor='transparent'/>
+                            <View style={{flex: 1, display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginLeft: 10}}>
+                                <View style={{display: "flex", flexDirection: "column", justifyContent: "flex-start"}}>
+                                    <Text allowFontScaling={false} style={[styles.subTitleText, {
+                                        textAlign: "left",
+                                        fontFamily: 'Poppins_500Medium',
+                                        fontSize: 12
+                                    }]}>
+                                        { loan.loanProductName }
+                                    </Text>
+                                    <Text allowFontScaling={false} style={[styles.subTitleText, {
+                                        textAlign: "left",
+                                        fontFamily: 'Poppins_500Medium',
+                                        fontSize: 12
+                                    }]}>
+                                        { loan?.loanDate }
+                                    </Text>
+                                </View>
+                                <Text allowFontScaling={false} style={[styles.subTitleText, {
+                                    textAlign: "right",
+                                    fontFamily: 'Poppins_500Medium',
+                                    fontSize: 12,
+                                }]}>
+                                    { toMoney(`${loan.loanAmount}`) } KES
+                                </Text>
+                            </View>
+                        </View>
+                    )) : null}
+                    {
+                        !loanRequests || loanRequests.length === 0 ?
+                            <View style={{display: "flex", flexDirection: "row", paddingVertical: 10, alignItems: "center"}}>
+                                <FontAwesome name="circle-thin" size={50} color="rgba(204,204,204,0.3)" />
+                                <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right", marginLeft: 10, fontFamily: 'Poppins_500Medium', fontSize: 12}]}>You don't have any loan requests yet</Text>
+                            </View>
+                            :
+                            null
+                    }
                 </View>
                 <View style={{marginTop: 20}}>
                     <TouchableOpacity onPress={() => navigation.navigate('LoanProducts')} style={styles.narrowCard}>
                         <AntDesign name="calculator" size={50} color="#FFFFFF" />
-                        <View style={{backgroundColor: "#489AAB", marginLeft: 20}}>
+                        <View style={{ marginLeft: 20 }}>
                             <Text allowFontScaling={false} style={{ color: '#ffffff', fontSize: 13, fontFamily: 'Poppins_600SemiBold' }}>
                                 Apply for a loan
                             </Text>

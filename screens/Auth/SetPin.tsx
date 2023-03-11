@@ -259,7 +259,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     </View> : (fontsLoaded && userFound) ? (isTermsAccepted && pinStatus === 'SET') ?
                             <View>
                                 <Text style={styles.description}>
-                                    Guarantee and sign loan forms digitally from anywhere, anytime.
+                                    Enter your 4 digit pin code to login.
                                 </Text>
                                 <Text style={styles.title}>
                                     Your pin code.
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     },
 
     description: {
-        marginTop: 60,
+        marginTop: 80,
         fontWeight: '300',
         color: '#62656b'
     },

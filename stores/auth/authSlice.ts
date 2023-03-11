@@ -1083,7 +1083,7 @@ export const replaceGuarantor = createAsyncThunk('replaceGuarantor', async ({loa
         if (response.status === 200) {
             const data = await response.json();
             dispatch(setActorChanged(true));
-            dispatch(fetchLoanRequests(memberRefId));
+            dispatch(fetchLoanRequests({memberRefId}));
             return fulfillWithValue(data.message);
         } else if (response.status === 401) {
             // update refresh token and retry
@@ -2152,8 +2152,11 @@ export const voidLoanRequest = createAsyncThunk('voidLoanRequest', async (loanRe
     }
 })
 
-export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (memberRefId: string, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
-    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}&order=ASC&pageSize=10&isActive=true`;
+export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (
+    {memberRefId, pageSize = 10} : {memberRefId: string; pageSize?: number},
+    {dispatch, getState, rejectWithValue, fulfillWithValue}
+) => {
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}&order=ASC&pageSize=${pageSize}&isActive=true`;
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
@@ -2220,7 +2223,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                             client_secret: JSON.parse(currentTenant).clientSecret,
                             cb: async () => {
                                 console.log('callback running');
-                                await  dispatch(fetchLoanRequests(memberRefId));
+                                await  dispatch(fetchLoanRequests({memberRefId}));
                             }
                         }
 
@@ -2249,7 +2252,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (me
                     client_secret: JSON.parse(currentTenant).clientSecret,
                     cb: async () => {
                         console.log('callback running');
-                        await  dispatch(fetchLoanRequests(memberRefId))
+                        await  dispatch(fetchLoanRequests({memberRefId}))
                     }
                 }
 
@@ -3398,7 +3401,6 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(fetchLoanRequests.fulfilled, (state, { payload }: Pick<AuthData, any>) => {
-            console.log('loan requests', payload)
             state.loanRequests = payload
             state.loading = false
         })

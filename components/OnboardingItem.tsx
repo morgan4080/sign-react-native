@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     },
 
     description: {
-        marginTop: 60,
+        marginTop: 100,
         fontWeight: '300',
         color: '#62656b'
     }

@@ -1,14 +1,18 @@
 import React, {Dispatch, useState} from 'react';
-import {Modal, StyleSheet, Text, Pressable, View} from 'react-native';
+import {Modal, StyleSheet, Text, Pressable, View, useWindowDimensions, TouchableOpacity} from 'react-native';
 import {Raleway_600SemiBold, Raleway_400Regular, useFonts as useRale} from "@expo-google-fonts/raleway";
+import {ErrorsType} from "../screens/Loans/LoanConfirmation";
 interface ComponentProps {
     modalVisible: boolean;
     setModalVisible: Dispatch<any>
     title: string;
     description: string;
-    cb: () => void
+    lrErrors?: ErrorsType;
+    cb: (option?: {context: string; option?: {name: string, value: string}}) => void;
+    options?: {name: string, value: string}[] | null;
 }
-const GenericModal = ({modalVisible, setModalVisible, title, description, cb}: ComponentProps) => {
+const GenericModal = ({modalVisible, setModalVisible, title, description, lrErrors, cb, options = null}: ComponentProps) => {
+    const {width, height} = useWindowDimensions()
     useRale({
         Raleway_600SemiBold,
         Raleway_400Regular
@@ -24,18 +28,38 @@ const GenericModal = ({modalVisible, setModalVisible, title, description, cb}: C
                 }}>
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
-                        <Text style={[styles.modalText, {fontFamily: "Raleway_600SemiBold"}]}>{title}</Text>
-                        <Text style={styles.modalText}>{description}</Text>
+                        <Text style={[styles.modalText, {fontFamily: "Raleway_600SemiBold", textTransform: "uppercase" }]}>{title}</Text>
+                        {description !== "" ? <Text style={styles.modalText}>{description}</Text> : null}
+                        {
+                            lrErrors && lrErrors.map((err) => (
+                                <Text style={styles.modalText}>{err.code}: {err.message}</Text>
+                            ))
+                        }
+                        <View style={{display: "flex", flexDirection: "column", width: width * 0.5, marginBottom: 20}}>
+                            {
+                                options && options.map((option, index) => (
+                                    <TouchableOpacity key={index} style={styles.options} onPress={() => {
+                                        cb({context: 'option', option});
+                                        setModalVisible(!modalVisible);
+                                    }}>
+                                        <Text style={{fontFamily: 'Raleway_600SemiBold', fontSize: 14}}>{option.name}</Text>
+                                    </TouchableOpacity>
+                                ))
+                            }
+                        </View>
                         <View style={{display: "flex", flexDirection: "row"}}>
                             <Pressable
                                 style={[styles.button, styles.buttonClose]}
-                                onPress={() => setModalVisible(!modalVisible)}>
+                                onPress={() => {
+                                    cb({context: 'dismiss'})
+                                    setModalVisible(!modalVisible)
+                                }}>
                                 <Text style={styles.textStyle}>Dismiss</Text>
                             </Pressable>
                             <Pressable
                                 style={[styles.button, styles.buttonProceed]}
                                 onPress={() => {
-                                    cb()
+                                    cb({context: 'proceed'})
                                     setModalVisible(!modalVisible)
                                 }}>
                                 <Text style={styles.textStyle}>Proceed</Text>
@@ -54,6 +78,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
+    options: {width: "100%", borderRadius: 12, borderColor: 'rgba(204,204,204,0.54)', borderWidth: 1, padding: 10, marginBottom: 10},
     modalView: {
         margin: 20,
         backgroundColor: 'white',

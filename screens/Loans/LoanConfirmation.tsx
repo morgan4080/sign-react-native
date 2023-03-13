@@ -381,7 +381,7 @@ const LoanConfirmation = ({navigation, route}: NavigationProps) => {
                     if (response.payload.readableErrorMessage) {
                         setPendingReason(response.payload.readableErrorMessage)
                         setModalVisible(true);
-                    } else if (response.payload.pendingReason || response.payload.errors) {
+                    } else if (response.payload.pendingReason || response.payload.errors.length > 0) {
                         setPendingReason(response.payload.pendingReason);
                         if (response.payload.errors instanceof Array) setLRErrors(response.payload.errors);
                         setModalVisible(true);

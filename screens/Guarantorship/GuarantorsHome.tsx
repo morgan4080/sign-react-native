@@ -536,16 +536,16 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 <Text allowFontScaling={false} style={{fontSize: 18, letterSpacing: 0.5, paddingTop: 20, paddingBottom: 10 }}>Add Guarantors</Text>
             </View>
             <View style={styles.searchableHeader}>
-                <Pressable style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} onPress={submitEdit}>
+                <TouchableOpacity style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} onPress={submitEdit}>
                     <AntDesign name="search1" size={15} color="rgba(0,0,0,0.89)" />
-                </Pressable>
-                <View style={{flex: 0.5, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                </TouchableOpacity>
+                <View style={{flex: 0.6, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                     <Controller
                         control={control}
                         render={( { field: { onChange, onBlur, value } }) => (
                             <TextInput
                                 allowFontScaling={false}
-                                style={{paddingLeft: 20, fontFamily: 'Poppins_400Regular', fontSize: 12, minWidth: width/1.5, color: '#393a34', textDecorationLine: "underline"}}
+                                style={{paddingLeft: 10, fontFamily: 'Poppins_400Regular', fontSize: 12, minWidth: width/1.5, color: '#393a34', textDecorationLine: "underline"}}
                                 onBlur={onBlur}
                                 onChangeText={onChange}
                                 value={value}
@@ -559,10 +559,10 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         name="searchTerm"
                     />
                 </View>
-                <TouchableOpacity style={{ flex: 0.4, display: "flex", flexDirection: "row", justifyContent: 'flex-end', alignItems: 'center', borderLeftWidth: 1, borderLeftColor: '#cccccc'}} onPress={() => {
+                <TouchableOpacity style={{ flex: 0.3, display: "flex", flexDirection: "row", justifyContent: 'flex-end', alignItems: 'center', borderLeftWidth: 1, borderLeftColor: '#cccccc'}} onPress={() => {
                     setSearching(!searching);
                 }}>
-                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 10, marginRight: 10, color: '#737373'}}>{ phonebook_contact_name !== "" ? phonebook_contact_name : 'Search Phone Book' }</Text>
+                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 10, marginRight: 10, color: '#737373'}}>{ phonebook_contact_name !== "" ? phonebook_contact_name : 'Phone Book' }</Text>
 
                     <AntDesign style={{ paddingRight: 10, paddingVertical: 5, paddingLeft: 2 }} name="contacts" size={22} color="rgba(0,0,0,0.89)" />
                 </TouchableOpacity>
@@ -620,7 +620,19 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         style={{zIndex: 15}}
                         data={guarantorshipOptions}
                         keyExtractor={item => item.id}
-                        renderItem={({i, item}: any) => (<RenderItem item={item} context={context} member={member} setValue={setValue} route={route} searchMemberByMemberNo={searchMemberByMemberNo} addContactToList={addContactToList} handleClosePress={handleClosePress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} setContext={setContext} />) }
+                        renderItem={({i, item}: any) => (<RenderItem
+                            key={i}
+                            item={item}
+                            context={context}
+                            member={member}
+                            setValue={setValue}
+                            route={route}
+                            searchMemberByMemberNo={searchMemberByMemberNo}
+                            addContactToList={addContactToList}
+                            handleClosePress={handleClosePress}
+                            setEmployerDetailsEnabled={setEmployerDetailsEnabled}
+                            setContext={setContext}
+                        />)}
                         ListEmptyComponent={() => (
                             <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 50}}>
                                 <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 12, marginRight: 10, color: '#737373', textAlign: 'center', width: '66%'}}>

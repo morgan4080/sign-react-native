@@ -182,32 +182,6 @@ const IDInput = ({errors, control, loading, handleSubmit, onSubmit, getValues, w
             keyboardType={"email-address"}
             secureTextEntry={false}
         />
-        /*<View>
-            <Controller
-                control={control}
-                /!*rules={{
-                    required: true
-                }}*!/
-                render={( { field: { onChange, value,onBlur } }) => (
-                    <TextInput
-                        allowFontScaling={false}
-                        value={value}
-                        keyboardType="number-pad"
-                        style={{
-                            ...styles.input,
-                            color: errors.idNumber ? '#d53b39': '#101828',
-                            borderColor: errors.idNumber ? '#d53b39': '#E3E5E5'
-                        }}
-                        onBlur={onBlur}
-                        placeholder="Enter ID Number"
-                        onChangeText={onChange}
-                        editable={!loading}
-                        onSubmitEditing={handleSubmit(onSubmit)}
-                    />
-                )}
-                name="idNumber"
-            />
-        </View>*/
     )
 }
 

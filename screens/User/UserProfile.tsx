@@ -194,7 +194,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
 
     if (fontsLoaded) {
         return (
-            <Container cb={() => setReload(!reload)}>
+            <Container cb={() => reloading()}>
                 <Text style={styles.description}>
                     { `${ user?.companyName ? user?.companyName : '' }` }
                 </Text>

@@ -1,11 +1,19 @@
-import {Animated, KeyboardTypeOptions, StyleSheet, Text, TextInput, View} from "react-native";
+import {KeyboardTypeOptions, StyleSheet, Text, TextInput, View, Dimensions} from "react-native";
+import Animated, {
+    interpolate,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withRepeat,
+    withTiming
+} from "react-native-reanimated";
 import {Controller, FieldError} from "react-hook-form";
 import {useFonts,Poppins_500Medium, Poppins_300Light} from "@expo-google-fonts/poppins";
 import {useFonts as useRale, Raleway_600SemiBold} from "@expo-google-fonts/raleway";
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Control, UseFormWatch} from "react-hook-form/dist/types/form";
 import GenericModal from "./GenericModal";
-
+const { width, height } = Dimensions.get("window");
 interface FProps<T> {
     label: string;
     field: any;
@@ -41,7 +49,47 @@ const TextField = <T extends object>(
         options = null
     }: FProps<T>
 ) => {
-    const moveText = useRef(new Animated.Value(0)).current;
+    const moveText = useSharedValue(0);
+
+    const animStyle = useAnimatedStyle(() => {
+        return {
+            transform: [
+                {
+                    scale: interpolate(moveText.value, [0, 1], [1, 0.8])
+                },
+                {
+                    translateY: interpolate(moveText.value, [0, 1], [4, -10])
+                }
+            ],
+        };
+    });
+
+    const moveTextTop = () => {
+        moveText.value = withDelay(
+            0,
+            withRepeat(
+                withTiming(1, {
+                    duration: 200,
+                }),
+                1,
+                false
+            )
+        );
+    }
+
+    const moveTextBottom = () => {
+        moveText.value = withDelay(
+            0,
+            withRepeat(
+                withTiming(0, {
+                    duration: 200,
+                }),
+                1,
+                false
+            )
+        );
+    }
+
     useEffect(() => {
         const subscription = watch((value, { name }) => {
             switch (name) {
@@ -56,59 +104,6 @@ const TextField = <T extends object>(
         });
         return () => subscription.unsubscribe();
     }, [watch])
-
-    const moveTextTop = () => {
-        Animated.timing(moveText, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const moveTextBottom = () => {
-        Animated.timing(moveText, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const yVal = moveText.interpolate({
-        inputRange: [0, 1],
-        outputRange: [4, -10],
-    });
-
-    const xVal = moveText.interpolate({
-        inputRange: [0, 3],
-        outputRange: [0, -10],
-    });
-
-    const scaleValX = moveText.interpolate({
-        inputRange: [0, 1],
-        outputRange: [1, 0.93],
-    });
-
-    const scaleValY = moveText.interpolate({
-        inputRange: [0, 1],
-        outputRange: [1, 0.95],
-    });
-
-    const animStyle = {
-        transform: [
-            {
-                translateY: yVal
-            },
-            {
-                translateX: xVal
-            },
-            {
-                scaleX: scaleValX
-            },
-            {
-                scaleY: scaleValY
-            },
-        ],
-    };
 
     useFonts({
         Poppins_500Medium,
@@ -200,6 +195,8 @@ const TextField = <T extends object>(
 
 const styles = StyleSheet.create({
     label: {
+        position: 'absolute',
+        left: width * 0.03,
         fontSize: 14,
         color: '#0082A0',
         fontFamily: 'Raleway_600SemiBold',

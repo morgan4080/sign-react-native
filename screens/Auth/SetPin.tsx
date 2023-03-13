@@ -258,10 +258,10 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                         <RotateView/>
                     </View> : (fontsLoaded && userFound) ? (isTermsAccepted && pinStatus === 'SET') ?
                             <View>
-                                <Text style={styles.description}>
+                                <Text allowFontScaling={false} style={styles.description}>
                                     Enter your 4 digit pin code to login.
                                 </Text>
-                                <Text style={styles.title}>
+                                <Text allowFontScaling={false} style={styles.title}>
                                     Your pin code.
                                 </Text>
                                 <TextField
@@ -293,16 +293,16 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                                 <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(loginSubmit)} />
                             </View> :
                             <View>
-                                <Text style={styles.description}>
+                                <Text allowFontScaling={false} style={styles.description}>
                                     Setting up
                                 </Text>
-                                <Text style={styles.title}>
+                                <Text allowFontScaling={false} style={styles.title}>
                                     Your pin code.
                                 </Text>
-                                <Text style={[styles.description, {marginTop: 0}]}>
+                                <Text allowFontScaling={false} style={[styles.description, {marginTop: 0}]}>
                                     To setup your pin enter a 4 digit code
                                 </Text>
-                                <Text style={[styles.description, {marginTop: 0}]}>
+                                <Text allowFontScaling={false} style={[styles.description, {marginTop: 0}]}>
                                     and confirm it below.
                                 </Text>
 

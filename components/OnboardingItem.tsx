@@ -11,8 +11,8 @@ const OnboardingItem = ({ item }: any) => {
 
     return (
         <View style={{flex: 1, width: width * 0.93, height: height * 0.84}}>
-            <Text style={styles.description}>{item.description}</Text>
-            <Text style={styles.title}>{item.title}</Text>
+            <Text allowFontScaling={false} style={styles.description}>{item.description}</Text>
+            <Text allowFontScaling={false} style={styles.title}>{item.title}</Text>
             <View style={{display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 80 }}>
                 <Image source={item.image} style={[styles.image, { width: width * 0.93, resizeMode: 'contain' }]}/>
             </View>

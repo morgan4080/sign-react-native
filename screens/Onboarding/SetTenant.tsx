@@ -24,10 +24,10 @@ const SetTenant = (props: NavigationProps) => {
         <Container>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <>
-                    <Text style={styles.title}>
+                    <Text allowFontScaling={false} style={styles.title}>
                         Start your digital guarantorship journey here.
                     </Text>
-                    <Text style={styles.description}>
+                    <Text allowFontScaling={false} style={styles.description}>
                         Guarantee and sign loan forms digitally from anywhere, anytime.
                     </Text>
                     <OrganisationIdentifier nav={props} />

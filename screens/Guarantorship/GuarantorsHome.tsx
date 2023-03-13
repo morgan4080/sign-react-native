@@ -539,7 +539,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 <Pressable style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} onPress={submitEdit}>
                     <AntDesign name="search1" size={15} color="rgba(0,0,0,0.89)" />
                 </Pressable>
-                <View style={{flex: 0.6, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                <View style={{flex: 0.5, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                     <Controller
                         control={control}
                         render={( { field: { onChange, onBlur, value } }) => (
@@ -549,7 +549,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                 onBlur={onBlur}
                                 onChangeText={onChange}
                                 value={value}
-                                placeholder={`Guarantor Mobile or Member No`}
+                                placeholder={`Enter Mobile/Member No`}
                                 maxLength={12}
                                 onEndEditing={() => {set_phonebook_contact_name("")}}
                                 onSubmitEditing={submitEdit}
@@ -559,13 +559,13 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         name="searchTerm"
                     />
                 </View>
-                <Pressable style={{ flex: 0.3, display: "flex", flexDirection: "row", justifyContent: 'flex-end', alignItems: 'center'}} onPress={() => {
+                <TouchableOpacity style={{ flex: 0.4, display: "flex", flexDirection: "row", justifyContent: 'flex-end', alignItems: 'center', borderLeftWidth: 1, borderLeftColor: '#cccccc'}} onPress={() => {
                     setSearching(!searching);
                 }}>
-                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 10, marginRight: 10, color: '#737373'}}>{ phonebook_contact_name }</Text>
+                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 10, marginRight: 10, color: '#737373'}}>{ phonebook_contact_name !== "" ? phonebook_contact_name : 'Search Phone Book' }</Text>
 
-                    <AntDesign style={{ paddingRight: 10, paddingVertical: 5, paddingLeft: 5, borderLeftWidth: 1, borderLeftColor: '#cccccc' }} name="contacts" size={18} color="rgba(0,0,0,0.89)" />
-                </Pressable>
+                    <AntDesign style={{ paddingRight: 10, paddingVertical: 5, paddingLeft: 2 }} name="contacts" size={22} color="rgba(0,0,0,0.89)" />
+                </TouchableOpacity>
             </View>
             <ContactSectionList
                 contactsData={

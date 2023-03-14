@@ -107,6 +107,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         setValue,
         getValues,
         watch,
+        reset,
         formState: { errors }
     } = useForm<FormData>();
 
@@ -383,7 +384,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     showSnack(e.message, "ERROR");
                 })
         } else {
-            showSnack("Incorrect Format", "ERROR");
+            showSnack("Incorrect Format", "WARNING");
         }
     }
 
@@ -511,29 +512,11 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     return (
         <GestureHandlerRootView style={styles.container}>
             <View style={styles.searchableHeader}>
-                <TouchableOpacity style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} onPress={submitEdit}>
+                <TouchableOpacity style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} onPress={handleSubmit(submitEdit)}>
                     <AntDesign name="search1" size={22} color="rgba(0,0,0,0.89)" />
                 </TouchableOpacity>
-                <View style={{flex: 0.6, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                    <TextField label={"Search mobile or member no."} field={"searchTerm"} val={getValues} watch={watch} control={control} error={errors.searchTerm} />
-                    {/*<Controller
-                        control={control}
-                        render={( { field: { onChange, onBlur, value } }) => (
-                            <TextInput
-                                allowFontScaling={false}
-                                style={{paddingLeft: 10, fontFamily: 'Poppins_400Regular', fontSize: 12, minWidth: width/1.5, color: '#393a34'}}
-                                onBlur={onBlur}
-                                onChangeText={onChange}
-                                value={value}
-                                placeholder={`Search Mobile/Member No`}
-                                maxLength={12}
-                                onEndEditing={() => {set_phonebook_contact_name("")}}
-                                onSubmitEditing={submitEdit}
-                                clearButtonMode="while-editing"
-                            />
-                        )}
-                        name="searchTerm"
-                    />*/}
+                <View style={{flex: 0.6, display: 'flex', alignItems: 'center'}}>
+                    <TextField label={"Mobile or member no."} field={"searchTerm"} val={getValues} watch={watch} control={control} error={errors.searchTerm} required={true} />
                 </View>
                 <TouchableOpacity style={{ flex: 0.3, display: "flex", flexDirection: "row", justifyContent: 'space-around', alignItems: 'center' }} onPress={() => {
                     setSearching(true);
@@ -550,7 +533,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         showSnack(e.message, "ERROR");
                     }).finally(() => {
                         setSearching(false);
-                        setValue("searchTerm", "");
                     });
                 }}>
                     <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', letterSpacing: 0.6, fontSize: 10, color: '#000000'}}>{ phonebook_contact_name !== "" ? phonebook_contact_name : 'Phone Book' }</Text>
@@ -842,18 +824,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: '#EFF3F4',
         marginTop: 10,
         marginBottom: 25,
         borderRadius: 50,
         paddingHorizontal: 5,
         marginHorizontal: 16,
-        paddingVertical: 8,
-        shadowColor: 'rgba(0,0,0,0.2)', // IOS
-        shadowOffset: { height: 1, width: 1 }, // IOS
-        shadowOpacity: 1, // IOS
-        shadowRadius: 1, // IOS
-        elevation: 5, // Android
+        borderWidth: 0.1,
+        backgroundColor: '#EFF3F4',
     },
     header: {
         fontSize: 15,

@@ -19,6 +19,7 @@ import TouchableButton from "../../components/TouchableButton";
 import GenericModal from "../../components/GenericModal";
 import Container from "../../components/Container";
 import {View,Text} from "react-native";
+import {getSecureKey} from "../../utils/secureStore";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -317,35 +318,43 @@ const LoanConfirmation = ({navigation, route}: NavigationProps) => {
     const disbursement_modes = [
         {
             name: "Cheque",
-            value: "Cheque"
+            value: "Cheque",
+            selected: false
         },
         {
             name: "My Account",
-            value: "My Account"
+            value: "My Account",
+            selected: false
         },
         {
             name: "EFT",
-            value: "EFT"
+            value: "EFT",
+            selected: false
         }
     ];
 
     const repayment_modes = [
         {
             name: "Checkoff",
-            value: "Checkoff"
+            value: "Checkoff",
+            selected: false
         },
         {
             name: "Paybill",
-            value: "Paybill"
+            value: "Paybill",
+            selected: false
         },
         {
             name: "Standing Order",
-            value: "Standing Order"
+            value: "Standing Order",
+            selected: false
         }
     ];
 
     const onSubmit = async (dataObject: any) => {
-        if (routeParams && dataObject) {
+        const not = await getSecureKey('notification_id');
+        alert(not);
+        /*if (routeParams && dataObject) {
             // Changes on this data should update member and re-fetch member
 
             try {
@@ -436,7 +445,7 @@ const LoanConfirmation = ({navigation, route}: NavigationProps) => {
                 // setLoanError(error.error.message ? error.error.message : "Your Loan Request has been received successfully, but it's in a pending state. One of our agents will follow up within 48 hours");
                 // setContext("loanRequestError");
             }
-        }
+        }*/
     };
 
     return (

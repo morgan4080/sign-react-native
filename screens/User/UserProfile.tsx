@@ -92,7 +92,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             dispatch(fetchMember()),
                             dispatch(saveContactsToDb()),
                             dispatch(fetchLoanProducts()),
-                            dispatch(fetchLoanRequests({memberRefId: `${member?.refId}`, pageSize: 1}))
+                            dispatch(fetchLoanRequests({memberRefId: `${member?.refId}`, pageSize: 2}))
                         ]))
                         .then(() => {
                             return dispatch(updateOrganisation({tenantId: payload.tenantId, clientSettings: orgLoaded.payload as SettingsPayloadType}));

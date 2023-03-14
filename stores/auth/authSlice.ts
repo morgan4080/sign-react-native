@@ -1010,7 +1010,7 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
 
         myHeaders.append("Content-Type", 'application/json');
 
-        delete payload.memberRefId
+        // delete payload.memberRefId
 
         const response = await fetch(url, {
             method: 'PUT',
@@ -3093,7 +3093,7 @@ const authSlice = createSlice({
             },
             {
                 id: "3",
-                tenantName: 'Centrino',
+                tenantName: 'Kwetu',
                 tenantId: 't10099',
                 clientSecret: 'b50f4bf3-6d72-4865-b974-d589fd881268',
                 employerInfo: false,

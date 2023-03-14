@@ -170,142 +170,17 @@ export default function ModalScreen({ navigation }: NavigationProps) {
       setTakingPhoto(true)
   }
 
-  /*if (takingPhoto) {
-    return (
-        <Camera ratio="16:9" style={{...styles.container, width, height}} ref={cameraRef}>
-          <View style={{position: 'absolute', bottom: 20, width, display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
-            <TouchableOpacity
-              onPress={() => {
-                let options = {
-                  quality: 1,
-                  base64: true,
-                  exif: false
-                }
-
-                cameraRef.current.takePictureAsync(options).then((newPhoto: CameraCapturedPicture) => {
-                  setPhoto(newPhoto);
-                  setTakingPhoto(false);
-                })
-              }}
-              accessibilityLabel="Take Selfie"
-              style={{backgroundColor: '#FFFFFF', width: 75, height: 75, borderRadius: 50}}
-            />
-          </View>
-        </Camera>
-    );
-  } else {*/
-    return (
-        /*<View style={styles.container}>
-          <ScrollView contentContainerStyle={{display: 'flex', alignItems: 'center', paddingBottom: 50}}>
-            {/!*<View style={{paddingTop: 50, width, display: 'flex', alignItems: 'center'}}>
-              {photo ? <TouchableOpacity onPress={() => {
-                    // takePic()
-                    console.log("disabled camera")
-                  }} style={{...styles.userPicBtn, overflow: 'hidden'}}>
-                    <Image style={{width: 108, height: 108, borderRadius: 50}} source={{ uri: "data:image/jpg;base64," + photo?.base64 }} />
-                  </TouchableOpacity>
-                  :
-                  <TouchableOpacity onPress={() => takePic()} style={styles.userPicBtn}>
-                    <MaterialCommunityIcons name="account" color="#FFFFFF" size={50}/>
-                    <Ionicons style={{position: 'absolute', right: '-10%', backgroundColor: "#FFFFFF", bottom: 10, paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100}} name="add-circle-sharp" size={24} color="#489bab" />
-                  </TouchableOpacity>}
-              <Text allowFontScaling={false} style={styles.titleText}>{`${member?.firstName} ${member?.lastName}`}</Text>
-              <Text allowFontScaling={false} style={styles.subTitleText}>{`Member No: ${member?.memberNumber}`}</Text>
-              <Text allowFontScaling={false} style={styles.subTitleText}>{`${user?.companyName}`}</Text>
-            </View>
-            <Text allowFontScaling={false} style={styles.subtitle}>EDIT PROFILE</Text>*!/}
-
-
-          </ScrollView>
-          {/!* Use a light status bar on iOS to account for the black space above the modal *!/}
-          <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-        </View>*/
-        <Container>
-          <TextField field={"firstName"} label={"First Name"} val={getValues} watch={watch} control={control} error={errors.firstName} required={true}/>
-          <TextField field={"lastName"} label={"Last Name"} val={getValues} watch={watch} control={control} error={errors.lastName}  required={true}/>
-          <TextField field={"phoneNumber"} label={"Phone Number"} val={getValues} watch={watch} control={control} error={errors.phoneNumber} required={true}/>
-          <TextField field={"idNumber"} label={"ID Number"} val={getValues} watch={watch} control={control} error={errors.idNumber} required={true}/>
-          <TextField field={"email"} label={"Email"} val={getValues} watch={watch} control={control} error={errors.email} required={true}/>
-          <SwitchField label={"Enable finger print"} field={"fingerPrint"} watch={watch} control={control}/>
-          <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(onSubmit)} />
-          {/*<View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 25}}>
-              <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Allow witness requests</Text>
-              <Controller
-                  control={control}
-                  rules={{
-                    required: true,
-                  }}
-                  render={( {field: {onChange, onBlur, value}}) => (
-                      <Switch
-                          trackColor={{false: "#767577", true: "#489AAB"}}
-                          thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
-                          onValueChange={toggleSwitch}
-                          value={isEnabled}
-                      />
-                  )}
-                  name="fingerPrint"
-              />
-            </View>
-
-            <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 20}}>
-              <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Allow guarantorship requests</Text>
-              <Controller
-                  control={control}
-                  rules={{
-                    required: true,
-                  }}
-                  render={( {field: {onChange, onBlur, value}}) => (
-                      <Switch
-                          trackColor={{false: "#767577", true: "#489AAB"}}
-                          thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
-                          onValueChange={toggleSwitch}
-                          value={isEnabled}
-                      />
-                  )}
-                  name="fingerPrint"
-              />
-            </View>
-
-            <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 20}}>
-              <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Enable finger print</Text>
-              <Controller
-                  control={control}
-                  rules={{
-                    required: true,
-                  }}
-                  render={( {field: {onChange, onBlur, value}}) => (
-                      <Switch
-                          trackColor={{false: "#767577", true: "#489AAB"}}
-                          thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
-                          onValueChange={toggleSwitch}
-                          value={isEnabled}
-                      />
-                  )}
-                  name="fingerPrint"
-              />
-            </View>
-
-            <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: width-90, marginTop: 20}}>
-              <Text allowFontScaling={false} style={{fontSize: 14, color: '#767577', fontFamily: 'Poppins_500Medium'}}>Enable push notifications</Text>
-              <Controller
-                  control={control}
-                  rules={{
-                    required: true,
-                  }}
-                  render={( {field: {onChange, onBlur, value}}) => (
-                      <Switch
-                          trackColor={{false: "#767577", true: "#489AAB"}}
-                          thumbColor={isEnabled ? "#FFFFFF" : "#f4f3f4"}
-                          onValueChange={toggleSwitch}
-                          value={isEnabled}
-                      />
-                  )}
-                  name="fingerPrint"
-              />
-            </View>*/}
-        </Container>
-    );
-  /*}*/
+  return (
+      <Container>
+        <TextField field={"firstName"} label={"First Name"} val={getValues} watch={watch} control={control} error={errors.firstName} required={true}/>
+        <TextField field={"lastName"} label={"Last Name"} val={getValues} watch={watch} control={control} error={errors.lastName}  required={true}/>
+        <TextField field={"phoneNumber"} label={"Phone Number"} val={getValues} watch={watch} control={control} error={errors.phoneNumber} required={true}/>
+        <TextField field={"idNumber"} label={"ID Number"} val={getValues} watch={watch} control={control} error={errors.idNumber} required={true}/>
+        <TextField field={"email"} label={"Email"} val={getValues} watch={watch} control={control} error={errors.email} required={true}/>
+        <SwitchField label={"Enable finger print"} field={"fingerPrint"} watch={watch} control={control}/>
+        <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(onSubmit)} />
+      </Container>
+  );
 }
 
 const styles = StyleSheet.create({

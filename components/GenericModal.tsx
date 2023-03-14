@@ -2,16 +2,18 @@ import React, {Dispatch, useState} from 'react';
 import {Modal, StyleSheet, Text, Pressable, View, useWindowDimensions, TouchableOpacity} from 'react-native';
 import {Raleway_600SemiBold, Raleway_400Regular, useFonts as useRale} from "@expo-google-fonts/raleway";
 import {ErrorsType} from "../screens/Loans/LoanConfirmation";
+import {Ionicons} from "@expo/vector-icons";
 interface ComponentProps {
     modalVisible: boolean;
     setModalVisible: Dispatch<any>
     title: string;
     description: string;
     lrErrors?: ErrorsType;
-    cb: (option?: {context: string; option?: {name: string, value: string}}) => void;
-    options?: {name: string, value: string}[] | null;
+    cb: (option?: {context: string; option?: {name: string, value: string, selected: boolean}}) => void;
+    options?: {name: string, value: string, selected: boolean}[] | null;
 }
 const GenericModal = ({modalVisible, setModalVisible, title, description, lrErrors, cb, options = null}: ComponentProps) => {
+    console.log(options)
     const {width, height} = useWindowDimensions()
     useRale({
         Raleway_600SemiBold,
@@ -31,8 +33,8 @@ const GenericModal = ({modalVisible, setModalVisible, title, description, lrErro
                         <Text style={[styles.modalText, {fontFamily: "Raleway_600SemiBold", textTransform: "uppercase" }]}>{title}</Text>
                         {description !== "" ? <Text style={styles.modalText}>{description}</Text> : null}
                         {
-                            lrErrors && lrErrors.map((err) => (
-                                <Text style={styles.modalText}>{err.code}: {err.message}</Text>
+                            lrErrors && lrErrors.map((err, index) => (
+                                <Text key={index} style={styles.modalText}>{err.code}: {err.message ? err.message : "Error message undefined, technical error."}</Text>
                             ))
                         }
                         <View style={{display: "flex", flexDirection: "column", width: width * 0.5, marginBottom: 20}}>
@@ -42,6 +44,10 @@ const GenericModal = ({modalVisible, setModalVisible, title, description, lrErro
                                         cb({context: 'option', option});
                                         setModalVisible(!modalVisible);
                                     }}>
+                                        {option.selected ?
+                                            <Ionicons style={{position: "absolute", right: 8}} name="radio-button-on-sharp" size={24} color="black"/> :
+                                            <View style={{position: "absolute", right: 8, width: 22, height: 22, borderWidth: 1, borderRadius: 50, borderColor: '#CCCCCC'}}/>
+                                        }
                                         <Text style={{fontFamily: 'Raleway_600SemiBold', fontSize: 14}}>{option.name}</Text>
                                     </TouchableOpacity>
                                 ))
@@ -78,7 +84,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
-    options: {width: "100%", borderRadius: 12, borderColor: 'rgba(204,204,204,0.54)', borderWidth: 1, padding: 10, marginBottom: 10},
+    options: {
+        display: "flex",
+        justifyContent: "center",
+        position: "relative",
+        width: "100%",
+        borderRadius: 12,
+        borderColor: 'rgba(204,204,204,0.54)',
+        borderWidth: 1,
+        padding: 10,
+        marginBottom: 10
+    },
     modalView: {
         margin: 20,
         backgroundColor: 'white',

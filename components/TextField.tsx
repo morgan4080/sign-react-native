@@ -1,4 +1,4 @@
-import {KeyboardTypeOptions, StyleSheet, Text, TextInput, View, Dimensions} from "react-native";
+import {KeyboardTypeOptions, StyleSheet, Text, TextInput, View, Dimensions, TouchableOpacity} from "react-native";
 import Animated, {
     interpolate,
     useAnimatedStyle,
@@ -10,9 +10,10 @@ import Animated, {
 import {Controller, FieldError} from "react-hook-form";
 import {useFonts,Poppins_500Medium, Poppins_300Light} from "@expo-google-fonts/poppins";
 import {useFonts as useRale, Raleway_600SemiBold} from "@expo-google-fonts/raleway";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Control, UseFormWatch} from "react-hook-form/dist/types/form";
 import GenericModal from "./GenericModal";
+import {Ionicons} from "@expo/vector-icons";
 const { width, height } = Dimensions.get("window");
 interface FProps<T> {
     label: string;
@@ -26,7 +27,7 @@ interface FProps<T> {
     keyboardType?: KeyboardTypeOptions;
     secureTextEntry?: boolean;
     error: FieldError | undefined;
-    options?: {name: string, value: string}[] | null;
+    options?: {name: string, value: string, selected: boolean}[] | null;
 }
 const TextField = <T extends object>(
     {
@@ -50,6 +51,8 @@ const TextField = <T extends object>(
     }: FProps<T>
 ) => {
     const moveText = useSharedValue(0);
+
+    const [localOptions, setLocalOptions] = useState(options)
 
     const animStyle = useAnimatedStyle(() => {
         return {
@@ -146,6 +149,8 @@ const TextField = <T extends object>(
         moveTextBottom();
     }
 
+    const input = useRef<TextInput | null>(null)
+
     return (
         <>
             <>
@@ -153,13 +158,23 @@ const TextField = <T extends object>(
                     control={control}
                     rules={rules}
                     render={( {field: {onChange, onBlur, value}}) => (
-                        <View style={[styles.inputContainer, styles.shadowProp, {borderColor: error ? "#d53b39" : "#E7EAEB", borderBottomWidth: error ? 1 : 0 }]}>
+                        <View style={[styles.inputContainer, styles.shadowProp, {marginTop: field === "searchTerm" ? 0 : 16,borderColor: error ? "#d53b39" : "#E7EAEB", borderBottomWidth: error ? 1 : 0 }]}>
                             <Animated.View style={[styles.animatedView, animStyle]}>
-                                <Text allowFontScaling={false} style={styles.label}>
-                                    {label}
-                                </Text>
+                                <TouchableOpacity style={styles.touchable} onPress={() => {
+                                    if (localOptions) {
+                                        setModalVisible(true);
+                                        setIsEditable(false);
+                                        return;
+                                    }
+                                    if (input.current) {
+                                        input.current.focus()
+                                    }
+                                }}>
+                                    <Text allowFontScaling={false} style={styles.label}>{label}</Text>
+                                </TouchableOpacity>
                             </Animated.View>
                             <TextInput
+                                ref={input}
                                 style={styles.input}
                                 autoCapitalize={"none"}
                                 allowFontScaling={false}
@@ -171,23 +186,46 @@ const TextField = <T extends object>(
                                 keyboardType={keyboardType ? keyboardType : undefined}
                                 editable={isEditable}
                             />
+                            {
+                                (localOptions) ? <TouchableOpacity style={{position: "absolute", right: 12}} onPress={() => {
+                                    setModalVisible(true);
+                                    setIsEditable(false);
+                                }}>
+                                    <Ionicons name="ios-caret-down-circle-outline" size={24} color="#0082A0"/>
+                                </TouchableOpacity> : null
+                            }
                         </View>
                     )}
                     name={field}
                 />
 
-                {error && error.message ? <Text allowFontScaling={false} style={styles.error}>{`${error.message}`}</Text> : null}
+                {error && error.message && field !== "searchTerm" ? <Text allowFontScaling={false} style={styles.error}>{`${error.message}`}</Text> : null}
             </>
 
-            { (options) ?
+            { (localOptions) ?
 
                 <GenericModal modalVisible={modalVisible} setModalVisible={setModalVisible} title={`Set ${label}`} description={""} cb={(option) => {
                     console.log("Callback running", option);
+
                     if (option && setVal && option?.context === 'option' && option?.option) {
-                        setVal(field, option?.option.value)
+                        setVal(field, option?.option.value);
+                        const index = localOptions?.findIndex(op => op.value.toLowerCase() === option?.option?.value.toLowerCase())
+                        setLocalOptions(localOptions?.map((op, i) => {
+                            if (index === i) {
+                                return {
+                                    ...op,
+                                    selected: true
+                                }
+                            } else {
+                                return {
+                                    ...op,
+                                    selected: false
+                                }
+                            }
+                        }))
                     }
-                    setIsEditable(true)
-                }} options={options}/> : null
+                    setIsEditable(true);
+                }} options={localOptions}/> : null
             }
         </>
     )
@@ -204,9 +242,13 @@ const styles = StyleSheet.create({
         // textTransform: "capitalize"
     },
 
+    touchable: {
+      position: "absolute"
+    },
+
     animatedView: {
         position: "absolute",
-        top: 18,
+        top: 15,
         paddingHorizontal: 14,
         zIndex: 1
     },

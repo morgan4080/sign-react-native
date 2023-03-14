@@ -141,9 +141,47 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
                     headerShadowVisible: false
                 })
             }} />
-            <Stack.Screen name="LoanProducts" component={LoanProducts} options={{ headerShown: false }} />
+            <Stack.Screen name="LoanProducts" component={LoanProducts} options={({navigation, route}) => {
+                return {
+                    title: "Select Loan Product",
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                }
+            }} />
             <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
-            <Stack.Screen name="LoanPurpose" component={LoanPurpose} options={{ headerShown: false }} />
+            <Stack.Screen name="LoanPurpose" component={LoanPurpose} options={({navigation, route}) => {
+                return {
+                    title: "Select Loan Purpose",
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                }
+            }} />
             <Stack.Screen name="ReplaceActor" component={ReplaceActor} options={{ headerShown: false }} />
             <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={({navigation, route}) => {
                 return ({

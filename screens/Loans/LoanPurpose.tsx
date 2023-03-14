@@ -99,26 +99,12 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
 
     if (fontsLoaded) {
         return (
-            <SafeAreaView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
+            <SafeAreaView style={{flex: 1, paddingTop: 10, position: 'relative'}}>
                 <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', left: -100, top: '20%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', right: -80, top: '10%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
                 <View style={styles.container}>
                     <View style={{flex: 1, alignItems: 'center',}}>
-                        <View style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            width,
-                            position: 'relative'
-                        }}>
-                            <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', top: 10, left: 10 }}>
-                                <Ionicons name="chevron-back-sharp" size={30} style={{ paddingLeft: 2 }} color="#489AAB" />
-                            </TouchableOpacity>
-
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginTop: 15, marginBottom: 10 }}>Loan Purpose Category</Text>
-                        </View>
                         <View style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0)', borderTopLeftRadius: 25, borderTopRightRadius: 25, width }}>
                             <ScrollView refreshControl={
                                 <RefreshControl refreshing={refreshing} onRefresh={fetchLoanCategories} />

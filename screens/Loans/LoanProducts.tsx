@@ -186,32 +186,25 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
 
     const Item = ({ product }: { product: LoanProduct } ) => (
         <TouchableOpacity key={product.refId} style={styles.tile} onPress={() => checkPendingLoan(product)}>
-            <Text allowFontScaling={false} style={{color: '#575757', fontFamily: 'Poppins_400Regular', fontSize: 13}}>{ product.name }</Text>
+            <View>
+                <Text allowFontScaling={false} style={{ color: '#0C212C', fontSize: 13, fontFamily: 'Poppins_600SemiBold' }}>
+                    { product.name }
+                </Text>
+                <Text allowFontScaling={false} style={{ color: '#576B74', fontSize: 11, fontFamily: 'Poppins_500Medium' }}>
+                    Interest { product.interestRate } %
+                </Text>
+            </View>
             <MaterialIcons name="keyboard-arrow-right" size={40} color="#ADADAD"/>
         </TouchableOpacity>
     );
 
     if (fontsLoaded) {
         return (
-            <SafeAreaView style={{flex: 1, marginTop: Bar.currentHeight, position: 'relative'}}>
+            <SafeAreaView style={{flex: 1, marginTop: 10, position: 'relative'}}>
                 <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', left: -100, top: '20%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                 <View style={{ position: 'absolute', right: -80, top: '10%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
-                <View style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    width,
-                    position: 'relative'
-                }}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', top: 12, left: 12 }}>
-                        <Ionicons name="chevron-back-sharp" size={30} style={{ paddingLeft: 2 }} color="#489AAB" />
-                    </TouchableOpacity>
-
-                    <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 18, marginVertical: 15 }}>Select Loan Product</Text>
-                </View>
                 <SectionList
-                    style={{paddingHorizontal: 20}}
                     refreshing={loading}
                     progressViewOffset={5}
                     onRefresh={() => dispatch(fetchLoanProducts())}
@@ -261,7 +254,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         borderRadius: 20,
-        marginVertical: 10,
+        margin: 10,
         height: 74,
         paddingHorizontal: 20,
         shadowColor: 'rgba(0,0,0, .4)', // IOS
@@ -269,7 +262,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 1, // IOS
         shadowRadius: 1, //IOS
         backgroundColor: '#FFFFFF',
-        elevation: 2, // Android
+        elevation: 5, // Android
     },
     progress: {
         backgroundColor: '#489AAB',

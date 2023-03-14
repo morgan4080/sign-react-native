@@ -145,7 +145,26 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
             <Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />
             <Stack.Screen name="LoanPurpose" component={LoanPurpose} options={{ headerShown: false }} />
             <Stack.Screen name="ReplaceActor" component={ReplaceActor} options={{ headerShown: false }} />
-            <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={{ headerShown: false }} />
+            <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={({navigation, route}) => {
+                return ({
+                    title: 'Add Guarantors',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                })
+            }} />
             <Stack.Screen name="WitnessesHome" component={WitnessesHome} options={{ headerShown: false }} />
             <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={({ navigation, route }) => {
                 return ({

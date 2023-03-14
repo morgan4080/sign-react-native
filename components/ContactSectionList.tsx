@@ -1,10 +1,11 @@
 import {SectionList, StyleSheet, Text, View, TouchableOpacity, NativeModules, Dimensions} from 'react-native';
-import {Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {AntDesign, Ionicons, MaterialIcons} from "@expo/vector-icons";
 import {addFavouriteGuarantor, storeState} from "../stores/auth/authSlice";
 import {useSelector} from "react-redux";
 import Cry from "../assets/images/cry.svg"
 import {showSnack} from "../utils/immediateUpdate";
 import {useAppDispatch, useMember} from "../stores/hooks";
+import {Poppins_300Light, Poppins_400Regular, useFonts} from "@expo-google-fonts/poppins";
 
 type contactType = {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string, amountToGuarantee: any}
 
@@ -25,6 +26,10 @@ const getAbbreviation = (name: string) => {
 const { width, height } = Dimensions.get("window");
 
 const Item = ({ contact, removeContact, contactList, section, onPress, setEmployerDetailsEnabled }: { contact: contactType, removeContact: any, contactList: any, section: any, setEmployerDetailsEnabled: any, onPress: any }) => {
+    useFonts([
+        Poppins_300Light,
+        Poppins_400Regular
+    ])
     const isChecked = contactList.find((con: any ) => con.memberNumber === contact.memberNumber)
     const [member] = useMember()
     const dispatch = useAppDispatch()
@@ -81,10 +86,11 @@ const Item = ({ contact, removeContact, contactList, section, onPress, setEmploy
                 </TouchableOpacity>
             </View>
         ): (
-            <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 50}}>
-                {/*<Cry width={width/1.5} height={height/3}/>*/}
-                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 12, marginRight: 10, color: '#737373', textAlign: 'center', width: '66%'}}>
-                    Enter guarantor’s phone or member number above. Or click on the top right button to search from your phonebook.</Text>
+            <View style={{display: 'flex', flexDirection: "row", justifyContent: 'space-around', alignItems: 'center', margin: 16, paddingHorizontal: 10}}>
+                <AntDesign name="infocirlceo" size={24} color="#6e5638" />
+                <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', fontSize: 12, letterSpacing: 0.7, color: '#6e5638', width: "80%" }}>
+                    Add guarantors using phone number or member number on the above text input.
+                </Text>
             </View>
         )
     } else if (section.id === 1) {
@@ -108,6 +114,11 @@ const Item = ({ contact, removeContact, contactList, section, onPress, setEmploy
 
 const ContactSectionList = ({contactsData, searching, addContactToList, removeContactFromList, contactList, onPress, setEmployerDetailsEnabled}: propType) => {
 
+    useFonts([
+        Poppins_300Light,
+        Poppins_400Regular
+    ])
+
     const { loading } = useSelector((state: { auth: storeState }) => state.auth);
 
     const removeContact = async (contact: {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}) => {
@@ -115,19 +126,35 @@ const ContactSectionList = ({contactsData, searching, addContactToList, removeCo
     };
 
     return (
-        <>
+        <View>
             <SectionList
                 refreshing={loading}
                 onRefresh={() => console.log('refresh')}
                 progressViewOffset={20}
                 sections={contactsData}
                 keyExtractor={(item, index) => item.name + index}
-                renderItem={({ item, section }) => (<Item contact={item} section={section} removeContact={removeContact} contactList={contactList} onPress={onPress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} />)}
-                renderSectionHeader={({ section: { title, data } }) => (<Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_300Light', paddingHorizontal: 20, paddingVertical: title !== 'OPTIONS' ? 10 : 0 }}>{title}</Text>)}
+                renderItem={({ item, section }) => (
+                    <Item
+                        contact={item}
+                        section={section}
+                        removeContact={removeContact}
+                        contactList={contactList}
+                        onPress={onPress}
+                        setEmployerDetailsEnabled={setEmployerDetailsEnabled}
+                    />
+                )}
+                renderSectionHeader={({ section: { title, data } }) => (
+                    <Text
+                        allowFontScaling={false}
+                        style={[styles.label, { paddingVertical: title !== 'OPTIONS' ? 10 : 0 }]}
+                    >
+                        {title}
+                    </Text>
+                )}
                 stickySectionHeadersEnabled={true}
-                ListFooterComponent={<View style={{height: 75}} />}
+                ListFooterComponent={() => (<View style={{ height: 75}} />)}
             />
-        </>
+        </View>
     )
 };
 
@@ -137,7 +164,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: "#FFFFFF",
-        padding: 20
+        paddingVertical: 20,
+        paddingHorizontal: 10
     },
     title: {
         fontSize: 14,
@@ -153,6 +181,12 @@ const styles = StyleSheet.create({
         width: 35,
         height: 35,
     },
+    label: {
+        fontSize: 12,
+        marginHorizontal: 16,
+        fontFamily: 'Poppins_400Regular',
+        paddingHorizontal: 10
+    }
 });
 
 export default ContactSectionList;

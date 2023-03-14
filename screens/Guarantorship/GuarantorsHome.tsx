@@ -28,6 +28,7 @@ import Container from "../../components/Container";
 import TextField from "../../components/TextField";
 import TouchableButton from "../../components/TouchableButton";
 import {useAppDispatch} from "../../stores/hooks";
+import {Poppins_300Light, Poppins_400Regular, useFonts} from "@expo-google-fonts/poppins";
 const { width } = Dimensions.get("window");
 type searchedMemberType = { contact_id: string; memberNumber: string; memberRefId: string; name: string; phone: string }
 type FormData = {
@@ -94,6 +95,10 @@ type businessPayloadType = {
 }
 
 const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
+    useFonts([
+        Poppins_300Light,
+        Poppins_400Regular
+    ])
     const {
         control,
         handleSubmit,
@@ -243,30 +248,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const un_guaranteed = () => {
         return `${route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount)}`;
     }
-
-    useEffect(() => {
-        let reactToSearch = true;
-
-        if (reactToSearch && searching) {
-            getSecureKey("alpha2Code")
-            .then(alpha2Code => getContact(421, alpha2Code))
-            .then(data => Promise.resolve(JSON.parse(data)))
-            .then((data) => {
-                set_phonebook_contact_name(`${data.name ? data.name : "" }`);
-                setValue('searchTerm', `${data.country_code}${data.phone_no}`);
-                return searchMemberByPhone(`${data.country_code}${data.phone_no}`);
-            })
-            .then(addContactToList)
-            .catch(e => {
-                showSnack(e.message, "ERROR");
-            });
-        }
-
-        return () => {
-            reactToSearch = false;
-            setSearching(false);
-        };
-    }, [searching]);
 
     // add to sectionList
     // ${route.params?.loanProduct.requiredGuarantors} ${route.params?.loanProduct.requiredGuarantors == 1 ? 'Guarantor' : 'Guarantors'}`
@@ -529,27 +510,22 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
     return (
         <GestureHandlerRootView style={styles.container}>
-            <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-end', marginHorizontal: 10, paddingHorizontal: 5}}>
-                <Pressable style={{paddingBottom: 6, paddingRight: 20}} onPress={() => navigation.goBack()}>
-                    <AntDesign name="arrowleft" size={24} color="#489AAB" />
-                </Pressable>
-                <Text allowFontScaling={false} style={{fontSize: 18, letterSpacing: 0.5, paddingTop: 20, paddingBottom: 10 }}>Add Guarantors</Text>
-            </View>
             <View style={styles.searchableHeader}>
                 <TouchableOpacity style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} onPress={submitEdit}>
-                    <AntDesign name="search1" size={15} color="rgba(0,0,0,0.89)" />
+                    <AntDesign name="search1" size={22} color="rgba(0,0,0,0.89)" />
                 </TouchableOpacity>
                 <View style={{flex: 0.6, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                    <Controller
+                    <TextField label={"Search mobile or member no."} field={"searchTerm"} val={getValues} watch={watch} control={control} error={errors.searchTerm} />
+                    {/*<Controller
                         control={control}
                         render={( { field: { onChange, onBlur, value } }) => (
                             <TextInput
                                 allowFontScaling={false}
-                                style={{paddingLeft: 10, fontFamily: 'Poppins_400Regular', fontSize: 12, minWidth: width/1.5, color: '#393a34', textDecorationLine: "underline"}}
+                                style={{paddingLeft: 10, fontFamily: 'Poppins_400Regular', fontSize: 12, minWidth: width/1.5, color: '#393a34'}}
                                 onBlur={onBlur}
                                 onChangeText={onChange}
                                 value={value}
-                                placeholder={`Enter Mobile/Member No`}
+                                placeholder={`Search Mobile/Member No`}
                                 maxLength={12}
                                 onEndEditing={() => {set_phonebook_contact_name("")}}
                                 onSubmitEditing={submitEdit}
@@ -557,14 +533,29 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                             />
                         )}
                         name="searchTerm"
-                    />
+                    />*/}
                 </View>
-                <TouchableOpacity style={{ flex: 0.3, display: "flex", flexDirection: "row", justifyContent: 'flex-end', alignItems: 'center', borderLeftWidth: 1, borderLeftColor: '#cccccc'}} onPress={() => {
-                    setSearching(!searching);
+                <TouchableOpacity style={{ flex: 0.3, display: "flex", flexDirection: "row", justifyContent: 'space-around', alignItems: 'center' }} onPress={() => {
+                    setSearching(true);
+                    getSecureKey("alpha2Code")
+                    .then(alpha2Code => getContact(421, alpha2Code))
+                    .then((data) => {
+                        const dataObject = JSON.parse(data);
+                        set_phonebook_contact_name(`${dataObject.name ? dataObject.name : "" }`);
+                        setValue('searchTerm', `${dataObject.country_code}${dataObject.phone_no}`);
+                        return searchMemberByPhone(`${dataObject.country_code}${dataObject.phone_no}`);
+                    })
+                    .then(addContactToList)
+                    .catch(e => {
+                        showSnack(e.message, "ERROR");
+                    }).finally(() => {
+                        setSearching(false);
+                        setValue("searchTerm", "");
+                    });
                 }}>
-                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 10, marginRight: 10, color: '#737373'}}>{ phonebook_contact_name !== "" ? phonebook_contact_name : 'Phone Book' }</Text>
+                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', letterSpacing: 0.6, fontSize: 10, color: '#000000'}}>{ phonebook_contact_name !== "" ? phonebook_contact_name : 'Phone Book' }</Text>
 
-                    <AntDesign style={{ paddingRight: 10, paddingVertical: 5, paddingLeft: 2 }} name="contacts" size={22} color="rgba(0,0,0,0.89)" />
+                    <AntDesign name="contacts" size={22} color="rgba(0,0,0,0.89)" />
                 </TouchableOpacity>
             </View>
             <ContactSectionList
@@ -617,22 +608,22 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 </TouchableOpacity>
                 {context === "options" ?
                     <BottomSheetFlatList
-                        style={{zIndex: 15}}
                         data={guarantorshipOptions}
                         keyExtractor={item => item.id}
-                        renderItem={({i, item}: any) => (<RenderItem
-                            key={i}
-                            item={item}
-                            context={context}
-                            member={member}
-                            setValue={setValue}
-                            route={route}
-                            searchMemberByMemberNo={searchMemberByMemberNo}
-                            addContactToList={addContactToList}
-                            handleClosePress={handleClosePress}
-                            setEmployerDetailsEnabled={setEmployerDetailsEnabled}
-                            setContext={setContext}
-                        />)}
+                        renderItem={({i, item}: any) => (
+                            <RenderItem
+                                item={item}
+                                context={context}
+                                member={member}
+                                setValue={setValue}
+                                route={route}
+                                searchMemberByMemberNo={searchMemberByMemberNo}
+                                addContactToList={addContactToList}
+                                handleClosePress={handleClosePress}
+                                setEmployerDetailsEnabled={setEmployerDetailsEnabled}
+                                setContext={setContext}
+                            />
+                        )}
                         ListEmptyComponent={() => (
                             <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 50}}>
                                 <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 12, marginRight: 10, color: '#737373', textAlign: 'center', width: '66%'}}>
@@ -642,143 +633,138 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         )}
                     />
                     :
-                    <BottomSheetScrollView contentContainerStyle={{backgroundColor: "white"}}>
-                        <Container>
-                            {
-                                context === "amount" &&
-                                <>
-                                    <View style={{paddingHorizontal: 5}}>
-                                        <Text allowFontScaling={false} style={styles.subtitle}>Guarantor: {currentGuarantor?.name}</Text>
-                                        <Text allowFontScaling={false} style={styles.subtitle2}>
-                                            Remaining Amount:
-                                            <Text style={{textDecorationLine: 'underline'}}>{toMoney(un_guaranteed())}</Text>
-                                        </Text>
-                                    </View>
+                    <BottomSheetScrollView contentContainerStyle={{backgroundColor: "white", paddingHorizontal: 16}}>
+                        {
+                            context === "amount" &&
+                            <>
+                                <View style={{paddingHorizontal: 5}}>
+                                    <Text allowFontScaling={false} style={styles.subtitle}>Guarantor: {currentGuarantor?.name}</Text>
+                                    <Text allowFontScaling={false} style={styles.subtitle2}>
+                                        Remaining Amount:
+                                        <Text style={{textDecorationLine: 'underline'}}>{toMoney(un_guaranteed())}</Text>
+                                    </Text>
+                                </View>
 
-                                    <TextField
-                                        label={"Amount to guarantee"}
-                                        field={"amountToGuarantee"}
-                                        val={getValues}
-                                        watch={watch}
-                                        control={control}
-                                        error={errors.amountToGuarantee}
-                                        required={true}
-                                        keyboardType={"number-pad"}
-                                    />
+                                <TextField
+                                    label={"Amount to guarantee"}
+                                    field={"amountToGuarantee"}
+                                    val={getValues}
+                                    watch={watch}
+                                    control={control}
+                                    error={errors.amountToGuarantee}
+                                    required={true}
+                                    keyboardType={"number-pad"}
+                                />
 
-                                    {/*<Pressable disabled={!heldMember} onPress={submitAmount} style={{marginTop: 20, backgroundColor: !heldMember ? "#CCCCCC" : "#489AAB", paddingHorizontal: 50, paddingVertical: 15, borderRadius: 25}}>
-                                        <Text allowFontScaling={false} style={{color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_600SemiBold', textTransform: 'uppercase'}}>Submit Amount</Text>
-                                    </Pressable>*/}
+                                <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(submitAmount)} />
+                            </>
+                        }
+                        { context === "employment" &&
+                            <>
+                                <View style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', width: width-50, paddingBottom: 15 }}>
+                                    <TouchableOpacity onPress={() => {
+                                        setTab(0)
+                                    }} style={{ display: 'flex', borderBottomWidth: tab === 0 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
+                                        <Text allowFontScaling={false} style={[{color: tab === 0 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Employed</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => {
+                                        setTab(1)
+                                    }} style={{ display: 'flex', borderBottomWidth: tab === 1 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
+                                        <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                {   tab === 0 ?
+                                    <>
+                                        <TextField
+                                            field={"employerName"}
+                                            label={"Employer"}
+                                            val={getValues}
+                                            watch={watch}
+                                            control={control}
+                                            error={errors.employerName}
+                                            required={true}
+                                            rules={{
+                                                required: {
+                                                    value: true,
+                                                    message: "Employer Name is required"
+                                                }
+                                            }}
+                                            keyboardType={"default"}
+                                            secureTextEntry={false}
+                                        />
+                                        <TextField
+                                            field={"serviceNo"}
+                                            label={"Employment Number"}
+                                            val={getValues}
+                                            watch={watch}
+                                            control={control}
+                                            error={errors.serviceNo}
+                                            required={true}
+                                            rules={{
+                                                required: {
+                                                    value: true,
+                                                    message: "Employer service no. required"
+                                                }
+                                            }}
+                                            keyboardType={"default"}
+                                            secureTextEntry={false}
+                                        />
+                                        <TextField
+                                            field={"grossSalary"}
+                                            label={"Gross Salary"}
+                                            val={getValues}
+                                            watch={watch}
+                                            control={control}
+                                            error={errors.grossSalary}
+                                            required={true}
+                                            rules={{
+                                                required: {
+                                                    value: true,
+                                                    message: "Gross salary required"
+                                                }
+                                            }}
+                                            keyboardType={"numeric"}
+                                            secureTextEntry={false}
+                                        />
+                                        <TextField
+                                            field={"netSalary"}
+                                            label={"Net Salary"}
+                                            val={getValues}
+                                            watch={watch}
+                                            control={control}
+                                            error={errors.netSalary}
+                                            required={true}
+                                            rules={{
+                                                required: {
+                                                    value: true,
+                                                    message: "Net salary required"
+                                                }
+                                            }}
+                                            keyboardType={"numeric"}
+                                            secureTextEntry={false}
+                                        />
+                                        <TextField
+                                            field={"kraPin"}
+                                            label={"KRA Pin"}
+                                            val={getValues}
+                                            watch={watch}
+                                            control={control}
+                                            error={errors.kraPin}
+                                            required={true}
+                                            rules={{
+                                                required: {
+                                                    value: true,
+                                                    message: "KRA pin required"
+                                                }
+                                            }}
+                                            keyboardType={"default"}
+                                            secureTextEntry={false}
+                                        />
+                                    </> : null
+                                }
 
-                                    <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(submitAmount)} />
-                                </>
-                            }
-                            { context === "employment" &&
-                                <>
-                                    <View style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', width: width-50, paddingBottom: 15 }}>
-                                        <TouchableOpacity onPress={() => {
-                                            setTab(0)
-                                        }} style={{ display: 'flex', borderBottomWidth: tab === 0 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
-                                            <Text allowFontScaling={false} style={[{color: tab === 0 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Employed</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => {
-                                            setTab(1)
-                                        }} style={{ display: 'flex', borderBottomWidth: tab === 1 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
-                                            <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                    {   tab === 0 ?
-                                        <>
-                                            <TextField
-                                                field={"employerName"}
-                                                label={"Employer"}
-                                                val={getValues}
-                                                watch={watch}
-                                                control={control}
-                                                error={errors.employerName}
-                                                required={true}
-                                                rules={{
-                                                    required: {
-                                                        value: true,
-                                                        message: "Employer Name is required"
-                                                    }
-                                                }}
-                                                keyboardType={"default"}
-                                                secureTextEntry={false}
-                                            />
-                                            <TextField
-                                                field={"serviceNo"}
-                                                label={"Employment Number"}
-                                                val={getValues}
-                                                watch={watch}
-                                                control={control}
-                                                error={errors.serviceNo}
-                                                required={true}
-                                                rules={{
-                                                    required: {
-                                                        value: true,
-                                                        message: "Employer service no. required"
-                                                    }
-                                                }}
-                                                keyboardType={"default"}
-                                                secureTextEntry={false}
-                                            />
-                                            <TextField
-                                                field={"grossSalary"}
-                                                label={"Gross Salary"}
-                                                val={getValues}
-                                                watch={watch}
-                                                control={control}
-                                                error={errors.grossSalary}
-                                                required={true}
-                                                rules={{
-                                                    required: {
-                                                        value: true,
-                                                        message: "Gross salary required"
-                                                    }
-                                                }}
-                                                keyboardType={"numeric"}
-                                                secureTextEntry={false}
-                                            />
-                                            <TextField
-                                                field={"netSalary"}
-                                                label={"Net Salary"}
-                                                val={getValues}
-                                                watch={watch}
-                                                control={control}
-                                                error={errors.netSalary}
-                                                required={true}
-                                                rules={{
-                                                    required: {
-                                                        value: true,
-                                                        message: "Net salary required"
-                                                    }
-                                                }}
-                                                keyboardType={"numeric"}
-                                                secureTextEntry={false}
-                                            />
-                                            <TextField
-                                                field={"kraPin"}
-                                                label={"KRA Pin"}
-                                                val={getValues}
-                                                watch={watch}
-                                                control={control}
-                                                error={errors.kraPin}
-                                                required={true}
-                                                rules={{
-                                                    required: {
-                                                        value: true,
-                                                        message: "KRA pin required"
-                                                    }
-                                                }}
-                                                keyboardType={"default"}
-                                                secureTextEntry={false}
-                                            />
-                                        </> : null
-                                    }
-
-                                    {
-                                        tab === 1 ?
+                                {
+                                    tab === 1 ?
                                         <>
                                             <TextField
                                                 field={"businessLocation"}
@@ -835,12 +821,11 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                             />
 
                                         </> : null
-                                    }
+                                }
 
-                                    <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(submitKYC)} />
-                                </>
-                            }
-                        </Container>
+                                <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(submitKYC)} />
+                            </>
+                        }
                     </BottomSheetScrollView>
                 }
             </BottomSheet>
@@ -850,22 +835,19 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        paddingTop: StatusBar.currentHeight,
-        marginHorizontal: 0,
-        backgroundColor: '#FFFFFF'
+        flex: 1
     },
     searchableHeader: {
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: '#f4f3f4',
+        backgroundColor: '#EFF3F4',
         marginTop: 10,
         marginBottom: 25,
-        marginHorizontal: 10,
         borderRadius: 50,
         paddingHorizontal: 5,
+        marginHorizontal: 16,
         paddingVertical: 8,
         shadowColor: 'rgba(0,0,0,0.2)', // IOS
         shadowOffset: { height: 1, width: 1 }, // IOS

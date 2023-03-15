@@ -352,9 +352,7 @@ const LoanConfirmation = ({navigation, route}: NavigationProps) => {
     ];
 
     const onSubmit = async (dataObject: any) => {
-        const not = await getSecureKey('notification_id');
-        alert(not);
-        /*if (routeParams && dataObject) {
+        if (routeParams && dataObject) {
             // Changes on this data should update member and re-fetch member
 
             try {
@@ -445,7 +443,7 @@ const LoanConfirmation = ({navigation, route}: NavigationProps) => {
                 // setLoanError(error.error.message ? error.error.message : "Your Loan Request has been received successfully, but it's in a pending state. One of our agents will follow up within 48 hours");
                 // setContext("loanRequestError");
             }
-        }*/
+        }
     };
 
     return (

@@ -2789,14 +2789,14 @@ export const OnboardUser = createAsyncThunk("OnboardUser", async (params: string
             console.log('save all data', data)
             return fulfillWithValue(data)
         } else if (response.status === 204) {
-            return rejectWithValue(response.status + ": The Identifier provided is not linked to the organization. Kindly confirm with your Organization")
+            return rejectWithValue(response.status + ": The Identifier provided is not linked to the organization.")
         } else if (response.status === 500) {
             let x = await response.json()
             console.log(JSON.stringify(x))
             if (x.isTechnical) {
-                return rejectWithValue("Error: " + response.status)
+                return rejectWithValue(response.status + " " + x.message)
             } else {
-                return rejectWithValue("Error: " + response.status + " " + x.message)
+                return rejectWithValue(response.status + " " + x.message)
             }
         } else {
             return rejectWithValue("Error: " + response.status)
@@ -3098,7 +3098,7 @@ const authSlice = createSlice({
                 clientSecret: 'b50f4bf3-6d72-4865-b974-d589fd881268',
                 employerInfo: false,
                 guarantors: 'count',
-                witness: true,
+                witness: false,
                 repaymentDisbursementModes: true,
                 amounts: true,
                 selfGuarantee: false,

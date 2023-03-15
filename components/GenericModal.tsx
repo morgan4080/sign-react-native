@@ -30,11 +30,11 @@ const GenericModal = ({modalVisible, setModalVisible, title, description, lrErro
                 }}>
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
-                        <Text style={[styles.modalText, {fontFamily: "Raleway_600SemiBold", textTransform: "uppercase" }]}>{title}</Text>
-                        {description !== "" ? <Text style={styles.modalText}>{description}</Text> : null}
+                        <Text allowFontScaling={false} style={[styles.modalText, {fontFamily: "Raleway_600SemiBold", textTransform: "uppercase" }]}>{title}</Text>
+                        {description !== "" ? <Text allowFontScaling={false} style={styles.modalText}>{description}</Text> : null}
                         {
                             lrErrors && lrErrors.map((err, index) => (
-                                <Text key={index} style={styles.modalText}>{err.code}: {err.message ? err.message : "Error message undefined, technical error."}</Text>
+                                <Text allowFontScaling={false} key={index} style={styles.modalText}>{err.code}: {err.message ? err.message : "Your Loan Request has been received successfully but it's in a pending state. One of our agents will follow up within 48 hours."}</Text>
                             ))
                         }
                         <View style={{display: "flex", flexDirection: "column", width: width * 0.5, marginBottom: 20}}>
@@ -48,7 +48,7 @@ const GenericModal = ({modalVisible, setModalVisible, title, description, lrErro
                                             <Ionicons style={{position: "absolute", right: 8}} name="radio-button-on-sharp" size={24} color="black"/> :
                                             <View style={{position: "absolute", right: 8, width: 22, height: 22, borderWidth: 1, borderRadius: 50, borderColor: '#CCCCCC'}}/>
                                         }
-                                        <Text style={{fontFamily: 'Raleway_600SemiBold', fontSize: 14}}>{option.name}</Text>
+                                        <Text allowFontScaling={false} style={{fontFamily: 'Raleway_600SemiBold', fontSize: 14}}>{option.name}</Text>
                                     </TouchableOpacity>
                                 ))
                             }
@@ -60,7 +60,7 @@ const GenericModal = ({modalVisible, setModalVisible, title, description, lrErro
                                     cb({context: 'dismiss'})
                                     setModalVisible(!modalVisible)
                                 }}>
-                                <Text style={styles.textStyle}>Dismiss</Text>
+                                <Text allowFontScaling={false} style={styles.textStyle}>Dismiss</Text>
                             </Pressable>
                             <Pressable
                                 style={[styles.button, styles.buttonProceed]}
@@ -68,7 +68,7 @@ const GenericModal = ({modalVisible, setModalVisible, title, description, lrErro
                                     cb({context: 'proceed'})
                                     setModalVisible(!modalVisible)
                                 }}>
-                                <Text style={styles.textStyle}>Proceed</Text>
+                                <Text allowFontScaling={false} style={styles.textStyle}>Proceed</Text>
                             </Pressable>
                         </View>
                     </View>

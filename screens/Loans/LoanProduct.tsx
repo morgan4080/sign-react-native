@@ -32,6 +32,9 @@ import {
 import {Controller, useForm} from "react-hook-form";
 import {RotateView} from "../Auth/VerifyOTP";
 import {useState} from "react";
+import Container from "../../components/Container";
+import TextField from "../../components/TextField";
+import TouchableButton from "../../components/TouchableButton";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -63,6 +66,8 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
         control,
         handleSubmit,
         setError,
+        watch,
+        getValues,
         setValue,
         formState: { errors }
     } = useForm<FormData>(
@@ -88,7 +93,7 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
 
     let pData = [];
 
-    for(let i=0;i<ps.length;i++){
+    for(let i=1;i<ps.length;i++){
         pData.push(i+1)
     }
 
@@ -110,14 +115,13 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
     }, [])
 
     const onSubmit = async (value: any): Promise<void> => {
-        console.log(value.customPeriod)
         if (value.customPeriod) {
             navigation.navigate('LoanPurpose',
                 {
                     loanProduct: route.params?.loanProduct,
                     loanDetails: {
                         desiredAmount: value.desiredAmount,
-                        desiredPeriod: value.customPeriod
+                        desiredPeriod: `${value.customPeriod}`.replace(/\,/g, "")
                     }
                 }
             )
@@ -128,7 +132,7 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
                 loanProduct: route.params?.loanProduct,
                 loanDetails: {
                     desiredAmount: value.desiredAmount,
-                    desiredPeriod: value.desiredPeriod
+                    desiredPeriod: `${value.desiredPeriod}`.replace(/\,/g, "")
                 }
             }
         )
@@ -138,112 +142,57 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
 
     if (fontsLoaded && !loading) {
         return (
-            <View style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
-                <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', left: -100, top: 200, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
-                <View style={styles.container}>
-                    <View style={{flex: 1, alignItems: 'center',}}>
-                        <View style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            width,
-                            height: 3/12 * height,
-                            position: 'relative'
-                        }}>
-                            <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', top: 10, left: 10 }}>
-                                <Ionicons name="chevron-back-sharp" size={30} style={{ paddingLeft: 2 }} color="#489AAB" />
-                            </TouchableOpacity>
-
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 20, marginTop: 30 }}>Enter Loan Details</Text>
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>{ route.params?.loanProduct.name }</Text>
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_300Light', fontSize: 12 }}>Interest { route.params?.loanProduct.interestRate }%</Text>
-                        </View>
-                        <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 25, borderTopRightRadius: 25, width: width, height: 9/12 * height }}>
-                            <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 50 }}>
-                                {/*<Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_400Regular', fontSize: 18, marginTop: 30, maxWidth: width/2 }}>Your current Loan limit is (KES 60,000)</Text>*/}
-                                <Controller
-                                    control={control}
-                                    rules={{
-                                        required: true,
-                                    }}
-                                    render={( { field: { onChange, onBlur, value } }) => (
-                                        <TextInput
-                                            allowFontScaling={false}
-                                            style={styles.input}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            placeholder="Desired Amount"
-                                            keyboardType="numeric"
-                                        />
-                                    )}
-                                    name="desiredAmount"
-                                />
-                                {errors.desiredAmount && <Text allowFontScaling={false} style={styles.error}>{errors.desiredAmount?.message ? errors.desiredAmount?.message : 'Loan amount is required'}</Text>}
-                                <Controller
-                                    control={control}
-                                    render={( { field: { onChange, onBlur, value } }) => (
-                                        <View style={styles.input0}>
-                                            <Picker
-                                                style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 15, }}
-                                                onBlur={onBlur}
-                                                selectedValue={value}
-                                                onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-                                            >
-                                                { loanPeriods.map((p, i) =>(
-                                                    <Picker.Item key={i} label={p.name} value={p.period} color='#767577' fontFamily='Poppins_500Medium' />
-                                                ))}
-                                            </Picker>
-                                            <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: -5}}>Select Desired Period (Eg. 1-24 Months)</Text>
-                                        </View>
-                                    )}
-                                    name="desiredPeriod"
-                                />
-
-                                {
-                                    custom &&
-                                    <>
-                                    <Controller
-                                        control={control}
-                                        rules={{
-                                            required: true,
-                                        }}
-                                        render={( { field: { onChange, onBlur, value } }) => (
-                                            <TextInput
-                                                allowFontScaling={false}
-                                                style={styles.input}
-                                                onBlur={onBlur}
-                                                onChangeText={onChange}
-                                                value={value}
-                                                placeholder="Desired Period"
-                                                keyboardType="numeric"
-                                            />
-                                        )}
-                                        name="customPeriod"
-                                    />
-                                    {errors.customPeriod && <Text allowFontScaling={false} style={styles.error}>{errors.customPeriod?.message ? errors.customPeriod?.message : 'Loan amount is required'}</Text>}
-                                    </>
-                                }
-
-                                <TouchableHighlight style={styles.button} onPress={handleSubmit(onSubmit)}>
-                                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Text allowFontScaling={false} style={styles.buttonText}>CONFIRM</Text>
-                                    </View>
-                                </TouchableHighlight>
-
-                                <Pressable style={styles.button0} onPress={() => navigation.navigate('LoanProducts')}>
-                                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Text allowFontScaling={false} style={styles.buttonText0}>Cancel</Text>
-                                    </View>
-                                </Pressable>
-                            </ScrollView>
-                        </SafeAreaView>
-                    </View>
+            <Container>
+                <View style={{ paddingHorizontal: 5, marginTop: 30 }}>
+                    <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 20 }}>{ `${route.params?.loanProduct.name}`.replace(/\_/g, " ") }</Text>
+                    <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>Interest { route.params?.loanProduct.interestRate }%</Text>
+                    <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_300Light', fontSize: 12 }}>Max period {route.params?.loanProduct.maxPeriod} (months)</Text>
                 </View>
-                <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'}/>
-            </View>
+
+                <TextField
+                    label={"Desired amount"}
+                    field={"desiredAmount"}
+                    val={getValues}
+                    watch={watch}
+                    control={control}
+                    error={errors.desiredAmount}
+                    required={true}
+                    keyboardType={"numeric"}
+                />
+
+                <TextField
+                    label={"Desired Period"}
+                    field={"desiredPeriod"}
+                    val={getValues}
+                    watch={watch}
+                    control={control}
+                    error={errors.desiredPeriod}
+                    required={true}
+                    keyboardType={"numeric"}
+                    rules={{
+                        required: {
+                            value: true,
+                            message: "Desired period is required"
+                        },
+                        validate: (value: string) => {
+                            if ((parseInt(value) > parseInt(route.params?.loanProduct.maxPeriod))) {
+                                return "Max period exceeded"
+                            }
+                            return true
+                        }
+                    }}
+                />
+
+                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: 5}}>Select Desired Period (Eg. 1-{route.params?.loanProduct.maxPeriod} Months)</Text>
+
+                <TouchableButton loading={loading} label={"Confirm"} onPress={handleSubmit(onSubmit)} />
+
+                <Pressable style={styles.button0} onPress={() => navigation.navigate('LoanProducts')}>
+                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <Text allowFontScaling={false} style={styles.buttonText0}>Cancel</Text>
+                    </View>
+                </Pressable>
+            </Container>
         )
     } else {
         return (
@@ -293,23 +242,19 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_400Regular',
     },
     input0: {
-        borderWidth: 1,
-        borderColor: '#cccccc',
-        borderRadius: 50,
+        backgroundColor: '#EFF3F4',
+        borderRadius: 12,
         height: 54,
         marginTop: 20,
         fontSize: 15,
         color: '#767577',
-        paddingHorizontal: 10,
         fontFamily: 'Poppins_400Regular',
     },
     button: {
         backgroundColor: '#489AAB',
         elevation: 3,
-        borderRadius: 50,
+        borderRadius: 12,
         paddingVertical: 12,
-        paddingHorizontal: 30,
-        marginHorizontal: 10,
         marginBottom: 20,
         marginTop: 80,
         alignSelf: 'stretch',

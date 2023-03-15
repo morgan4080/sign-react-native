@@ -99,10 +99,7 @@ export default function LoanPurpose ({ navigation, route }: NavigationProps) {
 
     if (fontsLoaded) {
         return (
-            <SafeAreaView style={{flex: 1, paddingTop: 10, position: 'relative'}}>
-                <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', left: -100, top: '20%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', right: -80, top: '10%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
+            <SafeAreaView style={{flex: 1, position: 'relative'}}>
                 <View style={styles.container}>
                     <View style={{flex: 1, alignItems: 'center',}}>
                         <View style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0)', borderTopLeftRadius: 25, borderTopRightRadius: 25, width }}>

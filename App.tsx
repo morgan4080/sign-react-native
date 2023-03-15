@@ -31,8 +31,13 @@ const registerForPushNotificationsAsync = async (): Promise<string | undefined> 
         if (finalStatus !== 'granted') {
             return;
         }
-        token = (await Notifications.getExpoPushTokenAsync()).data;
-        alert(token);
+
+        try {
+            token = (await Notifications.getExpoPushTokenAsync()).data;
+        } catch (e) {
+            return Promise.reject(e)
+        }
+
     } else {
         console.log('Must use physical device for Push Notifications');
     }

@@ -179,7 +179,7 @@ const IDInput = ({errors, control, loading, handleSubmit, onSubmit, getValues, w
                     message: "ID number is required"
                 },
             }}
-            keyboardType={"email-address"}
+            keyboardType={"numeric"}
             secureTextEntry={false}
         />
     )
@@ -294,10 +294,14 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
 
     const onboard = async (context: "email" | "phoneNumber" | "idNumber", qr: string) => {
         try {
-            const response: any = await dispatch(OnboardUser(qr))
+            const response: any = await dispatch(OnboardUser(qr));
             switch (response.type) {
                 case "OnboardUser/rejected":
-                    setError(context, {type: 'custom', message: response.error.message})
+                    if (response.payload !== "") {
+                        setError(context, {type: 'custom', message: response.payload});
+                    } else {
+                        setError(context, {type: 'custom', message: response.error.message})
+                    }
                     break;
                 case "OnboardUser/fulfilled":
                     // navigate to otp

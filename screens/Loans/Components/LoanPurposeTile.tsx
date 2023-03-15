@@ -67,7 +67,7 @@ export default function LoanPurposeTile({category, componentIndex, currentOpenIn
     return (
         <>
             <TouchableOpacity style={styles.tile} onPress={() => currentOpenIndex === componentIndex ? deselect() : setSelected()}>
-                <Text allowFontScaling={false} style={{color: '#ADADAD', fontFamily: 'Poppins_400Regular', fontSize: 13, maxWidth: 250}}>{ category.name }</Text>
+                <Text allowFontScaling={false} style={{color: '#6b6b6b', fontFamily: 'Poppins_400Regular', fontSize: 13, maxWidth: 250}}>{ category.name }</Text>
                 {currentOpenIndex !== componentIndex && <MaterialIcons name="keyboard-arrow-right" size={40} color="#ADADAD" />}
                 {currentOpenIndex === componentIndex && <MaterialIcons name="keyboard-arrow-down" size={40} color="#ADADAD" />}
             </TouchableOpacity>

@@ -33,6 +33,29 @@ const Item = ({ contact, removeContact, contactList, section, onPress, setEmploy
     const isChecked = contactList.find((con: any ) => con.memberNumber === contact.memberNumber)
     const [member] = useMember()
     const dispatch = useAppDispatch()
+    const addFav = () => {
+        if (member) {
+            const payload = {
+                "memberRefId": member.refId,
+                "guarantorRefId": contact.memberRefId
+            }
+
+            dispatch(addFavouriteGuarantor(payload)).then(response => {
+                if (response.type === "addFavouriteGuarantor/fulfilled") {
+                    console.log("xx", response.payload)
+                    showSnack("Added to favourite guarantors", "SUCCESS")
+                }
+            }).catch(error => {
+                console.warn(error)
+            })
+        }
+    }
+    const removeCont = () => {
+        removeContact({
+            ...contact
+        });
+    }
+
     if (section.id === 2) {
         return contact.name ? (
             <View  style={{
@@ -57,31 +80,10 @@ const Item = ({ contact, removeContact, contactList, section, onPress, setEmploy
                     <Text allowFontScaling={false}
                           style={{...styles.title, color: isChecked ? '#FFFFFF' : '#393a34', fontSize: 12, fontFamily: 'Poppins_300Light'}}>{contact.phone} | {contact.memberNumber} {contact.amountToGuarantee ? ` | ${contact.amountToGuarantee}` : ""}</Text>
                 </View>
-                <TouchableOpacity onPress={() => {
-
-                    if (member) {
-                        const payload = {
-                            "memberRefId": member.refId,
-                            "guarantorRefId": contact.memberRefId
-                        }
-
-                        dispatch(addFavouriteGuarantor(payload)).then(response => {
-                            if (response.type === "addFavouriteGuarantor/fulfilled") {
-                                console.log("xx", response.payload)
-                                showSnack("Added to favourite guarantors", "SUCCESS")
-                            }
-                        }).catch(error => {
-                            console.warn(error)
-                        })
-                    }
-                }} style={{flex: 0.13}}>
+                <TouchableOpacity onPress={() => addFav()} style={{flex: 0.13}}>
                     <MaterialIcons name="bookmark" size={40} color="white" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={async () => {
-                    removeContact({
-                        ...contact
-                    });
-                }} style={{flex: 0.13}}>
+                <TouchableOpacity onPress={() => removeCont()} style={{flex: 0.13}}>
                     <MaterialIcons name="cancel" size={40} color="white" />
                 </TouchableOpacity>
             </View>
@@ -126,35 +128,32 @@ const ContactSectionList = ({contactsData, searching, addContactToList, removeCo
     };
 
     return (
-        <View>
-            <SectionList
-                refreshing={loading}
-                onRefresh={() => console.log('refresh')}
-                progressViewOffset={20}
-                sections={contactsData}
-                keyExtractor={(item, index) => item.name + index}
-                renderItem={({ item, section }) => (
-                    <Item
-                        contact={item}
-                        section={section}
-                        removeContact={removeContact}
-                        contactList={contactList}
-                        onPress={onPress}
-                        setEmployerDetailsEnabled={setEmployerDetailsEnabled}
-                    />
-                )}
-                renderSectionHeader={({ section: { title, data } }) => (
-                    <Text
-                        allowFontScaling={false}
-                        style={[styles.label, { paddingVertical: title !== 'OPTIONS' ? 10 : 0 }]}
-                    >
-                        {title}
-                    </Text>
-                )}
-                stickySectionHeadersEnabled={true}
-                ListFooterComponent={() => (<View style={{ height: 75}} />)}
-            />
-        </View>
+        <SectionList
+            refreshing={loading}
+            onRefresh={() => console.log('refresh')}
+            progressViewOffset={20}
+            sections={contactsData}
+            keyExtractor={(item, index) => item.name + index}
+            renderItem={({ item, section }) => (
+                <Item
+                    contact={item}
+                    section={section}
+                    removeContact={removeContact}
+                    contactList={contactList}
+                    onPress={onPress}
+                    setEmployerDetailsEnabled={setEmployerDetailsEnabled}
+                />
+            )}
+            renderSectionHeader={({ section: { title, data } }) => (
+                <Text
+                    allowFontScaling={false}
+                    style={[styles.label, { paddingVertical: title !== 'OPTIONS' ? 10 : 0 }]}
+                >
+                    {title}
+                </Text>
+            )}
+            stickySectionHeadersEnabled={true}
+        />
     )
 };
 

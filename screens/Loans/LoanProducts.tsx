@@ -188,7 +188,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
         <TouchableOpacity key={product.refId} style={styles.tile} onPress={() => checkPendingLoan(product)}>
             <View>
                 <Text allowFontScaling={false} style={{ color: '#0C212C', fontSize: 13, fontFamily: 'Poppins_600SemiBold' }}>
-                    { product.name }
+                    { `${product.name}`.replace(/\_/g, " ") }
                 </Text>
                 <Text allowFontScaling={false} style={{ color: '#576B74', fontSize: 11, fontFamily: 'Poppins_500Medium' }}>
                     Interest { product.interestRate } %
@@ -201,9 +201,6 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
     if (fontsLoaded) {
         return (
             <SafeAreaView style={{flex: 1, marginTop: 10, position: 'relative'}}>
-                <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', left: -100, top: '20%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-                <View style={{ position: 'absolute', right: -80, top: '10%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
                 <SectionList
                     refreshing={loading}
                     progressViewOffset={5}

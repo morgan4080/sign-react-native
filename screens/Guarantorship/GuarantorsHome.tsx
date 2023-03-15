@@ -142,7 +142,15 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const [currentGuarantor, setCurrentGuarantor] = useState<{contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}>()
 
     const requiredGuarantors = () => {
-        return route.params?.loanProduct.requiredGuarantors ? route.params?.loanProduct.requiredGuarantors : settings ? settings.minGuarantors : 1;
+        if (route.params?.loanProduct.requiredGuarantors === 0) {
+            return 0
+        } else if (route.params?.loanProduct.requiredGuarantors) {
+            return route.params?.loanProduct.requiredGuarantors
+        } else if (settings) {
+            return settings.minGuarantors
+        } else {
+            return 1
+        }
     }
 
     const removeContactFromList = (contact2Remove: {contact_id: string, memberNumber: string,memberRefId: string,name: string,phone: string}): boolean => {
@@ -280,6 +288,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     },[allGuaranteedAmounts]);
 
     const isDisabled = () => {
+        if (requiredGuarantors() === 0) return false
         let reminder = route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount);
         if (reminder > 2) {
             return true
@@ -465,7 +474,13 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     }
 
     const navigateUser = async () => {
-        if (member && route.params && route.params.loanProduct && route.params.loanDetails && selectedContacts.length > 0) {
+        if (
+            member &&
+            route.params &&
+            route.params.loanProduct &&
+            route.params.loanDetails &&
+            (selectedContacts.length > 0 || route.params?.loanProduct.requiredGuarantors === 0)
+        ) {
             if (settings && settings.employerInfo  && !(employerPayload || businessPayload)) {
                 setEmployerDetailsEnabled(true);
                 onPress("employment");
@@ -542,26 +557,43 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             </View>
             <ContactSectionList
                 contactsData={
-                    [
-                        {
-                            id: 1,
-                            title: 'OPTIONS',
-                            data: [
+                    [0].reduce((acc: {id: number; title: string; data: any[]}[], curr) => {
+                        if (guarantorshipOptions.length === 0) {
+                            acc = [
                                 {
-                                    name: ''
+                                    id: 2,
+                                    title:`SELECTED GUARANTORS (REQUIRES ${route.params?.loanProduct.requiredGuarantors} ${route.params?.loanProduct.requiredGuarantors == 1 ? 'GUARANTOR' : 'GUARANTORS'})`,
+                                    data: selectedContacts.length > 0 ? selectedContacts : [
+                                        {
+                                            name: false
+                                        }
+                                    ]
                                 }
                             ]
-                        },
-                        {
-                            id: 2,
-                            title:`SELECTED GUARANTORS (REQUIRES ${route.params?.loanProduct.requiredGuarantors} ${route.params?.loanProduct.requiredGuarantors == 1 ? 'GUARANTOR' : 'GUARANTORS'})`,
-                            data: selectedContacts.length > 0 ? selectedContacts : [
+                        } else {
+                            acc = [
                                 {
-                                    name: false
+                                    id: 1,
+                                    title: 'OPTIONS',
+                                    data: [
+                                        {
+                                            name: ''
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    title:`SELECTED GUARANTORS (REQUIRES ${route.params?.loanProduct.requiredGuarantors} ${route.params?.loanProduct.requiredGuarantors == 1 ? 'GUARANTOR' : 'GUARANTORS'})`,
+                                    data: selectedContacts.length > 0 ? selectedContacts : [
+                                        {
+                                            name: false
+                                        }
+                                    ]
                                 }
                             ]
                         }
-                    ]
+                        return acc
+                    }, [])
                 }
                 searching={searching}
                 addContactToList={addContactToList}
@@ -829,7 +861,6 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         paddingHorizontal: 5,
         marginHorizontal: 16,
-        borderWidth: 0.1,
         backgroundColor: '#EFF3F4',
     },
     header: {

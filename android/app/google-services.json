@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "519672337231",
-    "project_id": "presta-sign",
-    "storage_bucket": "presta-sign.appspot.com"
+    "project_number": "602392706028",
+    "project_id": "presta-sign-fd1f6",
+    "storage_bucket": "presta-sign-fd1f6.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:519672337231:android:7411722ac61aec46856b3a",
+        "mobilesdk_app_id": "1:602392706028:android:af26bea3b52edb2e6d9ec9",
         "android_client_info": {
           "package_name": "com.presta.prestasign"
         }
       },
       "oauth_client": [
         {
-          "client_id": "519672337231-u2r7uk2i69fsf7u8032ltalqbiuabjpq.apps.googleusercontent.com",
+          "client_id": "602392706028-b7o1skb2jqitum3agdrpbq3spa4obist.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAjda6MION6NC612q5W5TGYkfENsCXR8Ro"
+          "current_key": "AIzaSyB3yLRRMomNaYd7LYKOQ4eH6bwP-igbQzc"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "519672337231-u2r7uk2i69fsf7u8032ltalqbiuabjpq.apps.googleusercontent.com",
+              "client_id": "602392706028-b7o1skb2jqitum3agdrpbq3spa4obist.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

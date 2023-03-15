@@ -5,24 +5,21 @@ import {
     TouchableHighlight,
     Text,
     StatusBar as Bar,
-    Image, Linking
+    Linking
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {useEffect} from "react";
 import {store} from "../../stores/store";
-import {getTenants, initializeDB, pingBeacon} from "../../stores/auth/authSlice"
+import {getTenants, initializeDB} from "../../stores/auth/authSlice"
 import {useDispatch, useSelector} from "react-redux";
 import {storeState} from "../../stores/auth/authSlice";
 import {RotateView} from "../Auth/VerifyOTP";
 import Onboarding from "../../components/Onboarding";
-import {registerForPushNotificationsAsync, registerTask} from "../../utils/notificationService";
 import {checkToStartUpdate, showSnack} from "../../utils/immediateUpdate";
-import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
-import Constants from "expo-constants";
+import {getSecureKey,} from "../../utils/secureStore";
 import * as Notifications from "expo-notifications";
-import showTenants from "../Tenants/ShowTenants";
 import Container from "../../components/Container";
 
 const { width, height } = Dimensions.get("window");
@@ -82,47 +79,30 @@ export default function GetStarted({ navigation }: NavigationProps) {
                         })
                     } else {
                         // initialize new user
+                        await dispatch(initializeDB())
                     }
                 } catch (e: any) {
                     showSnack(e.message, "ERROR", "", false)
-                }
-
-                // register for push notifications
-                try {
-                    const token = await registerForPushNotificationsAsync();
-                    if (token) {
-                        await Promise.allSettled([
-                            saveSecureKey('notification_id', token),
-                            /*dispatch(pingBeacon({
-                                appName: Constants.manifest?.android?.package,
-                                notificationTok: token,
-                                version: Constants.manifest?.version
-                            }))*/
-                        ])
-
-                        registerTask();
-                    }
-                } catch (e: any) {
-                    console.log("registerForPushNotificationsAsync/pingBeacon", e.message);
-                    // showSnack(e.message, "ERROR", "", false)
                 }
             })()
         }
 
         // add notification listener
+        /*
 
-        const subscription = Notifications.addNotificationReceivedListener(notification => {
-            if (notification.request.content.data.url) {
-                console.log("notification data foreground", notification.request.content.data.url);
-                (async () => {
-                    await Linking.openURL(notification.request.content.data.url as string);
-                })()
-            }
-        });
+                const subscription = Notifications.addNotificationReceivedListener(notification => {
+                    if (notification.request.content.data.url) {
+                        console.log("notification data foreground", notification.request.content.data.url);
+                        (async () => {
+                            await Linking.openURL(notification.request.content.data.url as string);
+                        })()
+                    }
+                });
+        */
 
         return () => {
             initializing = false;
-            subscription.remove();
+            // subscription.remove();
         };
     }, [appInitialized])
 

@@ -868,7 +868,6 @@ export const createPin = createAsyncThunk('createPin', async (
     fetch(requestURL, requestOptions)
         .then(response => {
             if (response.status === 401) {
-                alert(response.status)
                 setAuthState(false);
             }
             return response.json()
@@ -2033,7 +2032,6 @@ export const fetchMember = createAsyncThunk('fetchMember', async (_, { getState,
                 return rejectWithValue(response.status);
             }
         } else {
-            alert(response.status);
             console.log("Fetch Member Failed");
             return rejectWithValue("Fetch Member Failed");
         }

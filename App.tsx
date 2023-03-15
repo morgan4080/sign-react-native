@@ -10,6 +10,7 @@ import * as Notifications from 'expo-notifications';
 import {saveSecureKey} from "./utils/secureStore";
 import * as Device from "expo-device";
 import {Subscription} from "expo-notifications";
+import {showSnack} from "./utils/immediateUpdate";
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -118,17 +119,21 @@ export default function App() {
             }
             return Promise.reject("Notification token missing");
         }).catch(error => {
-            console.log("registerForPushNotificationsAsyncNew", JSON.stringify(error));
+            showSnack(JSON.stringify(error))
         });
 
         notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
             // This listener is fired whenever a notification is received while the app is foregrounded.
-            if (notification) setNotification(notification);
+            if (notification) {
+                showSnack(JSON.stringify(notification))
+                setNotification(notification);
+            }
         });
 
         responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
             // This listener is fired whenever a user taps on or interacts with a notification (works when an app is foregrounded, backgrounded, or killed).
             console.log(response);
+            showSnack(JSON.stringify(response))
         });
 
         return () => {

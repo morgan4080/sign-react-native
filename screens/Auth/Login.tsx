@@ -128,8 +128,8 @@ export default function Login({ navigation }: NavigationProps) {
                         setTenant(t);
                         const CT = organisations.find(org => org.tenantId === currentTenantId)
                         if (CT) {
-                            setCurrentTenant(CT)
-                            await saveSecureKey('currentTenant', JSON.stringify(CT))
+                            setCurrentTenant(CT);
+                            await saveSecureKey('currentTenant', JSON.stringify(CT));
                         }
                     } else {
                         // navigation.navigate('GetStarted')
@@ -492,7 +492,7 @@ export default function Login({ navigation }: NavigationProps) {
                                 />
                                 : null
                             }
-                            <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light', textTransform: 'uppercase'}}>{tenant?.tenantName} LOGIN</Text>
+                            <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light', textTransform: 'uppercase'}}>{currentTenant?.tenantName} LOGIN</Text>
                             <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light'}}>ENTER PIN</Text>
                             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', paddingVertical: 10 }}>
                                 <Controller

@@ -1,20 +1,15 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {store} from "../../stores/store";
-import {useDispatch, useSelector} from "react-redux";
-import {searchByMemberNo, storeState, validateNumber} from "../../stores/auth/authSlice";
+import {searchByMemberNo, validateNumber} from "../../stores/auth/authSlice";
 import {
-    Pressable,
-    StatusBar,
     StyleSheet,
-    TextInput,
     Text,
     View,
     Dimensions,
     TouchableOpacity
 } from "react-native";
 type NavigationProps = NativeStackScreenProps<any>;
-import {Controller, useForm} from "react-hook-form";
+import {useForm} from "react-hook-form";
 import {AntDesign, MaterialIcons} from "@expo/vector-icons";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {getContact, requestPhoneNumberFormat} from "../../utils/smsVerification";
@@ -24,10 +19,14 @@ import ContactSectionList from "../../components/ContactSectionList";
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackdrop, BottomSheetFlatList  } from "@gorhom/bottom-sheet";
 import {toMoney} from "../User/Account";
 import {showSnack} from "../../utils/immediateUpdate";
-import Container from "../../components/Container";
 import TextField from "../../components/TextField";
 import TouchableButton from "../../components/TouchableButton";
-import {useAppDispatch} from "../../stores/hooks";
+import {
+    useAppDispatch,
+    useLoading,
+    useMember,
+    useSettings
+} from "../../stores/hooks";
 import {Poppins_300Light, Poppins_400Regular, useFonts} from "@expo-google-fonts/poppins";
 const { width } = Dimensions.get("window");
 type searchedMemberType = { contact_id: string; memberNumber: string; memberRefId: string; name: string; phone: string }
@@ -65,7 +64,7 @@ const RenderItem = ({ item, context, member, setValue, route, searchMemberByMemb
                         searchMemberByMemberNo(member.memberNumber)
                             .then(addContactToList)
                             .catch((e: any) => {
-                                showSnack(e.message, "ERROR");
+                                showSnack(e.message, "WARNING");
                             });
                     } else {
                         handleClosePress();
@@ -95,6 +94,10 @@ type businessPayloadType = {
 }
 
 const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
+    const [member] = useMember();
+    const [loading] = useLoading();
+    const [settings] = useSettings();
+
     useFonts([
         Poppins_300Light,
         Poppins_400Regular
@@ -107,23 +110,14 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         setValue,
         getValues,
         watch,
-        reset,
         formState: { errors }
     } = useForm<FormData>();
-
-    StatusBar.setBackgroundColor('#FFFFFF', true);
 
     const [searching, setSearching] = useState<boolean>(false);
 
     const [context, setContext] = useState<string>("");
 
     const dispatch = useAppDispatch();
-
-    const { loading, tenants, selectedTenantId, user, member, organisations } = useSelector((state: { auth: storeState }) => state.auth);
-
-    const tenant = tenants.find(t => t.id === selectedTenantId);
-
-    const settings = organisations.find(org => org.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
 
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
 
@@ -168,7 +162,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         const {payload, type, error}: {payload: any, type: string, error?: any} = await dispatch(validateNumber(phone));
 
         if (type === 'validateNumber/rejected') {
-            showSnack(`${phone} ${error?.message}`, "ERROR");
+            showSnack(`${phone} ${error?.message}`, "WARNING");
             return undefined;
         }
 
@@ -187,13 +181,13 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         const {payload, type}: {payload: any, type: string, error?: any} = await dispatch(searchByMemberNo(member_no));
 
         if (type === 'searchByMemberNo/rejected') {
-            showSnack(`${member_no}: is not a member.`, "ERROR");
+            showSnack(`${member_no}: is not a member.`, "WARNING");
             return undefined;
         }
 
         if (type === "searchByMemberNo/fulfilled" && member) {
             if (payload && !payload.hasOwnProperty("firstName")) {
-                showSnack(`${member_no}: is not a member.`, "ERROR");
+                showSnack(`${member_no}: is not a member.`, "WARNING");
                 return undefined;
             }
 
@@ -246,7 +240,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 }
             } else {
                 setValue('searchTerm', '');
-                showSnack("Duplicate Entry", "ERROR");
+                showSnack("Duplicate Entry", "WARNING");
                 handleClosePress();
             }
         }
@@ -381,7 +375,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             searchMemberByMemberNo(getValues("searchTerm"))
                 .then(addContactToList)
                 .catch(e => {
-                    showSnack(e.message, "ERROR");
+                    showSnack(e.message, "WARNING");
                 });
         } else if (phoneRegex.test(getValues("searchTerm"))) {
             getSecureKey("alpha2Code")
@@ -390,7 +384,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
                 .then(addContactToList)
                 .catch(e => {
-                    showSnack(e.message, "ERROR");
+                    showSnack(e.message, "WARNING");
                 })
         } else {
             showSnack("Incorrect Format", "WARNING");
@@ -481,46 +475,50 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             route.params.loanDetails &&
             (selectedContacts.length > 0 || route.params?.loanProduct.requiredGuarantors === 0)
         ) {
-            if (settings && settings.employerInfo  && !(employerPayload || businessPayload)) {
-                setEmployerDetailsEnabled(true);
-                onPress("employment");
-                return;
-            }
+            if (settings) {
+                if (settings.employerInfo  && !(employerPayload || businessPayload)) {
+                    setEmployerDetailsEnabled(true);
+                    onPress("employment");
+                    return;
+                }
 
-            if (settings && settings.witness) {
-                navigation.navigate('WitnessesHome', {
-                    guarantors: selectedContacts.map((cont, i) => {
-                        if (settings.amounts) {
-                            cont = {
-                                ...cont,
-                                committedAmount: allGuaranteedAmounts[i]
+                if (settings.witness === true) {
+                    navigation.navigate('WitnessesHome', {
+                        guarantors: selectedContacts.map((cont, i) => {
+                            if (settings.amounts) {
+                                cont = {
+                                    ...cont,
+                                    committedAmount: allGuaranteedAmounts[i]
+                                }
                             }
-                        }
-                        return cont
-                    }),
-                    employerPayload,
-                    businessPayload,
-                    ...route.params
-                })
-            } else if (settings && !settings.witness) {
-                navigation.navigate('LoanConfirmation', {
-                    witnesses: [],
-                    guarantors: selectedContacts.map((cont, i) => {
-                        if (settings.amounts) {
-                            cont = {
-                                ...cont,
-                                committedAmount: allGuaranteedAmounts[i]
+                            return cont
+                        }),
+                        employerPayload,
+                        businessPayload,
+                        ...route.params
+                    })
+                } else if (settings.witness === false) {
+                    navigation.navigate('LoanConfirmation', {
+                        witnesses: [],
+                        guarantors: selectedContacts.map((cont, i) => {
+                            if (settings.amounts) {
+                                cont = {
+                                    ...cont,
+                                    committedAmount: allGuaranteedAmounts[i]
+                                }
                             }
-                        }
-                        return cont
-                    }),
-                    employerPayload,
-                    businessPayload,
-                    ...route.params
-                })
+                            return cont
+                        }),
+                        employerPayload,
+                        businessPayload,
+                        ...route.params
+                    })
+                }
+            } else {
+                showSnack(`SETTINGS NOT AVAILABLE`, "WARNING");
             }
         } else {
-            showSnack(`CANNOT VALIDATE GUARANTORS`, "ERROR");
+            showSnack(`CANNOT VALIDATE GUARANTORS`, "WARNING");
         }
     }
 
@@ -531,7 +529,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     <AntDesign name="search1" size={22} color="rgba(0,0,0,0.89)" />
                 </TouchableOpacity>
                 <View style={{flex: 0.6, display: 'flex', alignItems: 'center'}}>
-                    <TextField label={"Mobile or member no."} field={"searchTerm"} val={getValues} watch={watch} control={control} error={errors.searchTerm} required={true} />
+                    <TextField label={"mobile/member no."} field={"searchTerm"} val={getValues} watch={watch} control={control} error={errors.searchTerm} required={true} />
                 </View>
                 <TouchableOpacity style={{ flex: 0.3, display: "flex", flexDirection: "row", justifyContent: 'space-around', alignItems: 'center' }} onPress={() => {
                     setSearching(true);
@@ -545,14 +543,14 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     })
                     .then(addContactToList)
                     .catch(e => {
-                        showSnack(e.message, "ERROR");
+                        showSnack(e.message, "WARNING");
                     }).finally(() => {
                         setSearching(false);
                     });
                 }}>
-                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', letterSpacing: 0.6, fontSize: 10, color: '#000000'}}>{ phonebook_contact_name !== "" ? phonebook_contact_name : 'Phone Book' }</Text>
+                    <Text allowFontScaling={false} style={{ flex: 0.8, fontFamily: 'Poppins_400Regular', letterSpacing: 0.6, fontSize: 10, color: '#000000', textTransform: "capitalize"}}>{ phonebook_contact_name !== "" ? phonebook_contact_name : 'Phone Book' }</Text>
 
-                    <AntDesign name="contacts" size={22} color="rgba(0,0,0,0.89)" />
+                    <AntDesign name="contacts" size={22} color="rgba(0,0,0,0.89)" style={{ flex: 0.3 }} />
                 </TouchableOpacity>
             </View>
             <ContactSectionList

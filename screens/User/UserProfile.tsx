@@ -17,12 +17,11 @@ import {
     setSelectedTenantId,
     updateOrganisation,
     LoadOrganisation,
-    SettingsPayloadType,
     fetchLoanRequests
 } from "../../stores/auth/authSlice";
 import {AntDesign, Entypo, FontAwesome} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
-import {saveSecureKey} from "../../utils/secureStore";
+import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import BottomSheet, {BottomSheetBackdrop} from "@gorhom/bottom-sheet";
 import {useForm} from "react-hook-form";
 import GuarantorImg from "../../assets/images/guarantorship.svg";
@@ -33,7 +32,7 @@ import {
     useAppDispatch,
     useClientSettings,
     useLoanRequests,
-    useMember,
+    useMember, useSettings,
     useUser
 } from "../../stores/hooks";
 import Container from "../../components/Container";
@@ -70,16 +69,22 @@ export default function UserProfile({ navigation }: NavigationProps) {
     const [user] = useUser();
     const [member] = useMember();
     const [loanRequests] = useLoanRequests();
+    const [clientSettings] = useClientSettings();
 
     const dispatch = useAppDispatch();
 
-    const [reload, setReload] = useState<boolean>(false)
+    const [reload, setReload] = useState<boolean>(false);
+
+    const [lrs, setLrs] = useState(loanRequests)
+
+    useEffect(() => {
+        if (loanRequests && loanRequests.length > 1) setLrs(loanRequests.slice(0, 2))
+    }, [loanRequests])
 
     useEffect(() => {
         Promise.all([
-            dispatch(authenticate()),
-            dispatch(LoadOrganisation())
-        ]).then(([authStuff, orgLoaded]) => {
+            dispatch(authenticate())
+        ]).then(([authStuff]) => {
             const { type, error, payload }: any = authStuff;
 
             if (error) {
@@ -92,11 +97,9 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             dispatch(fetchMember()),
                             dispatch(saveContactsToDb()),
                             dispatch(fetchLoanProducts()),
-                            dispatch(fetchLoanRequests({memberRefId: `${member?.refId}`, pageSize: 2}))
+                            dispatch(LoadOrganisation())
                         ]))
-                        .then(() => {
-                            return dispatch(updateOrganisation({tenantId: payload.tenantId, clientSettings: orgLoaded.payload as SettingsPayloadType}));
-                        }).catch((err) => {
+                        .catch((err) => {
                             throw new Error(err)
                         })
                 } else {
@@ -106,7 +109,17 @@ export default function UserProfile({ navigation }: NavigationProps) {
         }).catch((error) => {
             console.log(JSON.stringify(error))
         })
-    }, [reload])
+    }, [reload]);
+
+    useEffect(() => {
+        dispatch(fetchLoanRequests({memberRefId: `${member?.refId}`, pageSize: 10}))
+    }, [member]);
+
+    useEffect(() => {
+        if (Object.keys(clientSettings).length > 0 && user) {
+            dispatch(updateOrganisation({tenantId: user.tenantId, clientSettings: clientSettings}));
+        }
+    }, [clientSettings]);
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -154,7 +167,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
         handleSubmit,
         clearErrors,
         formState: { errors }
-    } = useForm<FormData>({})
+    } = useForm<FormData>({});
 
     const reloading = () => {
         setReload(!reload);
@@ -230,7 +243,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right", color: "#489AAB"}]}>See all</Text>
                         </TouchableOpacity>
                     </View>
-                    {loanRequests ? loanRequests.map((loan, i) => (
+                    {lrs ? lrs.map((loan, i) => (
                         <View key={i} style={{display: "flex", flexDirection: "row", paddingVertical: 10, alignItems: "center"}}>
                             <ProgressCircle size={50} thickness={3} showsText={true} unfilledColor='#CCCCCC' formatText={() => `${loan.loanRequestProgress}%`} progress={loan.loanRequestProgress / 100} color='#489bab' borderColor='transparent'/>
                             <View style={{flex: 1, display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginLeft: 10}}>

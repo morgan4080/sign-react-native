@@ -233,6 +233,37 @@ export type organisationType = {
     organizationSecondaryTheme: string | null;
 }
 
+type CoreBankingIntegrations = "JUMBOSTAR" | "DEFAULT" | "CENTRINO"
+
+type NotificationProviders = "JUMBOSTAR" | "DEFAULT" | "CENTRINO"
+
+type IdentifierTypes = "EMAIL" | "ID_NUMBER" | "PHONE_NUMBER" | "MEMBER_NUMBER"
+
+export interface SettingsPayloadType {
+    ussdShortCode: string;
+    organizationName: string;
+    requireWitness: boolean;
+    allowZeroGuarantors: boolean;
+    allowSelfGuarantee: boolean;
+    isGuaranteedAmountShared: boolean;
+    useEmbeddedURL: boolean;
+    containsAttachments: boolean;
+    organizationAlias: string;
+    organizationEmail: string;
+    supportEmail: string;
+    organizationPrimaryTheme: string;
+    organizationSecondaryTheme: string;
+    organizationLogoName: string;
+    organizationLogoExtension: string;
+    loanProductMaxPeriod: string;
+    customSMS: boolean;
+    parallelLoans: boolean;
+    coreBankingIntegration: CoreBankingIntegrations;
+    notificationProvider: NotificationProviders;
+    identifierType: IdentifierTypes;
+    details: Record<any, any>
+}
+
 export type storeState = {
     user: AuthData | null;
     member: MemberData | null;
@@ -259,7 +290,7 @@ export type storeState = {
     actorChanged: boolean;
     guarantorsUpdated: boolean;
     notificationTok: string | undefined;
-    clientSettings: Record<string, any>;
+    clientSettings: SettingsPayloadType;
     tabStyle: Record<string, any>;
 }
 
@@ -2155,6 +2186,7 @@ export const fetchLoanRequests = createAsyncThunk('fetchLoanRequests', async (
     {dispatch, getState, rejectWithValue, fulfillWithValue}
 ) => {
     const url = `https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?memberRefId=${memberRefId}&order=ASC&pageSize=${pageSize}&isActive=true`;
+    console.log(JSON.stringify(url));
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
@@ -2864,37 +2896,6 @@ export const LoadOrganisation = createAsyncThunk('LoadOrganisation', async (_, {
     }
 });
 
-type CoreBankingIntegrations = "JUMBOSTAR" | "DEFAULT" | "CENTRINO"
-
-type NotificationProviders = "JUMBOSTAR" | "DEFAULT" | "CENTRINO"
-
-type IdentifierTypes = "EMAIL" | "ID_NUMBER" | "PHONE_NUMBER" | "MEMBER_NUMBER"
-
-export interface SettingsPayloadType {
-    ussdShortCode: string;
-    organizationName: string;
-    requireWitness: boolean;
-    allowZeroGuarantors: boolean;
-    allowSelfGuarantee: boolean;
-    isGuaranteedAmountShared: boolean;
-    useEmbeddedURL: boolean;
-    containsAttachments: boolean;
-    organizationAlias: string;
-    organizationEmail: string;
-    supportEmail: string;
-    organizationPrimaryTheme: string;
-    organizationSecondaryTheme: string;
-    organizationLogoName: string;
-    organizationLogoExtension: string;
-    loanProductMaxPeriod: string;
-    customSMS: boolean;
-    parallelLoans: boolean;
-    coreBankingIntegration: CoreBankingIntegrations;
-    notificationProvider: NotificationProviders;
-    identifierType: IdentifierTypes;
-    details: Record<any, any>
-}
-
 export const updateOrganisation = createAsyncThunk("updateOrganisation", (
     {
         tenantId,
@@ -3193,7 +3194,9 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(LoadOrganisation.fulfilled, (state, action) => {
-            if (isSerializable(action.payload)) state.clientSettings = action.payload
+            if (isSerializable(action.payload)) {
+                state.clientSettings = action.payload as any;
+            }
             state.loading = false
         })
         builder.addCase(LoadOrganisation.rejected, (state) => {
@@ -3637,6 +3640,7 @@ const authSlice = createSlice({
             state.loading = true;
         })
         builder.addCase(updateOrganisation.fulfilled, (state, action) => {
+            console.log("organisations updated");
             state.organisations = <organisationType[]><unknown>action.payload;
             state.loading = false;
         })

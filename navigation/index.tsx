@@ -223,7 +223,46 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
                     headerShadowVisible: false
                 })
             }} />
-            <Stack.Screen name="WitnessesHome" component={WitnessesHome} options={{ headerShown: false }} />
+            <Stack.Screen name="LoanRequests" component={LoanRequests} options={({navigation, route}) => {
+                return ({
+                    title: 'Loan Requests',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                })
+            }} />
+            <Stack.Screen name="WitnessesHome" component={WitnessesHome} options={({ navigation, route }) => {
+                return ({
+                    title: 'Add Witnesses',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                })
+            }} />
             <Stack.Screen name="LoanConfirmation" component={LoanConfirmation} options={({ navigation, route }) => {
                 return ({
                     title: 'Confirmation',
@@ -407,7 +446,7 @@ function BottomTabNavigator() {
             component={LoanRequests}
             options={({ navigation, route }) => ({
                 tabBarStyle: { display: "none" },
-                title: 'Requests',
+                title: 'Loan Requests',
                 tabBarIcon: ({ focused, color, size }) => {
                     let iconName;
                     iconName = focused

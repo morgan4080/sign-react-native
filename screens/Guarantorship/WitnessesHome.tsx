@@ -1,16 +1,11 @@
 import {
     Dimensions,
-    FlatList,
-    NativeModules,
     SafeAreaView,
     ScrollView,
-    StatusBar as Bar,
-    StatusBar,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    TouchableHighlight,
     View
 } from "react-native";
 
@@ -20,17 +15,11 @@ import ContactTile from "./Components/ContactTile";
 
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 
-import {store} from "../../stores/store";
-
-import {useDispatch, useSelector} from "react-redux";
-
 import {
-    authenticate,
     getContactsFromDB,
     searchByMemberNo,
     searchContactsInDB,
     setLoading,
-    storeState,
     validateNumber
 } from "../../stores/auth/authSlice";
 
@@ -45,9 +34,9 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 
-import {AntDesign, FontAwesome5, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {FontAwesome5, Ionicons, MaterialIcons} from "@expo/vector-icons";
 
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 
 import {Controller, useForm} from "react-hook-form";
 
@@ -57,7 +46,9 @@ import cloneDeep from "lodash/cloneDeep";
 
 import {RotateView} from "../Auth/VerifyOTP";
 
-import BottomSheet, {BottomSheetRefProps, MAX_TRANSLATE_Y} from "../../components/BottomSheet";
+import BottomSheet, {BottomSheetBackdrop, BottomSheetFlatList} from "@gorhom/bottom-sheet";
+import {showSnack} from "../../utils/immediateUpdate";
+import {useAppDispatch, useLoading, useMember, useSettings} from "../../stores/hooks";
 
 type NavigationProps = NativeStackScreenProps<any>;
 
@@ -79,19 +70,14 @@ type FormData = {
 };
 
 export default function GuarantorsHome({ navigation, route }: NavigationProps) {
-    type AppDispatch = typeof store.dispatch;
 
-    const dispatch : AppDispatch = useDispatch();
+    const [loading] = useLoading();
+    const [settings] = useSettings();
+    const [member] = useMember();
 
-    const { loading, tenants, selectedTenantId, user, member, isLoggedIn , organisations} = useSelector((state: { auth: storeState }) => state.auth);
+    const dispatch = useAppDispatch();
 
     const [contacts, setContacts] = useState([]);
-
-    const tenant = tenants.find(t => t.id === selectedTenantId);
-
-    const settings = organisations.find(org => org.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
-
-    const CSTM = NativeModules.CSTM;
 
     const from = 0;
 
@@ -231,7 +217,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             setSelectedContacts(newDeserializedCopy);
             return Promise.resolve(true);
         } else {
-            CSTM.showToast('Cannot add duplicate guarantors');
+            showSnack('Cannot add duplicate guarantors');
         }
 
         return Promise.resolve(false);
@@ -256,7 +242,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 const {payload, type}: {payload: any, type: string} = result;
 
                 if (type === 'validateNumber/rejected') {
-                    CSTM.showToast(`${phone} ${result.error.message}`);
+                    showSnack(`${phone} ${result.error.message}`);
                     return
                 }
 
@@ -281,7 +267,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                 const {payload, type, error}: {payload: any, type: string, error?: any} = await dispatch(searchByMemberNo(identifier))
 
                 if (type === 'searchByMemberNo/rejected') {
-                    CSTM.showToast(`${error.message}`);
+                    showSnack(`${error.message}`);
                     return
                 }
 
@@ -290,7 +276,7 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
                     // result added, add to contact list
 
                     if (!payload.hasOwnProperty("isTermsAccepted")) {
-                        CSTM.showToast(`${identifier}: is not a member.`);
+                        showSnack(`${identifier}: is not a member.`);
                         return
                     }
 
@@ -314,16 +300,33 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         setValue('inputStrategy', itemValue)
     }
 
-    const ref = useRef<BottomSheetRefProps>(null);
+    const sheetRef = useRef<BottomSheet>(null);
+
+    const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
+
+    // callbacks
+    const handleSheetChange = useCallback((index: any) => {
+        console.log("handleSheetChange", index);
+    }, []);
+
+    const handleSnapPress = useCallback((index: any) => {
+        sheetRef.current?.snapToIndex(index);
+    }, []);
+
+    const handleClosePress = useCallback(() => {
+        sheetRef.current?.close();
+    }, []);
+
+    const [bSActive, setBSActive] = useState(false);
 
     const onPress = useCallback((ctx: string) => {
-        setContext(ctx);
-        const isActive = ref?.current?.isActive();
-        if (isActive) {
-            ref?.current?.scrollTo(0);
+        if (!bSActive) {
+            setContext(ctx);
+            handleSnapPress(1);
         } else {
-            ref?.current?.scrollTo(MAX_TRANSLATE_Y);
+            handleClosePress();
         }
+        setBSActive(!bSActive);
         setMemberSearching(false);
     }, []);
 
@@ -338,21 +341,6 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
             return
         }
     }
-
-    useEffect(() => {
-        let authenticating = true;
-        if (authenticating) {
-            (async () => {
-                const response = await dispatch(authenticate());
-                if (response.type === 'authenticate/rejected') {
-                    navigation.navigate('GetTenants')
-                }
-            })()
-        }
-        return () => {
-            authenticating = false
-        }
-    }, [isLoggedIn]);
 
     const navigateUser = async () => {
         navigation.navigate('LoanConfirmation', {
@@ -427,188 +415,183 @@ export default function GuarantorsHome({ navigation, route }: NavigationProps) {
         return selectedContacts.length < 1
     }
 
+    // disappearsOnIndex={1}
+    const renderBackdrop = useCallback(
+        (props: any) => (
+            <BottomSheetBackdrop
+                {...props}
+                disappearsOnIndex={-1}
+                appearsOnIndex={1}
+            />
+        ),
+        []
+    );
+
     return (
-        <GestureHandlerRootView style={{flex: 1, paddingTop: Bar.currentHeight, position: 'relative'}}>
-            {
-                loading &&
-                <View style={{position: 'absolute', top: 50, zIndex: 10, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width}}>
-                    <RotateView/>
-                </View>
-            }
-            <View style={{ position: 'absolute', left: 60, top: -120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-            <View style={{ position: 'absolute', left: -100, top: 200, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
-            <View style={{ position: 'absolute', right: -80, top: 120, backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
-            <View style={styles.container}>
-                <View style={{flex: 1, alignItems: 'center', position: 'relative'}}>
-                    <View style={styles.searchbar}>
-                        <View style={{paddingHorizontal: 20, marginBottom: 5}}>
-                            <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 16, marginBottom: 10 }}>
-                                Add Witnesses (1 Required)
-                            </Text>
+        <GestureHandlerRootView style={{flex: 1, position: 'relative', alignItems: 'center'}}>
+            <View style={[styles.searchbar]}>
+                <View style={{paddingHorizontal: 20, marginBottom: 5}}>
 
-                            <View style={{position: 'relative', display: 'flex', flexDirection: 'row', overflow: 'hidden'}}>
-                                <View style={{position: 'absolute', display: 'flex', height: 45, zIndex: 1, alignItems: 'center', justifyContent: 'center'}}>
-                                    <Ionicons name="search" size={25} color="#CCCCCC" style={{paddingHorizontal: 10}} />
-                                </View>
+                    <View style={{position: 'relative', display: 'flex', flexDirection: 'row', overflow: 'hidden'}}>
+                        <View style={{position: 'absolute', display: 'flex', height: 45, zIndex: 1, alignItems: 'center', justifyContent: 'center'}}>
+                            <Ionicons name="search" size={25} color="#CCCCCC" style={{paddingHorizontal: 10}} />
+                        </View>
 
-                                <Controller
-                                    control={control}
-                                    render={( { field: { onChange, onBlur, value } }) => (
-                                        <TextInput
-                                            allowFontScaling={false}
-                                            style={styles.input}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            value={value}
-                                            placeholder="Search Contacts"
-                                        />
-                                    )}
-                                    name="searchTerm"
+                        <Controller
+                            control={control}
+                            render={( { field: { onChange, onBlur, value } }) => (
+                                <TextInput
+                                    allowFontScaling={false}
+                                    style={styles.input}
+                                    onBlur={onBlur}
+                                    onChangeText={onChange}
+                                    value={value}
+                                    placeholder="Search Contacts"
                                 />
-                                <TouchableOpacity style={styles.optionsButton} onPress={() => {
-                                    onPress('options');
-                                }}>
-                                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#FFFFFF', fontSize: 10, paddingLeft: 10 }}>OPTIONS</Text>
-                                    <Ionicons name="options-outline" size={20} color="white" style={{paddingLeft: 5, paddingRight: 15}} />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                        <View style={{paddingHorizontal: 20, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                            <ScrollView horizontal>
-                                {selectedContacts && selectedContacts.map((co,i) => (
-                                    <TouchableOpacity onPress={() => removeContactFromList(co)} key={i} style={{
-                                        backgroundColor: 'rgba(50,52,146,0.31)',
-                                        width: width / 7,
-                                        height: width / 7,
-                                        borderRadius: 100,
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        marginRight: 10,
-                                        position: 'relative'
-                                    }}>
-                                        <View style={{ position: 'absolute', top: 0, right: -1 }}>
-                                            <FontAwesome5 name="minus-circle" size={14} color="#767577" />
-                                        </View>
-                                        <Text allowFontScaling={false} style={{
-                                            color: '#363D7D',
-                                            fontSize: 8,
-                                            fontFamily: 'Poppins_400Regular',
-                                            textAlign: 'center',
-                                            zIndex: 2
-                                        }}>{co.name.split(' ')[0]}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
-                        </View>
-                    </View>
-                    <SafeAreaView style={{ flex: 1, width, height: 10/12 * height, borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
-                        <ScrollView contentContainerStyle={{ display: 'flex', marginTop: 20, paddingHorizontal: 20, paddingBottom: 100 }}>
-                            {
-                                contacts.length ? contacts.map((contact: any, i: number) => (
-                                        <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} />
-                                    )) :
-                                    <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
-                                        <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', fontSize: 12}}>No Contacts Found</Text>
-                                    </View>
-                            }
-                        </ScrollView>
-                    </SafeAreaView>
-
-                    <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <TouchableOpacity disabled={ isDisabled() || loading } onPress={navigateUser} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                            <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
+                            )}
+                            name="searchTerm"
+                        />
+                        <TouchableOpacity style={styles.optionsButton} onPress={() => {
+                            onPress('options');
+                        }}>
+                            <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#FFFFFF', fontSize: 10, paddingLeft: 10 }}>OPTIONS</Text>
+                            <Ionicons name="options-outline" size={20} color="white" style={{paddingLeft: 5, paddingRight: 15}} />
                         </TouchableOpacity>
                     </View>
+                </View>
+                <View style={{paddingHorizontal: 20, marginTop: 10, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                    <ScrollView horizontal>
+                        {selectedContacts && selectedContacts.map((co,i) => (
+                            <TouchableOpacity onPress={() => removeContactFromList(co)} key={i} style={{
+                                backgroundColor: 'rgba(72,154,171,0.18)',
+                                width: width / 7,
+                                height: width / 7,
+                                borderRadius: 100,
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                marginRight: 10,
+                                position: 'relative'
+                            }}>
+                                <View style={{ position: 'absolute', top: 0, right: -1 }}>
+                                    <FontAwesome5 name="minus-circle" size={14} color="#767577" />
+                                </View>
+                                <Text allowFontScaling={false} style={{
+                                    color: '#489AAB',
+                                    fontSize: 8,
+                                    fontFamily: 'Poppins_400Regular',
+                                    textAlign: 'center',
+                                    zIndex: 2
+                                }}>{co.name.split(' ')[0]}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
                 </View>
             </View>
-            <BottomSheet ref={ref}>
-                <SafeAreaView style={{position: 'relative',display: 'flex', alignItems: 'center', width, height: (height + (StatusBar.currentHeight ? StatusBar.currentHeight : 0)) + (height/11) }}>
-                    <TouchableOpacity style={{position: 'absolute', top: -25, right: 12}} onPress={() => {
-                        onPress('options');
-                    }}>
-                        <AntDesign name="closecircleo" size={15} color="#767577" />
-                    </TouchableOpacity>
-                    {context === "options" &&
-                        <FlatList
-                            data={witnessOptions}
-                            renderItem={renderItem}
-                            keyExtractor={item => item.id}
+            <SafeAreaView style={{ flex: 1, width, borderTopLeftRadius: 15, borderTopRightRadius: 15, backgroundColor: "rgba(72,154,171,0.05)" }}>
+                <ScrollView contentContainerStyle={{ display: 'flex', paddingHorizontal: 20, paddingBottom: 100 }}>
+                    {
+                        contacts.length ? contacts.map((contact: any, i: number) => (
+                                <ContactTile key={contact.contact_id} contact={contact} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} />
+                            )) :
+                            <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 20}}>
+                                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', fontSize: 12}}>No Contacts Found</Text>
+                            </View>
+                    }
+                </ScrollView>
+            </SafeAreaView>
+
+            <View style={{ position: 'absolute', bottom: 0, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                <TouchableOpacity disabled={ isDisabled() || loading } onPress={navigateUser} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                    <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
+                </TouchableOpacity>
+            </View>
+            <BottomSheet
+                ref={sheetRef}
+                index={-1}
+                snapPoints={snapPoints}
+                onChange={handleSheetChange}
+                backdropComponent={renderBackdrop}
+            >
+                {context === "options" &&
+                    <BottomSheetFlatList
+                        data={witnessOptions}
+                        renderItem={renderItem}
+                        keyExtractor={item => item.id}
+                    />
+                }
+                { context === "search" &&
+                    <View style={{display: 'flex', alignItems: 'center', width}}>
+                        <Text allowFontScaling={false} style={styles.subtitle}>Search Member</Text>
+                        <Controller
+                            control={control}
+                            render={( {field: {onChange, onBlur, value}}) => (
+                                <View style={styles.input0}>
+                                    <Picker
+                                        itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
+                                        style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
+                                        onBlur={onBlur}
+                                        selectedValue={value}
+                                        onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+                                        mode="dropdown"
+                                    >
+                                        {[
+                                            {
+                                                name: "Member Number",
+                                                value: 0
+                                            },
+                                            {
+                                                name: "Phone Number",
+                                                value: 1
+                                            }
+                                        ].map((p, i) =>(
+                                            <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_400Regular' />
+                                        ))}
+                                    </Picker>
+                                </View>
+                            )}
+                            name="inputStrategy"
                         />
-                    }
-                    { context === "search" &&
-                        <View style={{display: 'flex', alignItems: 'center', width}}>
-                            <Text allowFontScaling={false} style={styles.subtitle}>Search Member</Text>
-                            <Controller
-                                control={control}
-                                render={( {field: {onChange, onBlur, value}}) => (
-                                    <View style={styles.input0}>
-                                        <Picker
-                                            itemStyle={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                            style={{color: '#767577', fontFamily: 'Poppins_400Regular', fontSize: 14, marginTop: -5, marginLeft: -15 }}
-                                            onBlur={onBlur}
-                                            selectedValue={value}
-                                            onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-                                            mode="dropdown"
-                                        >
-                                            {[
-                                                {
-                                                    name: "Member Number",
-                                                    value: 0
-                                                },
-                                                {
-                                                    name: "Phone Number",
-                                                    value: 1
-                                                }
-                                            ].map((p, i) =>(
-                                                <Picker.Item key={i} label={p.name} value={p.value} color='#767577' fontFamily='Poppins_400Regular' />
-                                            ))}
-                                        </Picker>
-                                    </View>
-                                )}
-                                name="inputStrategy"
-                            />
 
-                            { inputStrategy === 1 && <Controller
-                                control={control}
-                                render={({field: {onChange, onBlur, value}}) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input0}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="0720000000"
-                                        keyboardType="numeric"
-                                    />
-                                )}
-                                name="phoneNumber"
-                            />}
+                        { inputStrategy === 1 && <Controller
+                            control={control}
+                            render={({field: {onChange, onBlur, value}}) => (
+                                <TextInput
+                                    allowFontScaling={false}
+                                    style={styles.input0}
+                                    onBlur={onBlur}
+                                    onChangeText={onChange}
+                                    value={value}
+                                    placeholder="0720000000"
+                                    keyboardType="numeric"
+                                />
+                            )}
+                            name="phoneNumber"
+                        />}
 
-                            {inputStrategy === 0 && <Controller
-                                control={control}
-                                render={({field: {onChange, onBlur, value}}) => (
-                                    <TextInput
-                                        allowFontScaling={false}
-                                        style={styles.input0}
-                                        onBlur={onBlur}
-                                        onChangeText={onChange}
-                                        value={value}
-                                        placeholder="Enter member number"
-                                    />
-                                )}
-                                name="memberNumber"
-                            />}
-                        </View>
-                    }
-
-                    <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                        <TouchableOpacity disabled={!memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                            {loading && <RotateView/>}
-                            <Text allowFontScaling={false} style={styles.buttonText}>{context === 'search' ? 'Search' : 'Submit'}</Text>
-                        </TouchableOpacity>
+                        {inputStrategy === 0 && <Controller
+                            control={control}
+                            render={({field: {onChange, onBlur, value}}) => (
+                                <TextInput
+                                    allowFontScaling={false}
+                                    style={styles.input0}
+                                    onBlur={onBlur}
+                                    onChangeText={onChange}
+                                    value={value}
+                                    placeholder="Enter member number"
+                                />
+                            )}
+                            name="memberNumber"
+                        />}
                     </View>
-                </SafeAreaView>
+                }
+
+                <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                    <TouchableOpacity disabled={!memberSearching || loading} onPress={() => submitSearch(context)} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: !memberSearching || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                        {loading && <RotateView/>}
+                        <Text allowFontScaling={false} style={styles.buttonText}>{context === 'search' ? 'Search' : 'Submit'}</Text>
+                    </TouchableOpacity>
+                </View>
             </BottomSheet>
         </GestureHandlerRootView>
     )
@@ -624,10 +607,10 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'flex-start',
         width,
-        height: 2/12 * height,
         position: 'relative',
-        marginTop: 30,
-        marginBottom: 20
+        marginBottom: 10,
+        marginTop: 10,
+        paddingBottom: 10
     },
     dialPad: {
         display: 'flex',

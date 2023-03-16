@@ -6,22 +6,19 @@ import {
     TouchableOpacity,
     View,
     Text,
-    NativeModules,
     SectionList,
     Alert
 } from "react-native";
 import {StatusBar} from "expo-status-bar";
 import {AntDesign} from "@expo/vector-icons";
-import {useDispatch, useSelector} from "react-redux";
 import {
     fetchLoanRequest,
     fetchLoanRequests,
     requestSignURL,
     setActorChanged,
-    storeState, voidLoanRequest
+    voidLoanRequest
 } from "../../stores/auth/authSlice";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {store} from "../../stores/store";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -42,7 +39,7 @@ import {toMoney} from "./Account";
 import BottomSheet, {BottomSheetBackdrop, BottomSheetSectionList, BottomSheetView} from "@gorhom/bottom-sheet";
 import EmptyList from "../../assets/images/fullpix_adobe_express.svg"
 import {showSnack} from "../../utils/immediateUpdate";
-import {useAppDispatch} from "../../stores/hooks";
+import {useActorChanged, useAppDispatch, useLoading, useLoanRequests, useMember} from "../../stores/hooks";
 
 type NavigationProps = NativeStackScreenProps<any>
 
@@ -229,7 +226,10 @@ const Item = ({item, section, computeProgress, navigation, loan} : {item: any, s
 }
 
 export default function LoanRequests ({ navigation, route }: NavigationProps) {
-    const { loading, member, loanRequests, actorChanged } = useSelector((state: { auth: storeState }) => state.auth);
+    const [member] = useMember();
+    const [loading] = useLoading();
+    const [loanRequests] = useLoanRequests();
+    const [actorChanged] = useActorChanged();
     const [loan, setLoan] = useState<LoanRequestData>();
     const dispatch = useAppDispatch();
 
@@ -237,11 +237,9 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
         try {
             await dispatch(fetchLoanRequests({memberRefId: `${member?.refId}`}));
         } catch (e: any) {
-            CSTM.showToast(e.message)
+            showSnack(JSON.stringify(e), "ERROR");
         }
     }
-
-    const CSTM = NativeModules.CSTM;
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -409,12 +407,9 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
 
     useEffect(() => {
         let starting = true;
-
-        if (starting) {
-            (async () => {
-                await reFetch()
-            })()
-        }
+        reFetch().catch(e => {
+            showSnack(JSON.stringify(e), "ERROR");
+        })
         return () => {
             starting = false;
         }
@@ -455,7 +450,6 @@ export default function LoanRequests ({ navigation, route }: NavigationProps) {
                                 ListEmptyComponent={
                                     <View style={{display: 'flex', marginTop: height/5, alignItems: 'center', justifyContent: 'center'}}>
                                         <EmptyList width={width/3} height={height/4} />
-                                        <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_700Bold', fontSize: 15, color: '#489AAB' }}>No loan requests at the moment.</Text>
                                     </View>
                                 }
                                 removeClippedSubviews={true}

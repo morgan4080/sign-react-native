@@ -24,12 +24,16 @@ const CustomTabBar = ({ state, descriptors, navigation }:  BottomTabBarProps) =>
                     const { options } = descriptors[route.key];
                     const TabIcon: any = options.tabBarIcon;
                     // if (options.tabBarStyle) dispatch(setTabStyle(options.tabBarStyle));
-                    const label: any =
+                    let label: any =
                         options.tabBarLabel !== undefined
                             ? options.tabBarLabel
                             : options.title !== undefined
                                 ? options.title
                                 : route.name;
+
+                    const labelArray = label.split(" ");
+
+                    label = labelArray[labelArray.length - 1];
 
                     const isFocused = state.index === index;
 

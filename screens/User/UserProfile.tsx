@@ -203,7 +203,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
         return (
             <Container cb={() => reloading()}>
                 <Text style={styles.description}>
-                    { `${ user?.companyName ? user?.companyName : '' }` }
+                    { `${ clientSettings ? clientSettings.organizationName : '' }` }
                 </Text>
                 <View style={{
                     backgroundColor: "#FFFFFF",

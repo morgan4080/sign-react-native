@@ -104,12 +104,20 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const [loading] = useLoading();
     const [settings] = useSettings();
     const [clientSettings] = useClientSettings();
-    const [user] = useUser();
+    const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        dispatch(LoadOrganisation())
+            .catch((error) => showSnack(error.message, "ERROR"))
+    }, []);
+
+    console.log(JSON.stringify(clientSettings));
 
     useFonts([
         Poppins_300Light,
         Poppins_400Regular
-    ])
+    ]);
+
     const {
         control,
         handleSubmit,
@@ -125,44 +133,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
     const [context, setContext] = useState<string>("");
 
-    const dispatch = useAppDispatch();
-
-    useEffect(() => {
-        Promise.all([
-            dispatch(authenticate()),
-            getSecureKey('phone_number_without'),
-            getSecureKey('phone_number_code'),
-        ]).then(([authStuff, phone, code]) => {
-            const { type, error, payload }: any = authStuff;
-
-            if (error) {
-                throw new Error(error)
-            } else {
-                if (type === 'authenticate/fulfilled' && payload && payload.tenantId) {
-                    return saveSecureKey('currentTenantId', payload.tenantId)
-                        .then(() => Promise.all([
-                            dispatch(getTenants(`${code}${phone}`)),
-                            dispatch(setSelectedTenantId(payload.tenantId)),
-                            dispatch(LoadOrganisation())
-                        ]))
-                        .catch((err) => {
-                            throw new Error(err)
-                        })
-                } else {
-                    throw new Error("Authentication Failed")
-                }
-            }
-        }).catch((error) => {
-            showSnack(JSON.stringify(error), "WARNING");
-        })
-    }, []);
-
-    useEffect(() => {
-        if (Object.keys(clientSettings).length > 0 && user) {
-            dispatch(updateOrganisation({tenantId: user.tenantId, clientSettings: clientSettings}));
-        }
-    }, [clientSettings]);
-
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
 
     const [allGuaranteedAmounts, setAllGuaranteedAmounts] = useState<string[]>([]);
@@ -174,8 +144,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const [employerPayload, setEmployerPayload] = useState<employerPayloadType>();
 
     const [businessPayload, setBusinessPayload] = useState<businessPayloadType>();
-
-    // set current guarantor on settings requiring amount
 
     const [currentGuarantor, setCurrentGuarantor] = useState<{contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string}>()
 
@@ -384,7 +352,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     useEffect(() => {
         let change = true;
         if (change) {
-            if (settings && settings.selfGuarantee) {
+            if (clientSettings && clientSettings.allowSelfGuarantee) {
                 setGuarantorshipOptions([...guarantorshipOptions, {
                     id: "1",
                     name: "Self Guarantee",
@@ -396,7 +364,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         return () => {
             change = false;
         }
-    }, [])
+    }, [clientSettings])
 
     /*const toggleEmployerDetailsEnabled = () => setEmployerDetailsEnabled((previousState: boolean) => {
         if (!previousState) {
@@ -526,9 +494,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     return;
                 }
 
-                showSnack(JSON.stringify(settings.witness));
-
-                if (settings.witness) {
+                if (clientSettings.requireWitness) {
                     navigation.navigate('WitnessesHome', {
                         guarantors: selectedContacts.map((cont, i) => {
                             if (settings.amounts) {
@@ -543,7 +509,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         businessPayload,
                         ...route.params
                     })
-                } else if (!settings.witness) {
+                } else if (!clientSettings.requireWitness) {
                     navigation.navigate('LoanConfirmation', {
                         witnesses: [],
                         guarantors: selectedContacts.map((cont, i) => {

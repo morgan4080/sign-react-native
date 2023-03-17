@@ -74,7 +74,7 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
         {
             defaultValues: {
                 desiredAmount: undefined,
-                desiredPeriod: '1',
+                desiredPeriod: '2',
                 customPeriod: undefined
             }
         }
@@ -161,7 +161,7 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
                 />
 
                 <TextField
-                    label={"Desired Period"}
+                    label={"Desired Period (Months)"}
                     field={"desiredPeriod"}
                     val={getValues}
                     watch={watch}
@@ -175,8 +175,11 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
                             message: "Desired period is required"
                         },
                         validate: (value: string) => {
+                            if (parseInt(value) < 2) {
+                                return "Below minimum period"
+                            }
                             if ((parseInt(value) > parseInt(route.params?.loanProduct.maxPeriod))) {
-                                return "Max period exceeded"
+                                return "Maximum period exceeded"
                             }
                             return true
                         }

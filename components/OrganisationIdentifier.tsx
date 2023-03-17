@@ -1,35 +1,29 @@
 import * as React from 'react';
 import {Pressable, StyleSheet, Text, TextInput, View} from "react-native";
 import OrganisationSelected from "./OrganisationSelected";
-import {useEffect} from "react";
-import {
-    AuthenticateClient,
-    setSelectedTenant,
-    storeState
-} from "../stores/auth/authSlice";
-import {useDispatch, useSelector} from "react-redux";
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {store} from "../stores/store";
-import {AntDesign} from "@expo/vector-icons";
-import {deleteSecureKey} from "../utils/secureStore";
-import {Poppins_500Medium, useFonts} from "@expo-google-fonts/poppins";
-type NavigationProps = NativeStackScreenProps<any>;
-type AppDispatch = typeof store.dispatch;
-const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
-    const {selectedTenant} = useSelector((state: { auth: storeState }) => state.auth)
-    const dispatch : AppDispatch = useDispatch();
+import { useEffect } from "react";
+import { AuthenticateClient, setSelectedTenant } from "../stores/auth/authSlice";
+import { AntDesign } from "@expo/vector-icons";
+import { deleteSecureKey } from "../utils/secureStore";
+import { Poppins_500Medium, useFonts } from "@expo-google-fonts/poppins";
+import { useAppDispatch, useSelectedTenant } from "../stores/hooks";
+import { RootStackScreenProps } from "../types";
+const OrganisationIdentifier = ({ navigation, route }: RootStackScreenProps<"SetTenant">) => {
+    const [selectedTenant] = useSelectedTenant();
+    const dispatch= useAppDispatch();
     useFonts({
         Poppins_500Medium
-    })
+    });
+
     useEffect(() => {
         let changing = true;
-        if (changing && nav.route.params?.selectedTenant) {
-            deleteSecureKey("access_token").then(() => dispatch(setSelectedTenant(nav.route.params?.selectedTenant))).catch(error => console.log(error))
+        if (changing && route.params?.selectedTenant) {
+            deleteSecureKey("access_token").then(() => dispatch(setSelectedTenant(route.params?.selectedTenant))).catch(error => console.log(error))
         }
         return () => {
             changing = false;
         }
-    }, [nav.route.params?.selectedTenant])
+    }, [route.params?.selectedTenant]);
 
     useEffect(() => {
         let changing = true;
@@ -45,10 +39,11 @@ const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
         return () => {
             changing = false;
         }
-    }, [selectedTenant, nav.route.params?.selectedTenant])
+    }, [selectedTenant, route.params?.selectedTenant]);
+
     return (
         <>
-            <Pressable style={{...styles.input, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}} onPress={() => nav.navigation.navigate('Organisations')}>
+            <Pressable style={{...styles.input, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}} onPress={() => navigation.navigate('Organisations')}>
                 <View style={[styles.inputContainer, styles.shadowProp]}>
                     {
                         selectedTenant && selectedTenant.tenantName ? <View style={[styles.animatedView]}>
@@ -67,7 +62,7 @@ const OrganisationIdentifier = ({ nav }: { nav: NavigationProps }) => {
                     <AntDesign style={{position: "absolute", right: 10}} name="right" size={20} color="#8d8d8d" />
                 </View>
             </Pressable>
-            <OrganisationSelected tenantId={selectedTenant?.tenantId} nav={nav} />
+            <OrganisationSelected tenantId={selectedTenant?.tenantId} parentProps={{navigation, route}} />
         </>
     )
 }

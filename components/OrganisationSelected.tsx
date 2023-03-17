@@ -8,29 +8,26 @@ import {
     NativeModules,
     View,
     useWindowDimensions,
-    Pressable, Animated,
+    Pressable,
 } from "react-native";
-import {Controller, useForm} from "react-hook-form";
-import {AntDesign, Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
+import {useForm} from "react-hook-form";
+import {AntDesign, MaterialCommunityIcons} from "@expo/vector-icons";
 import {useEffect, useState} from "react";
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {RotateView} from "../screens/Auth/VerifyOTP";
-import {useDispatch, useSelector} from "react-redux";
-import {AuthenticateClient, OnboardUser, storeState} from "../stores/auth/authSlice";
+import {AuthenticateClient, OnboardUser} from "../stores/auth/authSlice";
 import {requestPhoneNumber, requestPhoneNumberFormat} from "../utils/smsVerification";
-import {store} from "../stores/store";
 import {saveSecureKey} from "../utils/secureStore";
 import Constants from "expo-constants";
 import TextField from "./TextField";
 import {UseFormWatch} from "react-hook-form/dist/types/form";
 import TouchableButton from "./TouchableButton";
+import {RootStackScreenProps} from "../types";
+import {useAppDispatch, useLoading, useSelectedTenant} from "../stores/hooks";
 type FormData = {
-    phoneNumber: string
-    idNumber: string
-    email: string
+    phoneNumber: string;
+    idNumber: string;
+    email: string;
 }
-type NavigationProps = NativeStackScreenProps<any>;
-type AppDispatch = typeof store.dispatch;
+
 type PropType = {
     errors?: any;
     control?: any;
@@ -40,7 +37,7 @@ type PropType = {
     setTab?: any;
     tab?: any;
     clearErrors?: any;
-    nav?: any;
+    nav?: RootStackScreenProps<"SetTenant">;
     getValues: (field: string) => string | undefined;
     watch: UseFormWatch<Record<string, any>>;
 }
@@ -94,11 +91,11 @@ const PhoneInput = ({errors, control, getValues, watch, loading, handleSubmit, o
         <View style={{position: 'relative', display: "flex", flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between"}}>
             <Pressable style={{...styles.input, display: 'flex', flexDirection: 'row', alignItems: 'center', width: width * 0.28, paddingTop: 0}} onPress={() => {
                 clearErrors();
-                nav.navigation.navigate('Countries', { previous: nav.route.name });
+                if (nav) nav.navigation.navigate('Countries', { previous: nav.route.name });
             }}>
                 <View style={[styles.inputContainer, styles.shadowProp]}>
                     {
-                        nav.route.params?.flag ?
+                        (nav && nav.route.params?.flag) ?
                             <View style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
                                 <Image source={{uri: nav.route.params?.flag}} style={{width: 22, height: 18}}/>
                                 <TextInput
@@ -192,10 +189,12 @@ const IDInput = ({errors, control, loading, handleSubmit, onSubmit, getValues, w
             </View>
         )
     };
-const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, nav: NavigationProps}) => {
+const OrganisationSelected = ({tenantId, parentProps}: {tenantId: string | undefined; parentProps: RootStackScreenProps<"SetTenant">;}) => {
     const [tab, setTab] = useState<number>(0);
-    const {loading, selectedTenant} = useSelector((state: { auth: storeState }) => state.auth);
-    const dispatch : AppDispatch = useDispatch();
+    const [selectedTenant] = useSelectedTenant();
+    const [loading] = useLoading();
+    const dispatch = useAppDispatch();
+    const { navigation, route } = parentProps;
     const {
         control,
         handleSubmit,
@@ -237,15 +236,15 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
             let id = "";
             let email = "";
 
-            if (value.phoneNumber) {
+            if (value.phoneNumber && route.params?.alpha2Code) {
                 const isPh = /^([\d{1,2}[]?|)\d{3}[]?\d{3}[]?\d{3}[]?$/i.test(value.phoneNumber);
 
                 if (!isPh) {
                     setError('phoneNumber', {type: 'custom', message: 'Please provide a valid phone number'});
                     return
                 }
-                await saveSecureKey('alpha2Code', nav.route.params?.alpha2Code);
-                const phoneDataJson = await requestPhoneNumberFormat(nav.route.params?.alpha2Code, value.phoneNumber);
+                await saveSecureKey('alpha2Code', route.params?.alpha2Code);
+                const phoneDataJson = await requestPhoneNumberFormat(route.params?.alpha2Code, value.phoneNumber);
 
                 const {country_code, phone_no} = JSON.parse(phoneDataJson);
                 phone = `${country_code}${phone_no}`;
@@ -309,23 +308,25 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                         setError(context, {type: 'custom', message: "Member Details Unavailable"})
                     } else {
                         // navigate to otp
-                        const deviceId = await DeviceInfModule.getUniqueId();
-                        const phoneDataJson = await requestPhoneNumberFormat(nav.route.params?.alpha2Code, response.payload.phoneNumber);
+                        if (route.params?.alpha2Code) {
+                            const deviceId = await DeviceInfModule.getUniqueId();
+                            const phoneDataJson = await requestPhoneNumberFormat(route.params?.alpha2Code, response.payload.phoneNumber);
 
-                        const {country_code, phone_no} = JSON.parse(phoneDataJson);
+                            const {country_code, phone_no} = JSON.parse(phoneDataJson);
 
-                        console.log('on boarding', JSON.stringify({country_code, phone_no}));
+                            console.log('on boarding', JSON.stringify({country_code, phone_no}));
 
-                        await Promise.all([
-                            saveSecureKey('phone_number_code', country_code),
-                            saveSecureKey('phone_number_without', phone_no),
-                        ]);
+                            await Promise.all([
+                                saveSecureKey('phone_number_code', country_code),
+                                saveSecureKey('phone_number_without', phone_no),
+                            ]);
 
-                        nav.navigation.navigate('OnboardingOTP', {
-                            ...response.payload,
-                            deviceId,
-                            appName: Constants.manifest?.android?.package
-                        });
+                            navigation.navigate('OnboardingOTP', {
+                                ...response.payload,
+                                deviceId,
+                                appName: Constants.manifest?.android?.package
+                            });
+                        }
                     }
                     break;
             }
@@ -352,7 +353,7 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
 
                     {
                         tab === 0 &&
-                        <PhoneInput watch={watch} getValues={getValues} errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={nav}/>
+                        <PhoneInput watch={watch} getValues={getValues} errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={{navigation, route}}/>
                     }
 
                 </View>
@@ -366,20 +367,20 @@ const OrganisationSelected = ({tenantId, nav}: {tenantId: string | undefined, na
                 :
                     tenantId === 't74411' ?
 
-                        <PhoneInput watch={watch} getValues={getValues} errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={nav}/>
+                        <PhoneInput watch={watch} getValues={getValues} errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={{navigation, route}}/>
 
                     :
                         tenantId === 't10589' ?
 
 
-                            <PhoneInput watch={watch} getValues={getValues} errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={nav}/>
+                            <PhoneInput watch={watch} getValues={getValues} errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={{navigation, route}}/>
 
                     :
 
                         tenantId === 't10789' ?
 
 
-                            <PhoneInput watch={watch} getValues={getValues} errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={nav}/>
+                            <PhoneInput watch={watch} getValues={getValues} errors={errors} control={control} loading={loading} handleSubmit={handleSubmit} onSubmit={onSubmit} clearErrors={clearErrors} nav={{navigation, route}}/>
 
                     :
 

@@ -6,11 +6,8 @@
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import SelectTenant from "./screens/Auth/SelectTenant";
-import SetTenant from "./screens/Onboarding/SetTenant";
-import OnboardingOTP from "./screens/Onboarding/OnboardingOTP";
-import Organisations from "./screens/Onboarding/Organisations";
-import Account from "./screens/User/Account";
+import {LoanRequestData} from "./screens/User/LoanRequests";
+import {LoanProduct} from "./stores/auth/authSlice";
 
 declare global {
   namespace ReactNavigation {
@@ -19,34 +16,32 @@ declare global {
 }
 
 export type RootStackParamList = {
-  Root: NavigatorScreenParams<RootTabParamList> | undefined;
   Modal: NavigatorScreenParams<RootTabParamList> | undefined;
   NotFound: NavigatorScreenParams<RootTabParamList> | undefined;
   GetStarted: NavigatorScreenParams<RootTabParamList> | undefined;
   KYC: NavigatorScreenParams<RootTabParamList> | undefined;
-  SetTenant: NavigatorScreenParams<RootTabParamList> | undefined;
+  SetTenant: { selectedTenant?: any; code?: "254"; numericCode?: string; alpha2Code?: string; flag?: string; } | undefined;
   Organisations: NavigatorScreenParams<RootTabParamList> | undefined;
   OnboardingOTP: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanProducts: NavigatorScreenParams<RootTabParamList> | undefined;
   MyAccount: NavigatorScreenParams<RootTabParamList> | undefined;
-  LoanProduct: NavigatorScreenParams<RootTabParamList> | undefined;
+  LoanProduct: { loanProduct?: LoanProduct; } | undefined;
   GuarantorsHome: NavigatorScreenParams<RootTabParamList> | undefined;
-  LoanRequests: NavigatorScreenParams<RootTabParamList> | undefined;
   ReplaceActor: NavigatorScreenParams<RootTabParamList> | undefined;
   WitnessesHome: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanConfirmation: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanRequest: NavigatorScreenParams<RootTabParamList> | undefined;
-  Login: NavigatorScreenParams<RootTabParamList> | undefined;
+  Login: NavigatorScreenParams<RootTabParamList> | { countryCode?: string; phoneNumber?: string; email?: string } | undefined;
   ShowTenants: NavigatorScreenParams<RootTabParamList> | undefined;
   GetTenants: NavigatorScreenParams<RootTabParamList> | undefined;
-  Countries: NavigatorScreenParams<RootTabParamList> | undefined;
+  Countries: { previous: string; } | undefined;
   PinLogin: NavigatorScreenParams<RootTabParamList> | undefined;
   SetPin: NavigatorScreenParams<RootTabParamList> | undefined;
   SelectTenant: NavigatorScreenParams<RootTabParamList> | undefined;
-  LoanPurpose: NavigatorScreenParams<RootTabParamList> | undefined;
+  LoanPurpose: { loanProduct: LoanProduct; loanDetails: {desiredAmount: string | undefined; desiredPeriod: string | undefined;} } | undefined;
   Forgot: NavigatorScreenParams<RootTabParamList> | undefined;
   ProfileMain: NavigatorScreenParams<RootTabParamList> | undefined;
-  GuarantorshipRequests: NavigatorScreenParams<RootTabParamList> | undefined;
+  GuarantorshipRequests: NavigatorScreenParams<RootTabParamList> | { pressed?: boolean } | undefined;
   WitnessRequests: NavigatorScreenParams<RootTabParamList> | undefined;
   GuarantorshipStatus: NavigatorScreenParams<RootTabParamList> | undefined;
   WitnessStatus: NavigatorScreenParams<RootTabParamList> | undefined;
@@ -63,7 +58,7 @@ export type RootStackScreenProps<Screen extends keyof RootStackParamList> = Nati
 
 export type RootTabParamList = {
   UserProfile: undefined;
-  LoanRequests: undefined;
+  LoanRequests: { loan?: LoanRequestData } | undefined;
   History: undefined;
   Account: undefined;
   ModalScreen: undefined;

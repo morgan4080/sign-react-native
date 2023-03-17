@@ -1963,6 +1963,7 @@ export const getTenants = createAsyncThunk('getTenants', async (phoneNumber: str
             return rejectWithValue(response.status);
         } else {
             const data = await response.json();
+            console.warn("getTenants error data", JSON.stringify(data));
             return rejectWithValue("API response code: " + response.status);
         }
 

@@ -18,7 +18,6 @@ import {
     setActorChanged,
     voidLoanRequest
 } from "../../stores/auth/authSlice";
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -40,8 +39,7 @@ import BottomSheet, {BottomSheetBackdrop, BottomSheetSectionList, BottomSheetVie
 import EmptyList from "../../assets/images/fullpix_adobe_express.svg"
 import {showSnack} from "../../utils/immediateUpdate";
 import {useActorChanged, useAppDispatch, useLoading, useLoanRequests, useMember} from "../../stores/hooks";
-
-type NavigationProps = NativeStackScreenProps<any>
+import {RootStackScreenProps, RootTabScreenProps} from "../../types";
 
 const { width, height } = Dimensions.get("window");
 
@@ -225,7 +223,12 @@ const Item = ({item, section, computeProgress, navigation, loan} : {item: any, s
     )
 }
 
-export default function LoanRequests ({ navigation, route }: NavigationProps) {
+export default function LoanRequests(
+    { 
+        navigation,
+        route
+    }: RootTabScreenProps<'LoanRequests'>
+) {
     const [member] = useMember();
     const [loading] = useLoading();
     const [loanRequests] = useLoanRequests();

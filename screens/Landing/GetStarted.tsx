@@ -5,11 +5,9 @@ import {
     TouchableHighlight,
     Text,
     StatusBar as Bar,
-    Linking
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {useEffect} from "react";
 import {store} from "../../stores/store";
 import {getTenants, initializeDB} from "../../stores/auth/authSlice"
@@ -19,14 +17,12 @@ import {RotateView} from "../Auth/VerifyOTP";
 import Onboarding from "../../components/Onboarding";
 import {checkToStartUpdate, showSnack} from "../../utils/immediateUpdate";
 import {getSecureKey,} from "../../utils/secureStore";
-import * as Notifications from "expo-notifications";
 import Container from "../../components/Container";
+import {RootStackScreenProps} from "../../types";
 
 const { width, height } = Dimensions.get("window");
 
-type NavigationProps = NativeStackScreenProps<any>
-
-export default function GetStarted({ navigation }: NavigationProps) {
+export default function GetStarted({ navigation }: RootStackScreenProps<"GetStarted">) {
     const { appInitialized, loading } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
     const dispatch : AppDispatch = useDispatch();
@@ -64,10 +60,11 @@ export default function GetStarted({ navigation }: NavigationProps) {
 
                     if (oldBoy === 'true' && currentTenantId) {
                         dispatch(getTenants(`${code}${phone}`))
-                        .then(({type, meta, error}: any) => {
+                        .then(({type, error, payload}: any) => {
                             if (type === 'getTenants/rejected' && error) {
-                                showSnack(`Tenants not found: ${error.message}`, "ERROR", "", true);
+                                console.warn("couldn't get tenants", JSON.stringify(payload));
                             } else {
+                                console.log("navigating to login");
                                 navigation.navigate('Login', {
                                     countryCode: code,
                                     phoneNumber: phone,

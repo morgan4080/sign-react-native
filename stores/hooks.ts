@@ -8,6 +8,10 @@ export const useClientSettings = () => {
     const clientSettings = useAppSelector(state => state.auth.clientSettings);
     return [clientSettings] as const
 }
+export const useSelectedTenant = () => {
+    const selectedTenant = useAppSelector(state => state.auth.selectedTenant);
+    return [selectedTenant] as const
+}
 export const useOrganisations = () => {
     const organisations = useAppSelector(state => state.auth.organisations);
     return [organisations] as const
@@ -27,6 +31,10 @@ export const useUser = () => {
 export const useTenants = () => {
     const tenants = useAppSelector(state => state.auth.tenants);
     return [tenants] as const
+}
+export const useLoggedInState = () => {
+    const isLoggedIn = useAppSelector(state => state.auth.isLoggedIn);
+    return [isLoggedIn] as const
 }
 export const useSelectedTenantId = () => {
     const selectedTenantId = useAppSelector(state => state.auth.selectedTenantId);

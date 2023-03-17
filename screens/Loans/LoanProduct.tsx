@@ -1,24 +1,10 @@
 import {
     Dimensions,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StatusBar as Bar,
     StyleSheet,
-    TouchableOpacity,
     View,
     Text,
-    TextInput,
-    TouchableHighlight,
     Pressable,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import {StatusBar} from "expo-status-bar";
-import {Ionicons} from "@expo/vector-icons";
-import {useDispatch, useSelector} from "react-redux";
-import {storeState} from "../../stores/auth/authSlice";
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {store} from "../../stores/store";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -29,28 +15,24 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import {Controller, useForm} from "react-hook-form";
+import {useForm} from "react-hook-form";
 import {RotateView} from "../Auth/VerifyOTP";
-import {useState} from "react";
 import Container from "../../components/Container";
 import TextField from "../../components/TextField";
 import TouchableButton from "../../components/TouchableButton";
-
-type NavigationProps = NativeStackScreenProps<any>
+import {RootStackScreenProps} from "../../types";
+import {useLoading} from "../../stores/hooks";
 
 const { width, height } = Dimensions.get("window");
 
 interface FormData {
-    desiredAmount: string | undefined,
-    desiredPeriod: string | undefined,
-    customPeriod: string | undefined,
+    desiredAmount: string | undefined;
+    desiredPeriod: string | undefined;
+    customPeriod: string | undefined;
 }
 
-export default function LoanProduct ({ navigation, route }: NavigationProps) {
-    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
-    type AppDispatch = typeof store.dispatch;
-
-    const dispatch : AppDispatch = useDispatch();
+const LoanProduct = ({ navigation, route }: RootStackScreenProps<"LoanProduct">) => {
+    const [loading] = useLoading();
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -65,10 +47,8 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
     const {
         control,
         handleSubmit,
-        setError,
         watch,
         getValues,
-        setValue,
         formState: { errors }
     } = useForm<FormData>(
         {
@@ -80,73 +60,53 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
         }
     )
 
-    const setSelectedValue = (itemValue: string) => {
-        if (itemValue === "-1") {
-            setCustom(true)
-        } else {
-            setCustom(false)
-        }
-        setValue('desiredPeriod', itemValue)
-    }
-
-    let ps = new Array(parseInt(route.params?.loanProduct.maxPeriod));
-
-    let pData = [];
-
-    for(let i=1;i<ps.length;i++){
-        pData.push(i+1)
-    }
-
-    pData.push(-1)
-
-    const loanPeriods: {name: string, period: string}[] = pData.reduce((acc: {name: string, period: string}[], current: number) => {
-        if (current === -1) {
-            acc.push({
-                name: 'Custom Period',
-                period: `${current}`
-            })
-        } else {
-            acc.push({
-                name: `${current} ${current === 1 ? 'Month' : 'Months'}`,
-                period: `${current}`
-            })
-        }
-        return acc
-    }, [])
-
     const onSubmit = async (value: any): Promise<void> => {
-        if (value.customPeriod) {
+        if (value.customPeriod && route.params?.loanProduct) {
             navigation.navigate('LoanPurpose',
                 {
                     loanProduct: route.params?.loanProduct,
                     loanDetails: {
                         desiredAmount: value.desiredAmount,
-                        desiredPeriod: `${value.customPeriod}`.replace(/\,/g, "")
+                        desiredPeriod: `${value.customPeriod}`.replace(/,/g, "")
                     }
                 }
             )
             return
         }
-        navigation.navigate('LoanPurpose',
-            {
-                loanProduct: route.params?.loanProduct,
-                loanDetails: {
-                    desiredAmount: value.desiredAmount,
-                    desiredPeriod: `${value.desiredPeriod}`.replace(/\,/g, "")
-                }
-            }
-        )
-    };
 
-    const [custom, setCustom] = useState<boolean>(false)
+        if (route.params?.loanProduct) {
+            navigation.navigate('LoanPurpose',
+                {
+                    loanProduct: route.params?.loanProduct,
+                    loanDetails: {
+                        desiredAmount: value.desiredAmount,
+                        desiredPeriod: `${value.desiredPeriod}`.replace(/,/g, "")
+                    }
+                }
+            )
+        }
+    };
 
     if (fontsLoaded && !loading) {
         return (
             <Container>
                 <View style={{ paddingHorizontal: 5, marginTop: 30 }}>
-                    <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 20 }}>{ `${route.params?.loanProduct.name}`.replace(/\_/g, " ") }</Text>
-                    <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>Interest { route.params?.loanProduct.interestRate }%</Text>
-                    <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_300Light', fontSize: 12 }}>Max period {route.params?.loanProduct.maxPeriod} (months)</Text>
+                    { route.params?.loanProduct ?
+                        <Text allowFontScaling={false} style={{
+                            textAlign: 'left',
+                            color: '#489AAB',
+                            fontFamily: 'Poppins_600SemiBold',
+                            fontSize: 20
+                        }}>
+                            {`${route.params?.loanProduct.name}`.replace(/_/g, " ")}
+                        </Text> : null
+                    }
+                    { route.params?.loanProduct ?
+                        <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>Interest { route.params?.loanProduct.interestRate }%</Text> : null
+                    }
+                    { route.params?.loanProduct ?
+                        <Text allowFontScaling={false} style={{ textAlign: 'left', color: '#489AAB', fontFamily: 'Poppins_300Light', fontSize: 12 }}>Max period {route.params?.loanProduct.maxPeriod} (months)</Text> : null
+                    }
                 </View>
 
                 <TextField
@@ -178,15 +138,20 @@ export default function LoanProduct ({ navigation, route }: NavigationProps) {
                             if (parseInt(value) < 2) {
                                 return "Below minimum period"
                             }
-                            if ((parseInt(value) > parseInt(route.params?.loanProduct.maxPeriod))) {
+                            if (route.params?.loanProduct && (parseInt(value) > parseInt(route.params?.loanProduct.maxPeriod))) {
                                 return "Maximum period exceeded"
                             }
                             return true
                         }
                     }}
                 />
-
-                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: 5}}>Select Desired Period (Eg. 1-{route.params?.loanProduct.maxPeriod} Months)</Text>
+                {route.params?.loanProduct ?
+                    <Text allowFontScaling={false} style={{fontFamily: 'Poppins_400Regular', color: '#cccccc', marginTop: 10, marginLeft: 5}}>
+                        Select Desired Period (Eg. 1-{route.params?.loanProduct.maxPeriod} Months)
+                    </Text>
+                    :
+                    null
+                }
 
                 <TouchableButton loading={loading} label={"Confirm"} onPress={handleSubmit(onSubmit)} />
 
@@ -293,3 +258,5 @@ const styles = StyleSheet.create({
         marginTop: 5,
     },
 });
+
+export default LoanProduct;

@@ -29,7 +29,6 @@ import {
 } from '@expo-google-fonts/poppins';
 import {useEffect, useState} from "react";
 import * as LocalAuthentication from 'expo-local-authentication';
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import { useForm, Controller } from "react-hook-form";
 import {
     loginUser,
@@ -39,17 +38,14 @@ import {
     organisationType,
     logoutUser
 } from "../../stores/auth/authSlice";
-import { useDispatch, useSelector } from "react-redux";
-import { store } from "../../stores/store";
-import { storeState, loginUserType } from "../../stores/auth/authSlice";
+import { loginUserType } from "../../stores/auth/authSlice";
 import {FontAwesome5, Ionicons} from "@expo/vector-icons";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import {RotateView} from "./VerifyOTP";
 import {showSnack} from "../../utils/immediateUpdate";
-import {useAppDispatch, useOrganisations} from "../../stores/hooks";
+import {useAppDispatch, useLoading, useLoggedInState, useOrganisations, useTenants} from "../../stores/hooks";
+import {RootStackScreenProps} from "../../types";
 const { width, height } = Dimensions.get("window");
-
-type NavigationProps = NativeStackScreenProps<any>;
 
 type FormData = {
     phoneNumber: string | undefined;
@@ -98,14 +94,18 @@ const alertComponent = (title: string, mess: string | undefined, btnText: any, b
     ])
 }
 
-export default function Login({ navigation }: NavigationProps) {
-    const { tenants, isLoggedIn, loading } = useSelector((state: { auth: storeState }) => state.auth);
+export default function Login({ navigation, route }: RootStackScreenProps<"Login">) {
+    const [loading] = useLoading();
+    const [tenants] = useTenants();
+    const [isLoggedIn] = useLoggedInState();
     const [organisations] = useOrganisations();
     const [otpVerified, setOtpVerified] = useState(undefined);
     const [fingerPrint, setFingerPrint] = useState<string | null>(null);
     const [localLogin, setLocalLogin] = useState<boolean>(false);
     const [currentTenant, setCurrentTenant] = useState<organisationType | undefined>(undefined);
     const [tenant, setTenant] = useState<TenantsType | undefined>(undefined);
+
+    console.log(route.params)
 
     useEffect(() => {
         let authenticating = true;

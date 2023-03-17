@@ -6,14 +6,12 @@ import {
     View
 } from 'react-native';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
+import { useEffect, useState} from "react";
 import {
     fetchMember,
     saveContactsToDb,
     authenticate,
     fetchLoanProducts,
-    editMember,
     setSelectedTenantId,
     updateOrganisation,
     LoadOrganisation,
@@ -21,25 +19,21 @@ import {
 } from "../../stores/auth/authSlice";
 import {AntDesign, Entypo, FontAwesome} from "@expo/vector-icons";
 import {RotateView} from "../Auth/VerifyOTP";
-import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
-import BottomSheet, {BottomSheetBackdrop} from "@gorhom/bottom-sheet";
-import {useForm} from "react-hook-form";
+import {saveSecureKey} from "../../utils/secureStore";
 import GuarantorImg from "../../assets/images/guarantorship.svg";
 import Fav from "../../assets/images/fav.svg";
 import WitnessImg from "../../assets/images/witness.svg";
-import {showSnack} from "../../utils/immediateUpdate";
 import {
     useAppDispatch,
     useClientSettings,
     useLoanRequests,
-    useMember, useSettings,
+    useMember,
     useUser
 } from "../../stores/hooks";
 import Container from "../../components/Container";
 import {toMoney} from "./Account";
 import {Circle as ProgressCircle} from "react-native-progress";
-
-type NavigationProps = NativeStackScreenProps<any>
+import {RootStackScreenProps} from "../../types";
 
 const { width, height } = Dimensions.get("window");
 
@@ -61,11 +55,7 @@ const greeting = () => {
     })
 }
 
-type FormData = {
-    email: string
-}
-
-export default function UserProfile({ navigation }: NavigationProps) {
+export default function UserProfile({ navigation }: RootStackScreenProps<"ProfileMain">) {
     const [user] = useUser();
     const [member] = useMember();
     const [loanRequests] = useLoanRequests();
@@ -125,79 +115,9 @@ export default function UserProfile({ navigation }: NavigationProps) {
         Poppins_300Light
     });
 
-    const sheetRef = useRef<BottomSheet>(null);
-
-    const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
-
-    // callbacks
-    const handleSheetChange = useCallback((index: any) => {
-        console.log("handleSheetChange", index);
-    }, []);
-
-    const handleSnapPress = useCallback((index: any) => {
-        sheetRef.current?.snapToIndex(index);
-    }, []);
-
-    const handleClosePress = useCallback(() => {
-        sheetRef.current?.close();
-    }, []);
-
-    // disappearsOnIndex={1}
-    const renderBackdrop = useCallback(
-        (props: any) => (
-            <BottomSheetBackdrop
-                {...props}
-                disappearsOnIndex={-1}
-                appearsOnIndex={1}
-            />
-        ),
-        []
-    );
-
-    type memberPayloadType = {firstName?: string, lastName?: string, phoneNumber?: string, idNumber?: string, email?: string, memberRefId?: string};
-
-    const {
-        control,
-        handleSubmit,
-        clearErrors,
-        formState: { errors }
-    } = useForm<FormData>({});
-
     const reloading = () => {
         setReload(!reload);
-    }
-
-    const onSubmit = async ({email}: any): Promise<void> => {
-        try {
-            const payload: memberPayloadType = {
-                email,
-                memberRefId: member?.refId
-            }
-
-            const {type, error}: any = await dispatch(editMember(payload));
-
-            if (type === 'editMember/rejected' && error) {
-                if (error.message === "Network request failed") {
-                    showSnack("Network request failed", "ERROR");
-                } else if (error.message === "401") {
-                    showSnack(`Edit Member Error: ${error.message}`, "ERROR")
-                    return
-                } else {
-                    showSnack(error.message, "ERROR");
-                }
-            } else {
-                showSnack('Successful', "SUCCESS");
-                handleClosePress();
-                reloading();
-            }
-        } catch (e: any) {
-            showSnack(e.message, "ERROR");
-        }
-    }
-
-    const onError = (errors: any, e: any) => {
-        console.log('the errors')
-    }
+    };
 
     if (fontsLoaded) {
         return (
@@ -220,7 +140,9 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             <Text allowFontScaling={false} style={styles.titleText}>{ `${ member?.firstName ? member?.firstName : '' } ${ member?.lastName ? member?.lastName : '' }` }</Text>
                             <Text allowFontScaling={false} style={styles.subTitleText}>{ `${ member?.memberNumber ? member?.memberNumber : '' }` }</Text>
                         </View>
-                        <TouchableOpacity onPress={() => navigation.navigate("Account")}>
+                        <TouchableOpacity onPress={() => navigation.navigate("ProfileMain", {
+                            screen: "Account"
+                        })}>
                             <Entypo name="dots-three-horizontal" size={24} color="#489AAB" />
                         </TouchableOpacity>
                     </View>
@@ -233,16 +155,21 @@ export default function UserProfile({ navigation }: NavigationProps) {
                     <View style={{backgroundColor: "rgba(204,204,204,0.3)", height: 2, marginVertical: 25}}></View>
                     <View style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                         <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right"}]}>Loan requests</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate("LoanRequests")}>
+                        <TouchableOpacity onPress={() => navigation.navigate("ProfileMain", {
+                            screen: "LoanRequests"
+                        })}>
                             <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right", color: "#489AAB"}]}>See all</Text>
                         </TouchableOpacity>
                     </View>
                     {loanRequests ? loanRequests.slice(0, 2).map((loan, i) => (
                         <TouchableOpacity onPress={() => {
-                            navigation.navigate("LoanRequests", {
-                                loan
-                            })}
-                        } key={i} style={{display: "flex", flexDirection: "row", paddingVertical: 10, alignItems: "center"}}>
+                            navigation.navigate("ProfileMain", {
+                                screen: "LoanRequests",
+                                params: {
+                                    loan: loan
+                                }
+                            })
+                        }} key={i} style={{display: "flex", flexDirection: "row", paddingVertical: 10, alignItems: "center"}}>
                             <ProgressCircle size={50} thickness={3} showsText={true} unfilledColor='#CCCCCC' formatText={() => `${loan.loanRequestProgress}%`} progress={loan.loanRequestProgress / 100} color='#489bab' borderColor='transparent'/>
                             <View style={{flex: 1, display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginLeft: 10}}>
                                 <View style={{display: "flex", flexDirection: "column", justifyContent: "flex-start"}}>
@@ -293,7 +220,9 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             </Text>
                         </View>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipRequests', {pressed: true})} style={[styles.narrowCard, {backgroundColor: "#FFFFFF"}]}>
+                    <TouchableOpacity onPress={() => navigation.navigate('GuarantorshipRequests', {
+                        pressed: true
+                    })} style={[styles.narrowCard, {backgroundColor: "#FFFFFF"}]}>
                         <GuarantorImg width={50} height={50} />
                         <View style={{marginLeft: 20}}>
                             <Text allowFontScaling={false} style={{ color: '#0C212C', fontSize: 13, fontFamily: 'Poppins_600SemiBold' }}>

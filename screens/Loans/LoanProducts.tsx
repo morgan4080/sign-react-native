@@ -1,7 +1,6 @@
 import {
     Dimensions,
     SafeAreaView,
-    StatusBar as Bar,
     StyleSheet,
     TouchableOpacity,
     View,
@@ -9,7 +8,7 @@ import {
     SectionList,
     Alert
 } from "react-native";
-import {Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {MaterialIcons} from "@expo/vector-icons";
 import {useDispatch, useSelector} from "react-redux";
 import {
     authenticate,
@@ -18,7 +17,6 @@ import {
     LoanProduct,
     checkExistingProduct
 } from "../../stores/auth/authSlice";
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {store} from "../../stores/store";
 import {
     Poppins_300Light,
@@ -35,13 +33,12 @@ import {RotateView} from "../Auth/VerifyOTP";
 import {dismissSnack, showSnack} from "../../utils/immediateUpdate";
 import {LoanRequestData} from "../User/LoanRequests";
 import {toMoney} from "../User/Account";
-
-type NavigationProps = NativeStackScreenProps<any>
+import {RootStackScreenProps} from "../../types";
 
 const { width, height } = Dimensions.get("window");
 
 // https://eguarantorship-api.presta.co.ke/api/v1/loan-request/query?productRefId=productRefId&memberRefId=memberRefId&loanReqStatus=OPEN&order=ASC&pageSize=10&isActive=false
-export default function LoanProducts ({ navigation }: NavigationProps) {
+export default function LoanProducts ({ navigation }: RootStackScreenProps<"LoanProducts">) {
     const { loading, loanProducts, member } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
 
@@ -51,7 +48,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
         let authenticating = true;
         if (authenticating) {
             (async () => {
-                const { type, payload }: any = await dispatch(authenticate());
+                const { type }: any = await dispatch(authenticate());
                 if (type === 'authenticate/rejected') {
                     navigation.navigate('GetTenants')
                 } else {
@@ -108,8 +105,11 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                                     {
                                         text: 'Resolve',
                                         onPress: () => {
-                                            navigation.navigate("LoanRequests", {
-                                                loan: existingInProgress
+                                            navigation.navigate("ProfileMain", {
+                                                screen: "LoanRequests",
+                                                params: {
+                                                    loan: existingInProgress
+                                                }
                                             })
                                         },
                                     }
@@ -136,8 +136,11 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                                     {
                                         text: 'Resolve',
                                         onPress: () => {
-                                            navigation.navigate("LoanRequests", {
-                                                loan: existingInProgress
+                                            navigation.navigate("ProfileMain", {
+                                                screen: "LoanRequests",
+                                                params: {
+                                                    loan: existingInProgress
+                                                }
                                             })
                                         },
                                     }
@@ -161,8 +164,11 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
                                     {
                                         text: 'Resolve',
                                         onPress: () => {
-                                            navigation.navigate("LoanRequests", {
-                                                loan: existingInProgress
+                                            navigation.navigate("ProfileMain", {
+                                                screen: "LoanRequests",
+                                                params: {
+                                                    loan: existingInProgress
+                                                }
                                             })
                                         },
                                     }
@@ -188,7 +194,7 @@ export default function LoanProducts ({ navigation }: NavigationProps) {
         <TouchableOpacity key={product.refId} style={styles.tile} onPress={() => checkPendingLoan(product)}>
             <View>
                 <Text allowFontScaling={false} style={{ color: '#0C212C', fontSize: 13, fontFamily: 'Poppins_600SemiBold' }}>
-                    { `${product.name}`.replace(/\_/g, " ") }
+                    { `${product.name}`.replace(/_/g, " ") }
                 </Text>
                 <Text allowFontScaling={false} style={{ color: '#576B74', fontSize: 11, fontFamily: 'Poppins_500Medium' }}>
                     Interest { product.interestRate } %

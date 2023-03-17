@@ -4,20 +4,19 @@ import {
     TouchableWithoutFeedback,
     Text,
 } from "react-native";
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import OrganisationIdentifier from "../../components/OrganisationIdentifier";
 import {useEffect} from "react";
 import {saveSecureKey} from "../../utils/secureStore";
 import {Poppins_700Bold, useFonts} from "@expo-google-fonts/poppins";
 import Container from "../../components/Container";
-type NavigationProps = NativeStackScreenProps<any>;
-const SetTenant = (props: NavigationProps) => {
+import {RootStackScreenProps} from "../../types";
+const SetTenant = ({navigation, route}: RootStackScreenProps<"SetTenant">) => {
     useFonts({
         Poppins_700Bold
-    })
+    });
     useEffect(() => {
         (async () =>{
-            await saveSecureKey('otp_verified', 'false')
+            await saveSecureKey('otp_verified', 'false');
         })()
     }, []);
     return (
@@ -30,7 +29,7 @@ const SetTenant = (props: NavigationProps) => {
                     <Text allowFontScaling={false} style={styles.description}>
                         Guarantee and sign loan forms digitally from anywhere, anytime.
                     </Text>
-                    <OrganisationIdentifier nav={props} />
+                    <OrganisationIdentifier navigation={navigation} route={route} />
                 </>
             </TouchableWithoutFeedback>
         </Container>

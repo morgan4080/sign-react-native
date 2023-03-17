@@ -5,12 +5,10 @@
  */
 import {AntDesign, Ionicons} from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import {NavigationContainer, DefaultTheme, RouteProp} from '@react-navigation/native';
+import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import ModalScreen from '../screens/ModalScreen';
-import NotFoundScreen from '../screens/NotFoundScreen';
 import GetStarted from "../screens/Landing/GetStarted";
 import Login from "../screens/Auth/Login";
 import VerifyOTP from "../screens/Auth/VerifyOTP";
@@ -18,7 +16,6 @@ import GetTenants from "../screens/Tenants/GetTenants";
 import Countries from "../screens/Tenants/Countries";
 import ShowTenants from "../screens/Tenants/ShowTenants";
 import UserProfile from "../screens/User/UserProfile";
-import KYC from "../screens/User/KYC";
 import LoanRequests from "../screens/User/LoanRequests";
 import GuarantorshipRequests from "../screens/Guarantorship/GuarantorshipRequests";
 import FavouriteGuarantors from "../screens/Guarantorship/FavouriteGuarantors";
@@ -34,7 +31,6 @@ import LoanRequest from "../screens/Loans/LoanRequest";
 import { RootStackParamList, RootTabParamList } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import GuarantorshipStatus from "../screens/Guarantorship/GuarantorshipStatus";
-import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";
 import WitnessRequests from "../screens/Guarantorship/WitnessRequests";
 import WitnessStatus from "../screens/Guarantorship/WitnessStatus";
 import SignStatus from "../screens/Guarantorship/SignStatus";
@@ -118,29 +114,7 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
     return (
         <Stack.Navigator initialRouteName="ProfileMain">
             {/*After login*/}
-
-
             <Stack.Screen name="ProfileMain" component={BottomTabNavigator} options={{headerShown: false}} />
-            <Stack.Screen name="KYC" component={KYC} options={({ navigation, route }) => {
-                return ({
-                    title: 'Confirm Information',
-                    headerShown: true,
-                    headerStyle: {
-                        backgroundColor: '#FFFFFF'
-                    },
-                    headerTintColor: '#489AAB',
-                    headerTitleStyle: {
-                        fontFamily: 'Poppins_600SemiBold',
-                        fontSize: 18
-                    },
-                    headerLeft: () => (
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
-                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
-                        </TouchableOpacity>
-                    ),
-                    headerShadowVisible: false
-                })
-            }} />
             <Stack.Screen name="LoanProducts" component={LoanProducts} options={({navigation, route}) => {
                 return {
                     title: "Select Loan Product",
@@ -161,7 +135,6 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
                     headerShadowVisible: false
                 }
             }} />
-            {/*<Stack.Screen name="LoanProduct" component={LoanProduct} options={{ headerShown: false }} />*/}
             <Stack.Screen name="LoanProduct" component={LoanProduct} options={({navigation, route}) => {
                 return {
                     title: "Enter Loan Details",
@@ -206,26 +179,6 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
             <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={({navigation, route}) => {
                 return ({
                     title: 'Add Guarantors',
-                    headerShown: true,
-                    headerStyle: {
-                        backgroundColor: '#FFFFFF'
-                    },
-                    headerTintColor: '#489AAB',
-                    headerTitleStyle: {
-                        fontFamily: 'Poppins_600SemiBold',
-                        fontSize: 18
-                    },
-                    headerLeft: () => (
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
-                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
-                        </TouchableOpacity>
-                    ),
-                    headerShadowVisible: false
-                })
-            }} />
-            <Stack.Screen name="LoanRequests" component={LoanRequests} options={({navigation, route}) => {
-                return ({
-                    title: 'Loan Requests',
                     headerShown: true,
                     headerStyle: {
                         backgroundColor: '#FFFFFF'
@@ -371,7 +324,6 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
                     headerShadowVisible: false
                 })
             }}/>
-            <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
             <Stack.Screen name="Modal" component={ModalScreen} options={({ navigation, route }) => {
                 return ({
                     title: 'User Profile',

@@ -353,7 +353,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         let change = true;
         if (change) {
             if (clientSettings && clientSettings.allowSelfGuarantee) {
-                setGuarantorshipOptions([...guarantorshipOptions, {
+                setGuarantorshipOptions([{
                     id: "1",
                     name: "Self Guarantee",
                     context: "self-guarantee",

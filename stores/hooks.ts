@@ -40,7 +40,7 @@ export const useTenant = () => {
 }
 export const useSettings = () => {
     const [organisations] = useOrganisations();
-    const [tenant] = useTenant();
+    const [tenant] = useTenant(); // FETCH TENANTS, FETCH ORGANISATIONS, FETCH USER
     const [user] = useUser();
     const settings = organisations.find(org => org.tenantId === (tenant ? tenant.tenantId : user?.tenantId));
     return [settings] as const

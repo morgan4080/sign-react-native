@@ -75,12 +75,6 @@ export default function UserProfile({ navigation }: NavigationProps) {
 
     const [reload, setReload] = useState<boolean>(false);
 
-    const [lrs, setLrs] = useState(loanRequests)
-
-    useEffect(() => {
-        if (loanRequests && loanRequests.length > 1) setLrs(loanRequests.slice(0, 2))
-    }, [loanRequests])
-
     useEffect(() => {
         Promise.all([
             dispatch(authenticate())
@@ -243,8 +237,12 @@ export default function UserProfile({ navigation }: NavigationProps) {
                             <Text allowFontScaling={false} style={[styles.subTitleText, {textAlign: "right", color: "#489AAB"}]}>See all</Text>
                         </TouchableOpacity>
                     </View>
-                    {lrs ? lrs.map((loan, i) => (
-                        <View key={i} style={{display: "flex", flexDirection: "row", paddingVertical: 10, alignItems: "center"}}>
+                    {loanRequests ? loanRequests.slice(0, 2).map((loan, i) => (
+                        <TouchableOpacity onPress={() => {
+                            navigation.navigate("LoanRequests", {
+                                loan
+                            })}
+                        } key={i} style={{display: "flex", flexDirection: "row", paddingVertical: 10, alignItems: "center"}}>
                             <ProgressCircle size={50} thickness={3} showsText={true} unfilledColor='#CCCCCC' formatText={() => `${loan.loanRequestProgress}%`} progress={loan.loanRequestProgress / 100} color='#489bab' borderColor='transparent'/>
                             <View style={{flex: 1, display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginLeft: 10}}>
                                 <View style={{display: "flex", flexDirection: "column", justifyContent: "flex-start"}}>
@@ -271,7 +269,7 @@ export default function UserProfile({ navigation }: NavigationProps) {
                                     { toMoney(`${loan.loanAmount}`) } KES
                                 </Text>
                             </View>
-                        </View>
+                        </TouchableOpacity>
                     )) : null}
                     {
                         !loanRequests || loanRequests.length === 0 ?

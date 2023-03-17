@@ -7,6 +7,10 @@ import {Query, SQLiteCallback, SQLTransactionCallback, SQLTransactionErrorCallba
 export async function openDatabase(): Promise<SQLite.WebSQLDatabase> {
     if (Platform.OS === "web") {
         return {
+            closeAsync(): void {
+            }, deleteAsync(): Promise<void> {
+                return Promise.resolve(undefined);
+            },
             version: "",
             exec(queries: Query[], readOnly: boolean, callback: SQLiteCallback): void {
             },

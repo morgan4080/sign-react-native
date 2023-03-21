@@ -368,12 +368,11 @@ export default function LoanRequests(
             actorType:  "APPLICANT"
         }
 
-        dispatch(requestSignURL(payloadOut)).then(({type, error, payload}: any) => {
-            if (error) {
-                return Promise.reject(error.message)
-            }
-            if (type === 'requestSignURL/fulfilled') {
-                console.log(type, payload.message);
+        dispatch(requestSignURL(payloadOut)).then((response) => {
+            const {type, error, payload}: any = response;
+            if (error && type === 'requestSignURL/rejected' && payload) {
+                return Promise.reject(payload);
+            } else if (type === 'requestSignURL/fulfilled') {
                 if (!payload.success) {
                     return Promise.reject(payload.message)
                 }

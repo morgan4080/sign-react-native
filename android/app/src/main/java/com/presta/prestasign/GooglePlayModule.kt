@@ -29,16 +29,16 @@ class GooglePlayModule(val reactContext: ReactApplicationContext) : ReactContext
         // Checks that the platform will allow the specified type of update.
         appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
-                    // This example applies an immediate update. To apply a flexible update
-                    // instead, pass in AppUpdateType.FLEXIBLE
-                    && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+                // This example applies an immediate update. To apply a flexible update
+                // instead, pass in AppUpdateType.FLEXIBLE
+                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
             ) {
-              /*
-                The returned AppUpdateInfo instance contains the update availability status.
-                 Depending on the status of the update, the instance also contains:
-                  - If an update is available and the update is allowed, the instance also contains an intent to start the update.
-                  - If an in-app update is already in progress, the instance also reports the status of the in-progress update.
-              */
+                /*
+                  The returned AppUpdateInfo instance contains the update availability status.
+                   Depending on the status of the update, the instance also contains:
+                    - If an update is available and the update is allowed, the instance also contains an intent to start the update.
+                    - If an in-app update is already in progress, the instance also reports the status of the in-progress update.
+                */
 
                 // Request the update.
                 popSnackBarForUserConfirmation("Starting Update", null, null, false, null)

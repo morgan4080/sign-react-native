@@ -96,7 +96,7 @@ def enableProguardInReleaseBuilds = (findProperty('android.enableProguardInRelea
  * give correct results when using with locales other than en-US. Note that
  * this variant is about 6MiB larger per architecture than default.
  */
-def jscFlavor = 'org.webkit:android-jsc:+'
+def jscFlavor = 'org.webkit:android-jsc-intl:+'
 
 /**
  * Private function to get the list of Native Architectures you want to build.
@@ -208,6 +208,14 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-viewmodel:2.6.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.0")
+
+    // Java language implementation
+    implementation("androidx.fragment:fragment:1.5.5")
+    // Kotlin
+    implementation("androidx.fragment:fragment-ktx:1.5.5")
+
+    implementation("androidx.activity:activity-compose:1.6.1")
+    implementation("androidx.compose.material3:material3:1.0.1")
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";

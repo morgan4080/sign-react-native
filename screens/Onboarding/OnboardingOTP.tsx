@@ -1,14 +1,12 @@
-import {StyleSheet, View, Text, StatusBar, TextInput, Pressable, NativeModules, Dimensions} from "react-native";
+import {StyleSheet, View, Text, TextInput, Pressable, Image} from "react-native";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RotateView} from "../Auth/VerifyOTP";
 import {useDispatch, useSelector} from "react-redux";
 import {
     authClient,
     sendOtp,
-    sendOtpBeforeToken,
     storeState,
     verifyOtp,
-    verifyOtpBeforeToken
 } from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {useEffect, useState} from "react";
@@ -16,10 +14,25 @@ import {receiveVerificationSMS, startSmsUserConsent} from "../../utils/smsVerifi
 import {deleteSecureKey, getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import {showSnack} from "../../utils/immediateUpdate";
 import {PayloadAction} from "@reduxjs/toolkit";
+import Container from "../../components/Container";
+import {Controller, useForm} from "react-hook-form";
+import {
+    Poppins_300Light,
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_800ExtraBold,
+    Poppins_900Black,
+    useFonts
+} from "@expo-google-fonts/poppins";
 type NavigationProps = NativeStackScreenProps<any>;
 type AppDispatch = typeof store.dispatch;
-const { width } = Dimensions.get("window");
-const { CSTM } = NativeModules;
+type FormData = {
+    otpChar1?: string | undefined;
+    otpChar2?: string | undefined;
+    otpChar3?: string | undefined;
+    otpChar4?: string | undefined;
+}
 const OnboardingOTP = ({navigation, route}: NavigationProps) => {
     const {email, phoneNumber, deviceId, appName, isTermsAccepted}: any = route.params
     const {loading, selectedTenant, otpResponse, otpSent} = useSelector((state: { auth: storeState }) => state.auth)
@@ -65,28 +78,10 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
         }).catch((e) => {
             throw new Error(e.message)
         })
-
-        /*dispatch(sendOtpBeforeToken({email, phoneNumber, deviceId, appName})).then(({meta, payload, type}) => {
-            if (payload && type === 'sendOtpBeforeToken/fulfilled') {
-                showSnack("OTP sent successfully please wait", "SUCCESS");
-            } else {
-                showSnack("OTP not sent please wait", "ERROR");
-            }
-        }).catch(e => {
-            console.log("Item: sendOtpBeforeToken", e.message)
-        })*/
     }
 
     const verifyOTP0 = async () => {
         if (valueInput !== "" && otpResponse && valueInput.length === 4) {
-            /*const data = {
-                identifier: phoneNumber ? phoneNumber: email,
-                deviceHash: deviceId,
-                verificationType: phoneNumber ? "PHONE_NUMBER" : "EMAIL",
-                otp: valueInput
-            }
-
-            console.log(data)*/
             if (valueInput === '4080') {
                 return await Promise.all([
                     saveSecureKey('otp_verified', 'true'),
@@ -106,31 +101,6 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                         return Promise.reject(JSON.stringify(e))
                     })
             }
-            /*try {
-
-                const {meta, payload, type} = await dispatch(verifyOtpBeforeToken(data))
-
-                if (type === "verifyOtpBeforeToken/fulfilled") {
-                    const data = {
-                        phoneNumber,
-                        email,
-                        realm: selectedTenant?.tenantId,
-                        client_secret: selectedTenant?.clientSecret,
-                        isTermsAccepted,
-                    }
-
-                    setTimeout(() => {
-                        navigation.navigate('SetPin', data)
-                    }, 500);
-
-                } else {
-                    console.log('verification failed', payload, type);
-                }
-
-            } catch (e: any) {
-                CSTM.showToast('verification failed');
-                console.log("verifyOtpBeforeToken", e.message)
-            }*/
         } else {
             return Promise.reject("4")
         }
@@ -205,60 +175,194 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
         }
     }, [valueInput])
 
+    const { control, setValue, formState: { errors } } = useForm<FormData>()
+
+    let [fontsLoaded] = useFonts({
+        Poppins_900Black,
+        Poppins_500Medium,
+        Poppins_800ExtraBold,
+        Poppins_600SemiBold,
+        Poppins_400Regular,
+        Poppins_300Light
+    });
+
     return (
-        <View style={styles.container}>
-            <Text allowFontScaling={false} style={styles.header}>OTP Verification</Text>
-            <Text allowFontScaling={false} style={styles.tagLine}>A one time password has been sent to {route.params?.phoneNumber}</Text>
-            <Text allowFontScaling={false} style={{...styles.tagLine, marginBottom: 35}}>Key in the 4 digit code below</Text>
-            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 10 }}>
+        <Container customStyles={styles.customContainer}>
+            <Text allowFontScaling={false} style={styles.title}>
+                Verify your {route.params?.phoneNumber ? `phone number`: `email address`}.
+            </Text>
+            <Text allowFontScaling={false} style={styles.subTitleText1}>
+                Please enter the 4 digit code we sent to
+                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_500Medium'}}> { route.params?.phoneNumber ? route.params?.phoneNumber : route.params?.email }</Text>
+            </Text>
+
+            <View style={{ position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 30 }}>
                 <TextInput
                     allowFontScaling={false}
-                    style={styles.input}
+                    style={styles.inputMain}
                     autoFocus={false}
                     value={valueInput}
                     defaultValue={valueInput}
                     onChangeText={(e: any) => {
-                        setValueInput(e)
+                        let result = e.split('');
+                        result.map((res: string, index: number) => {
+                            switch (index) {
+                                case 0:
+                                    setValue("otpChar1", res);
+                                    setValue("otpChar2", "");
+                                    setValue("otpChar3", "");
+                                    setValue("otpChar4", "");
+                                    break
+                                case 1:
+                                    setValue("otpChar2", res);
+                                    setValue("otpChar3", "");
+                                    setValue("otpChar4", "");
+                                    break
+                                case 2:
+                                    setValue("otpChar3", res);
+                                    setValue("otpChar4", "");
+                                    break
+                                case 3:
+                                    setValue("otpChar4", res);
+                                    break
+                                default:
+                                    console.log(result.length);
+                            }
+                        });
+                        if (result.length === 0) setValue("otpChar1", "");
+                        setValueInput(e);
                     }}
                     maxLength={4}
                     keyboardType="number-pad"
                 />
+                <View style={{position: 'absolute', display: 'flex', width: '100%', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30 }}>
+                    <Controller
+                        control={control}
+                        rules={{
+                            required: true,
+                            maxLength: 1,
+                        }}
+                        render={( { field: { onChange, onBlur, value } }) => (
+                            <TextInput
+                                allowFontScaling={false}
+                                style={styles.input}
+                                onBlur={onBlur}
+                                onChangeText={onChange}
+                                value={value}
+                                placeholderTextColor="#FFFFFF"
+                                keyboardType="numeric"
+                                editable={false}
+                                selectTextOnFocus={false}
+                            />
+                        )}
+                        name="otpChar1"
+                    />
+                    <Controller
+                        control={control}
+                        rules={{
+                            required: true,
+                            maxLength: 1,
+                        }}
+                        render={( { field: { onChange, onBlur, value } }) => (
+                            <TextInput
+                                allowFontScaling={false}
+                                style={styles.input}
+                                onBlur={onBlur}
+                                onChangeText={onChange}
+                                value={value}
+                                placeholderTextColor="#FFFFFF"
+                                keyboardType="numeric"
+                                editable={false}
+                                selectTextOnFocus={false}
+                            />
+                        )}
+                        name="otpChar2"
+                    />
+                    <Controller
+                        control={control}
+                        rules={{
+                            required: true,
+                            maxLength: 1,
+                        }}
+                        render={( { field: { onChange, onBlur, value } }) => (
+                            <TextInput
+                                allowFontScaling={false}
+                                style={styles.input}
+                                onBlur={onBlur}
+                                onChangeText={onChange}
+                                value={value}
+                                placeholderTextColor="#FFFFFF"
+                                keyboardType="numeric"
+                                editable={false}
+                                selectTextOnFocus={false}
+                            />
+                        )}
+                        name="otpChar3"
+                    />
+                    <Controller
+                        control={control}
+                        rules={{
+                            required: true,
+                            maxLength: 1,
+                        }}
+                        render={( { field: { onChange, onBlur, value } }) => (
+                            <TextInput
+                                allowFontScaling={false}
+                                style={styles.input}
+                                onBlur={onBlur}
+                                onChangeText={onChange}
+                                value={value}
+                                placeholderTextColor="#FFFFFF"
+                                keyboardType="numeric"
+                                editable={false}
+                                selectTextOnFocus={false}
+                            />
+                        )}
+                        name="otpChar4"
+                    />
+                </View>
             </View>
 
             <Pressable style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 50 }} onPress={() => sendOtpNow()}>
-                <Text allowFontScaling={false} style={{ fontSize: 12, fontFamily: 'Poppins_300Light', color: '#489AAB', textDecorationLine: 'underline' }}>Resend OTP</Text>
+                <Text allowFontScaling={false} style={{color: "#576B74", fontSize: 14, fontFamily: 'Poppins_500Medium' }}>
+                    Didnt get the code?
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', color: '#2791B5' }}> Resend it.</Text>
+                </Text>
             </Pressable>
-
-            <View style={{display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', marginTop: 30}}>
-                {loading ? <RotateView color="#489AAB"/> : <></>}
+            <View style={{ position: "relative", display: 'flex', flexDirection: 'column', alignItems: "center", justifyContent: 'center' }}>
+                <View style={{position: "absolute", top: 0}}>
+                    {loading ? <RotateView color="#2791B5"/> : <></>}
+                </View>
             </View>
-        </View>
+        </Container>
     )
 }
 
 const styles = StyleSheet.create({
-   container: {
-        flex: 1,
-        paddingTop: StatusBar.currentHeight,
-        backgroundColor: '#FFFFFF',
-        alignItems: 'center',
-        justifyContent: 'center'
-   },
-   header: {
-        fontSize: 18,
-        marginBottom: 14,
-        color: '#487588',
-        fontFamily: 'Poppins_600SemiBold',
-        textAlign: 'center'
-   },
-   tagLine: {
-        fontSize: 12,
-        color: '#515151',
-        textAlign: 'center',
-        fontFamily: 'Poppins_300Light',
-        paddingHorizontal: 20,
-        maxWidth: '80%'
-   },
+    customContainer: {
+        backgroundColor: "#FFFFFF",
+        paddingTop: 90
+    },
+    title: {
+        marginTop: 10,
+        fontFamily: "Poppins_700Bold",
+        fontSize: 34,
+        color: '#0C212C',
+        textAlign: "left",
+        lineHeight: 41,
+        width: "80%",
+        letterSpacing: 0.6
+    },
+    subTitleText1: {
+        fontSize: 13,
+        textAlign: 'left',
+        color: '#576B74',
+        fontFamily: 'Poppins_400Regular',
+        marginTop: 10,
+    },
+    landingLogo: {
+        marginTop: 50
+    },
     error: {
         fontSize: 10,
         color: '#d53b39',
@@ -266,15 +370,24 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         marginTop: 5
     },
+    inputMain: {
+        width: "90%",
+        height: 70,
+        textAlign: 'center',
+        zIndex: 10,
+        opacity: 0
+    },
     input: {
         fontFamily: 'Poppins_500Medium',
-        fontSize: 15,
-        color: '#393a34',
-        borderBottomWidth: 1,
-        borderStyle: 'dashed',
-        width: width/4,
-        textAlign: 'center'
-    }
+        textAlign: 'center',
+        backgroundColor: '#E7EAEB',
+        color: '#2791B5',
+        borderRadius: 12,
+        height: 70,
+        width: 70,
+        paddingHorizontal: 20,
+        fontSize: 30
+    },
 });
 
 export default OnboardingOTP;

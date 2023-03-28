@@ -33,6 +33,7 @@
     "expo-asset": "~8.9.1",
     "expo-checkbox": "~2.3.1",
     "expo-contacts": "~12.0.1",
+    "expo-dev-client": "~2.1.6",
     "expo-device": "~5.2.1",
     "expo-file-system": "~15.2.2",
     "expo-linking": "~4.0.1",

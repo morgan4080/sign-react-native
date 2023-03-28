@@ -1,8 +1,5 @@
 {
   "expo": {
-    "runtimeVersion": {
-      "policy": "nativeVersion"
-    },
     "owner": "presta",
     "jsEngine": "hermes",
     "name": "Presta Sign",
@@ -45,6 +42,7 @@
       "eas": {
         "projectId": "f99cda6e-a909-488b-a28b-f876f792e333"
       }
-    }
+    },
+    "runtimeVersion": "1.0.0"
   }
 }

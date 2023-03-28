@@ -1,5 +1,8 @@
 {
   "expo": {
+    "runtimeVersion": {
+      "policy": "nativeVersion"
+    },
     "owner": "presta",
     "jsEngine": "hermes",
     "name": "Presta Sign",
@@ -24,10 +27,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.presta.prestasign",
-      "buildNumber": "1.0.0",
-      "runtimeVersion": {
-        "policy": "sdkVersion"
-      }
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -36,8 +36,7 @@
       },
       "package": "com.presta.prestasign",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 34,
-      "runtimeVersion": "1.0.0"
+      "versionCode": 34
     },
     "web": {
       "favicon": "./assets/images/favicon.png"

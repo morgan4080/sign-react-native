@@ -62,7 +62,7 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
                         dispatch(getTenants(`${code}${phone}`))
                         .then(({type, error, payload}: any) => {
                             if (type === 'getTenants/rejected' && error) {
-                                console.warn("couldn't get tenants", JSON.stringify(payload));
+                                throw (JSON.stringify(payload))
                             } else {
                                 console.log("navigating to login");
                                 navigation.navigate('Login', {
@@ -72,13 +72,22 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
                                 });
                             }
                         }).catch(error => {
-                            showSnack(error.message, "ERROR", "", false)
+                            if (error.message) {
+                                // showSnack(error.message, "ERROR", "", false)
+                                throw (error.message)
+                            } else {
+                                throw (error)
+                            }
+
                         })
                     } else {
                         // initialize new user
-                        await dispatch(initializeDB())
+                        dispatch(initializeDB()).catch(error => {
+                            throw (error)
+                        })
                     }
                 } catch (e: any) {
+                    if (e.instanceOf)
                     showSnack(e.message, "ERROR", "", false)
                 }
             })()

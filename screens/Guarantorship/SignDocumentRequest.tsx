@@ -1,26 +1,24 @@
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {
     Dimensions,
     Image,
     NativeModules,
-    SafeAreaView,
-    ScrollView,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View
 } from "react-native";
-import {RotateView} from "../Auth/VerifyOTP";
 import {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchLoanRequest, requestSignURL, storeState} from "../../stores/auth/authSlice";
 import {store} from "../../stores/store";
 import {toMoney} from "../User/Account";
 import * as WebBrowser from "expo-web-browser";
+import Container from "../../components/Container";
+import TouchableButton from "../../components/TouchableButton";
+import {RootStackScreenProps} from "../../types";
+import {showSnack} from "../../utils/immediateUpdate";
 
-type NavigationProps = NativeStackScreenProps<any>;
-const { width, height } = Dimensions.get("window");
-const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
+const { height } = Dimensions.get("window");
+const SignDocumentRequest = ({ navigation, route }: RootStackScreenProps<"SignDocumentRequest">) => {
     // fetchLoanRequest
     const { loading, loanRequest, member } = useSelector((state: { auth: storeState }) => state.auth);
     type AppDispatch = typeof store.dispatch;
@@ -32,7 +30,11 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
 
         if (fetching) {
             (async () => {
-                await dispatch(fetchLoanRequest(route.params?.guarantorshipRequest.loanRequest.refId))
+                if (route.params && route.params.guarantorshipRequest.loanRequest.refId) {
+                    await dispatch(fetchLoanRequest(route.params.guarantorshipRequest.loanRequest.refId));
+                } else {
+                    showSnack("Loan request doesn't exist anymore");
+                }
             })()
         }
 
@@ -48,7 +50,7 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
                 'presta-sign://app/loan-request'
             );
 
-            if (result.type === "dismiss") {
+            if (result.type === "dismiss" && route.params && route.params.guarantorshipRequest.loanRequest.refId) {
                 const {type, error, payload}: any  = await dispatch(fetchLoanRequest(route.params?.guarantorshipRequest.loanRequest.refId))
 
                 if (type === 'fetchLoanRequest/fulfilled') {
@@ -82,12 +84,12 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
 
             if (type === 'requestSignURL/fulfilled') {
                 if (!payload.success) {
-                    CSTM.showToast(payload.message);
+                    showSnack(payload);
                 }
 
                 if (payload.signURL) await openAuthSessionAsync(payload.signURL)
             } else {
-                CSTM.showToast(error.message);
+                showSnack(payload);
             }
 
         }
@@ -105,34 +107,29 @@ const SignDocumentRequest = ({ navigation, route }: NavigationProps) => {
 
             if (type === 'requestSignURL/fulfilled') {
                 if (!payload.success) {
-                    CSTM.showToast(payload.message);
+                    showSnack(payload);
                 }
 
                 if (payload.signURL) await openAuthSessionAsync(payload.signURL)
             } else {
-                CSTM.showToast(error.message);
+                showSnack(payload);
             }
         }
     };
     return(
-        <View style={{flex: 1, alignItems: 'center', position: 'relative'}}>
-            <SafeAreaView style={{ flex: 1, width, height: 11/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
-                <ScrollView contentContainerStyle={{ display: 'flex', flexDirection: 'column', marginTop: 20, paddingHorizontal: 40, paddingBottom: 100 }}>
-                    <Text allowFontScaling={false} style={styles.headTitle}>Your {route.params?.witness ? 'Witness' : 'Guarantorship'} ({loanRequest?.loanRequestNumber}) of KES {loanRequest? toMoney(loanRequest.loanAmount) : false } has been confirmed.</Text>
-                    <Text allowFontScaling={false} style={styles.subtitle}>Proceed below to sign your form</Text>
-                    <Image
-                        style={styles.formPreview}
-                        source={{ uri: `data:image/png;base64, ${loanRequest?.pdfThumbNail}` }}
-                    />
-                </ScrollView>
-            </SafeAreaView>
-            <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                <TouchableOpacity disabled={loading} onPress={() => makeSigningRequest()} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                    {loading && <RotateView/>}
-                    <Text allowFontScaling={false} style={styles.buttonText}>SIGN DOCUMENT</Text>
-                </TouchableOpacity>
+        <Container>
+            <View style={{position: "relative", height: height * 0.9}}>
+                <Text allowFontScaling={false} style={styles.headTitle}>Your {route.params?.witness ? 'Witness' : 'Guarantorship'} ({loanRequest?.loanRequestNumber}) of KES {loanRequest? toMoney(loanRequest.loanAmount) : false } has been confirmed.</Text>
+                <Text allowFontScaling={false} style={styles.subtitle}>Proceed below to sign your form</Text>
+                <Image
+                    style={styles.formPreview}
+                    source={{ uri: `data:image/png;base64, ${loanRequest?.pdfThumbNail}` }}
+                />
+                <View style={{ position: 'absolute', bottom: 0, zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                    <TouchableButton loading={loading} label={"SIGN DOCUMENT"} onPress={() => makeSigningRequest()} />
+                </View>
             </View>
-        </View>
+        </Container>
     )
 };
 
@@ -145,7 +142,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#489AAB',
         fontFamily: 'Poppins_700Bold',
-        fontSize: 20,
+        fontSize: 22,
         marginTop: 22,
     },
     subtitle: {
@@ -164,7 +161,6 @@ const styles = StyleSheet.create({
     },
     formPreview: {
         marginTop: 30,
-        width: '100%',
         height: height/2,
         resizeMode: 'contain'
     }

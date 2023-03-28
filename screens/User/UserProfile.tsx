@@ -1,3 +1,4 @@
+import { useEffect, useState} from "react";
 import {
     StyleSheet,
     TouchableOpacity,
@@ -6,7 +7,6 @@ import {
     View
 } from 'react-native';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
-import { useEffect, useState} from "react";
 import {
     fetchMember,
     saveContactsToDb,

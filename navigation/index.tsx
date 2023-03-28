@@ -45,6 +45,7 @@ import Organisations from "../screens/Onboarding/Organisations";
 import {TouchableOpacity} from "react-native";
 import {store} from "../stores/store";
 import CustomTabBar from "../components/CustomTabBar";
+import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";
 type AppDispatch = typeof store.dispatch;
 const Navigation = () => {
   const MyTheme = {
@@ -176,6 +177,26 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
                 }
             }} />
             <Stack.Screen name="ReplaceActor" component={ReplaceActor} options={{ headerShown: false }} />
+            <Stack.Screen name="SignDocumentRequest" component={SignDocumentRequest} options={({navigation, route}) => {
+                return ({
+                    title: 'Sign Document',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                })
+            }} />
             <Stack.Screen name="GuarantorsHome" component={GuarantorsHome} options={({navigation, route}) => {
                 return ({
                     title: 'Add Guarantors',

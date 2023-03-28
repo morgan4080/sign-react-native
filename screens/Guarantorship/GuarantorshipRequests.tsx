@@ -11,9 +11,8 @@ import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {StatusBar} from "expo-status-bar";
 import {MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import {fetchGuarantorshipRequests, setGuarantorsUpdated, storeState} from "../../stores/auth/authSlice";
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {
     Poppins_300Light,
     Poppins_400Regular,
@@ -26,21 +25,17 @@ import {
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {toMoney} from "../User/Account";
 import GuarantorTiles from "../User/Components/GuarantorTiles";
-import {store} from "../../stores/store";
 import {RotateView} from "../Auth/VerifyOTP";
 import BottomSheet, {BottomSheetBackdrop, BottomSheetView} from "@gorhom/bottom-sheet";
-
-type NavigationProps = NativeStackScreenProps<any>
+import {RootStackScreenProps} from "../../types";
+import {useAppDispatch} from "../../stores/hooks";
 
 const { width, height } = Dimensions.get("window");
+export type accountHistoryType = {refId: string, executor: string, subject: string, event: string, isActive: boolean, time: string}
 
-export default function GuarantorshipRequests ({ navigation, route }: NavigationProps) {
+export default function GuarantorshipRequests ({ navigation, route }: RootStackScreenProps<"GuarantorshipRequests">) {
     const { loading, user, member, guarantorshipRequests, guarantorsUpdated } = useSelector((state: { auth: storeState }) => state.auth);
-    type AppDispatch = typeof store.dispatch;
-
-    const dispatch : AppDispatch = useDispatch();
-    type accountHistoryType = {refId: string, executor: string, subject: string, event: string, isActive: boolean, time: string}
-
+    const dispatch = useAppDispatch();
     const [pressed, setPressed] = useState<boolean>(false)
     const [request, setRequest] = useState<accountHistoryType | null>()
 
@@ -185,7 +180,7 @@ export default function GuarantorshipRequests ({ navigation, route }: Navigation
                                 navigation.navigate('SignDocumentRequest', {
                                     guarantorshipRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId),
                                     guarantor: true
-                                })
+                                });
                             }}>
                                 <MaterialIcons name="check-circle" size={80} color="#78E49D" />
                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', textAlign: 'center', color: '#78E49D'}}>Accept</Text>
@@ -198,7 +193,7 @@ export default function GuarantorshipRequests ({ navigation, route }: Navigation
                                     accepted: false,
                                     guarantor: request,
                                     loanRequest: guarantorshipRequests.find(rq => rq.refId === request?.refId)
-                                })
+                                });
                             }}>
                                 <MaterialIcons name="cancel" size={80} color="#FF927A" />
                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_400Regular', textAlign: 'center', color: '#FF927A'}}>Decline</Text>

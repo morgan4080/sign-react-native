@@ -5,19 +5,35 @@ import * as Contacts from "expo-contacts";
 import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlite";
 import {getAppSignatures} from "../../utils/smsVerification";
 import isSerializable from "../../utils/isSerializable"
-export let db: WebSQLDatabase
+import {dismissSnack, showSnack} from "../../utils/immediateUpdate";
+import {FetchResult} from "react-native"
+export let db: WebSQLDatabase;
+
 (async () => {
     db = await openDatabase();
 })()
 
 export type loginUserType = {
-    phoneNumber: number,
-    pin: number | string,
-    tenant?: string,
-    clientSecret?: string,
+    phoneNumber: number;
+    pin: number | string;
+    tenant?: string;
+    clientSecret?: string;
 }
 
-type CategoryType = {code: string, name: string, options: {code: string, name: string, options: {code: string, name: string,selected: boolean}[], selected: boolean}[]}
+type CategoryType = {
+    code: string;
+    name: string;
+    options: {
+        code: string;
+        name: string;
+        options: {
+            code: string;
+            name: string;
+            selected: boolean;
+        }[];
+        selected: boolean;
+    }[]
+}
 
 interface AuthData {
     companyName: string,
@@ -127,7 +143,7 @@ type WitnessRequestType = {
     }
 }
 
-type GuarantorshipRequestType = {
+export type GuarantorshipRequestType = {
     applicant: {firstName: string, lastName: string, refId: string},
     committedAmount: string,
     firstName: string,
@@ -310,6 +326,10 @@ const fetchContactsFromPB = async (): Promise<{name: string, phone: string}[]> =
                 return []
             }
         } else {
+            showSnack("You might not be able to add guarantors", "WARNING", "ALLOW", true, () => {
+                dismissSnack();
+                fetchContactsFromPB();
+            });
             return []
         }
     } catch (e: any) {

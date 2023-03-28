@@ -8,6 +8,7 @@ import { deleteSecureKey } from "../utils/secureStore";
 import { Poppins_500Medium, useFonts } from "@expo-google-fonts/poppins";
 import { useAppDispatch, useSelectedTenant } from "../stores/hooks";
 import { RootStackScreenProps } from "../types";
+import {showSnack} from "../utils/immediateUpdate";
 const OrganisationIdentifier = ({ navigation, route }: RootStackScreenProps<"SetTenant">) => {
     const [selectedTenant] = useSelectedTenant();
     const dispatch= useAppDispatch();
@@ -30,10 +31,10 @@ const OrganisationIdentifier = ({ navigation, route }: RootStackScreenProps<"Set
         if (selectedTenant && changing) {
             dispatch(AuthenticateClient(selectedTenant)).then((response: any) => {
                 if (response.type === 'AuthenticateClient/rejected' && response.error) {
-                    console.log("AuthenticateClient", response.error.message)
+                    throw (response.error.message)
                 }
             }).catch(error => {
-                console.log("AuthenticateClient error", error)
+                showSnack(`AuthenticateClient: ${error}`, "ERROR")
             })
         }
         return () => {

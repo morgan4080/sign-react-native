@@ -1,6 +1,6 @@
 {
   "expo": {
-    "owner": "mutugimorgan",
+    "owner": "presta",
     "jsEngine": "hermes",
     "name": "Presta Sign",
     "slug": "presta-sign",
@@ -44,7 +44,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "ca25d520-d64b-44b4-bf45-e3e98a7e8065"
+        "projectId": "f99cda6e-a909-488b-a28b-f876f792e333"
       }
     }
   }

@@ -37,7 +37,9 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
     const {email, phoneNumber, deviceId, appName, isTermsAccepted}: any = route.params
     const {loading, selectedTenant, otpResponse, otpSent} = useSelector((state: { auth: storeState }) => state.auth)
     const dispatch : AppDispatch = useDispatch();
-    const [valueInput, setValueInput] = useState("")
+    const [valueInput, setValueInput] = useState("");
+
+
     const sendOtpHere = () => {
         let realm: any = selectedTenant?.tenantId;
         let client_secret: any = selectedTenant?.clientSecret;
@@ -123,9 +125,10 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                             console.log("zzzz", error);
                         }
                     } else if (message) {
+                        setupOtpCharacters(message);
                         // parse the message to obtain the verification code
                         const regex = /\d{4}/g;
-                        const otpArray = message.split(" ")
+                        const otpArray = message.split(" ");
                         const otp = otpArray.find(sms => regex.exec(sms))
                         if (otp && otp.length === 4) {
                             setValueInput(otp)
@@ -175,7 +178,36 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
         }
     }, [valueInput])
 
-    const { control, setValue, formState: { errors } } = useForm<FormData>()
+    const { control, setValue, formState: { errors } } = useForm<FormData>();
+
+    const setupOtpCharacters = (e: string) => {
+        let result = e.split('');
+        result.map((res: string, index: number) => {
+            switch (index) {
+                case 0:
+                    setValue("otpChar1", res);
+                    setValue("otpChar2", "");
+                    setValue("otpChar3", "");
+                    setValue("otpChar4", "");
+                    break
+                case 1:
+                    setValue("otpChar2", res);
+                    setValue("otpChar3", "");
+                    setValue("otpChar4", "");
+                    break
+                case 2:
+                    setValue("otpChar3", res);
+                    setValue("otpChar4", "");
+                    break
+                case 3:
+                    setValue("otpChar4", res);
+                    break
+                default:
+                    console.log(result.length);
+            }
+        });
+        if (result.length === 0) setValue("otpChar1", "");
+    }
 
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
@@ -204,32 +236,7 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                     value={valueInput}
                     defaultValue={valueInput}
                     onChangeText={(e: any) => {
-                        let result = e.split('');
-                        result.map((res: string, index: number) => {
-                            switch (index) {
-                                case 0:
-                                    setValue("otpChar1", res);
-                                    setValue("otpChar2", "");
-                                    setValue("otpChar3", "");
-                                    setValue("otpChar4", "");
-                                    break
-                                case 1:
-                                    setValue("otpChar2", res);
-                                    setValue("otpChar3", "");
-                                    setValue("otpChar4", "");
-                                    break
-                                case 2:
-                                    setValue("otpChar3", res);
-                                    setValue("otpChar4", "");
-                                    break
-                                case 3:
-                                    setValue("otpChar4", res);
-                                    break
-                                default:
-                                    console.log(result.length);
-                            }
-                        });
-                        if (result.length === 0) setValue("otpChar1", "");
+                        setupOtpCharacters(e);
                         setValueInput(e);
                     }}
                     maxLength={4}

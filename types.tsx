@@ -7,7 +7,8 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {LoanRequestData} from "./screens/User/LoanRequests";
-import {LoanProduct} from "./stores/auth/authSlice";
+import {GuarantorshipRequestType, LoanProduct} from "./stores/auth/authSlice";
+import {accountHistoryType} from "./screens/Guarantorship/GuarantorshipRequests";
 
 declare global {
   namespace ReactNavigation {
@@ -43,9 +44,9 @@ export type RootStackParamList = {
   ProfileMain: NavigatorScreenParams<RootTabParamList> | undefined;
   GuarantorshipRequests: NavigatorScreenParams<RootTabParamList> | { pressed?: boolean } | undefined;
   WitnessRequests: NavigatorScreenParams<RootTabParamList> | undefined;
-  GuarantorshipStatus: NavigatorScreenParams<RootTabParamList> | undefined;
+  GuarantorshipStatus: { accepted: boolean; guarantor: accountHistoryType | null | undefined; loanRequest: GuarantorshipRequestType | undefined; } | undefined;
   WitnessStatus: NavigatorScreenParams<RootTabParamList> | undefined;
-  SignDocumentRequest: NavigatorScreenParams<RootTabParamList> | undefined;
+  SignDocumentRequest: { guarantorshipRequest:  GuarantorshipRequestType | undefined; guarantor?: boolean; witness?: boolean; } | undefined;
   SignStatus: NavigatorScreenParams<RootTabParamList> | undefined;
   FavouriteGuarantors: NavigatorScreenParams<RootTabParamList> | undefined;
   VerifyOTP: NavigatorScreenParams<RootTabParamList> | undefined;

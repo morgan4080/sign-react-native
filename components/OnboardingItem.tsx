@@ -10,7 +10,7 @@ const OnboardingItem = ({ item }: any) => {
     const { width, height } = useWindowDimensions();
 
     return (
-        <View style={{flex: 1, width: width * 0.93, height: height * 0.84}}>
+        <View style={{width: width * 0.93}}>
             <Text allowFontScaling={false} style={styles.description}>{item.description}</Text>
             <Text allowFontScaling={false} style={styles.title}>{item.title}</Text>
             <View style={{display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 80 }}>
@@ -30,8 +30,8 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        marginTop: 10,
-        fontFamily: "Poppins_700Bold",
+        paddingTop: 10,
+        fontFamily: 'Poppins_700Bold',
         fontSize: 32,
         color: '#0C212C',
         textAlign: "left",
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     },
 
     description: {
-        marginTop: 100,
+        paddingTop: 50,
         fontWeight: '300',
         color: '#62656b'
     }

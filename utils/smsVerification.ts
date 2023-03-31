@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import {NativeModules, NativeEventEmitter, EmitterSubscription} from 'react-native';
 
 type AndroidSmsVerificationApiType = {
@@ -29,7 +30,7 @@ let cb: Callback | null = null;
 
 const AndroidSmsVerificationApi: AndroidSmsVerificationApiType = NativeModules.AndroidSmsVerificationApi;
 // NativeModules.AndroidSmsVerificationApi
-const eventEmitter = new NativeEventEmitter(NativeModules.AndroidSmsVerificationApi);
+// const eventEmitter = new NativeEventEmitter(NativeModules.AndroidSmsVerificationApi);
 
 const subscriptions:  EmitterSubscription[] = [];
 
@@ -47,24 +48,30 @@ const onMessageError = (error: string) => {
 
 const startListeners = () => {
     // check if event exists, add listener if it doesn't
-    eventEmitter.addListener(EmitterMessages.SMS_RECEIVED, onMessageSuccess);
-    eventEmitter.addListener(EmitterMessages.SMS_ERROR, onMessageError);
+    // eventEmitter.addListener(EmitterMessages.SMS_RECEIVED, onMessageSuccess);
+    // eventEmitter.addListener(EmitterMessages.SMS_ERROR, onMessageError);
 };
 
 export const removeAllListeners = () => {
-    eventEmitter.removeAllListeners(EmitterMessages.SMS_RECEIVED);
-    eventEmitter.removeAllListeners(EmitterMessages.SMS_ERROR);
+    // eventEmitter.removeAllListeners(EmitterMessages.SMS_RECEIVED);
+    // eventEmitter.removeAllListeners(EmitterMessages.SMS_ERROR);
 };
 
 export const requestPhoneNumber = (requestCode?: number) => {
-    return AndroidSmsVerificationApi.requestPhoneNumber(requestCode || 420);
+    if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
+        return AndroidSmsVerificationApi.requestPhoneNumber(requestCode || 420);
+    }
 };
 export const requestPhoneNumberFormat = (alpha2Code: string, phone_number: string) => {
-    return AndroidSmsVerificationApi.requestPhoneNumberFormat(alpha2Code, phone_number);
+    if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
+        return AndroidSmsVerificationApi.requestPhoneNumberFormat(alpha2Code, phone_number);
+    }
 };
 
 export const getContact = (requestCode?: number, alpha2Code?: string) => {
-    return AndroidSmsVerificationApi.getContact(requestCode || 421, alpha2Code || 'KE');
+    if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
+        return AndroidSmsVerificationApi.getContact(requestCode || 421, alpha2Code || 'KE');
+    }
 };
 
 export const receiveVerificationSMS = (callback: Callback) => {
@@ -75,18 +82,24 @@ export const receiveVerificationSMS = (callback: Callback) => {
 // remove after getting app signature
 
 export const getAppSignatures = () => {
-    return AndroidSmsVerificationApi.getAppSignatures();
+    if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
+        return AndroidSmsVerificationApi.getAppSignatures();
+    }
 };
 
 export const startSmsRetriever = () => {
-    return AndroidSmsVerificationApi.startSmsRetriever();
+    if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
+        return AndroidSmsVerificationApi.startSmsRetriever();
+    }
 };
 
 export const startSmsUserConsent = (
     senderPhoneNumber?: string,
     userConsentRequestCode?: number
 ) => {
-    return AndroidSmsVerificationApi.startSmsRetriever();
+    if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
+        return AndroidSmsVerificationApi.startSmsRetriever();
+    }
     /*return AndroidSmsVerificationApi.startSmsUserConsent(
         senderPhoneNumber || null,
         userConsentRequestCode || 69

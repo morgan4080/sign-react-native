@@ -30,7 +30,7 @@ const SignDocumentRequest = ({ navigation, route }: RootStackScreenProps<"SignDo
 
         if (fetching) {
             (async () => {
-                if (route.params && route.params.guarantorshipRequest.loanRequest.refId) {
+                if (route.params && route.params.guarantorshipRequest && route.params.guarantorshipRequest.loanRequest.refId) {
                     await dispatch(fetchLoanRequest(route.params.guarantorshipRequest.loanRequest.refId));
                 } else {
                     showSnack("Loan request doesn't exist anymore");
@@ -50,7 +50,7 @@ const SignDocumentRequest = ({ navigation, route }: RootStackScreenProps<"SignDo
                 'presta-sign://app/loan-request'
             );
 
-            if (result.type === "dismiss" && route.params && route.params.guarantorshipRequest.loanRequest.refId) {
+            if (result.type === "dismiss" && route.params && route.params.guarantorshipRequest && route.params.guarantorshipRequest.loanRequest.refId) {
                 const {type, error, payload}: any  = await dispatch(fetchLoanRequest(route.params?.guarantorshipRequest.loanRequest.refId))
 
                 if (type === 'fetchLoanRequest/fulfilled') {
@@ -75,7 +75,7 @@ const SignDocumentRequest = ({ navigation, route }: RootStackScreenProps<"SignDo
             type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
             type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
             const payloadOut: zohoSignPayloadType = {
-                loanRequestRefId: route.params?.guarantorshipRequest.loanRequest.refId,
+                loanRequestRefId: `${route.params?.guarantorshipRequest?.loanRequest.refId}`,
                 actorRefId: member.refId,
                 actorType:  "WITNESS"
             }
@@ -98,7 +98,7 @@ const SignDocumentRequest = ({ navigation, route }: RootStackScreenProps<"SignDo
             type actorTypes = "GUARANTOR" | "WITNESS" | "APPLICANT"
             type zohoSignPayloadType = {loanRequestRefId: string,actorRefId: string,actorType: actorTypes}
             const payloadOut: zohoSignPayloadType = {
-                loanRequestRefId: route.params?.guarantorshipRequest.loanRequest.refId,
+                loanRequestRefId: `${route.params?.guarantorshipRequest?.loanRequest.refId}`,
                 actorRefId: member.refId,
                 actorType:  "GUARANTOR"
             }

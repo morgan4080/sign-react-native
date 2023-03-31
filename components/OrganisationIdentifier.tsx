@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Pressable, StyleSheet, Text, TextInput, View} from "react-native";
+import {TouchableOpacity, StyleSheet, Text, View} from "react-native";
 import OrganisationSelected from "./OrganisationSelected";
 import { useEffect } from "react";
 import { AuthenticateClient, setSelectedTenant } from "../stores/auth/authSlice";
@@ -9,11 +9,16 @@ import { Poppins_500Medium, useFonts } from "@expo-google-fonts/poppins";
 import { useAppDispatch, useSelectedTenant } from "../stores/hooks";
 import { RootStackScreenProps } from "../types";
 import {showSnack} from "../utils/immediateUpdate";
+import { Raleway_600SemiBold, useFonts as useRale } from '@expo-google-fonts/raleway';
 const OrganisationIdentifier = ({ navigation, route }: RootStackScreenProps<"SetTenant">) => {
     const [selectedTenant] = useSelectedTenant();
     const dispatch= useAppDispatch();
     useFonts({
         Poppins_500Medium
+    });
+
+    useRale({
+        Raleway_600SemiBold
     });
 
     useEffect(() => {
@@ -44,7 +49,7 @@ const OrganisationIdentifier = ({ navigation, route }: RootStackScreenProps<"Set
 
     return (
         <>
-            <Pressable style={{...styles.input, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}} onPress={() => navigation.navigate('Organisations')}>
+            <TouchableOpacity style={{...styles.input, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}} onPress={() => navigation.navigate('Organisations')}>
                 <View style={[styles.inputContainer, styles.shadowProp]}>
                     {
                         selectedTenant && selectedTenant.tenantName ? <View style={[styles.animatedView]}>
@@ -53,16 +58,17 @@ const OrganisationIdentifier = ({ navigation, route }: RootStackScreenProps<"Set
                             </Text>
                         </View> : null
                     }
-                    <TextInput
+
+                    <Text 
                         allowFontScaling={false}
-                        style={[styles.input, {color: selectedTenant && selectedTenant.tenantName ? "#000000" : "#0082A0"}]}
-                        value={selectedTenant && selectedTenant.tenantName ? selectedTenant.tenantName : "SELECT ORGANISATION"}
-                        editable={false}
-                    />
+                        style={[styles.input, {color: selectedTenant && selectedTenant.tenantName ? "#000000" : "#0082A0"}]} 
+                    >
+                        { selectedTenant && selectedTenant.tenantName ? selectedTenant.tenantName : "SELECT ORGANISATION" }
+                    </Text>
 
                     <AntDesign style={{position: "absolute", right: 10}} name="right" size={20} color="#8d8d8d" />
                 </View>
-            </Pressable>
+            </TouchableOpacity>
             <OrganisationSelected tenantId={selectedTenant?.tenantId} parentProps={{navigation, route}} />
         </>
     )
@@ -108,7 +114,7 @@ const styles = StyleSheet.create({
     shadowProp: {
         shadowColor: '#171717',
         shadowOffset: {width: -2, height: 4},
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.008,
         shadowRadius: 3,
     },
 });

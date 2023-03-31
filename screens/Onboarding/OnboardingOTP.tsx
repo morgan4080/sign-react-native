@@ -219,7 +219,7 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
     });
 
     return (
-        <Container customStyles={styles.customContainer}>
+        <Container>
             <Text allowFontScaling={false} style={styles.title}>
                 Verify your {route.params?.phoneNumber ? `phone number`: `email address`}.
             </Text>
@@ -230,7 +230,6 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
 
             <View style={{ position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: 30 }}>
                 <TextInput
-                    allowFontScaling={false}
                     style={styles.inputMain}
                     autoFocus={false}
                     value={valueInput}
@@ -346,12 +345,8 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
 }
 
 const styles = StyleSheet.create({
-    customContainer: {
-        backgroundColor: "#FFFFFF",
-        paddingTop: 90
-    },
     title: {
-        marginTop: 10,
+        paddingTop: 50,
         fontFamily: "Poppins_700Bold",
         fontSize: 34,
         color: '#0C212C',
@@ -378,11 +373,12 @@ const styles = StyleSheet.create({
         marginTop: 5
     },
     inputMain: {
-        width: "90%",
+        width: "100%",
         height: 70,
         textAlign: 'center',
-        zIndex: 10,
-        opacity: 0
+        zIndex: 50,
+        opacity: 1,
+        borderWidth: 1
     },
     input: {
         fontFamily: 'Poppins_500Medium',

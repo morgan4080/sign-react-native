@@ -7,7 +7,7 @@ import Animated, {
     withRepeat,
     withTiming
 } from "react-native-reanimated";
-import {Controller, FieldError} from "react-hook-form";
+import {Controller, FieldError, FieldValues} from "react-hook-form";
 import {useFonts,Poppins_500Medium, Poppins_300Light} from "@expo-google-fonts/poppins";
 import {useFonts as useRale, Raleway_600SemiBold} from "@expo-google-fonts/raleway";
 import React, {useEffect, useRef, useState} from "react";
@@ -20,7 +20,7 @@ interface FProps<T> {
     field: any;
     val: (field: string) => string | undefined;
     setVal?: (field: string, data: any) => void;
-    watch: UseFormWatch<Record<string, any>>;
+    watch: UseFormWatch<any>;
     control: Control<any>;
     required?: boolean;
     rules?: Record<any, any>;
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     shadowProp: {
         shadowColor: '#171717',
         shadowOffset: {width: -2, height: 4},
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.008,
         shadowRadius: 3,
     },
     error: {

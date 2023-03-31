@@ -10,6 +10,7 @@ import {
     useWindowDimensions,
     Pressable,
 } from "react-native";
+import _uniqueId from 'lodash/uniqueId';
 import {useForm} from "react-hook-form";
 import {AntDesign, MaterialCommunityIcons} from "@expo/vector-icons";
 import {useEffect, useState} from "react";
@@ -39,7 +40,7 @@ type PropType = {
     clearErrors?: any;
     nav?: RootStackScreenProps<"SetTenant">;
     getValues: (field: string) => string | undefined;
-    watch: UseFormWatch<Record<string, any>>;
+    watch: UseFormWatch<FormData>;
 }
 
 const {DeviceInfModule} = NativeModules;
@@ -188,7 +189,8 @@ const IDInput = ({errors, control, loading, handleSubmit, onSubmit, getValues, w
                 <TouchableButton loading={loading} label={"Continue"} onPress={handleSubmit(onSubmit)}/>
             </View>
         )
-    };
+}
+
 const OrganisationSelected = ({tenantId, parentProps}: {tenantId: string | undefined; parentProps: RootStackScreenProps<"SetTenant">;}) => {
     const [tab, setTab] = useState<number>(0);
     const [selectedTenant] = useSelectedTenant();
@@ -217,7 +219,7 @@ const OrganisationSelected = ({tenantId, parentProps}: {tenantId: string | undef
 
         if (changed && tenantId && selectedTenant) {
             if (tenantId === 't72767' && tab === 0 || tenantId === 't74411') {
-                requestPhoneNumber().then(phone => setValue("phoneNumber", phone)).catch(error => {
+                requestPhoneNumber()?.then(phone => setValue("phoneNumber", phone)).catch(error => {
                     console.log(error)
                 })
             }
@@ -309,7 +311,7 @@ const OrganisationSelected = ({tenantId, parentProps}: {tenantId: string | undef
                     } else {
                         // navigate to otp
                         if (route.params?.alpha2Code) {
-                            const deviceId = await DeviceInfModule.getUniqueId();
+                            const deviceId = DeviceInfModule ? await DeviceInfModule.getUniqueId() : _uniqueId();
                             const phoneDataJson = await requestPhoneNumberFormat(route.params?.alpha2Code, response.payload.phoneNumber);
 
                             const {country_code, phone_no} = JSON.parse(phoneDataJson);
@@ -400,8 +402,8 @@ const styles = StyleSheet.create({
         letterSpacing: 0.4,
         fontSize: 14,
         color: '#000000',
-        lineHeight: 10,
-        paddingTop: 14,
+        lineHeight: 0,
+        paddingTop: 0,
         fontFamily: 'Poppins_500Medium'
     },
 
@@ -428,7 +430,7 @@ const styles = StyleSheet.create({
     shadowProp: {
         shadowColor: '#171717',
         shadowOffset: {width: -2, height: 4},
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.008,
         shadowRadius: 3,
     },
 });

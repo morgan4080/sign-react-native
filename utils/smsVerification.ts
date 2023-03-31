@@ -1,3 +1,4 @@
+import { CountryCode, parsePhoneNumber } from 'libphonenumber-js';
 import { Platform } from 'react-native';
 import {NativeModules, NativeEventEmitter, EmitterSubscription} from 'react-native';
 
@@ -60,17 +61,27 @@ export const removeAllListeners = () => {
 export const requestPhoneNumber = (requestCode?: number) => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
         return AndroidSmsVerificationApi.requestPhoneNumber(requestCode || 420);
+    } else {
+        return null
     }
 };
-export const requestPhoneNumberFormat = (alpha2Code: string, phone_number: string) => {
+export const requestPhoneNumberFormat = (alpha2Code: string = 'KE', phone_number: string) => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
         return AndroidSmsVerificationApi.requestPhoneNumberFormat(alpha2Code, phone_number);
+    } else {
+        const {countryCallingCode, nationalNumber} = parsePhoneNumber(`${phone_number}`, alpha2Code as CountryCode)
+        return JSON.stringify({
+            country_code: countryCallingCode,
+            phone_no: nationalNumber
+        })
     }
 };
 
 export const getContact = (requestCode?: number, alpha2Code?: string) => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
         return AndroidSmsVerificationApi.getContact(requestCode || 421, alpha2Code || 'KE');
+    } else {
+        return null
     }
 };
 
@@ -84,12 +95,16 @@ export const receiveVerificationSMS = (callback: Callback) => {
 export const getAppSignatures = () => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
         return AndroidSmsVerificationApi.getAppSignatures();
+    } else {
+        return null
     }
 };
 
 export const startSmsRetriever = () => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
         return AndroidSmsVerificationApi.startSmsRetriever();
+    } else {
+        return null
     }
 };
 
@@ -99,6 +114,8 @@ export const startSmsUserConsent = (
 ) => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
         return AndroidSmsVerificationApi.startSmsRetriever();
+    } else {
+        return null
     }
     /*return AndroidSmsVerificationApi.startSmsUserConsent(
         senderPhoneNumber || null,

@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
         height: 74,
         paddingHorizontal: 20,
         shadowColor: 'rgba(0,0,0, .4)', // IOS
-        shadowOffset: { height: 1, width: 1 }, // IOS
+        shadowOffset: { height: 1, width: -1 }, // IOS
         shadowOpacity: 1, // IOS
         shadowRadius: 1, //IOS
         backgroundColor: '#FFFFFF',
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 25,
         borderBottomLeftRadius: 25,
         shadowColor: 'rgba(0,0,0, .4)', // IOS
-        shadowOffset: { height: 1, width: 1 }, // IOS
+        shadowOffset: { height: 1, width: -1 }, // IOS
         shadowOpacity: 1, // IOS
         shadowRadius: 1, //IOS
         elevation: 8, // Android

@@ -3,6 +3,7 @@ import {
     Keyboard,
     TouchableWithoutFeedback,
     Text,
+    Platform,
 } from "react-native";
 import OrganisationIdentifier from "../../components/OrganisationIdentifier";
 import {useEffect} from "react";
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
         textAlign: 'center'
     },
     title: {
-        marginTop: 100,
+        marginTop: Platform.OS === 'android' ? 100 : 60,
         fontFamily: "Poppins_700Bold",
         fontSize: 34,
         color: '#0C212C',

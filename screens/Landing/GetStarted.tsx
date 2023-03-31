@@ -4,6 +4,8 @@ import {
     FlatList,
     Animated,
     StatusBar as Bar,
+    SafeAreaView,
+    StyleSheet
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold,Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
@@ -15,7 +17,6 @@ import {storeState} from "../../stores/auth/authSlice";
 import {RotateView} from "../Auth/VerifyOTP";
 import {checkToStartUpdate, showSnack} from "../../utils/immediateUpdate";
 import {getSecureKey,} from "../../utils/secureStore";
-import Container from "../../components/Container";
 import {RootStackScreenProps} from "../../types";
 import { useState, useRef } from 'react'
 
@@ -130,8 +131,8 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
 
     if (fontsLoaded && !loading) {
         return (
-            <Container>
-                <View style={{height: "100%"}}>
+            <SafeAreaView style={styles.container}>
+                <View style={{height: "85%"}}>
                     <FlatList
                         data={slides}
                         renderItem={({ item }) => <OnboardingItem item={item}/>}
@@ -158,7 +159,7 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
                         flag: "https://flagcdn.com/28x21/ke.png"
                     })} />
                 <StatusBar style='auto'/>
-            </Container>
+            </SafeAreaView>
         )
     } else {
         return (
@@ -168,3 +169,11 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
         );
     }
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        position: "relative",
+        marginHorizontal: 16
+    }
+})

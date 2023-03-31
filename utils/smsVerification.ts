@@ -96,7 +96,7 @@ export const getAppSignatures = () => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
         return AndroidSmsVerificationApi.getAppSignatures();
     } else {
-        return null
+        return Promise.resolve(null);
     }
 };
 
@@ -115,7 +115,7 @@ export const startSmsUserConsent = (
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
         return AndroidSmsVerificationApi.startSmsRetriever();
     } else {
-        return null
+        return Promise.resolve(null)
     }
     /*return AndroidSmsVerificationApi.startSmsUserConsent(
         senderPhoneNumber || null,

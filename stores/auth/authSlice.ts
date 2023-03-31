@@ -1188,7 +1188,16 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dis
 
         const myHeaders = new Headers();
 
-        const [signature] = await getAppSignatures();
+        const appSignature = await getAppSignatures();
+
+        let signature;
+
+        if (appSignature) {
+            const [x] = appSignature;
+            signature = x;
+        } else {
+            signature = "IOS"
+        }
 
         myHeaders.append("Authorization", `Bearer ${key}`);
         myHeaders.append("Content-Type", 'application/json');
@@ -1364,7 +1373,7 @@ export const authClient = createAsyncThunk('authClient', async ({realm, client_s
             xhr.send(dataOut);
         } catch (e: any) {
             if (!e.response) {
-                throw e
+                reject(e)
             }
             reject(e)
         }

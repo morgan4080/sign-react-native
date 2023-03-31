@@ -4,7 +4,8 @@ import {
     TouchableOpacity,
     Dimensions,
     Text,
-    View
+    View,
+    Platform
 } from 'react-native';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold, Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import {
@@ -278,10 +279,15 @@ const styles = StyleSheet.create({
         elevation: 5,
         position: 'relative',
         marginBottom: 10,
-        paddingHorizontal: 20
+        paddingHorizontal: 20,
+        shadowColor: 'rgba(0,0,0, .4)', // IOS
+        shadowOffset: {width: -1, height: 1},
+        shadowOpacity:1,
+        shadowRadius: 1,
+        elevations: 2
     },
     description: {
-        marginTop: 60,
+        marginTop: Platform.OS === 'android' ? 60 : 0,
         fontWeight: '300',
         color: '#62656b'
     },

@@ -26,6 +26,7 @@ import {
 } from "@expo-google-fonts/poppins";
 import {useEffect, useState} from "react";
 import {RotateView} from "../Auth/VerifyOTP";
+import { useAppDispatch, useLoading, useMember, useUser } from "../../stores/hooks";
 
 type NavigationProps = NativeStackScreenProps<any>;
 
@@ -36,10 +37,11 @@ export const toMoney = (money: string): string => {
 };
 
 export default function LoanRequests ({ navigation }: NavigationProps) {
-    const { loading, user, member } = useSelector((state: { auth: storeState }) => state.auth);
-    type AppDispatch = typeof store.dispatch;
+    const [loading] = useLoading();
+    const [user] = useUser();
+    const [member] = useMember();
 
-    const dispatch : AppDispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     const [loans, setLoans] = useState<any>(undefined)
 
@@ -73,7 +75,7 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
 
     if (fontsLoaded && !loading) {
         return (
-            <View style={{flex: 1, position: 'relative'}}>
+            <SafeAreaView style={{flex: 1, position: 'relative'}}>
                 <View style={styles.container}>
                     <View style={{ position: 'absolute', left: -100, top: '25%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 200, height: 200 }} />
                     <View style={{ position: 'absolute', right: -80, top: '32%', backgroundColor: 'rgba(50,52,146,0.12)', paddingHorizontal: 5, paddingVertical: 5, borderRadius: 100, width: 150, height: 150 }} />
@@ -83,8 +85,8 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                     <Text allowFontScaling={false} style={styles.titleText}>{ `${member?.firstName} ${member?.lastName}` }</Text>
                     <Text allowFontScaling={false} style={styles.subTitleText}>{ `Member NO: ${member?.memberNumber}` }</Text>
                     <Text allowFontScaling={false} style={styles.organisationText}>{ `${user?.companyName}` }</Text>
-                    <SafeAreaView style={{ flex: 1, width: width-20, height: height/2 }}>
-                        <ScrollView contentContainerStyle={{ display: 'flex', alignItems: 'center', paddingBottom: 50 }}>
+                    <View style={{ flex: 1, width: width-20, height: height/2 }}>
+                        <View style={{ display: 'flex', alignItems: 'center', paddingBottom: 50 }}>
                             <View style={{display: 'flex', width: width-50, borderRadius: 15, backgroundColor: '#489AAB', paddingHorizontal: 25, paddingVertical: 10, marginTop: 15}}>
                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_300Light', color: '#ffffff', fontSize: 10 }}>Available Balance</Text>
                                 <Text allowFontScaling={false} style={{ fontFamily: 'Poppins_800ExtraBold', color: '#ffffff', fontSize: 22 }}>KES {member ? toMoney(`${member.availableAmount}`) : ``}</Text>
@@ -161,12 +163,12 @@ export default function LoanRequests ({ navigation }: NavigationProps) {
                                     </View>
                                 </View>*/}
                             </View>
-                        </ScrollView>
-                    </SafeAreaView>
+                        </View>
+                    </View>
                 </View>
 
                 <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'}/>
-            </View>
+            </SafeAreaView>
         )
     } else {
         return (

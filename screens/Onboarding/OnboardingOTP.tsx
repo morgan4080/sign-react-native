@@ -1,4 +1,4 @@
-import {StyleSheet, View, Text, TextInput, Pressable, Image} from "react-native";
+import {StyleSheet, View, Text, TextInput, Pressable, Image, Platform} from "react-native";
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {RotateView} from "../Auth/VerifyOTP";
 import {useDispatch, useSelector} from "react-redux";
@@ -44,16 +44,15 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
         let realm: any = selectedTenant?.tenantId;
         let client_secret: any = selectedTenant?.clientSecret;
 
-        console.log({client_secret, realm})
         return dispatch(authClient({realm, client_secret}))
         .then(({type, error, payload}: Pick<PayloadAction, any>) => {
-            if (error && error.message) {
-                throw new Error(error.message)
+            if (error) {
+                throw(JSON.stringify(error));
             } else if (type === 'authClient/fulfilled') {
-                const { access_token } = payload
-                return saveSecureKey('access_token', access_token)
+                const { access_token } = payload;
+                return saveSecureKey('access_token', access_token);
             } else {
-                throw new Error("Client Service authentication failed");
+                throw("Client Service authentication failed");
             }
         })
         .then(() => {
@@ -62,22 +61,27 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
             } else if (email) {
                 return dispatch(sendOtp(encodeURIComponent(email)))
             } else {
-                throw new Error("We Couldn't find email or phone number")
+                throw("We Couldn't find email or phone number")
             }
         })
         .then(({type,error, payload}: Pick<PayloadAction, any>) => {
             if (type === "sendOtp/rejected") {
                 if (error && error.message) {
-                    throw new Error(error.message)
+                    throw(error.message)
                 } else {
-                    throw new Error("Could not send OTP")
+                    throw("Could not send OTP")
                 }
             } else {
-                console.log("sendOtp", payload)
-                showSnack(payload.message, "SUCCESS")
-                return startSmsUserConsent()
+                console.log("sendOtp", payload);
+                if (showSnack) {
+                    showSnack(payload.message, "SUCCESS");
+                } else {
+                    alert(payload.message);
+                }
+                return startSmsUserConsent();
             }
         }).catch((e) => {
+            alert(JSON.stringify(e))
             throw new Error(e.message)
         })
     }
@@ -110,7 +114,11 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
 
     const sendOtpNow = () => {
         sendOtpHere().catch((e) => {
-            showSnack(JSON.stringify(e), "ERROR")
+            if (showSnack) {
+                showSnack(JSON.stringify(e), "ERROR");
+            } else {
+                alert(JSON.stringify(e))
+            }
         })
     }
 
@@ -137,7 +145,11 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                 });
                 return Promise.resolve(true)
             }).catch((e: any) => {
-                showSnack(e.message, "ERROR")
+                if (showSnack) {
+                    showSnack(e.message, "ERROR");
+                } else {
+                    alert(e.message);
+                }
             })
         }
 
@@ -167,7 +179,11 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                     if (e.message === '4') {
                         return
                     } else {
-                        showSnack(e.message, "ERROR")
+                        if (showSnack) {
+                            showSnack(e.message, "ERROR");
+                        } else {
+                            alert(e.message);
+                        }
                     }
                 }
             })
@@ -324,7 +340,7 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                                 selectTextOnFocus={false}
                             />
                         )}
-                        name="otpChar4"
+                        name="otpChar4" 
                     />
                 </View>
             </View>
@@ -346,7 +362,7 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
 
 const styles = StyleSheet.create({
     title: {
-        paddingTop: 50,
+        paddingTop: Platform.OS === 'android' ? 100 : 50,
         fontFamily: "Poppins_700Bold",
         fontSize: 34,
         color: '#0C212C',
@@ -377,8 +393,7 @@ const styles = StyleSheet.create({
         height: 70,
         textAlign: 'center',
         zIndex: 50,
-        opacity: 1,
-        borderWidth: 1
+        opacity: 0,
     },
     input: {
         fontFamily: 'Poppins_500Medium',

@@ -18,6 +18,8 @@ export const checkToStartUpdate = (requestCode?: number) => {
 export const showSnack = (message: string, status?: string, actionText?: string, indefinite: boolean = false, callback?: () => void) => {
     if (Platform.OS === 'android' && GooglePlayApis) { 
         return GooglePlayApis.popSnackBarForUserConfirmation(message, status, actionText, indefinite, callback);
+    } else {
+        alert(message)
     }
 }
 

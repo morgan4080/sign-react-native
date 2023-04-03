@@ -257,7 +257,7 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                     maxLength={4}
                     keyboardType="number-pad"
                 />
-                <View style={{position: 'absolute', display: 'flex', width: '100%', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30 }}>
+                <View style={{position: 'absolute', display: 'flex', width: '100%', flexDirection: 'row', justifyContent:'space-between' }}>
                     <Controller
                         control={control}
                         rules={{
@@ -402,8 +402,8 @@ const styles = StyleSheet.create({
         color: '#2791B5',
         borderRadius: 12,
         height: 70,
-        width: 70,
-        paddingHorizontal: 20,
+        width: "20%",
+        maxWidth: 70,
         fontSize: 30
     },
 });

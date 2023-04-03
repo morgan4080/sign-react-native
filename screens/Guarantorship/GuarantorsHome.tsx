@@ -1,10 +1,8 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
-    authenticate, fetchLoanProducts,
-    fetchMember, getTenants, LoadOrganisation, saveContactsToDb,
+    LoadOrganisation,
     searchByMemberNo,
-    setSelectedTenantId, updateOrganisation,
     validateNumber
 } from "../../stores/auth/authSlice";
 import {
@@ -19,7 +17,7 @@ import {useForm} from "react-hook-form";
 import {AntDesign, MaterialIcons} from "@expo/vector-icons";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {getContact, requestPhoneNumberFormat} from "../../utils/smsVerification";
-import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
+import {getSecureKey} from "../../utils/secureStore";
 import {cloneDeep} from "lodash";
 import ContactSectionList from "../../components/ContactSectionList";
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackdrop, BottomSheetFlatList  } from "@gorhom/bottom-sheet";
@@ -34,7 +32,6 @@ import {
     useSettings, useUser
 } from "../../stores/hooks";
 import {Poppins_300Light, Poppins_400Regular, useFonts} from "@expo-google-fonts/poppins";
-const { width } = Dimensions.get("window");
 type searchedMemberType = { contact_id: string; memberNumber: string; memberRefId: string; name: string; phone: string }
 type FormData = {
     searchTerm: string;
@@ -48,6 +45,19 @@ type FormData = {
     businessLocation: string;
     businessType: string;
 };
+type employerPayloadType = {
+    employerName: string | undefined;
+    serviceNo: string | undefined;
+    grossSalary: string | undefined;
+    netSalary: string | undefined;
+    kraPin: string | undefined;
+};
+type businessPayloadType = {
+    businessLocation: string | undefined;
+    businessType: string | undefined;
+    kraPin: string | undefined;
+};
+const { width } = Dimensions.get("window");
 
 const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
     <TouchableOpacity onPress={onPress} style={[styles.option, backgroundColor]}>
@@ -55,6 +65,7 @@ const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
         <Text allowFontScaling={false} style={[styles.optionName, textColor]}>{item.name}</Text>
     </TouchableOpacity>
 );
+
 const RenderItem = ({ item, context, member, setValue, route, searchMemberByMemberNo, addContactToList, handleClosePress, setEmployerDetailsEnabled, setContext }: any) => {
     const backgroundColor = item.context === context? "#489AAB" : "#FFFFFF";
     const color = item.context === context ? 'white' : '#767577';
@@ -85,19 +96,6 @@ const RenderItem = ({ item, context, member, setValue, route, searchMemberByMemb
         />
     );
 };
-
-type employerPayloadType = {
-    employerName: string | undefined;
-    serviceNo: string | undefined;
-    grossSalary: string | undefined;
-    netSalary: string | undefined;
-    kraPin: string | undefined;
-}
-type businessPayloadType = {
-    businessLocation: string | undefined;
-    businessType: string | undefined;
-    kraPin: string | undefined;
-}
 
 const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const [member] = useMember();
@@ -548,10 +546,12 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     getSecureKey("alpha2Code")
                     .then(alpha2Code => getContact(421, alpha2Code))
                     .then((data) => {
-                        const dataObject = JSON.parse(data);
-                        set_phonebook_contact_name(`${dataObject.name ? dataObject.name : "" }`);
-                        setValue('searchTerm', `${dataObject.country_code}${dataObject.phone_no}`);
-                        return searchMemberByPhone(`${dataObject.country_code}${dataObject.phone_no}`);
+                        if (data) {
+                            const dataObject = JSON.parse(data);
+                            set_phonebook_contact_name(`${dataObject.name ? dataObject.name : "" }`);
+                            setValue('searchTerm', `${dataObject.country_code}${dataObject.phone_no}`);
+                            return searchMemberByPhone(`${dataObject.country_code}${dataObject.phone_no}`);
+                        }
                     })
                     .then(addContactToList)
                     .catch(e => {

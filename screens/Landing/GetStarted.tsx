@@ -5,7 +5,8 @@ import {
     Animated,
     StatusBar as Bar,
     SafeAreaView,
-    StyleSheet
+    StyleSheet,
+    NativeModules
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold,Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
@@ -18,12 +19,13 @@ import {RotateView} from "../Auth/VerifyOTP";
 import {checkToStartUpdate, showSnack} from "../../utils/immediateUpdate";
 import {getSecureKey,} from "../../utils/secureStore";
 import {RootStackScreenProps} from "../../types";
-import { useState, useRef } from 'react'
+import { useState, useRef } from 'react';
 
-import OnboardingItem from '../../components/OnboardingItem'
-import slides from '../../onboardingslides'
-import Paginator from '../../components/Paginator'
+import OnboardingItem from '../../components/OnboardingItem';
+import slides from '../../onboardingslides';
+import Paginator from '../../components/Paginator';
 import TouchableButton from '../../components/TouchableButton';
+
 
 
 const { width, height } = Dimensions.get("window");
@@ -152,12 +154,17 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
                     <Paginator data={slides} scrollX={scrollX}/>
                 </View>
 
-                <TouchableButton label={'Get started'} loading={loading} onPress={() => navigation.navigate('SetTenant', {
+                {/* <TouchableButton label={'Get started'} loading={loading} onPress={() => navigation.navigate('SetTenant', {
                         code: "254",
                         numericCode: "404",
                         alpha2Code: "KE",
                         flag: "https://flagcdn.com/28x21/ke.png"
-                    })} />
+                    })} 
+                /> */}
+                <TouchableButton label={'Get started'} loading={loading} onPress={() =>{
+                    NativeModules.ContactsPicker.getContact();
+                }} 
+                />
                 <StatusBar style='auto'/>
             </SafeAreaView>
         )

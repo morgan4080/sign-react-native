@@ -46,6 +46,7 @@ import {TouchableOpacity} from "react-native";
 import {store} from "../stores/store";
 import CustomTabBar from "../components/CustomTabBar";
 import SignDocumentRequest from "../screens/Guarantorship/SignDocumentRequest";
+import { useAppDispatch, useLoggedInState } from '../stores/hooks';
 type AppDispatch = typeof store.dispatch;
 const Navigation = () => {
   const MyTheme = {
@@ -75,7 +76,7 @@ export default Navigation;
  */
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-const NonAuthNavigation = () => {
+const NonAuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
     return (
         <Stack.Navigator initialRouteName="GetStarted">
 
@@ -105,7 +106,30 @@ const NonAuthNavigation = () => {
             }} />
             <Stack.Screen name="Countries" component={Countries} options={{ headerShown: false }} />
             <Stack.Screen name="ShowTenants" component={ShowTenants} options={{headerShown: false}} />
-            <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+            <Stack.Screen name="Login" component={Login} options={({ navigation, route }) => {
+                return ({
+                    title: '',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => {
+                            dispatch(logoutUser()).finally(() => {
+                                navigation.navigate('GetStarted');
+                            });
+                        }} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                })
+            }} />
             <Stack.Screen name="VerifyOTP" component={VerifyOTP} options={{ headerShown: false }} />
         </Stack.Navigator>
     )
@@ -378,10 +402,9 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
 
 
 function RootNavigator() {
-    const dispatch : AppDispatch = useDispatch();
-
-  const {isLoggedIn} = useSelector((state: { auth: storeState }) => state.auth);
-  return isLoggedIn ? AuthNavigation({dispatch}) : NonAuthNavigation()
+    const dispatch = useAppDispatch();
+    const [isLoggedIn] = useLoggedInState();
+    return isLoggedIn ? AuthNavigation({dispatch}) : NonAuthNavigation({dispatch})
 }
 
 /**

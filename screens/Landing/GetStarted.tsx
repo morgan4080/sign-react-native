@@ -162,8 +162,13 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
                     })} 
                 /> */}
                 <TouchableButton label={'Get started'} loading={loading} onPress={() =>{
-                    NativeModules.ContactsPicker.getContact();
-                }} 
+                    console.log(NativeModules.ContactsPicker);
+                    NativeModules.ContactsPicker.pickContact({}).then((response: any) => {
+                        console.log(response);
+                    }).catch((e: any) => {
+                        console.log(JSON.stringify(e));
+                    });
+                }}
                 />
                 <StatusBar style='auto'/>
             </SafeAreaView>

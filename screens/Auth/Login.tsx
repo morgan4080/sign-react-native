@@ -466,32 +466,15 @@ export default function Login({ navigation, route }: RootStackScreenProps<"Login
 
     if (fontsLoaded && !loading) {
         return (
-            <SafeAreaView style={{ flex: 1, width, height: 8/12 * height, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
+            <SafeAreaView style={{ flex: 1, width, backgroundColor: '#FFFFFF', borderTopLeftRadius: 25, borderTopRightRadius: 25, }}>
                 <ScrollView contentContainerStyle={styles.container} >
-                    <View style={{height: height/2, display: 'flex', justifyContent: 'space-between', position: 'relative'}}>
-                        <View style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                            <TouchableOpacity onPress={ async () => {
-                                await dispatch(logoutUser())
-                                navigation.navigate('GetStarted')
-                            }} style={{marginTop: 45, marginBottom: 25, position: 'absolute', top: height/60, left: width/15}}>
-                                <Ionicons name="chevron-back-sharp" size={24} color="black" />
-                            </TouchableOpacity>
-                            <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: height/9 }}>
-                                <Text allowFontScaling={false} style={{fontSize: 12, fontFamily: 'Poppins_500Medium'}}>{tenant?.firstName + " " + tenant?.lastName}</Text>
-                                <Text allowFontScaling={false} style={{fontSize: 10, fontFamily: 'Poppins_300Light'}}>{tenant?.ussdPhoneNumber}</Text>
-                            </View>
+                    <View style={{height: height/2.5, display: 'flex', justifyContent: 'space-between', position: 'relative'}}>
+                        <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', paddingTop: 50 }}>
+                            <Text allowFontScaling={false} style={{fontSize: 14, fontFamily: 'Poppins_500Medium'}}>{tenant?.firstName + " " + tenant?.lastName}</Text>
+                            <Text allowFontScaling={false} style={{fontSize: 12, paddingTop: 5, fontFamily: 'Poppins_300Light'}}>{tenant?.ussdPhoneNumber}</Text>
                         </View>
 
                         <View>
-                            {currentTenant && currentTenant.logo ?
-                                <Image
-                                    style={{height: 100}}
-                                    source={{
-                                        uri: currentTenant.logo,
-                                    }}
-                                />
-                                : null
-                            }
                             <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light', textTransform: 'uppercase'}}>{currentTenant?.tenantName} LOGIN</Text>
                             <Text allowFontScaling={false} style={{fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_300Light'}}>ENTER PIN</Text>
                             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', paddingVertical: 10 }}>
@@ -610,7 +593,7 @@ export default function Login({ navigation, route }: RootStackScreenProps<"Login
                             </View>
                         </View>
                     </View>
-                    <View style={{height: height/2.8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', paddingBottom: height/2.5}}>
+                    <View style={{height: height/1.8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap'}}>
                         {[1,2,3,4,5,6,7,8,9,-2,0,-1].map(num => (
                             <TouchableHighlight disabled={inputDisabled} underlayColor='#CCCCCC' onPress={() => onPressed(num)} key={num} style={{width: width/3, height: height/11, display: 'flex', justifyContent: 'center'}}>
                                 {

@@ -435,19 +435,23 @@ export const hasPinCheck = createAsyncThunk('hasPinCheck', async ({access_token,
 
 export const searchContactsInDB = createAsyncThunk('searchContactsInDB', async({searchTerm, setContacts}: {searchTerm: string, setContacts: any}) => {
     return new Promise((resolve, reject) => {
-        db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM contacts WHERE name LIKE '%${searchTerm}%' OR phone LIKE '%${searchTerm}%' LIMIT '0', '5'`, undefined,
-                // success callback which sends two things Transaction object and ResultSet Object
-                (txObj: any, { rows: { _array } } : any) => {
-                    setContacts(_array)
-                    resolve(_array)
-                },
-                // failure callback which sends two things Transaction object and Error
-                (txObj:any, error: any) => {
-                    reject(error)
-                }
-            ) // end executeSQL
-        })
+        try {
+            db.transaction((tx: any) => {
+                tx.executeSql(`SELECT * FROM contacts WHERE name LIKE '%${searchTerm}%' OR phone LIKE '%${searchTerm}%' LIMIT '0', '5'`, undefined,
+                    // success callback which sends two things Transaction object and ResultSet Object
+                    (txObj: any, { rows: { _array } } : any) => {
+                        setContacts(_array)
+                        resolve(_array)
+                    },
+                    // failure callback which sends two things Transaction object and Error
+                    (txObj:any, error: any) => {
+                        reject(error)
+                    }
+                ) // end executeSQL
+            })
+        } catch (e: any) {
+            reject(e)
+        }
     })
 })
 
@@ -796,79 +800,95 @@ export const saveContactsToDb = createAsyncThunk('saveContactsToDb', async() => 
 
 export const updateUser = createAsyncThunk('updateUser', async (sql: string) => {
     return new Promise((resolve, reject) => {
-        db.transaction((tx: any) => {
-            tx.executeSql(`${sql}`, undefined,
-                // success callback which sends two things Transaction object and ResultSet Object
-                (txObj: SQLTransaction, { rows: { _array } } : Pick<SQLResultSet, "rows">) => {
-                    let result: any = _array
-                    console.log(_array)
-                    resolve(result)
-                },
-                // failure callback which sends two things Transaction object and Error
-                (txObj: SQLTransaction, error: SQLError): any => {
-                    console.log('error updating', error.message);
-                    reject(error.message)
-                }
-            ) // end executeSQL
-        })
+        try {
+            db.transaction((tx: any) => {
+                tx.executeSql(`${sql}`, undefined,
+                    // success callback which sends two things Transaction object and ResultSet Object
+                    (txObj: SQLTransaction, { rows: { _array } } : Pick<SQLResultSet, "rows">) => {
+                        let result: any = _array
+                        console.log(_array)
+                        resolve(result)
+                    },
+                    // failure callback which sends two things Transaction object and Error
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('error updating', error.message);
+                        reject(error.message)
+                    }
+                ) // end executeSQL
+            })
+        } catch (e: any) {
+            reject(e)
+        }
     })
 })
 
 export const updateContact = createAsyncThunk('updateContact', async (sql: string) => {
     return new Promise((resolve, reject) => {
-        db.transaction((tx: any) => {
-            tx.executeSql(`${sql}`, undefined,
-                // success callback which sends two things Transaction object and ResultSet Object
-                (txObj: SQLTransaction, { rows: { _array } } : Pick<SQLResultSet, "rows">) => {
-                    let result: any = _array
-                    console.log(_array)
-                    resolve(result)
-                },
-                // failure callback which sends two things Transaction object and Error
-                (txObj: SQLTransaction, error: SQLError): any => {
-                    console.log('error updating', error.message);
-                    reject(error.message)
-                }
-            ) // end executeSQL
-        })
+        try {
+            db.transaction((tx: any) => {
+                tx.executeSql(`${sql}`, undefined,
+                    // success callback which sends two things Transaction object and ResultSet Object
+                    (txObj: SQLTransaction, { rows: { _array } } : Pick<SQLResultSet, "rows">) => {
+                        let result: any = _array
+                        console.log(_array)
+                        resolve(result)
+                    },
+                    // failure callback which sends two things Transaction object and Error
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('error updating', error.message);
+                        reject(error.message)
+                    }
+                ) // end executeSQL
+            })
+        } catch (e: any) {
+            reject(e)
+        }
     })
 })
 
 export const getUserFromDB = createAsyncThunk('getUserFromDB', async ({setDBUser}: {setDBUser: any}) => {
     return new Promise((resolve, reject) => {
-        db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM user`, undefined,
-                // success callback which sends two things Transaction object and ResultSet Object
-                (txObj: any, { rows: { _array } } : any) => {
-                console.log("from user", _array)
-                    setDBUser(_array)
-                    resolve(_array)
-                },
-                // failure callback which sends two things Transaction object and Error
-                (txObj:any, error: any) => {
-                    console.log('getUserFromDB error')
-                    reject(error)
-                }
-            ) // end executeSQL
-        })
+        try {
+            db.transaction((tx: any) => {
+                tx.executeSql(`SELECT * FROM user`, undefined,
+                    // success callback which sends two things Transaction object and ResultSet Object
+                    (txObj: any, { rows: { _array } } : any) => {
+                        console.log("from user", _array)
+                        setDBUser(_array)
+                        resolve(_array)
+                    },
+                    // failure callback which sends two things Transaction object and Error
+                    (txObj:any, error: any) => {
+                        console.log('getUserFromDB error')
+                        reject(error)
+                    }
+                ) // end executeSQL
+            })
+        } catch (e) {
+            reject(e)
+        }
     })
 })
 
 export const getContactsFromDB = createAsyncThunk('getContactsFromDB', async ({setContacts, from, to}: {setContacts: any, from: number, to: number}) => {
     return new Promise((resolve, reject) => {
-        db.transaction((tx: any) => {
-            tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '10'`, undefined,
-                // success callback which sends two things Transaction object and ResultSet Object
-                (txObj: any, { rows: { _array } } : any) => {
-                    setContacts(_array)
-                },
-                // failure callback which sends two things Transaction object and Error
-                (txObj:any, error: any) => {
-                    console.log('getContactsFromDB')
-                    reject(error)
-                }
-            ) // end executeSQL
-        })
+        try {
+            db.transaction((tx: any) => {
+                tx.executeSql(`SELECT * FROM contacts ORDER BY name LIMIT '0', '10'`, undefined,
+                    // success callback which sends two things Transaction object and ResultSet Object
+                    (txObj: any, { rows: { _array } } : any) => {
+                        setContacts(_array)
+                    },
+                    // failure callback which sends two things Transaction object and Error
+                    (txObj:any, error: any) => {
+                        console.log('getContactsFromDB')
+                        reject(error)
+                    }
+                ) // end executeSQL
+            })
+        } catch (e: any) {
+            reject(e)
+        }
     })
 })
 
@@ -2973,9 +2993,10 @@ export const updateOrganisation = createAsyncThunk("updateOrganisation", (
     details = JSON.stringify(details);
 
     return new Promise((resolve, reject) => {
-        db.transaction((tx: SQLTransaction) => {
-            tx.executeSql(
-                `
+        try {
+            db.transaction((tx: SQLTransaction) => {
+                tx.executeSql(
+                    `
                 INSERT INTO client_settings 
             (
                 ussdShortCode,
@@ -3001,63 +3022,66 @@ export const updateOrganisation = createAsyncThunk("updateOrganisation", (
                 parallelLoans,
                 details
              ) values (?, ?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [
-                    ussdShortCode,
-                    organizationName,
-                    requireWitness,
-                    allowZeroGuarantors,
-                    allowSelfGuarantee,
-                    isGuaranteedAmountShared,
-                    useEmbeddedURL,
-                    containsAttachments,
-                    organizationAlias,
-                    organizationEmail,
-                    supportEmail,
-                    organizationPrimaryTheme,
-                    organizationSecondaryTheme,
-                    organizationLogoName,
-                    organizationLogoExtension,
-                    coreBankingIntegration,
-                    loanProductMaxPeriod,
-                    customSMS,
-                    notificationProvider,
-                    identifierType,
-                    parallelLoans,
-                    details
-                ],
-                // success callback which sends two things Transaction object and ResultSet Object
-                (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                    const { auth } = getState() as {auth: storeState};
-                    const { organisations } = auth;
-                    const replaceOrganisations: organisationType[]  = organisations.reduce((acc: organisationType[], org) => {
-                        if (org.tenantId === tenantId && Object.keys(clientSettings).length > 0) {
-                            // modify some parameters to conform with client settings
-                            org.tenantName = clientSettings.organizationName ? clientSettings.organizationName : org.tenantName;
-                            org.witness = (clientSettings.requireWitness !== undefined) ? clientSettings.requireWitness : org.witness;
-                            org.selfGuarantee = (clientSettings.allowSelfGuarantee !== undefined) ? clientSettings.allowSelfGuarantee : org.selfGuarantee;
-                            org.amounts = (clientSettings.isGuaranteedAmountShared !== undefined) ?  !clientSettings.isGuaranteedAmountShared : org.amounts;
-                            org.guarantors = (clientSettings.isGuaranteedAmountShared !== undefined) ? clientSettings.isGuaranteedAmountShared ? 'count' : 'value' : org.guarantors;
-                            org.containsAttachments = (clientSettings.containsAttachments !== undefined) ? clientSettings.containsAttachments : org.containsAttachments;
-                            org.loanProductMaxPeriod = clientSettings.loanProductMaxPeriod ? clientSettings.loanProductMaxPeriod : org.loanProductMaxPeriod;
-                            org.parallelLoans = (clientSettings.parallelLoans !== undefined) ? clientSettings.parallelLoans : org.parallelLoans;
-                            org.logo = (clientSettings.organizationLogoName && clientSettings.organizationLogoExtension) ? `https://eguarantorship-api.presta.co.ke/api/v1/resources/download/static?fileName=${clientSettings.organizationLogoName}&extension=${clientSettings.organizationLogoExtension}` : null;
-                            org.organizationPrimaryTheme = clientSettings.organizationPrimaryTheme ? clientSettings.organizationPrimaryTheme : org.organizationPrimaryTheme;
-                            org.organizationSecondaryTheme = clientSettings.organizationSecondaryTheme ? clientSettings.organizationSecondaryTheme : org.organizationSecondaryTheme;
-                            acc.push(org);
-                        } else {
-                            acc.push(org);
-                        }
-                        return acc;
-                    }, []);
-                    resolve(<any>replaceOrganisations)
-                },
-                // failure callback which sends two things Transaction object and Error
-                (txObj: SQLTransaction, error: SQLError): any => {
-                    console.log("client settings writing error", error.message);
-                    reject(error)
-                }
-            )
-        })
+                    [
+                        ussdShortCode,
+                        organizationName,
+                        requireWitness,
+                        allowZeroGuarantors,
+                        allowSelfGuarantee,
+                        isGuaranteedAmountShared,
+                        useEmbeddedURL,
+                        containsAttachments,
+                        organizationAlias,
+                        organizationEmail,
+                        supportEmail,
+                        organizationPrimaryTheme,
+                        organizationSecondaryTheme,
+                        organizationLogoName,
+                        organizationLogoExtension,
+                        coreBankingIntegration,
+                        loanProductMaxPeriod,
+                        customSMS,
+                        notificationProvider,
+                        identifierType,
+                        parallelLoans,
+                        details
+                    ],
+                    // success callback which sends two things Transaction object and ResultSet Object
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        const { auth } = getState() as {auth: storeState};
+                        const { organisations } = auth;
+                        const replaceOrganisations: organisationType[]  = organisations.reduce((acc: organisationType[], org) => {
+                            if (org.tenantId === tenantId && Object.keys(clientSettings).length > 0) {
+                                // modify some parameters to conform with client settings
+                                org.tenantName = clientSettings.organizationName ? clientSettings.organizationName : org.tenantName;
+                                org.witness = (clientSettings.requireWitness !== undefined) ? clientSettings.requireWitness : org.witness;
+                                org.selfGuarantee = (clientSettings.allowSelfGuarantee !== undefined) ? clientSettings.allowSelfGuarantee : org.selfGuarantee;
+                                org.amounts = (clientSettings.isGuaranteedAmountShared !== undefined) ?  !clientSettings.isGuaranteedAmountShared : org.amounts;
+                                org.guarantors = (clientSettings.isGuaranteedAmountShared !== undefined) ? clientSettings.isGuaranteedAmountShared ? 'count' : 'value' : org.guarantors;
+                                org.containsAttachments = (clientSettings.containsAttachments !== undefined) ? clientSettings.containsAttachments : org.containsAttachments;
+                                org.loanProductMaxPeriod = clientSettings.loanProductMaxPeriod ? clientSettings.loanProductMaxPeriod : org.loanProductMaxPeriod;
+                                org.parallelLoans = (clientSettings.parallelLoans !== undefined) ? clientSettings.parallelLoans : org.parallelLoans;
+                                org.logo = (clientSettings.organizationLogoName && clientSettings.organizationLogoExtension) ? `https://eguarantorship-api.presta.co.ke/api/v1/resources/download/static?fileName=${clientSettings.organizationLogoName}&extension=${clientSettings.organizationLogoExtension}` : null;
+                                org.organizationPrimaryTheme = clientSettings.organizationPrimaryTheme ? clientSettings.organizationPrimaryTheme : org.organizationPrimaryTheme;
+                                org.organizationSecondaryTheme = clientSettings.organizationSecondaryTheme ? clientSettings.organizationSecondaryTheme : org.organizationSecondaryTheme;
+                                acc.push(org);
+                            } else {
+                                acc.push(org);
+                            }
+                            return acc;
+                        }, []);
+                        resolve(<any>replaceOrganisations)
+                    },
+                    // failure callback which sends two things Transaction object and Error
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log("client settings writing error", error.message);
+                        reject(error)
+                    }
+                )
+            })
+        } catch (e: any) {
+            reject(e)
+        }
     })
 });
 

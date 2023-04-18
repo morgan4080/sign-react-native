@@ -25,6 +25,7 @@ import OnboardingItem from '../../components/OnboardingItem';
 import slides from '../../onboardingslides';
 import Paginator from '../../components/Paginator';
 import TouchableButton from '../../components/TouchableButton';
+import {getContact} from "../../utils/smsVerification";
 
 
 
@@ -96,7 +97,6 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
                         })
                     }
                 } catch (e: any) {
-                    if (e.instanceOf)
                     showSnack(e.message, "ERROR", "", false)
                 }
             })()
@@ -134,7 +134,7 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
     if (fontsLoaded && !loading) {
         return (
             <SafeAreaView style={styles.container}>
-                <View style={{height: "85%"}}>
+                <View style={{height: "80%"}}>
                     <FlatList
                         data={slides}
                         renderItem={({ item }) => <OnboardingItem item={item}/>}
@@ -154,22 +154,14 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
                     <Paginator data={slides} scrollX={scrollX}/>
                 </View>
 
-                {/* <TouchableButton label={'Get started'} loading={loading} onPress={() => navigation.navigate('SetTenant', {
+                 <TouchableButton label={'Get started'} loading={loading} onPress={() => navigation.navigate('SetTenant', {
                         code: "254",
                         numericCode: "404",
                         alpha2Code: "KE",
                         flag: "https://flagcdn.com/28x21/ke.png"
                     })} 
-                /> */}
-                <TouchableButton label={'Get started'} loading={loading} onPress={() =>{
-                    console.log(NativeModules.ContactsPicker);
-                    NativeModules.ContactsPicker.pickContact({}).then((response: any) => {
-                        console.log(response);
-                    }).catch((e: any) => {
-                        console.log(JSON.stringify(e));
-                    });
-                }}
                 />
+
                 <StatusBar style='auto'/>
             </SafeAreaView>
         )

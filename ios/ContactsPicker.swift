@@ -90,6 +90,11 @@ class ContactsPicker: NSObject, ContactPickerDelegateDelegate {
     ]
   }
   
+  @objc
+  static func requiresMainQueueSetup() -> Bool {
+    return true
+  }
+  
   func getTopViewController(window: UIWindow?) -> UIViewController? {
     if let window = window {
       var top = window.rootViewController
@@ -312,10 +317,6 @@ class ContactsPicker: NSObject, ContactPickerDelegateDelegate {
       } as [[String: Any]]
     
     return data
-  }
-  
-  static func requiresMainQueueSetup() -> Bool {
-    return true
   }
 
 }

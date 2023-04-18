@@ -32,7 +32,7 @@ export type RootStackParamList = {
   WitnessesHome: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanConfirmation: NavigatorScreenParams<RootTabParamList> | undefined;
   LoanRequest: NavigatorScreenParams<RootTabParamList> | undefined;
-  Login: NavigatorScreenParams<RootTabParamList> | { countryCode?: string; phoneNumber?: string; email?: string } | undefined;
+  Login: { countryCode?: string; phoneNumber?: string; email?: string } | undefined;
   ShowTenants: NavigatorScreenParams<RootTabParamList> | undefined;
   GetTenants: NavigatorScreenParams<RootTabParamList> | undefined;
   Countries: { previous: string; } | undefined;

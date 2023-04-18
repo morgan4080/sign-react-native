@@ -275,17 +275,17 @@ const OrganisationSelected = ({tenantId, parentProps}: {tenantId: string | undef
             }
 
             if (phone !== "") {
-                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("phoneNumber", `?memberIdentifier=${phone}&identifierType=PHONE_NUMBER&force=false`))
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("phoneNumber", `?memberIdentifier=${phone}&identifierType=PHONE_NUMBER&force=true`))
                 return
             }
 
             if (email !== "") {
-                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("email", `?memberIdentifier=${email}&identifierType=EMAIL&force=false`))
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("email", `?memberIdentifier=${email}&identifierType=EMAIL&force=true`))
                 return
             }
 
             if (id !== "") {
-                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("idNumber", `?memberIdentifier=${id}&identifierType=ID_NUMBER&force=false`))
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("idNumber", `?memberIdentifier=${id}&identifierType=ID_NUMBER&force=true`))
                 return
             }
         } catch (e: any) {

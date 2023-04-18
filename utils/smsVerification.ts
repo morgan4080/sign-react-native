@@ -1,12 +1,13 @@
 import { CountryCode, parsePhoneNumber } from 'libphonenumber-js';
 import { Platform } from 'react-native';
-import {NativeModules, NativeEventEmitter, EmitterSubscription} from 'react-native';
+import {NativeModules, EmitterSubscription} from 'react-native';
 
 type AndroidSmsVerificationApiType = {
     multiply(a: number, b: number): Promise<number>;
     requestPhoneNumber(requestCode?: number): Promise<string>;
     requestPhoneNumberFormat(alpha2Code?: string, phone_number?: string): Promise<string>;
     getContact(requestCode?: number, alpha2Code?: string): Promise<string>;
+    pickContact({}): Promise<string>;
     startSmsRetriever(): Promise<boolean>;
 
     // remove after implementation
@@ -22,18 +23,10 @@ type AndroidSmsVerificationApiType = {
 
 type Callback = (error: Error | null, message: string | null) => any;
 
-const EmitterMessages = {
-    SMS_RECEIVED: 'SMS_RECEIVED',
-    SMS_ERROR: 'SMS_ERROR',
-};
-
 let cb: Callback | null = null;
 
 const AndroidSmsVerificationApi: AndroidSmsVerificationApiType = NativeModules.AndroidSmsVerificationApi;
-// NativeModules.AndroidSmsVerificationApi
-// const eventEmitter = new NativeEventEmitter(NativeModules.AndroidSmsVerificationApi);
-
-const subscriptions:  EmitterSubscription[] = [];
+const IOSSmsVerificationApi: AndroidSmsVerificationApiType = NativeModules.ContactsPicker;
 
 const onMessageSuccess = (message: string) => {
     if (typeof cb === 'function') {
@@ -45,17 +38,6 @@ const onMessageError = (error: string) => {
     if (typeof cb === 'function') {
         cb(Error(error), null);
     }
-};
-
-const startListeners = () => {
-    // check if event exists, add listener if it doesn't
-    // eventEmitter.addListener(EmitterMessages.SMS_RECEIVED, onMessageSuccess);
-    // eventEmitter.addListener(EmitterMessages.SMS_ERROR, onMessageError);
-};
-
-export const removeAllListeners = () => {
-    // eventEmitter.removeAllListeners(EmitterMessages.SMS_RECEIVED);
-    // eventEmitter.removeAllListeners(EmitterMessages.SMS_ERROR);
 };
 
 export const requestPhoneNumber = (requestCode?: number) => {
@@ -79,18 +61,40 @@ export const requestPhoneNumberFormat = (alpha2Code: string = 'KE', phone_number
 
 export const getContact = (requestCode?: number, alpha2Code?: string) => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
-        return AndroidSmsVerificationApi.getContact(requestCode || 421, alpha2Code || 'KE');
-    } else {
-        return null
+        return new Promise((resolve, reject) => {
+            AndroidSmsVerificationApi.getContact(requestCode || 421, alpha2Code || 'KE').then((response: any) => {
+                resolve(response)
+            }).catch((error) => {
+                reject(error)
+            })
+        })
     }
+
+    if (Platform.OS === 'ios') {
+        return new Promise((resolve, reject) => {
+            IOSSmsVerificationApi.pickContact({}).then((result: any) => {
+                const {countryCallingCode, nationalNumber} = parsePhoneNumber(
+                    `${result.phoneNumbers[0].digits}`,
+                    (alpha2Code ? alpha2Code : result.phoneNumbers[0].countryCode.toUpperCase()) as CountryCode
+                )
+
+                resolve({
+                    name: result.fullName,
+                    country_code: countryCallingCode,
+                    phone_no: nationalNumber
+                })
+            }).catch((error: any) => {
+                reject(error)
+            })
+        })
+    }
+
+    return Promise.reject('Unknown Platform')
 };
 
 export const receiveVerificationSMS = (callback: Callback) => {
     cb = callback;
-    startListeners();
 };
-
-// remove after getting app signature
 
 export const getAppSignatures = () => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
@@ -117,8 +121,4 @@ export const startSmsUserConsent = (
     } else {
         return Promise.resolve(null)
     }
-    /*return AndroidSmsVerificationApi.startSmsUserConsent(
-        senderPhoneNumber || null,
-        userConsentRequestCode || 69
-    );*/
 };

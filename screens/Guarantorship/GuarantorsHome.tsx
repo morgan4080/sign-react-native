@@ -535,8 +535,10 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     return (
         <GestureHandlerRootView style={styles.container}>
             <View style={styles.searchableHeader}>
-                <TouchableOpacity style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} onPress={handleSubmit(submitEdit)}>
-                    <AntDesign name="search1" size={22} color="rgba(0,0,0,0.89)" />
+                {/*onPress={handleSubmit(submitEdit)}*/}
+                <TouchableOpacity style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} >
+                    <Text allowFontScaling={}>Options</Text>
+                    <AntDesign name="down" size={22} color="rgba(0,0,0,0.89)" />
                 </TouchableOpacity>
                 <View style={{flex: 0.6, display: 'flex', alignItems: 'center'}}>
                     <TextField label={"mobile/member no."} field={"searchTerm"} val={getValues} watch={watch} control={control} error={errors.searchTerm} required={true} />
@@ -545,13 +547,11 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     setSearching(true);
                     getSecureKey("alpha2Code")
                     .then(alpha2Code => getContact(421, alpha2Code))
-                    .then((data) => {
-                        if (data) {
-                            const dataObject = JSON.parse(data);
-                            set_phonebook_contact_name(`${dataObject.name ? dataObject.name : "" }`);
-                            setValue('searchTerm', `${dataObject.country_code}${dataObject.phone_no}`);
-                            return searchMemberByPhone(`${dataObject.country_code}${dataObject.phone_no}`);
-                        }
+                    .then((data: any) => {
+                        const dataObject: {name: string;country_code:string;phone_no:string;} = data;
+                        set_phonebook_contact_name(`${dataObject.name ? dataObject.name : "" }`);
+                        setValue('searchTerm', `${dataObject.country_code}${dataObject.phone_no}`);
+                        return searchMemberByPhone(`${dataObject.country_code}${dataObject.phone_no}`);
                     })
                     .then(addContactToList)
                     .catch(e => {
@@ -612,7 +612,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 onPress={onPress}
                 setEmployerDetailsEnabled={setEmployerDetailsEnabled}
             />
-            <View style={{ position: 'absolute', bottom: 0, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+            <View style={{ position: 'absolute', bottom: 20, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                 <TouchableOpacity disabled={ isDisabled() || loading } onPress={navigateUser} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                     <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
                 </TouchableOpacity>
@@ -868,10 +868,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginTop: 10,
         marginBottom: 25,
-        borderRadius: 50,
         paddingHorizontal: 5,
         marginHorizontal: 16,
-        backgroundColor: '#EFF3F4',
     },
     header: {
         fontSize: 15,

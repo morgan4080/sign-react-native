@@ -3,7 +3,6 @@ import {useEffect, useState} from "react";
 import {debounce} from 'lodash';
 import {
     Dimensions,
-    NativeModules,
     View,
     StyleSheet,
     StatusBar,
@@ -25,7 +24,7 @@ import {RotateView} from "../Auth/VerifyOTP";
 import {AntDesign} from "@expo/vector-icons";
 import CountrySectionList from "../../components/CountrySectionList";
 import {Controller, useForm} from "react-hook-form";
-const { CountriesModule } = NativeModules;
+import {getCountries} from "../../utils/useCountries";
 
 type NavigationProps = NativeStackScreenProps<any>;
 
@@ -45,9 +44,9 @@ const Countries = ({ navigation, route }: NavigationProps) => {
 
     useEffect(() => {
         (async () => {
-            let countriesJson = await CountriesModule.getCountries();
+            let countriesJson: any = await getCountries();
             if (countriesJson) {
-                let countries: {name: string, code: string, numericCode: string, alpha2Code: string}[] = JSON.parse(countriesJson);
+                let countries: {name: string, code: string, numericCode: string, alpha2Code: string}[] = countriesJson;
                 const countries_data: {name: string, code: string, numericCode: string, alpha2Code: string, flag: any}[] = countries.reduce((acc: {name: string, code: string, numericCode: string, alpha2Code: string, flag: any}[], country: {name: string, code: string, numericCode: string, alpha2Code: string}) => {
                     acc.push({
                         ...country,
@@ -63,9 +62,7 @@ const Countries = ({ navigation, route }: NavigationProps) => {
         })()
     }, [])
 
-    const [searching, setSearching] = useState<boolean>(false)
-
-    StatusBar.setBackgroundColor('#FFFFFF', true);
+    const [searching, setSearching] = useState<boolean>(false);
 
     const handleSearch = (event: string) => {
         const debouncedSave = debounce(async () =>{
@@ -85,10 +82,10 @@ const Countries = ({ navigation, route }: NavigationProps) => {
                     }
                 ]);
             } else {
-                let countriesJson = await CountriesModule.getCountries();
+                let countriesJson: any = await getCountries();
                 if (countriesJson) {
-                    let countries: {name: string, code: string, numericCode: string, alpha2Code: string}[] = JSON.parse(countriesJson);
-                    const countries_data: {name: string, code: string, numericCode: string, alpha2Code: string, flag: any}[] = countries.reduce((acc: {name: string, code: string, numericCode: string, alpha2Code: string, flag: any}[], country: {name: string, code: string, numericCode: string, alpha2Code: string}) => {
+                    let countries: {name: string; code: string; numericCode: string; alpha2Code: string;}[] = countriesJson;
+                    const countries_data: {name: string; code: string; numericCode: string; alpha2Code: string; flag: any;}[] = countries.reduce((acc: {name: string, code: string, numericCode: string, alpha2Code: string, flag: any}[], country: {name: string, code: string, numericCode: string, alpha2Code: string}) => {
                         acc.push({
                             ...country,
                             flag: `https://flagcdn.com/28x21/${country.alpha2Code.toLowerCase()}.png`

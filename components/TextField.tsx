@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import {Controller, FieldError, FieldValues} from "react-hook-form";
 import {useFonts,Poppins_500Medium, Poppins_300Light} from "@expo-google-fonts/poppins";
-import {useFonts as useRale, Raleway_600SemiBold} from "@expo-google-fonts/raleway";
+import {useFonts as useRale, Raleway_600SemiBold, Raleway_500Medium} from "@expo-google-fonts/raleway";
 import React, {useEffect, useRef, useState} from "react";
 import {Control, UseFormWatch} from "react-hook-form/dist/types/form";
 import GenericModal from "./GenericModal";
@@ -114,7 +114,8 @@ const TextField = <T extends object>(
     })
 
     useRale({
-        Raleway_600SemiBold
+        Raleway_600SemiBold,
+        Raleway_500Medium
     })
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -204,7 +205,7 @@ const TextField = <T extends object>(
 
             { (localOptions) ?
 
-                <GenericModal modalVisible={modalVisible} setModalVisible={setModalVisible} title={`Set ${label}`} description={""} cb={(option) => {
+                <GenericModal modalVisible={modalVisible} setModalVisible={setModalVisible} title={`Set ${label}`} description={"Select option below"} cb={(option) => {
                     console.log("Callback running", option);
 
                     if (option && setVal && option?.context === 'option' && option?.option) {
@@ -238,8 +239,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#0082A0',
         fontFamily: 'Raleway_600SemiBold',
-        lineHeight: 16,
-        // textTransform: "capitalize"
+        lineHeight: 16
     },
 
     touchable: {
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
         letterSpacing: 0.4,
         fontSize: 14,
         color: '#000000',
-        lineHeight: 16,
+        lineHeight: 18,
         paddingTop: 14,
         fontFamily: 'Poppins_500Medium'
     },

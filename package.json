@@ -29,7 +29,7 @@
     "@reduxjs/toolkit": "^1.8.1",
     "@types/debounce": "^1.2.1",
     "debounce": "^1.2.1",
-    "expo": "~48.0.9",
+    "expo": "~48.0.11",
     "expo-asset": "~8.9.1",
     "expo-checkbox": "~2.3.1",
     "expo-contacts": "~12.0.1",

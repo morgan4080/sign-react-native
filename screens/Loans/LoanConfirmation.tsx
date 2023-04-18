@@ -1,6 +1,6 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {useAppDispatch, useClientSettings, useLoading, useMember} from "../../stores/hooks";
-import {useForm} from "react-hook-form";
+import {FieldError, useForm} from "react-hook-form";
 import React, {useEffect, useMemo, useState} from "react";
 import {
     Poppins_300Light,
@@ -506,25 +506,27 @@ const LoanConfirmation = ({navigation, route}: NavigationProps) => {
                                         if (key === 'disbursement_mode') {
                                             return (
                                                 <TextField key={i} field={key} label={genLabel(key)} val={getValues} watch={watch}
-                                                           control={control} error={errors[`${key}`]} required={true} options={disbursement_modes} setVal={setValue} />
+                                                           control={control} error={errors[`${key}`]as FieldError} required={true} options={disbursement_modes} setVal={setValue} />
                                             )
                                         }
                                         if (key === 'repayment_mode') {
                                             return (
                                                 <TextField key={i} field={key} label={genLabel(key)} val={getValues} watch={watch}
-                                                           control={control} error={errors[`${key}`]} required={true} options={repayment_modes} setVal={setValue} />
+                                                           control={control} error={errors[`${key}`]as FieldError} required={true} options={repayment_modes} setVal={setValue} />
                                             )
                                         }
                                         return (
                                             <TextField key={i} field={key} label={genLabel(key)} val={getValues} watch={watch}
-                                                       control={control} error={errors[`${key}`]} required={true}/>
+                                                       control={control} error={errors[`${key}`] as FieldError} required={true}/>
                                         )
                                     }
                                 )}
                                 <TouchableButton loading={loading} label={"Submit Loan Request"} onPress={handleSubmit(onSubmit)} />
-                                <GenericModal modalVisible={modalVisible} setModalVisible={setModalVisible} title={"Pending Reason"} description={pendingReason} lrErrors={LRErrors} cb={(option) => {
-                                    navigation.navigate("UserProfile")
-                                }}/>
+                                <View style={{position: 'absolute', bottom: -10}}>
+                                    <GenericModal modalVisible={modalVisible} setModalVisible={setModalVisible} title={"Pending Reason"} description={pendingReason} lrErrors={LRErrors} cb={(option) => {
+                                        navigation.navigate("UserProfile")
+                                    }}/>
+                                </View>
                             </View>
                         )
                     }

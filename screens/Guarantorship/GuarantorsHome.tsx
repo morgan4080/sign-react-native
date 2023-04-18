@@ -32,6 +32,7 @@ import {
     useSettings, useUser
 } from "../../stores/hooks";
 import {Poppins_300Light, Poppins_400Regular, useFonts} from "@expo-google-fonts/poppins";
+import GenericModal from "../../components/GenericModal";
 type searchedMemberType = { contact_id: string; memberNumber: string; memberRefId: string; name: string; phone: string }
 type FormData = {
     searchTerm: string;
@@ -108,8 +109,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         dispatch(LoadOrganisation())
             .catch((error) => showSnack(error.message, "ERROR"))
     }, []);
-
-    console.log(JSON.stringify(clientSettings));
 
     useFonts([
         Poppins_300Light,
@@ -532,18 +531,77 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         }
     }
 
+    const [modalVisible, setModalVisible] = useState(false);
+    const [guarantorSearchOptions, setGuarantorSearchOptions] = useState([
+        {
+            name: 'By ID No',
+            value: 'ID_NO',
+            selected: false
+        },
+        {
+            name: 'By Member No',
+            value: 'MEMBER_NO',
+            selected: false
+        },
+        {
+            name: 'By Phone No',
+            value: 'PHONE_NO',
+            selected: false
+        },
+        {
+            name: 'Self Guarantee',
+            value: 'SELF_GUARANTEE',
+            selected: false
+        }
+    ]);
+
+    const [searchLabel, setSearchLabel] = useState("Search Guarantor");
+
+    const genLabel = (key: string) => {
+        if (key === 'ID_NUMBER') {
+            const splitter = key.split("_");
+            return "Search " + splitter[0].toUpperCase() + " " + splitter[1];
+        }
+        if (key === 'SELF_GUARANTEE') {
+            const splitter = key.split("_");
+            return splitter[0].toUpperCase() + " " + splitter[1];
+        }
+        return "Search " + key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")
+    }
+
     return (
         <GestureHandlerRootView style={styles.container}>
             <View style={styles.searchableHeader}>
                 {/*onPress={handleSubmit(submitEdit)}*/}
-                <TouchableOpacity style={{flex: 0.1,display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}} >
-                    <Text allowFontScaling={}>Options</Text>
-                    <AntDesign name="down" size={22} color="rgba(0,0,0,0.89)" />
+                <TouchableOpacity style={{
+                    flex: 0.15,
+                    display: 'flex',
+                    backgroundColor: 'rgba(72,154,171,0.25)',
+                    borderRadius: 12,
+                    borderColor: 'rgba(0,0,0,0.09)',
+                    borderWidth: 1,
+                    height: '100%',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }} onPress={() => setModalVisible(true)} >
+                    <AntDesign name="downcircleo" size={20} color="#489AAB" style={{paddingRight: 2}} />
                 </TouchableOpacity>
-                <View style={{flex: 0.6, display: 'flex', alignItems: 'center'}}>
-                    <TextField label={"mobile/member no."} field={"searchTerm"} val={getValues} watch={watch} control={control} error={errors.searchTerm} required={true} />
+                <View style={{flex: 0.64, display: 'flex', alignItems: 'center' }}>
+                    <TextField label={searchLabel} field={"searchTerm"} val={getValues} watch={watch} control={control} error={errors.searchTerm} required={true} />
                 </View>
-                <TouchableOpacity style={{ flex: 0.3, display: "flex", flexDirection: "row", justifyContent: 'space-around', alignItems: 'center' }} onPress={() => {
+                <TouchableOpacity style={{
+                    flex: 0.15,
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: 'space-around',
+                    alignItems: 'center',
+                    backgroundColor: 'rgba(72,154,171,0.25)',
+                    borderColor: 'rgba(0,0,0,0.09)',
+                    borderWidth: 1,
+                    borderRadius: 12,
+                    height: '100%'
+                }} onPress={() => {
                     setSearching(true);
                     getSecureKey("alpha2Code")
                     .then(alpha2Code => getContact(421, alpha2Code))
@@ -560,9 +618,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                         setSearching(false);
                     });
                 }}>
-                    <Text allowFontScaling={false} style={{ flex: 0.8, fontFamily: 'Poppins_400Regular', letterSpacing: 0.6, fontSize: 10, color: '#000000', textTransform: "capitalize"}}>{ phonebook_contact_name !== "" ? phonebook_contact_name : 'Phone Book' }</Text>
-
-                    <AntDesign name="contacts" size={22} color="rgba(0,0,0,0.89)" style={{ flex: 0.3 }} />
+                    <AntDesign name="contacts" size={22} color="rgba(0,0,0,0.89)" />
                 </TouchableOpacity>
             </View>
             <ContactSectionList
@@ -582,15 +638,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                             ]
                         } else {
                             acc = [
-                                {
-                                    id: 1,
-                                    title: 'OPTIONS',
-                                    data: [
-                                        {
-                                            name: ''
-                                        }
-                                    ]
-                                },
                                 {
                                     id: 2,
                                     title:`SELECTED GUARANTORS (REQUIRES ${route.params?.loanProduct.requiredGuarantors} ${route.params?.loanProduct.requiredGuarantors == 1 ? 'GUARANTOR' : 'GUARANTORS'})`,
@@ -853,6 +900,30 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     </BottomSheetScrollView>
                 }
             </BottomSheet>
+            <View style={{position: 'absolute', bottom: -10}}>
+                <GenericModal modalVisible={modalVisible} setModalVisible={setModalVisible} title={"Options"} description={"Select guarantor option"} cb={(option) => {
+
+                    if (option && option?.context === 'option' && option?.option) {
+                        // setVal(field, option?.option.value);
+                        const label = genLabel(option?.option.value);
+                        setSearchLabel(label);
+                        const index = guarantorSearchOptions?.findIndex(op => op.value.toLowerCase() === option?.option?.value.toLowerCase())
+                        setGuarantorSearchOptions(guarantorSearchOptions?.map((op, i) => {
+                            if (index === i) {
+                                return {
+                                    ...op,
+                                    selected: true
+                                }
+                            } else {
+                                return {
+                                    ...op,
+                                    selected: false
+                                }
+                            }
+                        }))
+                    }
+                }} options={guarantorSearchOptions} />
+            </View>
         </GestureHandlerRootView>
     );
 };
@@ -868,7 +939,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginTop: 10,
         marginBottom: 25,
-        paddingHorizontal: 5,
         marginHorizontal: 16,
     },
     header: {

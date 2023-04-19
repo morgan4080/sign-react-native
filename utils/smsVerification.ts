@@ -96,11 +96,21 @@ export const receiveVerificationSMS = (callback: Callback) => {
     cb = callback;
 };
 
+function generateRandomString(length: number) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
 export const getAppSignatures = () => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
         return AndroidSmsVerificationApi.getAppSignatures();
     } else {
-        return Promise.resolve(null);
+        return Promise.resolve([generateRandomString(10)]);
     }
 };
 

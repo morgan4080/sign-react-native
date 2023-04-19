@@ -2,13 +2,12 @@ import {
     Text,
     View,
     StyleSheet,
-    TouchableOpacity,
     ScrollView,
     TextInput,
     Dimensions,
     SafeAreaView,
     Alert,
-    TouchableHighlight, Image
+    TouchableHighlight,
 } from 'react-native';
 import Animated, {
     interpolate,
@@ -38,8 +37,7 @@ import {
     organisationType,
     logoutUser
 } from "../../stores/auth/authSlice";
-import { loginUserType } from "../../stores/auth/authSlice";
-import {FontAwesome5, Ionicons} from "@expo/vector-icons";
+import {FontAwesome5} from "@expo/vector-icons";
 import {getSecureKey, saveSecureKey} from "../../utils/secureStore";
 import {RotateView} from "./VerifyOTP";
 import {showSnack} from "../../utils/immediateUpdate";
@@ -281,7 +279,7 @@ export default function Login({ navigation, route }: RootStackScreenProps<"Login
                 let fP = await getSecureKey('fingerPrint');
                 fP = JSON.parse(fP);
                 if (currentTenant && tenant && fP) {
-                    const payload: loginUserType = {
+                    const payload: { phoneNumber: string; pin: string; tenant: string; clientSecret: string; } = {
                         phoneNumber: fP.phoneNumber,
                         pin: fP.pin,
                         tenant: tenant.tenantId,
@@ -394,8 +392,8 @@ export default function Login({ navigation, route }: RootStackScreenProps<"Login
 
     const doLogin = async (currentTenant: {tenantName: string, tenantId: string, clientSecret: string}, pin: string) => {
         if (currentTenant && tenant) {
-            const payload: loginUserType = {
-                phoneNumber: parseInt(tenant.ussdPhoneNumber),
+            const payload: { phoneNumber: string; pin: string; tenant: string; clientSecret: string; } = {
+                phoneNumber: tenant.ussdPhoneNumber,
                 pin,
                 tenant: tenant.tenantId,
                 clientSecret: currentTenant.clientSecret,

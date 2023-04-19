@@ -3,10 +3,7 @@ import {
     Dimensions,
     View,
     StyleSheet,
-    TextInput,
     Text,
-    StatusBar,
-    Pressable,
 } from "react-native";
 import {
     Poppins_300Light,
@@ -18,25 +15,21 @@ import {
     useFonts
 } from "@expo-google-fonts/poppins";
 import {RotateView} from "./VerifyOTP";
-import {useSelector} from "react-redux";
 import {
     authClient,
     createPin,
     hasPinCheck,
     loginUser,
-    loginUserType,
     searchByEmail,
     searchByPhone,
     setAuthState,
-    storeState
 } from "../../stores/auth/authSlice";
-import {Controller, useForm} from "react-hook-form";
+import {useForm} from "react-hook-form";
 import {useEffect, useState} from "react";
-import {store} from "../../stores/store";
 import {saveSecureKey} from "../../utils/secureStore";
 import {showSnack} from "../../utils/immediateUpdate";
 import Container from "../../components/Container";
-import {useAppDispatch} from "../../stores/hooks";
+import {useAppDispatch, useLoading, useSelectedTenant} from "../../stores/hooks";
 import TextField from "../../components/TextField";
 import TouchableButton from "../../components/TouchableButton";
 
@@ -52,11 +45,10 @@ type FormData = {
 }
 
 const SetPin = ({ navigation, route }: NavigationProps) => {
-    const [userFound, setUserFound] = useState<boolean>(false)
-    const [errorSMS, setErrorSMS] = useState<string | null>(null)
-    const [pinStatus, setPinStatus] = useState<string>("")
-    const [authRes, setAuthRes] = useState<any>(null)
-    const [searchRes, setSearchRes] = useState<any>(null)
+    const [userFound, setUserFound] = useState<boolean>(false);
+    const [errorSMS, setErrorSMS] = useState<string | null>(null);
+    const [pinStatus, setPinStatus] = useState<string>("");
+    const [searchRes, setSearchRes] = useState<any>(null);
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -69,15 +61,14 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
     const {
         control,
         handleSubmit,
-        clearErrors,
-        setError,
         setValue,
         getValues,
         watch,
         formState: { errors }
-    } = useForm<FormData>({})
+    } = useForm<FormData>({});
 
-    const { loading, selectedTenant } = useSelector((state: { auth: storeState }) => state.auth);
+    const [loading] = useLoading()
+    const [selectedTenant] = useSelectedTenant()
 
     let {phoneNumber, email, realm, client_secret, isTermsAccepted}: any = route.params;
 
@@ -168,7 +159,6 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
         dispatch(authClient({realm, client_secret}))
         .then(({type, meta, payload}) => {
             if (type === 'authClient/fulfilled') {
-                setAuthRes(payload);
                 const { access_token } = payload as Record<any, any>;
                 return startMemberVerification(access_token)
             } else {
@@ -183,7 +173,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
         }
     }, []);
 
-    const logUserIn = async (loadOut: loginUserType) => {
+    const logUserIn = async (loadOut: { phoneNumber: string; pin: string; tenant: string; clientSecret: string; }) => {
         return dispatch(loginUser(loadOut))
         .then(response => {
             const {type, meta, payload}: Pick<typeof response, "type" | "meta" | "payload"> = response;
@@ -219,7 +209,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
                     return saveSecureKey('currentTenant', JSON.stringify(selectedTenant))
                 }
             }).then(() => {
-                const loadOut: loginUserType = {
+                const loadOut: { phoneNumber: string; pin: string; tenant: string; clientSecret: string; } = {
                     phoneNumber: searchRes.phoneNumber,
                     pin: getValues("pinConfirmation"),
                     tenant: realm,
@@ -236,7 +226,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
 
     const loginSubmit = () => {
         saveSecureKey('currentTenant', JSON.stringify(selectedTenant)).then(() => {
-            const loadOut: loginUserType = {
+            const loadOut: { phoneNumber: string; pin: string; tenant: string; clientSecret: string; } = {
                 phoneNumber: searchRes.phoneNumber,
                 pin: getValues("pin"),
                 tenant: realm,
@@ -253,10 +243,7 @@ const SetPin = ({ navigation, route }: NavigationProps) => {
     return (
         <Container>
             {
-                loading ?
-                    <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height, width }}>
-                        <RotateView/>
-                    </View> : (fontsLoaded && userFound) ? (isTermsAccepted && pinStatus === 'SET') ?
+                (fontsLoaded && userFound) ? (isTermsAccepted && pinStatus === 'SET') ?
                             <View>
                                 <Text allowFontScaling={false} style={styles.description}>
                                     Enter your 4 digit pin code to login.

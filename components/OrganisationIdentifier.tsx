@@ -61,12 +61,12 @@ const OrganisationIdentifier = ({ navigation, route }: RootStackScreenProps<"Set
 
                     <Text 
                         allowFontScaling={false}
-                        style={[styles.input, {color: selectedTenant && selectedTenant.tenantName ? "#000000" : "#0082A0"}]} 
+                        style={[styles.input, {color: selectedTenant && selectedTenant.tenantName ? "#393a34" : "#0082A0"}]}
                     >
                         { selectedTenant && selectedTenant.tenantName ? selectedTenant.tenantName : "SELECT ORGANISATION" }
                     </Text>
 
-                    <AntDesign style={{position: "absolute", right: 10}} name="right" size={20} color="#8d8d8d" />
+                    <AntDesign style={{position: "absolute", right: 10}} name="right" size={20} color="#393a34" />
                 </View>
             </TouchableOpacity>
             <OrganisationSelected tenantId={selectedTenant?.tenantId} parentProps={{navigation, route}} />

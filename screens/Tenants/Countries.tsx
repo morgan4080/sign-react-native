@@ -222,12 +222,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: 15,
-        shadowColor: 'rgba(0,0,0,0.7)', // IOS
-        shadowOffset: { height: 1, width: 1 }, // IOS
-        shadowOpacity: 1, // IOS
-        shadowRadius: 1, // IOS
-        elevation: 5, // Android
+        padding: 15
     },
     item: {
         display: 'flex',

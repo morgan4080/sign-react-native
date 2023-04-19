@@ -192,8 +192,7 @@ const ReplaceActor = ({ navigation, route }: NavigationProps) => {
         if (reactToSearch && searching) {
             getSecureKey("alpha2Code")
                 .then(alpha2Code => getContact(421, alpha2Code))
-                .then(data => Promise.resolve(JSON.parse(data)))
-                .then((data) => {
+                .then((data: any) => {
                     set_phonebook_contact_name(`${data.name ? data.name : "" }`);
                     setValue('searchTerm', `${data.country_code}${data.phone_no}`);
                     return searchMemberByPhone(`${data.country_code}${data.phone_no}`);

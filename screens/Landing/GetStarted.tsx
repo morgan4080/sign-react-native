@@ -3,38 +3,29 @@ import {
     Dimensions,
     FlatList,
     Animated,
-    StatusBar as Bar,
     SafeAreaView,
     StyleSheet,
-    NativeModules
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Poppins_900Black, Poppins_800ExtraBold,Poppins_700Bold, Poppins_600SemiBold, Poppins_500Medium, Poppins_400Regular, Poppins_300Light} from '@expo-google-fonts/poppins';
 import {useEffect} from "react";
-import {store} from "../../stores/store";
 import {getTenants, initializeDB} from "../../stores/auth/authSlice"
-import {useDispatch, useSelector} from "react-redux";
-import {storeState} from "../../stores/auth/authSlice";
 import {RotateView} from "../Auth/VerifyOTP";
 import {checkToStartUpdate, showSnack} from "../../utils/immediateUpdate";
 import {getSecureKey,} from "../../utils/secureStore";
 import {RootStackScreenProps} from "../../types";
-import { useState, useRef } from 'react';
-
+import {useRef} from 'react';
 import OnboardingItem from '../../components/OnboardingItem';
 import slides from '../../onboardingslides';
 import Paginator from '../../components/Paginator';
 import TouchableButton from '../../components/TouchableButton';
-import {getContact} from "../../utils/smsVerification";
-
-
-
+import {useAppDispatch, useAppInitialized, useLoading} from "../../stores/hooks";
 const { width, height } = Dimensions.get("window");
 
 export default function GetStarted({ navigation }: RootStackScreenProps<"GetStarted">) {
-    const { appInitialized, loading } = useSelector((state: { auth: storeState }) => state.auth);
-    type AppDispatch = typeof store.dispatch;
-    const dispatch : AppDispatch = useDispatch();
+    const [loading] = useLoading();
+    const [appInitialized] = useAppInitialized();
+    const dispatch = useAppDispatch();
     let [fontsLoaded] = useFonts({
         Poppins_900Black,
         Poppins_500Medium,
@@ -51,9 +42,6 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
             (async () => {
                 try {
                     checkToStartUpdate();
-                    /*showSnack("Hey testing", "SUCCESS", "Retry", () => {
-                        console.log("testing callback")
-                    });*/
                 } catch (e: any) {
                     showSnack(e.message, "ERROR", "", false)
                 }
@@ -119,18 +107,9 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
             initializing = false;
             // subscription.remove();
         };
-    }, [appInitialized])
-
-    const [currentIndex, setCurrentIndex] = useState(0);
+    }, [appInitialized]);
     const scrollX = useRef(new Animated.Value(0)).current;
-    const slidesRef = useRef(null)
-
-
-    const viewableItemsChanged = useRef(({ viewableItems }: {viewableItems: any}) => {
-        setCurrentIndex(viewableItems[0].index);
-    }).current;
-
-
+    const slidesRef = useRef(null);
     if (fontsLoaded && !loading) {
         return (
             <SafeAreaView style={styles.container}>
@@ -147,7 +126,6 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
                             useNativeDriver: false
                         })}
                         scrollEventThrottle={32}
-                        onViewableItemsChanged={viewableItemsChanged}
                         ref={slidesRef}
                     />
 

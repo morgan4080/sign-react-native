@@ -36,8 +36,8 @@ import WitnessStatus from "../screens/Guarantorship/WitnessStatus";
 import SignStatus from "../screens/Guarantorship/SignStatus";
 import SelectTenant from "../screens/Auth/SelectTenant";
 import SetPin from "../screens/Auth/SetPin";
-import {useDispatch, useSelector} from "react-redux";
-import {logoutUser, storeState} from "../stores/auth/authSlice";
+import {useDispatch} from "react-redux";
+import {logoutUser} from "../stores/auth/authSlice";
 import ReplaceActor from "../screens/Guarantorship/ReplaceActor";
 import SetTenant from "../screens/Onboarding/SetTenant";
 import OnboardingOTP from "../screens/Onboarding/OnboardingOTP";
@@ -281,7 +281,26 @@ const AuthNavigation = ({dispatch}: { dispatch: AppDispatch }) => {
                     headerShadowVisible: false
                 })
             }} />
-            <Stack.Screen name="LoanRequest" component={LoanRequest} options={{ headerShown: false }} />
+            <Stack.Screen name="LoanRequest" component={LoanRequest} options={({ navigation, route }) => {
+                return ({
+                    title: 'Sign Document',
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#FFFFFF'
+                    },
+                    headerTintColor: '#489AAB',
+                    headerTitleStyle: {
+                        fontFamily: 'Poppins_600SemiBold',
+                        fontSize: 18
+                    },
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingHorizontal: 3, marginRight: 16, borderRadius: 15, backgroundColor: "rgba(72,154,171,0.25)"}}>
+                            <Ionicons name="chevron-back-sharp" size={30} color="#489AAB" />
+                        </TouchableOpacity>
+                    ),
+                    headerShadowVisible: false
+                })
+            }} />
             <Stack.Screen name="SignStatus" component={SignStatus} options={{ headerShown: false }} />
             <Stack.Screen name="GuarantorshipRequests" component={GuarantorshipRequests} options={({ navigation, route }) => {
                 return ({
@@ -420,7 +439,10 @@ function BottomTabNavigator() {
     <BottomTab.Navigator
       initialRouteName="UserProfile"
       detachInactiveScreens={true}
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={(props) => {
+          console.log(JSON.stringify(props))
+          return <CustomTabBar {...props} />
+      }}
     >
         <BottomTab.Screen
             name="UserProfile"

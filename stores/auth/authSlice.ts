@@ -6,7 +6,6 @@ import {SQLError, SQLResultSet, SQLTransaction, WebSQLDatabase} from "expo-sqlit
 import {getAppSignatures} from "../../utils/smsVerification";
 import isSerializable from "../../utils/isSerializable"
 import {dismissSnack, showSnack} from "../../utils/immediateUpdate";
-import {FetchResult} from "react-native"
 export let db: WebSQLDatabase;
 
 (async () => {
@@ -1020,7 +1019,7 @@ export const createPin = createAsyncThunk('createPin', (
 })
 
 export const loginUser = createAsyncThunk('loginUser', async (
-    { phoneNumber, pin, tenant, clientSecret }: { phoneNumber: string; pin: string; tenant: string; clientSecret: string;},
+    { phoneNumber, pin, tenant, clientSecret }: { phoneNumber: string; pin: string; tenant: string; clientSecret: string; },
     {dispatch}
 ) => {
     const details: any = {
@@ -1508,12 +1507,12 @@ export const verifyOtpBeforeToken = createAsyncThunk('verifyOtpBeforeToken', asy
     }
 })
 
-export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memberNo: string | undefined, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
+export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memberNo: string | undefined, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token');
 
         if (!key) {
-            return rejectWithValue('You are not authenticated');
+            return Promise.reject('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -1528,8 +1527,7 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
 
         if (response.status === 200) {
             const data = await response.json();
-            console.log(data)
-            return fulfillWithValue(data);
+            return Promise.resolve(data);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -1554,14 +1552,14 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
             } else {
                 dispatch({type: 'setAuthState', payload: false})
 
-                return rejectWithValue(response.status);
+                return Promise.reject(response.status);
             }
         } else {
-            return rejectWithValue(`is not a member.`);
+            return Promise.reject(`is not a member.`);
         }
 
     } catch (e: any) {
-        return rejectWithValue(e.message);
+        return Promise.reject(e.message);
     }
 })
 
@@ -1957,11 +1955,11 @@ export const fetchFavouriteGuarantors = createAsyncThunk('fetchFavouriteGuaranto
     }
 });
 
-export const validateNumber = createAsyncThunk('validateNumber', async (phone: string, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
+export const validateNumber = createAsyncThunk('validateNumber', async (phone: string, {dispatch, getState}) => {
     try {
         const key = await getSecureKey('access_token')
         if (!key) {
-            return rejectWithValue("You are not authenticated")
+            return Promise.reject("You are not authenticated")
         }
         const result = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/search/by-phone?phoneNumber=${phone}`,{
             method: 'GET',
@@ -1972,7 +1970,7 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
         });
         if (result.status === 200) {
             const data = await result.json();
-            return fulfillWithValue(data);
+            return Promise.resolve(data);
         } else if (result.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -1981,7 +1979,7 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
                     getSecureKey('refresh_token'),
                     getSecureKey('currentTenant')
                 ])
-                /*const refreshTokenPayload: refreshTokenPayloadType = {
+                const refreshTokenPayload: refreshTokenPayloadType = {
                     client_id: 'direct-access',
                     grant_type: 'refresh_token',
                     refresh_token,
@@ -1995,17 +1993,17 @@ export const validateNumber = createAsyncThunk('validateNumber', async (phone: s
 
                 const rf = await dispatch(refreshAccessToken(refreshTokenPayload))
 
-                return Promise.resolve(rf)*/
+                return Promise.resolve(rf)
             } else {
                 dispatch({type: 'setAuthState', payload: false})
 
-                return rejectWithValue(result.status);
+                return Promise.reject(result.status);
             }
         } else {
-            return rejectWithValue(`is not a member of this organisation`);
+            return Promise.reject(`is not a member of this organisation`);
         }
     } catch (e: any) {
-        return rejectWithValue(e.message);
+        return Promise.reject(e.message);
     }
 })
 

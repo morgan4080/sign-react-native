@@ -14,13 +14,13 @@ import {
 } from "react-native";
 type NavigationProps = NativeStackScreenProps<any>;
 import {useForm} from "react-hook-form";
-import {AntDesign, MaterialIcons} from "@expo/vector-icons";
+import {AntDesign} from "@expo/vector-icons";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {getContact, requestPhoneNumberFormat} from "../../utils/smsVerification";
 import {getSecureKey} from "../../utils/secureStore";
 import {cloneDeep} from "lodash";
 import ContactSectionList from "../../components/ContactSectionList";
-import BottomSheet, { BottomSheetScrollView, BottomSheetBackdrop, BottomSheetFlatList  } from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetScrollView, BottomSheetBackdrop  } from "@gorhom/bottom-sheet";
 import {toMoney} from "../User/Account";
 import {showSnack} from "../../utils/immediateUpdate";
 import TextField from "../../components/TextField";
@@ -29,10 +29,11 @@ import {
     useAppDispatch, useClientSettings,
     useLoading,
     useMember,
-    useSettings, useUser
+    useSettings,
 } from "../../stores/hooks";
 import {Poppins_300Light, Poppins_400Regular, useFonts} from "@expo-google-fonts/poppins";
 import GenericModal from "../../components/GenericModal";
+import {reset} from "react-native-svg/lib/typescript/lib/Matrix2D";
 type searchedMemberType = { contact_id: string; memberNumber: string; memberRefId: string; name: string; phone: string }
 type FormData = {
     searchTerm: string;
@@ -59,44 +60,6 @@ type businessPayloadType = {
     kraPin: string | undefined;
 };
 const { width } = Dimensions.get("window");
-
-const Item = ({ item, onPress, backgroundColor, textColor }: any) => (
-    <TouchableOpacity onPress={onPress} style={[styles.option, backgroundColor]}>
-        <MaterialIcons name={item.icon} size={24} style={[textColor]} />
-        <Text allowFontScaling={false} style={[styles.optionName, textColor]}>{item.name}</Text>
-    </TouchableOpacity>
-);
-
-const RenderItem = ({ item, context, member, setValue, route, searchMemberByMemberNo, addContactToList, handleClosePress, setEmployerDetailsEnabled, setContext }: any) => {
-    const backgroundColor = item.context === context? "#489AAB" : "#FFFFFF";
-    const color = item.context === context ? 'white' : '#767577';
-
-    return (
-        <Item
-            item={item}
-            onPress={() => {
-                if (item.context === 'self-guarantee') {
-                    // submit self as guarantor
-                    if (member && member.memberNumber) {
-                        setValue("amountToGuarantee", route.params?.loanDetails.desiredAmount);
-                        searchMemberByMemberNo(member.memberNumber)
-                            .then(addContactToList)
-                            .catch((e: any) => {
-                                showSnack(e.message, "WARNING");
-                            });
-                    } else {
-                        handleClosePress();
-                    }
-                    return
-                }
-                setEmployerDetailsEnabled(false);
-                setContext(item.context);
-            }}
-            backgroundColor={{ backgroundColor }}
-            textColor={{ color }}
-        />
-    );
-};
 
 const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const [member] = useMember();
@@ -126,15 +89,11 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         formState: { errors }
     } = useForm<FormData>();
 
-    const [searching, setSearching] = useState<boolean>(false);
-
     const [context, setContext] = useState<string>("");
 
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
 
     const [allGuaranteedAmounts, setAllGuaranteedAmounts] = useState<string[]>([]);
-
-    const [employerDetailsEnabled, setEmployerDetailsEnabled] = useState(false);
 
     const [heldMember, setHeldMember] = useState<searchedMemberType | null>(null);
 
@@ -227,6 +186,8 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
                     handleSnapPress(1);
 
+                    return Promise.resolve();
+
                 } else if (settings && settings.guarantors === 'count' && member) {
                     // calculate amount to guarantee
                     const theAmount = (selectedContacts.length <= 4) ? route.params?.loanDetails.desiredAmount/requiredGuarantors() : route.params?.loanDetails.desiredAmount/selectedContacts.length;
@@ -243,19 +204,18 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
                     setSelectedContacts(newDeserializedCopy);
 
-                    setValue('searchTerm', '');
-
                     handleClosePress();
+
+                    return Promise.resolve()
                 }
             } else {
-                setValue('searchTerm', '');
-                showSnack("Duplicate Entry", "WARNING");
                 handleClosePress();
+                return Promise.reject("Duplicate Entry");
             }
+        } else {
+            return Promise.reject("Member not provided")
         }
     }
-
-    const [phonebook_contact_name, set_phonebook_contact_name] = useState("");
 
     const un_guaranteed = () => {
         return `${route.params?.loanDetails.desiredAmount - calculateGuarantorship(route.params?.loanDetails.desiredAmount)}`;
@@ -344,71 +304,76 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         []
     );
 
-    const [guarantorshipOptions, setGuarantorshipOptions] = useState<any[]>([]);
-
-    useEffect(() => {
-        let change = true;
-        if (change) {
-            if (clientSettings && clientSettings.allowSelfGuarantee) {
-                setGuarantorshipOptions([{
-                    id: "1",
-                    name: "Self Guarantee",
-                    context: "self-guarantee",
-                    icon: "self-improvement"
-                }]);
-            }
-        }
-        return () => {
-            change = false;
-        }
-    }, [clientSettings])
-
-    /*const toggleEmployerDetailsEnabled = () => setEmployerDetailsEnabled((previousState: boolean) => {
-        if (!previousState) {
-            handleSnapPress(2);
-        } else {
-            setContext('options');
-            handleClosePress();
-        }
-        return !previousState
-    });*/
-
     const [tab, setTab] = useState<number>(0);
 
     const submitEdit = () => {
-        const [phoneRegex, memberNoRegex] = [
-            /^([\d{1,2}[]?|)\d{3}[]?\d{3}[]?\d{4}$/i,
-            /^(?=.*[0-9a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{3,8}$/i
-        ];
-        if (memberNoRegex.test(getValues("searchTerm"))) {
-            searchMemberByMemberNo(getValues("searchTerm"))
-                .then(addContactToList)
-                .catch(e => {
-                    showSnack(e.message, "WARNING");
-                });
-        } else if (phoneRegex.test(getValues("searchTerm"))) {
-            getSecureKey("alpha2Code")
-                .then(alpha2Code => requestPhoneNumberFormat(alpha2Code, getValues("searchTerm")))
-                .then((jsonDat) => Promise.resolve(JSON.parse(jsonDat)))
-                .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
-                .then(addContactToList)
-                .catch(e => {
-                    showSnack(e.message, "WARNING");
-                })
-        } else {
-            showSnack("Incorrect Format", "WARNING");
+        if (getValues("searchTerm") && getValues("searchTerm") !== "") {
+            if (searchScheme) {
+                if (searchScheme === 'MEMBER_NO') {
+                    searchMemberByMemberNo(getValues("searchTerm").toUpperCase())
+                        .then(addContactToList)
+                        .catch(e => {
+                            showSnack(e.message, "WARNING");
+                        }).finally(() => {
+
+                    });
+                } else if (searchScheme === 'PHONE_NO') {
+                    getSecureKey("alpha2Code")
+                        .then(alpha2Code => requestPhoneNumberFormat(alpha2Code, getValues("searchTerm")))
+                        .then((jsonDat) => Promise.resolve(JSON.parse(jsonDat)))
+                        .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
+                        .then(addContactToList)
+                        .catch(e => {
+                            showSnack(e.message, "WARNING");
+                        }).finally(() => {
+
+                    });
+                } else {
+                    showSnack("Unsupported Search Scheme", "WARNING");
+                }
+            } else {
+                const [phoneRegex, memberNoRegex] = [
+                    /^([\d{1,2}[]?|)\d{3}[]?\d{3}[]?\d{4}$/i,
+                    /^(?=.*[0-9a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{3,8}$/i
+                ];
+                if (memberNoRegex.test(getValues("searchTerm"))) {
+                    searchMemberByMemberNo(getValues("searchTerm"))
+                        .then(addContactToList)
+                        .catch(e => {
+                            showSnack(e.message, "WARNING");
+                        }).finally(() => {
+
+                    });
+                } else if (phoneRegex.test(getValues("searchTerm"))) {
+                    getSecureKey("alpha2Code")
+                        .then(alpha2Code => requestPhoneNumberFormat(alpha2Code, getValues("searchTerm")))
+                        .then((jsonDat) => Promise.resolve(JSON.parse(jsonDat)))
+                        .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
+                        .then(addContactToList)
+                        .catch(e => {
+                            showSnack(e.message, "WARNING");
+                        }).finally(() => {
+
+                    });
+                } else {
+                    showSnack("Incorrect Format", "WARNING");
+                }
+            }
         }
     }
 
     const submitAmount = () => {
-        let amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
-        amountsToG.push(getValues("amountToGuarantee"));
-        setAllGuaranteedAmounts(amountsToG);
-        setValue("amountToGuarantee", "");
-        handleClosePress();
-        const newDeserializedCopy: any[] = cloneDeep(selectedContacts);
-        newDeserializedCopy.push({...heldMember, amountToGuarantee: getValues("amountToGuarantee")});
-        setSelectedContacts(newDeserializedCopy);
+        if (getValues("amountToGuarantee") === "0") {
+            return
+        } else {
+            let amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
+            amountsToG.push(getValues("amountToGuarantee"));
+            setAllGuaranteedAmounts(amountsToG);
+            handleClosePress();
+            const newDeserializedCopy: any[] = cloneDeep(selectedContacts);
+            newDeserializedCopy.push({...heldMember, amountToGuarantee: getValues("amountToGuarantee")});
+            setSelectedContacts(newDeserializedCopy);
+        }
     }
 
     const submitKYC = () => {
@@ -443,8 +408,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 netSalary: getValues("netSalary"),
                 kraPin: getValues("kraPin")
             };
-
-            console.log('employed', payloadCode);
             setEmployerPayload(payloadCode);
             handleClosePress();
         } else if (tab === 1) {
@@ -468,8 +431,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 kraPin: getValues("kraPin")
             };
 
-            console.log('business', payloadCode);
-
             setBusinessPayload(payloadCode);
 
             handleClosePress();
@@ -486,7 +447,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         ) {
             if (settings) {
                 if (settings.employerInfo  && !(employerPayload || businessPayload)) {
-                    setEmployerDetailsEnabled(true);
                     onPress("employment");
                     return;
                 }
@@ -534,11 +494,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [guarantorSearchOptions, setGuarantorSearchOptions] = useState([
         {
-            name: 'By ID No',
-            value: 'ID_NO',
-            selected: false
-        },
-        {
             name: 'By Member No',
             value: 'MEMBER_NO',
             selected: false
@@ -547,32 +502,55 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             name: 'By Phone No',
             value: 'PHONE_NO',
             selected: false
-        },
-        {
-            name: 'Self Guarantee',
-            value: 'SELF_GUARANTEE',
-            selected: false
         }
     ]);
 
-    const [searchLabel, setSearchLabel] = useState("Search Guarantor");
+    useEffect(() => {
+        let change = true;
+        if (change) {
+            if (clientSettings && clientSettings.allowSelfGuarantee) {
+                setGuarantorSearchOptions([
+                    {
+                        name: 'By Member No',
+                        value: 'MEMBER_NO',
+                        selected: false
+                    },
+                    {
+                        name: 'By Phone No',
+                        value: 'PHONE_NO',
+                        selected: false
+                    },
+                    {
+                        name: 'Self Guarantee',
+                        value: 'SELF_GUARANTEE',
+                        selected: false
+                    }
+                ]);
+            }
+        }
+        return () => {
+            change = false;
+        }
+    }, [clientSettings])
 
+    const [searchLabel, setSearchLabel] = useState("Search from Phonebook →");
+
+    const [searchScheme, setSearchScheme] = useState<string | null>(null);
     const genLabel = (key: string) => {
         if (key === 'ID_NUMBER') {
             const splitter = key.split("_");
-            return "Search " + splitter[0].toUpperCase() + " " + splitter[1];
+            return "Search " + splitter[0].toUpperCase() + " " + splitter[1].toLowerCase();
         }
         if (key === 'SELF_GUARANTEE') {
             const splitter = key.split("_");
-            return splitter[0].toUpperCase() + " " + splitter[1];
+            return splitter[0].toLowerCase() + " " + splitter[1].toLowerCase();
         }
-        return "Search " + key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")
+        return "Search " + key.charAt(0).toLowerCase() + key.slice(1).replace("_", " ").toLowerCase()
     }
 
     return (
         <GestureHandlerRootView style={styles.container}>
             <View style={styles.searchableHeader}>
-                {/*onPress={handleSubmit(submitEdit)}*/}
                 <TouchableOpacity style={{
                     flex: 0.15,
                     display: 'flex',
@@ -585,10 +563,19 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     alignItems: 'center',
                     justifyContent: 'center'
                 }} onPress={() => setModalVisible(true)} >
-                    <AntDesign name="downcircleo" size={20} color="#489AAB" style={{paddingRight: 2}} />
+                    <AntDesign name={ modalVisible? "upcircleo" : "downcircleo"} size={20} color="#393a34" style={{paddingRight: 2}} />
                 </TouchableOpacity>
-                <View style={{flex: 0.64, display: 'flex', alignItems: 'center' }}>
-                    <TextField label={searchLabel} field={"searchTerm"} val={getValues} watch={watch} control={control} error={errors.searchTerm} required={true} />
+                <View style={{flex: 0.64}}>
+                    <TextField
+                        label={searchLabel}
+                        field={"searchTerm"}
+                        val={getValues}
+                        watch={watch}
+                        control={control}
+                        error={errors.searchTerm}
+                        required={true}
+                        cb={handleSubmit(submitEdit)}
+                    />
                 </View>
                 <TouchableOpacity style={{
                     flex: 0.15,
@@ -602,12 +589,10 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     borderRadius: 12,
                     height: '100%'
                 }} onPress={() => {
-                    setSearching(true);
                     getSecureKey("alpha2Code")
                     .then(alpha2Code => getContact(421, alpha2Code))
                     .then((data: any) => {
                         const dataObject: {name: string;country_code:string;phone_no:string;} = data;
-                        set_phonebook_contact_name(`${dataObject.name ? dataObject.name : "" }`);
                         setValue('searchTerm', `${dataObject.country_code}${dataObject.phone_no}`);
                         return searchMemberByPhone(`${dataObject.country_code}${dataObject.phone_no}`);
                     })
@@ -615,55 +600,44 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     .catch(e => {
                         showSnack(e.message, "WARNING");
                     }).finally(() => {
-                        setSearching(false);
+
                     });
                 }}>
-                    <AntDesign name="contacts" size={22} color="rgba(0,0,0,0.89)" />
+                    <AntDesign name="contacts" size={22} color="#393a34" />
                 </TouchableOpacity>
             </View>
             <ContactSectionList
                 contactsData={
-                    [0].reduce((acc: {id: number; title: string; data: any[]}[], curr) => {
-                        if (guarantorshipOptions.length === 0) {
-                            acc = [
+                    [
+                        {
+                            id: 2,
+                            title:`SELECTED GUARANTORS (REQUIRES ${route.params?.loanProduct.requiredGuarantors} ${route.params?.loanProduct.requiredGuarantors == 1 ? 'GUARANTOR' : 'GUARANTORS'})`,
+                            data: selectedContacts.length > 0 ? selectedContacts : [
                                 {
-                                    id: 2,
-                                    title:`SELECTED GUARANTORS (REQUIRES ${route.params?.loanProduct.requiredGuarantors} ${route.params?.loanProduct.requiredGuarantors == 1 ? 'GUARANTOR' : 'GUARANTORS'})`,
-                                    data: selectedContacts.length > 0 ? selectedContacts : [
-                                        {
-                                            name: false
-                                        }
-                                    ]
-                                }
-                            ]
-                        } else {
-                            acc = [
-                                {
-                                    id: 2,
-                                    title:`SELECTED GUARANTORS (REQUIRES ${route.params?.loanProduct.requiredGuarantors} ${route.params?.loanProduct.requiredGuarantors == 1 ? 'GUARANTOR' : 'GUARANTORS'})`,
-                                    data: selectedContacts.length > 0 ? selectedContacts : [
-                                        {
-                                            name: false
-                                        }
-                                    ]
+                                    name: false
                                 }
                             ]
                         }
-                        return acc
-                    }, [])
+                    ]
                 }
-                searching={searching}
-                addContactToList={addContactToList}
                 removeContactFromList={removeContactFromList}
                 contactList={selectedContacts}
                 onPress={onPress}
-                setEmployerDetailsEnabled={setEmployerDetailsEnabled}
             />
-            <View style={{ position: 'absolute', bottom: 20, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                <TouchableOpacity disabled={ isDisabled() || loading } onPress={navigateUser} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
-                    <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
-                </TouchableOpacity>
-            </View>
+
+            {isDisabled() ?
+                <View style={{ position: 'absolute', bottom: 5, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                    <TouchableOpacity disabled={ !isDisabled() || loading || !searchScheme } onPress={handleSubmit(submitEdit)} style={{ display: 'flex', alignItems: 'center', backgroundColor: !isDisabled() || loading || !searchScheme ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                        <Text allowFontScaling={false} style={styles.buttonText}>SEARCH</Text>
+                    </TouchableOpacity>
+                </View>
+                :
+                <View style={{ position: 'absolute', bottom: 5, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                    <TouchableOpacity disabled={ isDisabled() || loading } onPress={navigateUser} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                        <Text allowFontScaling={false} style={styles.buttonText}>CONTINUE</Text>
+                    </TouchableOpacity>
+                </View>
+            }
             <BottomSheet
                 ref={sheetRef}
                 index={-1}
@@ -672,148 +646,179 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 backdropComponent={renderBackdrop}
             >
                 <TouchableOpacity style={{ position: 'absolute', top: -25, right: 12, backgroundColor: '#767577', borderRadius: 15 }} onPress={() => {
-                    setEmployerDetailsEnabled(false);
                     onPress('options');
                 }}>
                     <AntDesign name="close" size={15} style={{padding: 2}} color="#FFFFFF" />
                 </TouchableOpacity>
-                {context === "options" ?
-                    <BottomSheetFlatList
-                        data={guarantorshipOptions}
-                        keyExtractor={item => item.id}
-                        renderItem={({i, item}: any) => (
-                            <RenderItem
-                                item={item}
-                                context={context}
-                                member={member}
-                                setValue={setValue}
-                                route={route}
-                                searchMemberByMemberNo={searchMemberByMemberNo}
-                                addContactToList={addContactToList}
-                                handleClosePress={handleClosePress}
-                                setEmployerDetailsEnabled={setEmployerDetailsEnabled}
-                                setContext={setContext}
-                            />
-                        )}
-                        ListEmptyComponent={() => (
-                            <View style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 50}}>
-                                <Text allowFontScaling={false} style={{fontFamily: 'Poppins_300Light', fontSize: 12, marginRight: 10, color: '#737373', textAlign: 'center', width: '66%'}}>
-                                    Options unavailable. Use the search bar on top to add a guarantor/ witness.
+                <BottomSheetScrollView contentContainerStyle={{backgroundColor: "white", paddingHorizontal: 16}}>
+                    {
+                        context === "amount" &&
+                        <>
+                            <View style={{paddingHorizontal: 5}}>
+                                <Text allowFontScaling={false} style={styles.subtitle}>Guarantor: {currentGuarantor?.name}</Text>
+                                <Text allowFontScaling={false} style={styles.subtitle2}>
+                                    Remaining Amount:
+                                    <Text style={{textDecorationLine: 'underline'}}>{toMoney(un_guaranteed())}</Text>
                                 </Text>
                             </View>
-                        )}
-                    />
-                    :
-                    <BottomSheetScrollView contentContainerStyle={{backgroundColor: "white", paddingHorizontal: 16}}>
-                        {
-                            context === "amount" &&
-                            <>
-                                <View style={{paddingHorizontal: 5}}>
-                                    <Text allowFontScaling={false} style={styles.subtitle}>Guarantor: {currentGuarantor?.name}</Text>
-                                    <Text allowFontScaling={false} style={styles.subtitle2}>
-                                        Remaining Amount:
-                                        <Text style={{textDecorationLine: 'underline'}}>{toMoney(un_guaranteed())}</Text>
-                                    </Text>
-                                </View>
 
-                                <TextField
-                                    label={"Amount to guarantee"}
-                                    field={"amountToGuarantee"}
-                                    val={getValues}
-                                    watch={watch}
-                                    control={control}
-                                    error={errors.amountToGuarantee}
-                                    required={true}
-                                    keyboardType={"number-pad"}
-                                />
+                            <TextField
+                                label={"Amount to guarantee"}
+                                field={"amountToGuarantee"}
+                                val={getValues}
+                                watch={watch}
+                                control={control}
+                                error={errors.amountToGuarantee}
+                                required={true}
+                                keyboardType={"number-pad"}
+                            />
 
-                                <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(submitAmount)} />
-                            </>
-                        }
-                        { context === "employment" &&
-                            <>
-                                <View style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', width: width-50, paddingBottom: 15 }}>
-                                    <TouchableOpacity onPress={() => {
-                                        setTab(0)
-                                    }} style={{ display: 'flex', borderBottomWidth: tab === 0 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
-                                        <Text allowFontScaling={false} style={[{color: tab === 0 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Employed</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => {
-                                        setTab(1)
-                                    }} style={{ display: 'flex', borderBottomWidth: tab === 1 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
-                                        <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
-                                    </TouchableOpacity>
-                                </View>
-                                {   tab === 0 ?
+                            <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(submitAmount)} />
+                        </>
+                    }
+                    { context === "employment" &&
+                        <>
+                            <View style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', width: width-50, paddingBottom: 15 }}>
+                                <TouchableOpacity onPress={() => {
+                                    setTab(0)
+                                }} style={{ display: 'flex', borderBottomWidth: tab === 0 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
+                                    <Text allowFontScaling={false} style={[{color: tab === 0 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Employed</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {
+                                    setTab(1)
+                                }} style={{ display: 'flex', borderBottomWidth: tab === 1 ? 2 : 0, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'flex-start', width: (width-50) / 2, borderColor: '#489AAB' }}>
+                                    <Text allowFontScaling={false} style={[{color: tab === 1 ? '#489AAB' : '#c6c6c6'}, styles.tabTitle]}>Business/ Self Employed</Text>
+                                </TouchableOpacity>
+                            </View>
+                            {   tab === 0 ?
+                                <>
+                                    <TextField
+                                        field={"employerName"}
+                                        label={"Employer"}
+                                        val={getValues}
+                                        watch={watch}
+                                        control={control}
+                                        error={errors.employerName}
+                                        required={true}
+                                        rules={{
+                                            required: {
+                                                value: true,
+                                                message: "Employer Name is required"
+                                            }
+                                        }}
+                                        keyboardType={"default"}
+                                        secureTextEntry={false}
+                                    />
+                                    <TextField
+                                        field={"serviceNo"}
+                                        label={"Employment Number"}
+                                        val={getValues}
+                                        watch={watch}
+                                        control={control}
+                                        error={errors.serviceNo}
+                                        required={true}
+                                        rules={{
+                                            required: {
+                                                value: true,
+                                                message: "Employer service no. required"
+                                            }
+                                        }}
+                                        keyboardType={"default"}
+                                        secureTextEntry={false}
+                                    />
+                                    <TextField
+                                        field={"grossSalary"}
+                                        label={"Gross Salary"}
+                                        val={getValues}
+                                        watch={watch}
+                                        control={control}
+                                        error={errors.grossSalary}
+                                        required={true}
+                                        rules={{
+                                            required: {
+                                                value: true,
+                                                message: "Gross salary required"
+                                            }
+                                        }}
+                                        keyboardType={"numeric"}
+                                        secureTextEntry={false}
+                                    />
+                                    <TextField
+                                        field={"netSalary"}
+                                        label={"Net Salary"}
+                                        val={getValues}
+                                        watch={watch}
+                                        control={control}
+                                        error={errors.netSalary}
+                                        required={true}
+                                        rules={{
+                                            required: {
+                                                value: true,
+                                                message: "Net salary required"
+                                            }
+                                        }}
+                                        keyboardType={"numeric"}
+                                        secureTextEntry={false}
+                                    />
+                                    <TextField
+                                        field={"kraPin"}
+                                        label={"KRA Pin"}
+                                        val={getValues}
+                                        watch={watch}
+                                        control={control}
+                                        error={errors.kraPin}
+                                        required={true}
+                                        rules={{
+                                            required: {
+                                                value: true,
+                                                message: "KRA pin required"
+                                            }
+                                        }}
+                                        keyboardType={"default"}
+                                        secureTextEntry={false}
+                                    />
+                                </> : null
+                            }
+
+                            {
+                                tab === 1 ?
                                     <>
                                         <TextField
-                                            field={"employerName"}
-                                            label={"Employer"}
+                                            field={"businessLocation"}
+                                            label={"Business Location"}
                                             val={getValues}
                                             watch={watch}
                                             control={control}
-                                            error={errors.employerName}
+                                            error={errors.businessLocation}
                                             required={true}
                                             rules={{
                                                 required: {
                                                     value: true,
-                                                    message: "Employer Name is required"
+                                                    message: "Business location required"
                                                 }
                                             }}
                                             keyboardType={"default"}
                                             secureTextEntry={false}
                                         />
+
                                         <TextField
-                                            field={"serviceNo"}
-                                            label={"Employment Number"}
+                                            field={"businessType"}
+                                            label={"Business Type"}
                                             val={getValues}
                                             watch={watch}
                                             control={control}
-                                            error={errors.serviceNo}
+                                            error={errors.businessType}
                                             required={true}
                                             rules={{
                                                 required: {
                                                     value: true,
-                                                    message: "Employer service no. required"
+                                                    message: "Business type required"
                                                 }
                                             }}
                                             keyboardType={"default"}
                                             secureTextEntry={false}
                                         />
-                                        <TextField
-                                            field={"grossSalary"}
-                                            label={"Gross Salary"}
-                                            val={getValues}
-                                            watch={watch}
-                                            control={control}
-                                            error={errors.grossSalary}
-                                            required={true}
-                                            rules={{
-                                                required: {
-                                                    value: true,
-                                                    message: "Gross salary required"
-                                                }
-                                            }}
-                                            keyboardType={"numeric"}
-                                            secureTextEntry={false}
-                                        />
-                                        <TextField
-                                            field={"netSalary"}
-                                            label={"Net Salary"}
-                                            val={getValues}
-                                            watch={watch}
-                                            control={control}
-                                            error={errors.netSalary}
-                                            required={true}
-                                            rules={{
-                                                required: {
-                                                    value: true,
-                                                    message: "Net salary required"
-                                                }
-                                            }}
-                                            keyboardType={"numeric"}
-                                            secureTextEntry={false}
-                                        />
+
                                         <TextField
                                             field={"kraPin"}
                                             label={"KRA Pin"}
@@ -831,96 +836,41 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                                             keyboardType={"default"}
                                             secureTextEntry={false}
                                         />
+
                                     </> : null
-                                }
+                            }
 
-                                {
-                                    tab === 1 ?
-                                        <>
-                                            <TextField
-                                                field={"businessLocation"}
-                                                label={"Business Location"}
-                                                val={getValues}
-                                                watch={watch}
-                                                control={control}
-                                                error={errors.businessLocation}
-                                                required={true}
-                                                rules={{
-                                                    required: {
-                                                        value: true,
-                                                        message: "Business location required"
-                                                    }
-                                                }}
-                                                keyboardType={"default"}
-                                                secureTextEntry={false}
-                                            />
-
-                                            <TextField
-                                                field={"businessType"}
-                                                label={"Business Type"}
-                                                val={getValues}
-                                                watch={watch}
-                                                control={control}
-                                                error={errors.businessType}
-                                                required={true}
-                                                rules={{
-                                                    required: {
-                                                        value: true,
-                                                        message: "Business type required"
-                                                    }
-                                                }}
-                                                keyboardType={"default"}
-                                                secureTextEntry={false}
-                                            />
-
-                                            <TextField
-                                                field={"kraPin"}
-                                                label={"KRA Pin"}
-                                                val={getValues}
-                                                watch={watch}
-                                                control={control}
-                                                error={errors.kraPin}
-                                                required={true}
-                                                rules={{
-                                                    required: {
-                                                        value: true,
-                                                        message: "KRA pin required"
-                                                    }
-                                                }}
-                                                keyboardType={"default"}
-                                                secureTextEntry={false}
-                                            />
-
-                                        </> : null
-                                }
-
-                                <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(submitKYC)} />
-                            </>
-                        }
-                    </BottomSheetScrollView>
-                }
+                            <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(submitKYC)} />
+                        </>
+                    }
+                </BottomSheetScrollView>
             </BottomSheet>
             <View style={{position: 'absolute', bottom: -10}}>
                 <GenericModal modalVisible={modalVisible} setModalVisible={setModalVisible} title={"Options"} description={"Select guarantor option"} cb={(option) => {
-
-                    if (option && option?.context === 'option' && option?.option) {
-                        // setVal(field, option?.option.value);
-                        const label = genLabel(option?.option.value);
-                        setSearchLabel(label);
-                        const index = guarantorSearchOptions?.findIndex(op => op.value.toLowerCase() === option?.option?.value.toLowerCase())
-                        setGuarantorSearchOptions(guarantorSearchOptions?.map((op, i) => {
-                            if (index === i) {
-                                return {
-                                    ...op,
-                                    selected: true
+                    console.log(option?.context)
+                    if (option?.context === 'dismiss') {
+                        setSearchScheme(null);
+                        setSearchLabel("Search Phonebook");
+                    } else {
+                        if (option && option?.context === 'option' && option?.option) {
+                            setSearchScheme(option?.option.value);
+                            const label = genLabel(option?.option.value);
+                            setSearchLabel(label);
+                            const index = guarantorSearchOptions?.findIndex(op => op.value.toLowerCase() === option?.option?.value.toLowerCase())
+                            setGuarantorSearchOptions(guarantorSearchOptions?.map((op, i) => {
+                                if (index === i) {
+                                    return {
+                                        ...op,
+                                        selected: true
+                                    }
+                                } else {
+                                    return {
+                                        ...op,
+                                        selected: false
+                                    }
                                 }
-                            } else {
-                                return {
-                                    ...op,
-                                    selected: false
-                                }
-                            }
-                        }))
+                            }))
+                        }
                     }
                 }} options={guarantorSearchOptions} />
             </View>

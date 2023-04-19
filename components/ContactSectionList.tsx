@@ -1,31 +1,22 @@
-import {SectionList, StyleSheet, Text, View, TouchableOpacity, NativeModules, Dimensions} from 'react-native';
-import {AntDesign, Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {SectionList, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
+import {AntDesign, Ionicons} from "@expo/vector-icons";
 import {addFavouriteGuarantor, storeState} from "../stores/auth/authSlice";
 import {useSelector} from "react-redux";
-import Cry from "../assets/images/cry.svg"
 import {showSnack} from "../utils/immediateUpdate";
 import {useAppDispatch, useMember} from "../stores/hooks";
 import {Poppins_300Light, Poppins_400Regular, useFonts} from "@expo-google-fonts/poppins";
+import {toMoney} from "../screens/User/Account";
 
 type contactType = {contact_id: string, memberNumber: string, memberRefId: string, name: string, phone: string, amountToGuarantee: any}
 
 type propType = {
-    contactsData: {id: number, title: string, data: contactType[]}[],
-    searching: any,
-    addContactToList: any
-    removeContactFromList: any
-    contactList: any
-    onPress: any
-    setEmployerDetailsEnabled: any
+    contactsData: {id: number, title: string, data: contactType[]}[];
+    removeContactFromList: any;
+    contactList: any;
+    onPress: any;
 }
 
-const getAbbreviation = (name: string) => {
-    return name[0]
-}
-
-const { width, height } = Dimensions.get("window");
-
-const Item = ({ contact, removeContact, contactList, section, onPress, setEmployerDetailsEnabled }: { contact: contactType, removeContact: any, contactList: any, section: any, setEmployerDetailsEnabled: any, onPress: any }) => {
+const Item = ({ contact, removeContact, contactList, section, onPress }: { contact: contactType; removeContact: any; contactList: any; section: any; onPress: any }) => {
     useFonts([
         Poppins_300Light,
         Poppins_400Regular
@@ -60,31 +51,35 @@ const Item = ({ contact, removeContact, contactList, section, onPress, setEmploy
         return contact.name ? (
             <View  style={{
                 ...styles.item,
-                backgroundColor: isChecked ? 'rgba(72,154,171,0.77)' : '#FFFFFF'
+                backgroundColor: isChecked ? 'rgba(72,154,171,0.25)' : '#FFFFFF',
+                marginHorizontal: 16,
+                marginVertical: 5,
+                borderRadius: 12,
+                borderColor: 'rgba(0,0,0,0.09)',
             }}>
                 <View style={{flex: 0.1}}>
                     {
                         isChecked ?
 
-                            <Ionicons name="radio-button-on-sharp" size={24} color="white"/>
+                            <Ionicons name="radio-button-on-sharp" size={24} color="#489AAB"/>
 
                             :
 
                             <View
-                                style={{width: 22, height: 22, borderWidth: 1, borderRadius: 50, borderColor: '#CCCCCC'}}/>
+                                style={{width: 22, height: 22, borderWidth: 1, borderRadius: 50, borderColor: '#489AAB'}}/>
                     }
                 </View>
-                <View style={{flex: 0.67}}>
+                <View style={{flex: 0.8}}>
                     <Text allowFontScaling={false}
-                          style={{...styles.title, color: isChecked ? '#FFFFFF' : '#393a34', fontSize: 13, fontFamily: 'Poppins_500Medium'}}>{contact.name}</Text>
+                          style={{...styles.title, color: isChecked ? '#393a34' : '#393a34', fontSize: 13, fontFamily: 'Poppins_500Medium'}}>{contact.name}</Text>
                     <Text allowFontScaling={false}
-                          style={{...styles.title, color: isChecked ? '#FFFFFF' : '#393a34', fontSize: 12, fontFamily: 'Poppins_300Light'}}>{contact.phone} | {contact.memberNumber} {contact.amountToGuarantee ? ` | ${contact.amountToGuarantee}` : ""}</Text>
+                          style={{...styles.title, letterSpacing: 0.2, color: isChecked ? '#393a34' : '#393a34', fontSize: 12, fontFamily: 'Poppins_300Light'}}>{contact.phone} | {contact.memberNumber} {contact.amountToGuarantee ? ` | ${toMoney(contact.amountToGuarantee)}` : ""}</Text>
                 </View>
-                <TouchableOpacity onPress={() => addFav()} style={{flex: 0.13}}>
-                    <MaterialIcons name="bookmark" size={40} color="white" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => removeCont()} style={{flex: 0.13}}>
-                    <MaterialIcons name="cancel" size={40} color="white" />
+                {/*<TouchableOpacity onPress={() => addFav()} style={{flex: 0.13}}>
+                    <MaterialIcons name="bookmark" size={40} color="#489AAB" />
+                </TouchableOpacity>*/}
+                <TouchableOpacity onPress={() => removeCont()} style={{flex: 0.1, display: 'flex', flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end'}}>
+                    <AntDesign name="deleteuser" size={24} color="#489AAB" />
                 </TouchableOpacity>
             </View>
         ): (
@@ -98,7 +93,6 @@ const Item = ({ contact, removeContact, contactList, section, onPress, setEmploy
     } else if (section.id === 1) {
         return (
             <TouchableOpacity onPress={() => {
-                setEmployerDetailsEnabled(false);
                 onPress('options');
             }} style={{display: 'flex', flexDirection: 'row', alignItems: 'center', padding: 20}}>
                 <View style={styles.optionsButton} >
@@ -114,7 +108,7 @@ const Item = ({ contact, removeContact, contactList, section, onPress, setEmploy
     }
 };
 
-const ContactSectionList = ({contactsData, searching, addContactToList, removeContactFromList, contactList, onPress, setEmployerDetailsEnabled}: propType) => {
+const ContactSectionList = ({contactsData, removeContactFromList, contactList, onPress}: propType) => {
 
     useFonts([
         Poppins_300Light,
@@ -141,7 +135,6 @@ const ContactSectionList = ({contactsData, searching, addContactToList, removeCo
                     removeContact={removeContact}
                     contactList={contactList}
                     onPress={onPress}
-                    setEmployerDetailsEnabled={setEmployerDetailsEnabled}
                 />
             )}
             renderSectionHeader={({ section: { title, data } }) => (
@@ -162,9 +155,10 @@ const styles = StyleSheet.create({
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
         backgroundColor: "#FFFFFF",
-        paddingVertical: 20,
-        paddingHorizontal: 10
+        paddingVertical: 15,
+        paddingHorizontal: 20
     },
     title: {
         fontSize: 14,
@@ -182,6 +176,7 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 12,
+        color:'#393a34',
         marginHorizontal: 16,
         fontFamily: 'Poppins_400Regular',
         paddingHorizontal: 10

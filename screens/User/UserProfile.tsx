@@ -123,17 +123,20 @@ export default function UserProfile({ navigation }: RootStackScreenProps<"Profil
     if (fontsLoaded) {
         return (
             <Container cb={() => reloading()}>
-                <Text style={styles.description}>
+                {/*<Text style={styles.description}>
                     { `${ clientSettings ? clientSettings.organizationName : '' }` }
-                </Text>
+                </Text>*/}
                 <View style={{
                     backgroundColor: "#FFFFFF",
                     marginTop: 15,
                     padding: 15,
                     position: 'relative',
                     borderRadius: 12,
-                    overflow: "hidden",
-                    elevation: 4
+                    shadowColor: 'rgba(0,0,0, 0.4)', // IOS
+                    shadowOffset: {width: -1, height: 1},
+                    shadowOpacity:0.5,
+                    shadowRadius: 1,
+                    elevation: 4, // Android
                 }}>
                     <View style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                         <View>
@@ -282,9 +285,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         shadowColor: 'rgba(0,0,0, .4)', // IOS
         shadowOffset: {width: -1, height: 1},
-        shadowOpacity:1,
-        shadowRadius: 1,
-        elevations: 2
+        shadowOpacity:0.5,
+        shadowRadius: 1
     },
     description: {
         marginTop: Platform.OS === 'android' ? 60 : 0,

@@ -7,14 +7,14 @@ import Animated, {
     withRepeat,
     withTiming
 } from "react-native-reanimated";
-import {Controller, FieldError, FieldValues} from "react-hook-form";
+import {Controller, FieldError} from "react-hook-form";
 import {useFonts,Poppins_500Medium, Poppins_300Light} from "@expo-google-fonts/poppins";
 import {useFonts as useRale, Raleway_600SemiBold, Raleway_500Medium} from "@expo-google-fonts/raleway";
 import React, {useEffect, useRef, useState} from "react";
 import {Control, UseFormWatch} from "react-hook-form/dist/types/form";
 import GenericModal from "./GenericModal";
 import {Ionicons} from "@expo/vector-icons";
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 interface FProps<T> {
     label: string;
     field: any;
@@ -28,6 +28,7 @@ interface FProps<T> {
     secureTextEntry?: boolean;
     error: FieldError | undefined;
     options?: {name: string, value: string, selected: boolean}[] | null;
+    cb?: (e: any) => void;
 }
 const TextField = <T extends object>(
     {
@@ -47,7 +48,8 @@ const TextField = <T extends object>(
         },
         keyboardType = "default",
         secureTextEntry = false,
-        options = null
+        options = null,
+        cb
     }: FProps<T>
 ) => {
     const moveText = useSharedValue(0);
@@ -186,6 +188,11 @@ const TextField = <T extends object>(
                                 secureTextEntry={secureTextEntry}
                                 keyboardType={keyboardType ? keyboardType : undefined}
                                 editable={isEditable}
+                                onSubmitEditing={(e) => {
+                                    if (cb) {
+                                        cb(e)
+                                    }
+                                }}
                             />
                             {
                                 (localOptions) ? <TouchableOpacity style={{position: "absolute", right: 12}} onPress={() => {
@@ -255,7 +262,7 @@ const styles = StyleSheet.create({
     input: {
         letterSpacing: 0.4,
         fontSize: 14,
-        color: '#000000',
+        color: '#393a34',
         lineHeight: 18,
         paddingTop: 14,
         fontFamily: 'Poppins_500Medium'

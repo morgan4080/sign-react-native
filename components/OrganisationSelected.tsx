@@ -97,20 +97,35 @@ const PhoneInput = ({errors, control, getValues, watch, loading, handleSubmit, o
                 <View style={[styles.inputContainer, styles.shadowProp]}>
                     {
                         (nav && nav.route.params?.flag) ?
-                            <View style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
-                                <Image source={{uri: nav.route.params?.flag}} style={{width: 22, height: 18}}/>
-                                <TextInput
-                                    allowFontScaling={false}
-                                    style={styles.input}
-                                    value={`+${nav.route.params?.code}`}
-                                    editable={false}
-                                />
-                                <AntDesign name="down" size={12} color="#8d8d8d" />
+                            <View style={{display: "flex", flexDirection: "column", alignItems: "flex-start", height: '100%', width: '100%'}}>
+                                <Text allowFontScaling={false} style={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    alignItems:'flex-start',
+                                    justifyContent: 'flex-end',
+                                    paddingTop: 6,
+                                    height: '35%',
+                                    fontSize: 12,
+                                    color: '#0082A0',
+                                    fontFamily: 'Raleway_600SemiBold',
+                                }}>
+                                    Country
+                                </Text>
+                                <View style={{display: "flex", flexDirection: "row", alignItems:'center',justifyContent: "space-around", height: '50%', width: '100%'}}>
+                                    <Image source={{uri: nav.route.params?.flag}} style={{width: 22, height: 18}}/>
+                                    <TextInput
+                                        allowFontScaling={false}
+                                        style={[styles.input]}
+                                        value={`+${nav.route.params?.code}`}
+                                        editable={false}
+                                    />
+                                    <AntDesign name="down" size={12} color="#393a34" />
+                                </View>
                             </View>
                             :
                             <>
-                                <MaterialCommunityIcons name="diving-scuba-flag" size={20} color="#8d8d8d"/>
-                                <AntDesign style={{position: "absolute", right: 10}} name="caretdown" size={20} color="#8d8d8d" />
+                                <MaterialCommunityIcons name="diving-scuba-flag" size={20} color="#393a34"/>
+                                <AntDesign style={{position: "absolute", right: 10}} name="caretdown" size={20} color="#393a34" />
                             </>
                     }
                 </View>
@@ -399,11 +414,8 @@ const OrganisationSelected = ({tenantId, parentProps}: {tenantId: string | undef
 
 const styles = StyleSheet.create({
     input: {
-        letterSpacing: 0.4,
         fontSize: 14,
-        color: '#000000',
-        lineHeight: 0,
-        paddingTop: 0,
+        color: '#393a34',
         fontFamily: 'Poppins_500Medium'
     },
 
@@ -424,7 +436,7 @@ const styles = StyleSheet.create({
         width: "100%",
         marginTop: 16,
         height: 56,
-        paddingHorizontal: 14
+        paddingHorizontal: 13
     },
 
     shadowProp: {

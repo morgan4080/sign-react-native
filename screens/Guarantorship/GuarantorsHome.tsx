@@ -1,6 +1,7 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
+    editMember,
     LoadOrganisation,
     searchByMemberNo,
     validateNumber
@@ -33,7 +34,6 @@ import {
 } from "../../stores/hooks";
 import {Poppins_300Light, Poppins_400Regular, useFonts} from "@expo-google-fonts/poppins";
 import GenericModal from "../../components/GenericModal";
-import {reset} from "react-native-svg/lib/typescript/lib/Matrix2D";
 type searchedMemberType = { contact_id: string; memberNumber: string; memberRefId: string; name: string; phone: string }
 type FormData = {
     searchTerm: string;
@@ -68,11 +68,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     const [clientSettings] = useClientSettings();
     const dispatch = useAppDispatch();
 
-    useEffect(() => {
-        dispatch(LoadOrganisation())
-            .catch((error) => showSnack(error.message, "ERROR"))
-    }, []);
-
     useFonts([
         Poppins_300Light,
         Poppins_400Regular
@@ -88,6 +83,40 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         watch,
         formState: { errors }
     } = useForm<FormData>();
+
+    useEffect(() => {
+        dispatch(LoadOrganisation())
+            .catch((error) => showSnack(error.message, "ERROR"))
+        if (member) {
+            Object.keys(member.details).map(detail => {
+                switch (detail) {
+                    case "employer_name":
+                        setValue("employerName", member.details[detail].value)
+                        break;
+                    case "service_no":
+                        setValue("serviceNo", member.details[detail].value)
+                        break;
+                    case "gross_salary":
+                        setValue("grossSalary", member.details[detail].value)
+                        break;
+                    case "net_salary":
+                        setValue("netSalary", member.details[detail].value)
+                        break;
+                    case "kra_pin":
+                        setValue("kraPin", member.details[detail].value)
+                        break;
+                    case "business_location":
+                        setValue("businessLocation", member.details[detail].value)
+                        break;
+                    case "business_type":
+                        setValue("businessType", member.details[detail].value)
+                        break;
+                    default:
+                        console.log("non prefill detail key", detail);
+                }
+            });
+        }
+    }, []);
 
     const [context, setContext] = useState<string>("");
 
@@ -149,23 +178,21 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         const {payload, type}: {payload: any, type: string, error?: any} = await dispatch(searchByMemberNo(member_no));
 
         if (type === 'searchByMemberNo/rejected') {
-            showSnack(`${member_no}: is not a member.`, "WARNING");
-            return undefined;
+            return Promise.reject(`${member_no}: is not a member.`);
         }
 
         if (type === "searchByMemberNo/fulfilled" && member) {
             if (payload && !payload.hasOwnProperty("firstName")) {
-                showSnack(`${member_no}: is not a member.`, "WARNING");
-                return undefined;
+                return Promise.reject(`${member_no}: is not a member.`);
             }
 
-            return {
+            return Promise.resolve({
                 contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
                 memberNumber: `${payload.memberNumber}`,
                 memberRefId: `${payload.refId}`,
                 name: `${payload.firstName}`,
                 phone: `${payload.phoneNumber}`
-            }
+            })
         }
     }
 
@@ -173,47 +200,70 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         return cloneDeep(selectedContacts).some((contact) => (member.phone === contact.phone || member.memberRefId === contact.memberRefId));
     }
 
-    const addContactToList = async (searchedMember: searchedMemberType | undefined) => {
+    const addContactToList = async (searchedMember: searchedMemberType | undefined, self: boolean = false) => {
         if (searchedMember) {
             if (!isDuplicateGuarantor(searchedMember)) {
                 // if amount required take it
-                if (settings && settings.guarantors === 'value' && settings.amounts) {
-                    setCurrentGuarantor(searchedMember);
-
-                    setContext('amount');
-
-                    setHeldMember(searchedMember);
-
-                    handleSnapPress(1);
-
-                    return Promise.resolve();
-
-                } else if (settings && settings.guarantors === 'count' && member) {
-                    // calculate amount to guarantee
-                    const theAmount = (selectedContacts.length <= 4) ? route.params?.loanDetails.desiredAmount/requiredGuarantors() : route.params?.loanDetails.desiredAmount/selectedContacts.length;
+                if (self) {
+                    const amt = route.params?.loanDetails.desiredAmount;
 
                     const amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
 
-                    amountsToG.push(theAmount);
+                    amountsToG.push(amt);
 
                     setAllGuaranteedAmounts(amountsToG);
 
                     const newDeserializedCopy: any[] = cloneDeep(selectedContacts);
 
-                    newDeserializedCopy.push(searchedMember);
+                    newDeserializedCopy.push({...searchedMember, amountToGuarantee: amt});
 
                     setSelectedContacts(newDeserializedCopy);
 
                     handleClosePress();
 
-                    return Promise.resolve()
+                    return Promise.resolve();
+                } else {
+                    if (settings && settings.guarantors === 'value' && settings.amounts) {
+                        setCurrentGuarantor(searchedMember);
+
+                        setContext('amount');
+
+                        setHeldMember(searchedMember);
+
+                        handleSnapPress(1);
+
+                        return Promise.resolve();
+
+                    } else if (settings && settings.guarantors === 'count' && member) {
+                        // calculate amount to guarantee
+                        const theAmount = (selectedContacts.length <= 4) ? route.params?.loanDetails.desiredAmount/requiredGuarantors() : route.params?.loanDetails.desiredAmount/selectedContacts.length;
+
+                        const amountsToG: any[] = cloneDeep(allGuaranteedAmounts);
+
+                        amountsToG.push(theAmount);
+
+                        setAllGuaranteedAmounts(amountsToG);
+
+                        const newDeserializedCopy: any[] = cloneDeep(selectedContacts);
+
+                        newDeserializedCopy.push(searchedMember);
+
+                        setSelectedContacts(newDeserializedCopy);
+
+                        handleClosePress();
+
+                        return Promise.resolve();
+                    } else {
+                        return Promise.reject("Unknown Guarantorship Option");
+                    }
                 }
+
             } else {
                 handleClosePress();
                 return Promise.reject("Duplicate Entry");
             }
         } else {
-            return Promise.reject("Member not provided")
+            return Promise.reject("Member not provided");
         }
     }
 
@@ -305,28 +355,25 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
     );
 
     const [tab, setTab] = useState<number>(0);
+    const [searchScheme, setSearchScheme] = useState<string | null>(null);
 
     const submitEdit = () => {
         if (getValues("searchTerm") && getValues("searchTerm") !== "") {
             if (searchScheme) {
                 if (searchScheme === 'MEMBER_NO') {
                     searchMemberByMemberNo(getValues("searchTerm").toUpperCase())
-                        .then(addContactToList)
-                        .catch(e => {
-                            showSnack(e.message, "WARNING");
-                        }).finally(() => {
-
+                    .then(addContactToList)
+                    .catch(e => {
+                        showSnack(e.message, "WARNING");
                     });
                 } else if (searchScheme === 'PHONE_NO') {
                     getSecureKey("alpha2Code")
-                        .then(alpha2Code => requestPhoneNumberFormat(alpha2Code, getValues("searchTerm")))
-                        .then((jsonDat) => Promise.resolve(JSON.parse(jsonDat)))
-                        .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
-                        .then(addContactToList)
-                        .catch(e => {
-                            showSnack(e.message, "WARNING");
-                        }).finally(() => {
-
+                    .then(alpha2Code => requestPhoneNumberFormat(alpha2Code, getValues("searchTerm")))
+                    .then((jsonDat) => Promise.resolve(JSON.parse(jsonDat)))
+                    .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
+                    .then(addContactToList)
+                    .catch(e => {
+                        showSnack(e.message, "WARNING");
                     });
                 } else {
                     showSnack("Unsupported Search Scheme", "WARNING");
@@ -337,23 +384,19 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     /^(?=.*[0-9a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{3,8}$/i
                 ];
                 if (memberNoRegex.test(getValues("searchTerm"))) {
-                    searchMemberByMemberNo(getValues("searchTerm"))
-                        .then(addContactToList)
-                        .catch(e => {
-                            showSnack(e.message, "WARNING");
-                        }).finally(() => {
-
+                    searchMemberByMemberNo(getValues("searchTerm").toUpperCase())
+                    .then(addContactToList)
+                    .catch(e => {
+                        showSnack(e.message, "WARNING");
                     });
                 } else if (phoneRegex.test(getValues("searchTerm"))) {
                     getSecureKey("alpha2Code")
-                        .then(alpha2Code => requestPhoneNumberFormat(alpha2Code, getValues("searchTerm")))
-                        .then((jsonDat) => Promise.resolve(JSON.parse(jsonDat)))
-                        .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
-                        .then(addContactToList)
-                        .catch(e => {
-                            showSnack(e.message, "WARNING");
-                        }).finally(() => {
-
+                    .then(alpha2Code => requestPhoneNumberFormat(alpha2Code, getValues("searchTerm")))
+                    .then((jsonDat) => Promise.resolve(JSON.parse(jsonDat)))
+                    .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
+                    .then(addContactToList)
+                    .catch(e => {
+                        showSnack(e.message, "WARNING");
                     });
                 } else {
                     showSnack("Incorrect Format", "WARNING");
@@ -380,27 +423,32 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         clearErrors();
         if (tab === 0) {
             // set payload for employer
-            // check em
+            // check fields
             if (getValues("employerName") === undefined || getValues("employerName") === "" || getValues("employerName") === null) {
                 setError("employerName", {type: 'custom', message: "required"});
                 return
             }
+
             if (getValues("serviceNo") === undefined || getValues("serviceNo") === "" || getValues("serviceNo") === null) {
                 setError("serviceNo", {type: 'custom', message: "required"});
                 return
             }
+
             if (getValues("grossSalary") === undefined || getValues("grossSalary") === "" || getValues("grossSalary") === null) {
                 setError("grossSalary", {type: 'custom', message: "required"});
                 return
             }
+
             if (getValues("netSalary") === undefined || getValues("netSalary") === "" || getValues("netSalary") === null) {
                 setError("netSalary", {type: 'custom', message: "required"});
                 return
             }
+
             if (getValues("kraPin") === undefined || getValues("kraPin") === "" || getValues("kraPin") === null) {
                 setError("kraPin", {type: 'custom', message: "required"});
                 return
             }
+
             let payloadCode = {
                 employerName: getValues("employerName"),
                 serviceNo: getValues("serviceNo"),
@@ -408,17 +456,58 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 netSalary: getValues("netSalary"),
                 kraPin: getValues("kraPin")
             };
-            setEmployerPayload(payloadCode);
-            handleClosePress();
+
+            const memberPayload: any = {
+                refId: member?.refId,
+                details: {
+                    ...member?.details,
+                    "employer_name": {
+                        "value": payloadCode.employerName,
+                        "type": "TEXT"
+                    },
+                    "service_no": {
+                        "value": payloadCode.serviceNo,
+                        "type": "TEXT"
+                    },
+                    "gross_salary": {
+                        "value": payloadCode.grossSalary,
+                        "type": "TEXT"
+                    },
+                    "net_salary": {
+                        "value": payloadCode.netSalary,
+                        "type": "TEXT"
+                    },
+                    "kra_pin": {
+                        "value": payloadCode.kraPin,
+                        "type": "TEXT"
+                    }
+                }
+            };
+
+            console.log(JSON.stringify(memberPayload));
+
+            // save member details
+            dispatch(editMember(memberPayload)).then((response) => {
+                if (response.type !== "editMember/rejected") {
+                    setEmployerPayload(payloadCode);
+                    handleClosePress();
+                } else {
+                    throw response
+                }
+            }).catch((e) => {
+                console.log(e);
+            });
         } else if (tab === 1) {
             if (getValues("businessLocation") === undefined || getValues("businessLocation") === "" || getValues("businessLocation") === null) {
                 setError("businessLocation", {type: 'custom', message: "required"});
                 return
             }
+
             if (getValues("businessType") === undefined || getValues("businessType") === "" || getValues("businessType") === null) {
                 setError("businessType", {type: 'custom', message: "required"});
                 return
             }
+
             if (getValues("kraPin") === undefined || getValues("kraPin") === "" || getValues("kraPin") === null) {
                 setError("kraPin", {type: 'custom', message: "required"});
                 return
@@ -431,9 +520,38 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 kraPin: getValues("kraPin")
             };
 
-            setBusinessPayload(payloadCode);
+            // save member details
+            const memberPayload: any = {
+                refId: member?.refId,
+                details: {
+                    ...member?.details,
+                    "business_location": {
+                        "value": payloadCode.businessLocation,
+                        "type": "TEXT"
+                    },
+                    "business_type": {
+                        "value": payloadCode.businessType,
+                        "type": "TEXT"
+                    },
+                    "kra_pin": {
+                        "value": payloadCode.kraPin,
+                        "type": "TEXT"
+                    }
+                }
+            };
 
-            handleClosePress();
+            console.log(JSON.stringify(memberPayload));
+
+            dispatch(editMember(memberPayload)).then((response) => {
+                if (response.type !== "editMember/rejected") {
+                    setBusinessPayload(payloadCode);
+                    handleClosePress();
+                } else {
+                    throw (response)
+                }
+            }).catch((e) => {
+                console.log(e);
+            });
         }
     }
 
@@ -533,9 +651,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         }
     }, [clientSettings])
 
-    const [searchLabel, setSearchLabel] = useState("Search from Phonebook →");
-
-    const [searchScheme, setSearchScheme] = useState<string | null>(null);
+    const [searchLabel, setSearchLabel] = useState<string | null>(null);
     const genLabel = (key: string) => {
         if (key === 'ID_NUMBER') {
             const splitter = key.split("_");
@@ -546,6 +662,24 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             return splitter[0].toLowerCase() + " " + splitter[1].toLowerCase();
         }
         return "Search " + key.charAt(0).toLowerCase() + key.slice(1).replace("_", " ").toLowerCase()
+    }
+
+    const selfGuarantee = () => {
+        const member_number = member?.memberNumber;
+        const member_ref_id = member?.refId;
+        const member_phone = member?.phoneNumber;
+        const member_name = member?.firstName;
+        if (member_number && member_ref_id && member_phone && member_name) {
+            addContactToList({
+                contact_id: `${Math.floor(Math.random() * (100000 - 10000)) + 10000}`,
+                memberNumber: `${member_number}`,
+                memberRefId: `${member_ref_id}`,
+                name: `${member_name}`,
+                phone: `${member_phone}`
+            }, true).catch(e => {
+                showSnack(e.message, "WARNING");
+            });
+        }
     }
 
     return (
@@ -567,13 +701,13 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 </TouchableOpacity>
                 <View style={{flex: 0.64}}>
                     <TextField
-                        label={searchLabel}
+                        label={searchLabel ? searchLabel : "Search from Phonebook →"}
                         field={"searchTerm"}
                         val={getValues}
                         watch={watch}
                         control={control}
                         error={errors.searchTerm}
-                        required={true}
+                        required={!!searchLabel}
                         cb={handleSubmit(submitEdit)}
                     />
                 </View>
@@ -599,8 +733,6 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     .then(addContactToList)
                     .catch(e => {
                         showSnack(e.message, "WARNING");
-                    }).finally(() => {
-
                     });
                 }}>
                     <AntDesign name="contacts" size={22} color="#393a34" />
@@ -627,7 +759,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
 
             {isDisabled() ?
                 <View style={{ position: 'absolute', bottom: 5, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                    <TouchableOpacity disabled={ !isDisabled() || loading || !searchScheme } onPress={handleSubmit(submitEdit)} style={{ display: 'flex', alignItems: 'center', backgroundColor: !isDisabled() || loading || !searchScheme ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
+                    <TouchableOpacity disabled={ !isDisabled() || loading || !searchLabel } onPress={handleSubmit(submitEdit)} style={{ display: 'flex', alignItems: 'center', backgroundColor: !isDisabled() || loading || !searchLabel ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                         <Text allowFontScaling={false} style={styles.buttonText}>SEARCH</Text>
                     </TouchableOpacity>
                 </View>
@@ -847,15 +979,20 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
             </BottomSheet>
             <View style={{position: 'absolute', bottom: -10}}>
                 <GenericModal modalVisible={modalVisible} setModalVisible={setModalVisible} title={"Options"} description={"Select guarantor option"} cb={(option) => {
-                    console.log(option?.context)
                     if (option?.context === 'dismiss') {
                         setSearchScheme(null);
-                        setSearchLabel("Search Phonebook");
+                        setSearchLabel(null);
                     } else {
-                        if (option && option?.context === 'option' && option?.option) {
+                        if (option && option?.context === 'proceed' && searchScheme) {
+                            console.log(searchScheme)
+                            if (searchScheme === 'SELF_GUARANTEE') {
+                                selfGuarantee();
+                                setSearchLabel(null);
+                            } else {
+                                setSearchLabel(genLabel(searchScheme));
+                            }
+                        } else if (option && option?.context === 'option' && option?.option) {
                             setSearchScheme(option?.option.value);
-                            const label = genLabel(option?.option.value);
-                            setSearchLabel(label);
                             const index = guarantorSearchOptions?.findIndex(op => op.value.toLowerCase() === option?.option?.value.toLowerCase())
                             setGuarantorSearchOptions(guarantorSearchOptions?.map((op, i) => {
                                 if (index === i) {

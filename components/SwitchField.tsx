@@ -7,7 +7,7 @@ import {Poppins_300Light, Poppins_500Medium, useFonts} from "@expo-google-fonts/
 interface SProps<T> {
     label: string;
     field: any;
-    watch: UseFormWatch<Record<string, any>>;
+    watch: UseFormWatch<any>;
     control: Control<any>;
 }
 const SwitchField = <T extends object>({label, field, watch, control}: SProps<T>) => {

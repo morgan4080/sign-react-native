@@ -1,12 +1,8 @@
 import {
   Dimensions,
-  StyleSheet,
-  TouchableOpacity,
-  NativeModules
+  StyleSheet
 } from 'react-native';
-// import {Camera, CameraCapturedPicture} from 'expo-camera';
-import { Text, View } from 'react-native';
-import {editMember, logoutUser, storeState} from "../stores/auth/authSlice";
+import {editMember, logoutUser} from "../stores/auth/authSlice";
 import {
   Poppins_300Light,
   Poppins_400Regular,
@@ -21,12 +17,8 @@ import {
   Raleway_600SemiBold,
   useFonts as useRaleway
 } from "@expo-google-fonts/raleway";
-import {useDispatch, useSelector} from "react-redux";
-import {store} from "../stores/store";
-import {Controller, useForm} from "react-hook-form";
+import {FieldError, useForm} from "react-hook-form";
 import {useEffect, useRef, useState} from "react";
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
-import {RotateView} from "./Auth/VerifyOTP";
 import Container from "../components/Container";
 import TextField from "../components/TextField";
 import SwitchField from "../components/SwitchField";
@@ -34,7 +26,7 @@ import {showSnack} from "../utils/immediateUpdate";
 import {useAppDispatch, useLoading, useMember, useUser} from "../stores/hooks";
 import TouchableButton from "../components/TouchableButton";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 type FormData = {
   firstName: string,
@@ -45,9 +37,7 @@ type FormData = {
   fingerPrint: false,
 }
 
-type NavigationProps = NativeStackScreenProps<any>;
-
-export default function ModalScreen({ navigation }: NavigationProps) {
+export default function ModalScreen() {
   const [takingPhoto, setTakingPhoto] = useState<boolean>(false);
   const dispatch = useAppDispatch();
   const [user] = useUser();
@@ -134,7 +124,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
 
   const onSubmit = async (): Promise<void> => {
     try {
-      type memberPayloadType = {firstName: string, lastName: string, phoneNumber: string, idNumber: string, email: string, memberRefId?: string}
+      type memberPayloadType = {firstName: string, lastName: string, phoneNumber: string, idNumber: string, email: string, refId?: string}
 
       const payload: memberPayloadType = {
         firstName,
@@ -142,7 +132,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
         idNumber,
         phoneNumber,
         email,
-        memberRefId: member?.refId
+        refId: member?.refId
       }
 
       const {type, error}: any = await dispatch(editMember(payload));
@@ -176,7 +166,7 @@ export default function ModalScreen({ navigation }: NavigationProps) {
         <TextField field={"lastName"} label={"Last Name"} val={getValues} watch={watch} control={control} error={errors.lastName}  required={true}/>
         <TextField field={"phoneNumber"} label={"Phone Number"} val={getValues} watch={watch} control={control} error={errors.phoneNumber} required={true}/>
         <TextField field={"idNumber"} label={"ID Number"} val={getValues} watch={watch} control={control} error={errors.idNumber} required={true}/>
-        <TextField field={"email"} label={"Email"} val={getValues} watch={watch} control={control} error={errors.email} required={true}/>
+        <TextField field={"email"} label={"Email"} val={getValues} watch={watch} control={control} error={errors.email as FieldError} required={true}/>
         <SwitchField label={"Enable finger print"} field={"fingerPrint"} watch={watch} control={control}/>
         <TouchableButton loading={loading} label={"SUBMIT"} onPress={handleSubmit(onSubmit)} />
       </Container>

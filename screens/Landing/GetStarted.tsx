@@ -39,73 +39,55 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
     useEffect(() => {
         let initializing = true;
         if (initializing) {
-            (async () => {
-                try {
-                    checkToStartUpdate();
-                } catch (e: any) {
-                    showSnack(e.message, "ERROR", "", false)
+            try {
+                checkToStartUpdate();
+            } catch (e: any) {
+                showSnack(e.message, "ERROR", "", false);
+            }
+            let existing: string
+            let phone_number: string
+            let country_code: string
+            let email_address: string
+            let current_tenant_id: string
+
+            // check for existing user and redirect to log in
+            Promise.all([
+                getSecureKey('existing'),
+                getSecureKey('phone_number_without'),
+                getSecureKey('phone_number_code'),
+                getSecureKey('account_email'),
+                getSecureKey('currentTenantId'),
+            ]).then(([oldBoy, phone, code, email, currentTenantId]) => {
+                existing = oldBoy;
+                phone_number = phone;
+                country_code = code;
+                email_address = email;
+                current_tenant_id = currentTenantId;
+
+                if (oldBoy === 'true' && currentTenantId) {
+                    return dispatch(getTenants(`${code}${phone}`));
+                } else {
+                    // initialize new user
+                     return Promise.reject('New User To Initialize on Get Started');
                 }
-                try {
-                    const [oldBoy, phone, code, email, currentTenantId] = await Promise.all([
-                        getSecureKey('existing'),
-                        getSecureKey('phone_number_without'),
-                        getSecureKey('phone_number_code'),
-                        getSecureKey('account_email'),
-                        getSecureKey('currentTenantId'),
-                    ]);
-
-                    // check for existing user and redirect to log in
-
-                    if (oldBoy === 'true' && currentTenantId) {
-                        dispatch(getTenants(`${code}${phone}`))
-                        .then(({type, error, payload}: any) => {
-                            if (type === 'getTenants/rejected' && error) {
-                                throw (JSON.stringify(payload))
-                            } else {
-                                console.log("navigating to login");
-                                navigation.navigate('Login', {
-                                    countryCode: code,
-                                    phoneNumber: phone,
-                                    email
-                                });
-                            }
-                        }).catch(error => {
-                            if (error.message) {
-                                // showSnack(error.message, "ERROR", "", false)
-                                throw (error.message)
-                            } else {
-                                throw (error)
-                            }
-
-                        })
-                    } else {
-                        // initialize new user
-                        dispatch(initializeDB()).catch(error => {
-                            throw (error)
-                        })
-                    }
-                } catch (e: any) {
-                    showSnack(e.message, "ERROR", "", false)
+            }).then(({type, error, payload}: any) => {
+                if (type === 'getTenants/rejected' && error) {
+                    throw (JSON.stringify(payload));
+                } else {
+                    console.log("navigating to login");
+                    navigation.navigate('Login', {
+                        countryCode: country_code,
+                        phoneNumber: phone_number,
+                        email: email_address
+                    });
                 }
-            })()
+            }).catch((e: any) => {
+                console.log(e);
+            })
         }
-
         // add notification listener
-        /*
-
-                const subscription = Notifications.addNotificationReceivedListener(notification => {
-                    if (notification.request.content.data.url) {
-                        console.log("notification data foreground", notification.request.content.data.url);
-                        (async () => {
-                            await Linking.openURL(notification.request.content.data.url as string);
-                        })()
-                    }
-                });
-        */
-
         return () => {
             initializing = false;
-            // subscription.remove();
         };
     }, [appInitialized]);
     const scrollX = useRef(new Animated.Value(0)).current;
@@ -132,12 +114,18 @@ export default function GetStarted({ navigation }: RootStackScreenProps<"GetStar
                     <Paginator data={slides} scrollX={scrollX}/>
                 </View>
 
-                 <TouchableButton label={'Get started'} loading={loading} onPress={() => navigation.navigate('SetTenant', {
-                        code: "254",
-                        numericCode: "404",
-                        alpha2Code: "KE",
-                        flag: "https://flagcdn.com/28x21/ke.png"
-                    })} 
+                 <TouchableButton label={'Get started'} loading={loading} onPress={() => {
+                     dispatch(initializeDB()).then(() => {
+                         navigation.navigate('SetTenant', {
+                             code: "254",
+                             numericCode: "404",
+                             alpha2Code: "KE",
+                             flag: "https://flagcdn.com/28x21/ke.png"
+                         })
+                     }).catch((e: any) => {
+                         console.log("couldn't initialize user", e)
+                     })
+                 }}
                 />
 
                 <StatusBar style='auto'/>

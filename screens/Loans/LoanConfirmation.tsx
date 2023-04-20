@@ -356,7 +356,7 @@ const LoanConfirmation = ({navigation, route}: NavigationProps) => {
             // Changes on this data should update member and re-fetch member
 
             try {
-                type memberPayloadType = {firstName: string, lastName: string, phoneNumber: string, idNumber: string, email: string, memberRefId?: string}
+                type memberPayloadType = {firstName: string, lastName: string, phoneNumber: string, idNumber: string, email: string, refId?: string}
 
                 const payload: memberPayloadType = {
                     firstName: dataObject.first_name,
@@ -364,7 +364,7 @@ const LoanConfirmation = ({navigation, route}: NavigationProps) => {
                     idNumber: dataObject.id_number,
                     phoneNumber: dataObject.phone_number,
                     email: dataObject.email,
-                    memberRefId: member?.refId
+                    refId: member?.refId
                 }
 
                 await dispatch(editMember(payload));

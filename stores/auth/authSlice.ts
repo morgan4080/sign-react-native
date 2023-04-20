@@ -49,7 +49,7 @@ export interface MemberData {
     availableAmount: number,
     committedAmount: number,
     createdBy: string,
-    details: {Age: { type: string, value: string }, EmployerName: { type: string, value: string }, Gender: { type: string, value: string }},
+    details: Record<string, Record<string, string>>,
     email: string | null,
     firstName: string,
     fullName: string,
@@ -460,54 +460,52 @@ export const searchContactsInDB = createAsyncThunk('searchContactsInDB', async({
 
 export const initializeDB = createAsyncThunk('initializeDB', async (): Promise<any> => {
     return new Promise(async (resolve, reject) => {
-        try {
-            if (db) {
-                db.transaction((tx: SQLTransaction) => {
-                    tx.executeSql(`delete
-                                   from contacts`, undefined,
-                        (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            console.log('successfully deleted contacts')
-                        },
+        if (db) {
+            db.transaction((tx: SQLTransaction) => {
+                tx.executeSql(`delete from contacts`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully deleted contacts')
+                    },
 
-                        (txObj: SQLTransaction, error: SQLError): any => {
-                            console.log('delete contacts error', error.message)
-                        }
-                    )
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('delete contacts error', error.message)
+                    }
+                )
 
-                    tx.executeSql(`delete
+                tx.executeSql(`delete
                                    from contact_groups`, undefined,
-                        (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            console.log('successfully deleted contact_groups')
-                        },
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully deleted contact_groups')
+                    },
 
-                        (txObj: SQLTransaction, error: SQLError): any => {
-                            console.log('delete contact_groups error', error.message)
-                        }
-                    )
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('delete contact_groups error', error.message)
+                    }
+                )
 
-                    tx.executeSql(`delete
+                tx.executeSql(`delete
                                    from groups`, undefined,
-                        (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            console.log('successfully deleted groups')
-                        },
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully deleted groups')
+                    },
 
-                        (txObj: SQLTransaction, error: SQLError): any => {
-                            console.log('delete groups error', error.message)
-                        }
-                    )
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('delete groups error', error.message)
+                    }
+                )
 
-                    tx.executeSql(`delete
+                tx.executeSql(`delete
                                    from user`, undefined,
-                        (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            console.log('successfully deleted user')
-                        },
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully deleted user')
+                    },
 
-                        (txObj: SQLTransaction, error: SQLError): any => {
-                            console.log('delete user error', error.message)
-                        }
-                    )
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('delete user error', error.message)
+                    }
+                )
 
-                    tx.executeSql(`CREATE TABLE IF NOT EXISTS user
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS user
                                    (
                                        id               integer primary key,
                                        kraPin           text    not null,
@@ -527,31 +525,31 @@ export const initializeDB = createAsyncThunk('initializeDB', async (): Promise<a
                                        businessType     text    default null,
                                        businessLocation text    default null
                                    )`, undefined,
-                        (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            console.log('successfully created user')
-                        },
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully created user')
+                    },
 
-                        (txObj: SQLTransaction, error: SQLError): any => {
-                            console.log('create user error', error.message)
-                        }
-                    )
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create user error', error.message)
+                    }
+                )
 
-                    tx.executeSql(`CREATE TABLE IF NOT EXISTS groups
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS groups
                                    (
                                        group_id integer
                                            constraint groups_pk primary key autoincrement,
                                        name     text not null
                                    )`, undefined,
-                        (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            console.log('successfully created groups')
-                        },
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully created groups')
+                    },
 
-                        (txObj: SQLTransaction, error: SQLError): any => {
-                            console.log('create groups error', error.message)
-                        }
-                    )
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create groups error', error.message)
+                    }
+                )
 
-                    tx.executeSql(`CREATE TABLE IF NOT EXISTS contacts
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS contacts
                                    (
                                        contact_id   integer
                                            constraint contacts_pk primary key autoincrement,
@@ -560,41 +558,41 @@ export const initializeDB = createAsyncThunk('initializeDB', async (): Promise<a
                                        memberNumber text default null,
                                        memberRefId  text default null
                                    )`, undefined,
-                        (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            console.log('successfully created contacts')
-                        },
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully created contacts')
+                    },
 
-                        (txObj: SQLTransaction, error: SQLError): any => {
-                            console.log('create contacts error', error.message)
-                        }
-                    )
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create contacts error', error.message)
+                    }
+                )
 
-                    tx.executeSql(`create unique index contacts_phone_uindex on contacts (phone)`, undefined,
-                        (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            console.log('successfully created unique phone')
-                        },
+                tx.executeSql(`create unique index contacts_phone_uindex on contacts (phone)`, undefined,
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully created unique phone')
+                    },
 
-                        (txObj: SQLTransaction, error: SQLError): any => {
-                            console.log('error  unique phone index', error.message)
-                        }
-                    )
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('error  unique phone index', error.message)
+                    }
+                )
 
-                    tx.executeSql(`CREATE TABLE IF NOT EXISTS contact_groups
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS contact_groups
                                    (
                                        contact_id INTEGER references contacts on delete cascade,
                                        group_id   INTEGER references groups on delete cascade,
                                        primary key (contact_id, group_id)
                                    )`, undefined,
-                        (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            console.log('successfully created contact_groups')
-                        },
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully created contact_groups')
+                    },
 
-                        (txObj: SQLTransaction, error: SQLError): any => {
-                            console.log('create contact_groups error', error.message)
-                        }
-                    )
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create contact_groups error', error.message)
+                    }
+                )
 
-                    tx.executeSql(`CREATE TABLE IF NOT EXISTS client_settings
+                tx.executeSql(`CREATE TABLE IF NOT EXISTS client_settings
                                    (
                                        id                         INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                                        ussdShortCode              TEXT                              NOT NULL,
@@ -621,25 +619,18 @@ export const initializeDB = createAsyncThunk('initializeDB', async (): Promise<a
                                        details                    TEXT                              NOT NULL
                                    );
                         `, undefined,
-                        (txObj: SQLTransaction, resultSet: SQLResultSet) => {
-                            console.log('successfully created client_settings')
-                        },
+                    (txObj: SQLTransaction, resultSet: SQLResultSet) => {
+                        console.log('successfully created client_settings')
+                    },
 
-                        (txObj: SQLTransaction, error: SQLError): any => {
-                            console.log('create client_settings error', error.message)
-                        }
-                    )
-
-                })
-            } else {
-                throw("db not found")
-            }
-            resolve(Promise.all([true]))
-        } catch (e: any) {
-            if (!e.response) {
-                throw e
-            }
-            reject(e)
+                    (txObj: SQLTransaction, error: SQLError): any => {
+                        console.log('create client_settings error', error.message)
+                    }
+                )
+                resolve("New User Initialized")
+            })
+        } else {
+            reject("db not found")
         }
     })
 })
@@ -1064,7 +1055,7 @@ export const loginUser = createAsyncThunk('loginUser', async (
 
 type refreshTokenPayloadType = {client_id: string, grant_type: string, refresh_token: string, realm?: string, client_secret?: string, cb?: any}
 
-export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async ({client_id, grant_type, refresh_token, realm, client_secret,  cb} : refreshTokenPayloadType, { dispatch,rejectWithValue, fulfillWithValue }) => {
+export const refreshAccessToken = createAsyncThunk('refreshAccessToken', async ({client_id, grant_type, refresh_token, realm, client_secret,  cb} : refreshTokenPayloadType, { dispatch }) => {
     try {
         const payload: any = {
             client_id,
@@ -1132,16 +1123,16 @@ export const logoutUser = createAsyncThunk('logoutUser', async (_, {fulfillWithV
     }
 });
 
-type memberPayloadType = {firstName?: string, lastName?: string, phoneNumber?: string, idNumber?: string, email?: string, memberRefId?: string}
+type memberPayloadType = {firstName?: string, lastName?: string, phoneNumber?: string, idNumber?: string, email?: string, refId?: string}
 
-export const editMember = createAsyncThunk('editMember', async (payload: memberPayloadType, {dispatch, getState, rejectWithValue, fulfillWithValue}) => {
-    const url = `https://eguarantorship-api.presta.co.ke/api/v1/members/${payload.memberRefId}`;
+export const editMember = createAsyncThunk('editMember', async (payload: memberPayloadType, {dispatch, getState}) => {
+    const url = `https://eguarantorship-api.presta.co.ke/api/v1/members/${payload.refId}`;
 
     try {
         const key = await getSecureKey('access_token');
 
         if (!key) {
-            return rejectWithValue('You are not authenticated');
+            return Promise.reject('You are not authenticated');
         }
 
         const myHeaders = new Headers();
@@ -1158,9 +1149,11 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
             body: JSON.stringify(payload)
         });
 
+        console.log(response.status);
+
         if (response.status === 200) {
             const data = await response.json();
-            return fulfillWithValue(data);
+            return Promise.resolve(data);
         } else if (response.status === 401) {
             // update refresh token and retry
             const state: any = getState();
@@ -1181,21 +1174,19 @@ export const editMember = createAsyncThunk('editMember', async (payload: memberP
                     }
                 }
 
-                return await dispatch(refreshAccessToken(refreshTokenPayload))
+                return dispatch(refreshAccessToken(refreshTokenPayload))
             } else {
                 dispatch({type: 'setAuthState', payload: false})
 
-                return rejectWithValue(response.status);
+                return Promise.reject(response.status);
             }
         } else {
-            return rejectWithValue(`API error code: ${response.status}`);
+            const data = await response.json();
+            return Promise.reject(data);
         }
 
     } catch (e: any) {
-        if (!e.response) {
-            throw e
-        }
-        return rejectWithValue(e.message)
+        return Promise.reject(e);
     }
 });
 
@@ -1548,7 +1539,7 @@ export const searchByMemberNo = createAsyncThunk('searchByMemberNo', async (memb
                     }
                 }
 
-                return await dispatch(refreshAccessToken(refreshTokenPayload))
+                return dispatch(refreshAccessToken(refreshTokenPayload))
             } else {
                 dispatch({type: 'setAuthState', payload: false})
 
@@ -2067,7 +2058,7 @@ export const authenticate = createAsyncThunk('authenticate', async () => {
 
 export const getTenants = createAsyncThunk('getTenants', async (
     phoneNumber: string,
-    {dispatch, rejectWithValue, fulfillWithValue}) => {
+    {dispatch}) => {
     const myHeaders = new Headers();
     myHeaders.append("api-key", `EqU.+vP\\_74Vu<'$jGxxfvwqN(z"h46Z2"*G=-ABs=rSDF&4.e`);
     const url = `https://accounts.presta.co.ke/api/v1/users/tenants/${phoneNumber}`;
@@ -2079,19 +2070,18 @@ export const getTenants = createAsyncThunk('getTenants', async (
 
         if (response.status === 200) {
             const data = await response.json();
-            return fulfillWithValue(data);
+            return Promise.resolve(data);
         } else if (response.status === 401) {
             dispatch({type: 'setAuthState', payload: false})
-            return rejectWithValue(response.status);
+            return Promise.reject(response.status);
         } else {
             const data = await response.json();
             console.warn("getTenants error data", JSON.stringify(data));
-            return rejectWithValue("API response code: " + response.status);
+            return Promise.reject("API response code: " + response.status);
         }
 
     } catch (e: any) {
-        console.log(e)
-        return rejectWithValue(e)
+        return Promise.reject(e)
     }
 })
 

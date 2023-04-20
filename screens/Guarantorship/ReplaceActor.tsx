@@ -354,7 +354,7 @@ const ReplaceActor = ({ navigation, route }: NavigationProps) => {
                         ]
                     }
                 ]
-            } searching={searching} addContactToList={addContactToList} removeContactFromList={removeContactFromList} contactList={selectedContacts} onPress={onPress} setEmployerDetailsEnabled={setEmployerDetailsEnabled} />
+            } removeContactFromList={removeContactFromList} contactList={selectedContacts} onPress={onPress} />
             <View style={{ position: 'absolute', bottom: 0, backgroundColor: 'rgba(255,255,255,0.9)', width, display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                 <TouchableOpacity disabled={isDisabled() || loading} onPress={submitLoanRequest} style={{ display: 'flex', alignItems: 'center', backgroundColor: isDisabled() || loading ? '#CCCCCC' : '#489AAB', width: width/2, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 25, marginVertical: 10 }}>
                     <Text allowFontScaling={false} style={styles.buttonText}>Set Guarantor</Text>

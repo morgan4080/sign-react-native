@@ -1,7 +1,6 @@
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
 import {
     Dimensions,
-    NativeModules,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -18,20 +17,18 @@ import {
     Poppins_900Black,
     useFonts
 } from "@expo-google-fonts/poppins";
-import {useDispatch, useSelector} from "react-redux";
-import {fetchLoanRequest, requestSignURL, storeState} from "../../stores/auth/authSlice";
+import {fetchLoanRequest, requestSignURL} from "../../stores/auth/authSlice";
 import {MaterialIcons} from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
-import {store} from "../../stores/store";
+import {showSnack} from "../../utils/immediateUpdate";
+import {useAppDispatch, useLoading} from "../../stores/hooks";
 const { width, height } = Dimensions.get("window");
 type NavigationProps = NativeStackScreenProps<any>;
 
 const SignStatus = ({ navigation, route }: NavigationProps) => {
-    const CSTM = NativeModules.CSTM;
-    const { loading } = useSelector((state: { auth: storeState }) => state.auth);
-    type AppDispatch = typeof store.dispatch;
-    const dispatch : AppDispatch = useDispatch();
-    let [fontsLoaded] = useFonts({
+    const [loading] = useLoading();
+    const dispatch = useAppDispatch();
+    useFonts({
         Poppins_900Black,
         Poppins_500Medium,
         Poppins_800ExtraBold,
@@ -48,7 +45,7 @@ const SignStatus = ({ navigation, route }: NavigationProps) => {
                 'presta-sign://app/loan-request'
             );
 
-            if (result.type === "dismiss") {
+            if (result.type === "dismiss" || result.type === "cancel") {
                 const {type, error, payload}: any  = await dispatch(fetchLoanRequest(route.params?.loan.refId as string))
 
                 if (type === 'fetchLoanRequest/fulfilled') {
@@ -80,13 +77,13 @@ const SignStatus = ({ navigation, route }: NavigationProps) => {
         if (type === 'requestSignURL/fulfilled') {
             console.log(type, payload);
             if (!payload.success) {
-                CSTM.showToast(payload.message);
+                showSnack(payload.message);
             }
 
             if (payload.signURL) await openAuthSessionAsync(payload.signURL)
         } else {
             console.log(type, error);
-            CSTM.showToast(error.message);
+            showSnack(error.message);
         }
 
         console.log("zohoSignPayloadType", payloadOut);

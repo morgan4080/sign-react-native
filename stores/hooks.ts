@@ -20,6 +20,10 @@ export const useLoading = () => {
     const loading = useAppSelector(state => state.auth.loading);
     return [loading] as const
 }
+export const useLoanRequest = () => {
+    const loanRequest = useAppSelector(state => state.auth.loanRequest);
+    return [loanRequest] as const
+}
 export const useAppInitialized = () => {
     const appInitialized = useAppSelector(state => state.auth.appInitialized);
     return [appInitialized] as const

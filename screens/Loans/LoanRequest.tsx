@@ -30,17 +30,14 @@ import {useEffect} from "react";
 import {showSnack} from "../../utils/immediateUpdate";
 import Container from "../../components/Container";
 import TouchableButton from "../../components/TouchableButton";
+import {useAppDispatch, useLoading, useLoanRequest} from "../../stores/hooks";
 type NavigationProps = NativeStackScreenProps<any>;
 const { height } = Dimensions.get("window");
 
 const LoanRequest = ({navigation, route}: NavigationProps) => {
-    const { loading, loanRequest } = useSelector((state: { auth: storeState }) => state.auth);
-    type AppDispatch = typeof store.dispatch;
-    const dispatch : AppDispatch = useDispatch();
-    // const loanRequest = route.params;
-    if (!route.params) {
-        // prefill route.params?.refId and route.params?.memberRefId from store
-    }
+    const [loanRequest] = useLoanRequest();
+    const [loading] = useLoading();
+    const dispatch = useAppDispatch();
     useEffect(() => {
         let isFetching = true;
         (async () => {
@@ -51,7 +48,7 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
         }
     }, []);
 
-    let [fontsLoaded] = useFonts({
+    useFonts({
         Poppins_900Black,
         Poppins_500Medium,
         Poppins_800ExtraBold,
@@ -68,7 +65,9 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
                 'presta-sign://app/loan-request'
             );
 
-            if (result.type === "dismiss") {
+            console.log(result)
+
+            if (result.type === "dismiss" || result.type === "cancel") {
                 const {type, error, payload}: any  = await dispatch(fetchLoanRequest(route.params?.refId))
 
                 if (type === 'fetchLoanRequest/fulfilled') {
@@ -108,7 +107,7 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
             showSnack(error);
         }
     }
-    console.log(`${loanRequest?.pdfThumbNail}`)
+
     return (
         <Container>
             <View style={{ display: 'flex', flexDirection: 'column', marginTop: 20, paddingHorizontal: 20 }}>
@@ -116,7 +115,7 @@ const LoanRequest = ({navigation, route}: NavigationProps) => {
                 <Text allowFontScaling={false} style={styles.subtitle}>Proceed below to sign your form</Text>
                 <Image
                     style={styles.formPreview}
-                    source={{ uri: `data:image/png;base64, ${loanRequest?.pdfThumbNail}` }}
+                    source={{ uri: `data:image/png;base64,${loanRequest?.pdfThumbNail}` }}
                 />
             </View>
 
@@ -150,9 +149,9 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_600SemiBold'
     },
     formPreview: {
-        marginTop: 50,
+        marginTop: 20,
         width: '100%',
-        height: height/2.5,
-        resizeMode: 'contain'
+        height: height/2.2,
+        resizeMode: 'stretch'
     }
 });

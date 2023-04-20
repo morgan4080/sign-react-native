@@ -55,7 +55,7 @@ const CustomTabBar = ({ state, descriptors, navigation }:  BottomTabBarProps) =>
                             testID={options.tabBarTestID}
                             onPress={onPress}
                             onLongPress={onLongPress}
-                            style={{ flex: 1, backgroundColor: isFocused ? "rgba(72,154,171,0.1)" : "#FFFFFF", borderRadius: 12, marginHorizontal: 1, padding: 5 }}
+                            style={{ flex: 1, backgroundColor: isFocused ? "rgba(72,154,171,0.1)" : "#FFFFFF", borderRadius: 12, marginHorizontal: 1, padding: 2 }}
                         >
                             <View style={{ display: "flex", flexDirection: "column", alignItems: "center", position: 'relative' }}>
                                 <TabIcon focused={isFocused} color={isFocused ? 'rgb(72,154,171)' : '#222'} size={20}/>
@@ -74,16 +74,14 @@ const CustomTabBar = ({ state, descriptors, navigation }:  BottomTabBarProps) =>
 const styles = StyleSheet.create({
     bottomContainer: {
         flexDirection: 'row',
-        padding: 8,
-        marginHorizontal: 16,
-        marginBottom: 10,
-        borderRadius: 12,
-        backgroundColor: 'transparent',
-        elevation: 6
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+        marginHorizontal: 0,
+        marginBottom: 0
     },
     label: {
         fontFamily: "Poppins_300Light",
-        letterSpacing: 0.6,
+        letterSpacing: 0,
         fontSize: 12,
         marginTop: 5
     }

@@ -123,9 +123,9 @@ export default function UserProfile({ navigation }: RootStackScreenProps<"Profil
     if (fontsLoaded) {
         return (
             <Container cb={() => reloading()}>
-                {/*<Text style={styles.description}>
-                    { `${ clientSettings ? clientSettings.organizationName : '' }` }
-                </Text>*/}
+                <Text style={styles.description}>
+                    { `${ clientSettings && clientSettings.organizationName ? clientSettings.organizationName : '' }` }
+                </Text>
                 <View style={{
                     backgroundColor: "#FFFFFF",
                     marginTop: 15,
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
         shadowRadius: 1
     },
     description: {
-        marginTop: Platform.OS === 'android' ? 60 : 0,
+        marginTop: Platform.OS === 'android' ? 40 : 0,
         fontWeight: '300',
         color: '#62656b'
     },

@@ -1282,14 +1282,12 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dis
 
         myHeaders.append("Authorization", `Bearer ${key}`);
         myHeaders.append("Content-Type", 'application/json');
-        console.log(`https://eguarantorship-api.presta.co.ke/api/v1/members/send-otp/${phoneNumber}?appSignature=${signature}`);
         const response = await fetch(`https://eguarantorship-api.presta.co.ke/api/v1/members/send-otp/${phoneNumber}?appSignature=${signature}`, {
             method: 'POST',
             headers: myHeaders
         });
 
         const data = await response.json();
-        console.log("data in sendOtp", data);
 
         if (response.status === 200) {
             if (data.success) {
@@ -1316,7 +1314,7 @@ export const sendOtp = createAsyncThunk('sendOtp', async (phoneNumber: any, {dis
                         await dispatch(sendOtp(phoneNumber))
                     }
                 }
-
+                console.log('sendOtp re dispatch')
                 return await dispatch(refreshAccessToken(refreshTokenPayload))
             } else {
                 dispatch({type: 'setAuthState', payload: false})
@@ -3697,7 +3695,6 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(sendOtp.fulfilled, (state, action: any) => {
-            if (isSerializable(action.payload)) console.log("otp sent", action.payload)
             if (isSerializable(action.payload)) state.otpResponse = action.payload
             state.otpSent = true
             state.loading = false
@@ -3711,7 +3708,6 @@ const authSlice = createSlice({
             state.loading = true
         })
         builder.addCase(sendOtpBeforeToken.fulfilled, (state, action: any) => {
-            if (isSerializable(action.payload)) console.log("otp sent", action.payload)
             state.otpSent = true
             state.loading = false
         })

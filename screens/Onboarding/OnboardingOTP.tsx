@@ -43,6 +43,7 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
     const sendOtpHere = () => {
         let realm: any = selectedTenant?.tenantId;
         let client_secret: any = selectedTenant?.clientSecret;
+        let otpReceived = false;
 
         return dispatch(authClient({realm, client_secret}))
         .then(({type, error, payload}: Pick<PayloadAction, any>) => {
@@ -72,17 +73,48 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                     throw("Could not send OTP")
                 }
             } else {
-                console.log("sendOtp", payload);
                 if (showSnack) {
                     showSnack(payload.message, "SUCCESS");
                 } else {
-                    alert(payload.message);
+                    throw(payload.message);
                 }
-                return startSmsUserConsent();
+                return startSmsUserConsent().then(() => {
+                    receiveVerificationSMS((error: any, message) => {
+                        if (error) {
+                            // handle error
+                            if (error === 'error') {
+                                console.log("zzzz", error);
+                            }
+                        } else if (message) {
+                            // parse the message to obtain the verification code
+                            const regex = /\d{4}/g;
+                            const otpArray = message.split(" ");
+                            const otp = otpArray.find(sms => regex.exec(sms))
+                            if (otp && otp.length === 4) {
+                                if (!otpReceived) {
+                                    console.log(otpReceived)
+                                    let str = ""
+                                    for (let i = 0; i < otp.length; i++) {
+                                        str += otp.charAt(i)
+                                        if (str) {
+                                            setupOtpCharacters(str);
+                                            setValueInput(str);
+                                        }
+                                    }
+                                    otpReceived = true;
+                                    console.log(otpReceived)
+                                }
+
+                            }
+                        }
+
+                    });
+
+                    return Promise.resolve(true)
+                });
             }
         }).catch((e) => {
-            alert(JSON.stringify(e))
-            throw new Error(e.message)
+            return Promise.reject(e.message)
         })
     }
 
@@ -125,31 +157,8 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
     useEffect(() => {
         let started = true;
         if (started) {
-            sendOtpHere().then(() => {
-                receiveVerificationSMS((error: any, message) => {
-                    if (error) {
-                        // handle error
-                        if (error === 'error') {
-                            console.log("zzzz", error);
-                        }
-                    } else if (message) {
-                        setupOtpCharacters(message);
-                        // parse the message to obtain the verification code
-                        const regex = /\d{4}/g;
-                        const otpArray = message.split(" ");
-                        const otp = otpArray.find(sms => regex.exec(sms))
-                        if (otp && otp.length === 4) {
-                            setValueInput(otp)
-                        }
-                    }
-                });
-                return Promise.resolve(true)
-            }).catch((e: any) => {
-                if (showSnack) {
-                    showSnack(e.message, "ERROR");
-                } else {
-                    alert(e.message);
-                }
+            sendOtpHere().catch((e: any) => {
+                showSnack(e.message, "ERROR");
             })
         }
 
@@ -219,7 +228,7 @@ const OnboardingOTP = ({navigation, route}: NavigationProps) => {
                     setValue("otpChar4", res);
                     break
                 default:
-                    console.log(result.length);
+                    console.log("default", result.length);
             }
         });
         if (result.length === 0) setValue("otpChar1", "");

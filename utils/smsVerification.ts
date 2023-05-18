@@ -1,5 +1,5 @@
 import { CountryCode, parsePhoneNumber } from 'libphonenumber-js';
-import { Platform } from 'react-native';
+import {NativeEventEmitter, Platform} from 'react-native';
 import {NativeModules, EmitterSubscription} from 'react-native';
 
 type AndroidSmsVerificationApiType = {
@@ -92,8 +92,26 @@ export const getContact = (requestCode?: number, alpha2Code?: string) => {
     return Promise.reject('Unknown Platform')
 };
 
+const EmitterMessages = {
+    SMS_RECEIVED: 'SMS_RECEIVED',
+    SMS_ERROR: 'SMS_ERROR',
+};
+
+const eventEmitter = new NativeEventEmitter(NativeModules.AndroidSmsVerificationApi);
+const startListeners = () => {
+    // check if event exists, add listener if it doesn't
+    eventEmitter.addListener(EmitterMessages.SMS_RECEIVED, onMessageSuccess);
+    eventEmitter.addListener(EmitterMessages.SMS_ERROR, onMessageError);
+};
+
+export const removeAllListeners = () => {
+    eventEmitter.removeAllListeners(EmitterMessages.SMS_RECEIVED);
+    eventEmitter.removeAllListeners(EmitterMessages.SMS_ERROR);
+};
+
 export const receiveVerificationSMS = (callback: Callback) => {
     cb = callback;
+    startListeners();
 };
 
 function generateRandomString(length: number) {
@@ -118,7 +136,7 @@ export const startSmsRetriever = () => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
         return AndroidSmsVerificationApi.startSmsRetriever();
     } else {
-        return null
+        return Promise.resolve(null)
     }
 };
 
@@ -127,7 +145,7 @@ export const startSmsUserConsent = (
     userConsentRequestCode?: number
 ) => {
     if (Platform.OS === 'android' && AndroidSmsVerificationApi) { 
-        return AndroidSmsVerificationApi.startSmsRetriever();
+        return Promise.resolve(AndroidSmsVerificationApi.startSmsRetriever());
     } else {
         return Promise.resolve(null)
     }

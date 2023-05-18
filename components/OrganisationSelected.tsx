@@ -290,7 +290,14 @@ const OrganisationSelected = ({tenantId, parentProps}: {tenantId: string | undef
             }
 
             if (phone !== "") {
-                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant)).finally(() => onboard("phoneNumber", `?memberIdentifier=${phone}&identifierType=PHONE_NUMBER&force=true`))
+                if (selectedTenant) dispatch(AuthenticateClient(selectedTenant))
+                    .finally(
+                        () =>
+                            onboard(
+                                "phoneNumber",
+                                `?memberIdentifier=${phone}&identifierType=PHONE_NUMBER&force=true`
+                            )
+                    )
                 return
             }
 

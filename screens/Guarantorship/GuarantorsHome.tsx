@@ -11,7 +11,7 @@ import {
     Text,
     View,
     Dimensions,
-    TouchableOpacity
+    TouchableOpacity, Platform
 } from "react-native";
 type NavigationProps = NativeStackScreenProps<any>;
 import {useForm} from "react-hook-form";
@@ -159,8 +159,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
         const {payload, type, error}: {payload: any, type: string, error?: any} = await dispatch(validateNumber(phone));
 
         if (type === 'validateNumber/rejected') {
-            showSnack(`${phone} ${error?.message}`, "WARNING");
-            return undefined;
+            return Promise.reject(`${phone} ${error?.message}`);
         }
 
         if (type === "validateNumber/fulfilled" && member) {
@@ -364,7 +363,11 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     searchMemberByMemberNo(getValues("searchTerm").toUpperCase())
                     .then(addContactToList)
                     .catch(e => {
-                        showSnack(e.message, "WARNING");
+                        if (typeof e === "string") {
+                            showSnack(e, "ERROR");
+                        } else {
+                            showSnack(e.message, "ERROR");
+                        }
                     });
                 } else if (searchScheme === 'PHONE_NO') {
                     getSecureKey("alpha2Code")
@@ -373,10 +376,14 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
                     .then(addContactToList)
                     .catch(e => {
-                        showSnack(e.message, "WARNING");
+                        if (typeof e === "string") {
+                            showSnack(e, "ERROR");
+                        } else {
+                            showSnack(e.message, "ERROR");
+                        }
                     });
                 } else {
-                    showSnack("Unsupported Search Scheme", "WARNING");
+                    showSnack("Unsupported Search Scheme", "ERROR");
                 }
             } else {
                 const [phoneRegex, memberNoRegex] = [
@@ -387,7 +394,11 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     searchMemberByMemberNo(getValues("searchTerm").toUpperCase())
                     .then(addContactToList)
                     .catch(e => {
-                        showSnack(e.message, "WARNING");
+                        if (typeof e === "string") {
+                            showSnack(e, "ERROR");
+                        } else {
+                            showSnack(e.message, "ERROR");
+                        }
                     });
                 } else if (phoneRegex.test(getValues("searchTerm"))) {
                     getSecureKey("alpha2Code")
@@ -396,10 +407,14 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     .then(({country_code, phone_no}) => searchMemberByPhone(`${country_code}${phone_no}`))
                     .then(addContactToList)
                     .catch(e => {
-                        showSnack(e.message, "WARNING");
+                        if (typeof e === "string") {
+                            showSnack(e, "ERROR");
+                        } else {
+                            showSnack(e.message, "ERROR");
+                        }
                     });
                 } else {
-                    showSnack("Incorrect Format", "WARNING");
+                    showSnack("Incorrect Format", "ERROR");
                 }
             }
         }
@@ -602,10 +617,10 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                     })
                 }
             } else {
-                showSnack(`SETTINGS NOT AVAILABLE`, "WARNING");
+                showSnack(`SETTINGS NOT AVAILABLE`, "ERROR");
             }
         } else {
-            showSnack(`CANNOT VALIDATE GUARANTORS`, "WARNING");
+            showSnack(`CANNOT VALIDATE GUARANTORS`, "ERROR");
         }
     }
 
@@ -677,7 +692,7 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 name: `${member_name}`,
                 phone: `${member_phone}`
             }, true).catch(e => {
-                showSnack(e.message, "WARNING");
+                showSnack(e.message, "ERROR");
             });
         }
     }
@@ -725,14 +740,24 @@ const GuarantorsHome = ({ navigation, route }: NavigationProps) => {
                 }} onPress={() => {
                     getSecureKey("alpha2Code")
                     .then(alpha2Code => getContact(421, alpha2Code))
-                    .then((data: any) => {
-                        const dataObject: {name: string;country_code:string;phone_no:string;} = data;
-                        setValue('searchTerm', `${dataObject.country_code}${dataObject.phone_no}`);
-                        return searchMemberByPhone(`${dataObject.country_code}${dataObject.phone_no}`);
+                    .then((data: string | any) => {
+                        if (Platform.OS === 'android') {
+                            data = JSON.parse(data)
+                        }
+                        const dataObject:  {name: string;country_code:string;phone_no:string;} = data;
+
+                        return `${dataObject.country_code}${dataObject.phone_no}`;
+                    }).then(data => {
+                        setValue('searchTerm', data);
+                        return searchMemberByPhone(data);
                     })
                     .then(addContactToList)
                     .catch(e => {
-                        showSnack(e.message, "WARNING");
+                        if (typeof e === "string") {
+                            showSnack(e, "ERROR");
+                        } else {
+                            showSnack(e.message, "ERROR");
+                        }
                     });
                 }}>
                     <AntDesign name="contacts" size={22} color="#393a34" />
